@@ -585,11 +585,11 @@ namespace AM.Core
                                     var errMpIds = mailPieces.Select(mp => mp.Id).Except(errorMailPieces.Select(errMp => errMp.Id));
                                     GenerateLabelErrorReport(mbi, mailPieces.Where(mp => errMpIds.Contains(mp.Id)).ToList(), reportDeliverable);
                                     commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, BatchValidationStatus.PartiallyValid, mailBatch.ValidationErrors);
-                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
+                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now).Wait();
                                 }
                                 else
                                 {
-                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now);
+                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Prepped, Common.Now).Wait();
                                 }
                             }
                         }
@@ -906,7 +906,7 @@ namespace AM.Core
                             {
                                 File.WriteAllText(errorReportPath, errorData.ToString());
 
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
                             }
                         }
                         break;
@@ -920,7 +920,7 @@ namespace AM.Core
                             {
                                 File.WriteAllText(errorReportPath, errorData.ToString());
                             }
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
                         }
                         break;
                     case "HSBC":
@@ -933,7 +933,7 @@ namespace AM.Core
                             {
                                 File.WriteAllText(errorReportPath, errorData.ToString());
                             }
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
                         }
                         break;
                     default:
@@ -950,7 +950,7 @@ namespace AM.Core
                                 File.WriteAllText(deliveryReportPath, responseReport);
                             }
 
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
                         }
                         break;
                 }
@@ -996,7 +996,7 @@ namespace AM.Core
                             return;
                         }
 
-                        commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                        commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now).Wait();
 
                         //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
                         commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
@@ -1381,7 +1381,7 @@ namespace AM.Core
                                 commonSvc.UpdateBatchStatus(printBatch.MailBatchId, AM.Entities.BatchStatus.ShippedPartial.ToString());
                             }
 
-                            commonSvc.UpdateBatchPipeLineStatus(printBatch.MailBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now);
+                            commonSvc.UpdateBatchPipeLineStatus(printBatch.MailBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now).Wait();
                         }
                     }
                     catch (Exception ex)
@@ -1464,7 +1464,7 @@ namespace AM.Core
                                 isReportGenerated = GenerateFinalReports(mbi, mailPieces, deliverables, sftChannel);
 
                                 if (isReportGenerated)
-                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
 
                                 //TODO: Remove after proper naming convention
                                 Thread.Sleep(1000);

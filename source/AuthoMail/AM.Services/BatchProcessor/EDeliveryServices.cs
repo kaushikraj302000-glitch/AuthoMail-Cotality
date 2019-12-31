@@ -90,8 +90,8 @@ namespace AM.Services
                 {
                     //Here system is making received on date and time update to latest after fallback.
                     var newReceivedOnDateTime = Common.Now;
-                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Received, newReceivedOnDateTime);
-                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Downloaded, newReceivedOnDateTime);
+                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Received, newReceivedOnDateTime).Wait();
+                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Downloaded, newReceivedOnDateTime).Wait();
 
                     //System will calculate print trail,print location, duedate etc.
                     MailPieceDTO mailPieceDTO = mpSvc.GetMailPieceDataByUniqueIdAndMBId(edmp.UniqueId, edmp.MailBatchId);
@@ -105,7 +105,7 @@ namespace AM.Services
                     mpSvc.UpdateBatchMailPieceDetails(mailPieceDTO);
 
                     var newValidatedOnDateTime = Common.Now;
-                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, newValidatedOnDateTime);
+                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, newValidatedOnDateTime).Wait();
                     eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.ReportedBack, newValidatedOnDateTime);
                     return 1;
                 }
@@ -124,7 +124,7 @@ namespace AM.Services
                         eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.ReportedBack, newValidatedOnDateTime);
                         commonSvc.UpdateBatchStatus(edmp.MailBatchId, BatchStatus.Failed.ToString());
                         commonSvc.UpdateBatchValidationStatus(edmp.MailBatchId, BatchValidationStatus.Invalid, edmp.ErrorDesc);
-                        commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, newValidatedOnDateTime);
+                        commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, newValidatedOnDateTime).Wait();
                         return 1;
                     }
                 }
