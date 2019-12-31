@@ -36,7 +36,7 @@ namespace AM.Web.Controllers
 
         [Route("mailrequest")]
         [HttpPost]
-        public async Task<MailAPIResponse> CreateMailRequest(MailPiece mailPiece)
+        public async Task<HttpResponseMessage> CreateMailRequest(MailPiece mailPiece)
         {
             if (mailPiece == null) throw new HttpResponseException(HttpStatusCode.BadRequest);
             DateTime receivedTime = Common.Now;
@@ -53,11 +53,9 @@ namespace AM.Web.Controllers
             {
                 if (mp.Id != Guid.Empty && commonSvc.CheckForDuplicateMailPieceUniqueId(mailPiece.Id))
                 {
-                    var result = new MailPieceValidationResult() { Code = OutComeCodes.Invalid_DuplicateKey, ErrorMessage = string.Format("The specified package id '{0}' conflicts with an existing package. Retry with a new GUID.", mailPiece.Id) };
-                    if (result.Code != OutComeCodes.No_Error)
-                    {
-                        return new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = result.Code, ErrorDesc = result.ErrorMessage, ReceivedOn = receivedTime };
-                    }
+                    var result = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Invalid_DuplicateKey, ErrorDesc = string.Format("The specified package id '{0}' conflicts with an existing package. Retry with a new GUID.", mailPiece.Id), ReceivedOn = receivedTime };
+
+                    return Request.CreateResponse(HttpStatusCode.Conflict, result);
                 }
             }
 
@@ -80,7 +78,8 @@ namespace AM.Web.Controllers
                         var invalidClient = await clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "_Invalid");
                         await InsertInvalidBatch(receivedTime, sFTChannel, mailBatch, invalidClient.Id, "Invalid client code specified.");
                         mp.DocumentOrPackage.IncludePatternBaseString = false;
-                        return new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidClientCode", ErrorDesc = "Invalid client code specified.", ReceivedOn = receivedTime };
+                        var result = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidClientCode", ErrorDesc = "Invalid client code specified.", ReceivedOn = receivedTime };
+                        return Request.CreateResponse(HttpStatusCode.BadRequest, result);
                     }
                     else
                     {
@@ -124,7 +123,7 @@ namespace AM.Web.Controllers
                                     }
                                 }
                             }
-                         
+
                             if (!File.Exists(triggerFilePath))
                             {
                                 using (FileStream sourceStream = new FileStream(triggerFilePath,
@@ -134,12 +133,14 @@ namespace AM.Web.Controllers
                                 File.SetLastWriteTime(triggerFilePath, receivedTime);
                             }
 
-                            return new MailAPIResponse
+
+                            var res = new MailAPIResponse
                             {
                                 UniqueId = mp.Id,
                                 MailingStatus = ShippingStatus.Acknowledgement.ToString(),
                                 Message = "Your request is queued for processing."
                             };
+                            return Request.CreateResponse(HttpStatusCode.OK, res);
                         }
                         else
                         {
@@ -159,7 +160,10 @@ namespace AM.Web.Controllers
                                 await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                             }
                             mp.DocumentOrPackage.IncludePatternBaseString = false;
-                            return new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = result.Code, ErrorDesc = result.ErrorMessage, ReceivedOn = receivedTime };
+
+                            var res = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = result.Code, ErrorDesc = result.ErrorMessage, ReceivedOn = receivedTime };
+
+                            return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                         }
                 }
 
@@ -168,7 +172,9 @@ namespace AM.Web.Controllers
             {
                 string msg = string.Format("Unexpected error occured while processing your request.");
                 log.Error(msg, ex);
-                return new MailAPIResponse { MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Unknown_Error, ErrorDesc = msg, ReceivedOn = receivedTime };
+                var res = new MailAPIResponse { MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Unknown_Error, ErrorDesc = msg, ReceivedOn = receivedTime };
+
+                return Request.CreateResponse(HttpStatusCode.BadRequest, res);
             }
         }
 
