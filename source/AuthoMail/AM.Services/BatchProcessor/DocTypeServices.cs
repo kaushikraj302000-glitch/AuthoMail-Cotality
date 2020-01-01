@@ -93,14 +93,42 @@ namespace AM.Services
             string maxDocTypeCutOffTime = "";
 
             if (dayOfWeek == DayOfWeek.Sunday)
+            {
                 maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.SunCutOff).First().SunCutOff;
+
+                if (maxDocTypeCutOffTime.IsNullOrWhiteSpace())
+                {
+                    estReceivedOn = estReceivedOn.Date.AddDays(1);
+                    return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+                    //using (ICommonService commonSvc = new CommonService())
+                    //{
+                    //    estReceivedOn = commonSvc.GetNextWorkingDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
+
+                    //    //Recalculate same function for updated document type with new effective received date;
+                    //    return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+                    //}
+                }
+            }
             else if (dayOfWeek == DayOfWeek.Saturday)
+            {
                 maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.SatCutOff).First().SatCutOff;
+                if (maxDocTypeCutOffTime.IsNullOrWhiteSpace())
+                {
+                    estReceivedOn = estReceivedOn.Date.AddDays(1);
+                    return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+                    //using (ICommonService commonSvc = new CommonService())
+                    //{
+                    //    estReceivedOn = commonSvc.GetNextWorkingDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
+
+                    //    //Recalculate same function for updated document type with new effective received date;
+                    //    return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+                    //}
+                }
+            }
             else
                 maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.BizdayCutOff).First().BizdayCutOff;
 
             var maxCutOffDateTimeEst = estReceivedOnDate + TimeSpan.Parse(maxDocTypeCutOffTime);
-
 
             using (ICommonService commonSvc = new CommonService())
             {
