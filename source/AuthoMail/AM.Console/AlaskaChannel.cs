@@ -96,7 +96,7 @@ namespace AM.Console
                     //Update Pipeline Status of Batch Received
                     commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, lastModifiedTime).Wait();
 
-                    commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString());
+                    commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString()).Wait();
                 }
                 catch (Exception ex)
                 {
@@ -451,7 +451,7 @@ namespace AM.Console
                         {
                             mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
                             mbi.MailBatch.ValidationErrors = "Xml does not contain any valid respacontrol nodes.";
-                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString()).Wait();
                         }
                         else if (validMailPieces.Count < mailPieceData.Count)
                         {
@@ -534,7 +534,7 @@ namespace AM.Console
 
             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
 
-            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString()).Wait();
         }
 
         protected override void AcknowledgeBatches()

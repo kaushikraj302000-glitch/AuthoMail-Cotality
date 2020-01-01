@@ -122,7 +122,7 @@ namespace AM.Services
                     {
                         var newValidatedOnDateTime = Common.Now;
                         eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.ReportedBack, newValidatedOnDateTime);
-                        commonSvc.UpdateBatchStatus(edmp.MailBatchId, BatchStatus.Failed.ToString());
+                        commonSvc.UpdateBatchStatus(edmp.MailBatchId, BatchStatus.Failed.ToString()).Wait();
                         commonSvc.UpdateBatchValidationStatus(edmp.MailBatchId, BatchValidationStatus.Invalid, edmp.ErrorDesc);
                         commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, newValidatedOnDateTime).Wait();
                         return 1;
@@ -198,7 +198,7 @@ namespace AM.Services
         {
             using (ICommonService commonSvc = new CommonService())
             {
-                commonSvc.UpdateBatchStatus(mailBatchId, BatchStatus.ShippedAll.ToString());
+                commonSvc.UpdateBatchStatus(mailBatchId, BatchStatus.ShippedAll.ToString()).Wait();
                 return commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, reportPreppedTiming).Result;
             }
         }

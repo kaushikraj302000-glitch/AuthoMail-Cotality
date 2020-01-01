@@ -574,7 +574,7 @@ namespace AM.Core
                                     GenerateImmidiateReports(mbi, mailPieces, reportDeliverable);
 
                                     mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, (mbi.MailBatch.ValidationErrors + Environment.NewLine + "Some documents could not be processed.")).Wait();
-                                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString());
+                                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, AM.Entities.BatchStatus.Failed.ToString()).Wait();
 
                                     //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
                                     commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
@@ -1366,19 +1366,19 @@ namespace AM.Core
                         {
                             if (mailPiecesData.All(data => data.ShippingStatus == ShippingStatus.Shipped.ToString()))
                             {
-                                commonSvc.UpdateBatchStatus(printBatch.MailBatchId, AM.Entities.BatchStatus.ShippedAll.ToString());
+                                commonSvc.UpdateBatchStatus(printBatch.MailBatchId, AM.Entities.BatchStatus.ShippedAll.ToString()).Wait();
                             }
                             else if (mailPiecesData.All(data => data.ShippingStatus == ShippingStatus.PulledBack.ToString()))
                             {
-                                commonSvc.UpdateBatchStatus(printBatch.MailBatchId, AM.Entities.BatchStatus.PulledBack.ToString());
+                                commonSvc.UpdateBatchStatus(printBatch.MailBatchId, AM.Entities.BatchStatus.PulledBack.ToString()).Wait();
                             }
                             else if (mailPiecesData.All(data => data.ShippingStatus == ShippingStatus.Error.ToString()))
                             {
-                                commonSvc.UpdateBatchStatus(printBatch.MailBatchId, AM.Entities.BatchStatus.Failed.ToString());
+                                commonSvc.UpdateBatchStatus(printBatch.MailBatchId, AM.Entities.BatchStatus.Failed.ToString()).Wait();
                             }
                             else
                             {
-                                commonSvc.UpdateBatchStatus(printBatch.MailBatchId, AM.Entities.BatchStatus.ShippedPartial.ToString());
+                                commonSvc.UpdateBatchStatus(printBatch.MailBatchId, AM.Entities.BatchStatus.ShippedPartial.ToString()).Wait();
                             }
 
                             commonSvc.UpdateBatchPipeLineStatus(printBatch.MailBatchId, BatchPipelineStatus.ShippingResponseReceived, Common.Now).Wait();

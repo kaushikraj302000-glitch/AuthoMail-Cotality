@@ -149,7 +149,7 @@ namespace AM.Console
             mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
             commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, receivedOn).Wait();
             mailBatchSvc.MarkMailBatchAsInvalid(mailBatch.Id, errorMessage).Wait();
-            commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.Failed.ToString());
+            commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.Failed.ToString()).Wait();
             return mailBatch;
         }
 
@@ -896,7 +896,7 @@ namespace AM.Console
                         {
                             mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
                             mbi.MailBatch.ValidationErrors = "Xml does not contain any valid package info nodes.";
-                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString()).Wait();
                         }
                         else if (validMailPieces.Count < mailPieceData.Count)
                         {
