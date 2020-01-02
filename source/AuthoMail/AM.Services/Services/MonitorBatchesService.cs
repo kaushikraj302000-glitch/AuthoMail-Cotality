@@ -112,13 +112,14 @@ namespace AM.Services
 
             try
             {
-                delayedReportedBackMailPiecesByAM = db.Query<PendingMailPieceInfo>(@";with cte as (select MB.Id, Count(PB.Id) as TotalPrintBatches, Count(case when PB.IsReportedBack = 1 then 1 else NULL end) as TotalCompletedBatches from AM.PrintBatches PB inner join AM.MailBatches MB on PB.MailBatchId = MB.Id where MB.IsReportedBack = 0 group by MB.Id) select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.DueDate,MP.PrintLocation,MP.ShippingStatus,MP.Uniqueid,d.DocTypeName as DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,MP.MissedSLAReason 
+                delayedReportedBackMailPiecesByAM = db.Query<PendingMailPieceInfo>(@";with cte as (select MB.Id, Count(PB.Id) as TotalPrintBatches, Count(case when PB.IsReportedBack = 1 then 1 else NULL end) as TotalCompletedBatches from AM.PrintBatches PB inner join AM.MailBatches MB on PB.MailBatchId = MB.Id where MB.IsReportedBack = 0 group by MB.Id) select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.DueDate,MP.PrintLocation,MP.ShippingStatus,MP.Uniqueid,d.DocTypeName as DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,MP.MissedSLAReason,pt.TrailName as PrintTrail
 from cte inner join AM.MailBatches MB ON cte.Id = Mb.Id 
 INNER JOIN AM.MailPieces MP ON MB.Id = MP.MailBatchId 
 left outer join [dbo].[v_DocTypes] d ON MP.DocTypeId=d.Id and MP.PnSConfigDetailId = d.PnSConfigDetailId
+left outer join Common.PrintTrails pt on MP.PrintTrailId = pt.Id 
 INNER JOIN Common.Clients C ON MP.ClientId = C.Id 
 where cte.TotalPrintBatches = cte.TotalCompletedBatches 
-UNION Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.PrintLocation,MP.ShippingStatus,MP.Uniqueid,d.DocTypeName as DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,MP.MissedSLAReason,pt.TrailName as PrintTrail 
+UNION Select MP.Id,MP.MailBatchId,C.AppCode,MP.ClientId,MB.BatchName,MB.ReceivedOn,MB.PipelineStatus,MP.DueDate,MP.PrintLocation,MP.ShippingStatus,MP.Uniqueid,d.DocTypeName as DocTypeCode,d.ShippingCarrier,d.ShippingServiceType,MP.MissedSLAReason,pt.TrailName as PrintTrail 
 from AM.MailPieces MP 
 inner join [dbo].[v_DocTypes] d ON MP.DocTypeId=d.Id and MP.PnSConfigDetailId = d.PnSConfigDetailId
 inner join Common.Clients C on MP.ClientId = C.Id  
