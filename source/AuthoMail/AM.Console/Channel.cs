@@ -201,11 +201,11 @@ namespace AM.Console
                             if (mailPieceInfo.Count > 0)
                                 continue;
 
-                            int remainingPrintBatchReportedBackCount = 0;
+                            //int remainingPrintBatchReportedBackCount = 0;
 
-                            remainingPrintBatchReportedBackCount = mailBatchSvc.RemainingPrintBatchesReportedBackCount(batchResponse.MBId);
-                            if (remainingPrintBatchReportedBackCount > 0)
-                                continue;
+                            //remainingPrintBatchReportedBackCount = mailBatchSvc.RemainingPrintBatchesReportedBackCount(batchResponse.MBId);
+                            //if (remainingPrintBatchReportedBackCount > 0)
+                            //    continue;
 
                             commonSvc.UpdateBatchPipeLineStatus(batchResponse.MBId, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
                         }
