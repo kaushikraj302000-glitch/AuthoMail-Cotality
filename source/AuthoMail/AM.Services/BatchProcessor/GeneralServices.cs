@@ -257,11 +257,16 @@ namespace AM.Services
         }
         public string GenerateHashHMAC(string key, string message)
         {
-            Encoding ascii = Encoding.ASCII;
-            HMACSHA256 hmac = new HMACSHA256(ascii.GetBytes(key));
+            var encoding = new System.Text.ASCIIEncoding();
+            byte[] keyByte = encoding.GetBytes(key);
+            byte[] messageBytes = encoding.GetBytes(message);
 
-            byte[] hash = hmac.ComputeHash(ascii.GetBytes(message));
-            return String.Concat(Array.ConvertAll(hash, x => x.ToString("x2")));
+            using (var hmacsha256 = new HMACSHA256(keyByte))
+            {
+                byte[] hashmessage = hmacsha256.ComputeHash(messageBytes);
+                return Convert.ToBase64String(hashmessage);
+            }
+            //return String.Concat(Array.ConvertAll(hash, x => x.ToString("x2")));
         }
 
         public async Task<string> SendEllieMaeResponse(List<MailAPIResponse> responseReport)
@@ -285,8 +290,8 @@ namespace AM.Services
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             //client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-            client.DefaultRequestHeaders.Add("X-API-Key", xAPIKey);
-            client.DefaultRequestHeaders.Add("Elli-Signature", hashHMAC);
+            client.DefaultRequestHeaders.Add("X-API-KEY", xAPIKey);
+            client.DefaultRequestHeaders.Add("X-Elli-Signature", hashHMAC);
             return client;
         }
         public async static Task<string> GetToken()
