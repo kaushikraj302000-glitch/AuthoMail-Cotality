@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -143,7 +144,7 @@ namespace AM.Console
                     return;
                 }
                 List<BatchAPIResponse> batchApiResponses = new List<BatchAPIResponse>();
-                string responseResult = null;
+                HttpResponseMessage responseResult = null;
                 foreach (var mailBatch in reportPreppedBatches)
                 {
                     //take all the MP of that batch and generate List<MailResponseAPI> (Max:100)
@@ -189,7 +190,7 @@ namespace AM.Console
                     MailUtility.SendUnexpectedExceptionEmail(msg);
                 }
 
-                if (responseResult.ToString() == "OK")
+                if (responseResult.StatusCode.ToString() == "OK")
                 {
                     //LIST<Response> one by check with uniqueId (check All MPs NOT IN "INPROGRESS"--> check ALL PrintBatches NOT IN "INPROGRESS" Then Execute below.
                     foreach (var batchResponse in batchApiResponses)
@@ -216,6 +217,12 @@ namespace AM.Console
                             continue;
                         }
                     }
+                }
+                else
+                {
+                    var msg = "Error occured while sending response to EllieMae endpoint with Status Code : {0}, Error : {1}".Fill(responseResult.StatusCode,responseResult.RequestMessage);
+                    log.Error(msg);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
                 }
             }
         }

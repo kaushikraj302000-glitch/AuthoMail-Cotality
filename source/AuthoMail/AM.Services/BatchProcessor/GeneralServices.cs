@@ -24,7 +24,7 @@ namespace AM.Services
         string GeneralJsonReport(MailPieces mp, MailBatchDTO mailBatch, string clientCode);
         List<BatchAPIResponse> GeneralJsonAPIResponse(List<MailPieces> mailpieces, MailBatchDTO mailBatch, string clientCode);
         string GeneralJsonReport(MailPieces mp, MailBatches mailBatch);
-        Task<string> SendEllieMaeResponse(List<MailAPIResponse> responseReport);
+        Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport);
     }
 
     public class GeneralService : ServiceBase, IGeneralService
@@ -269,17 +269,18 @@ namespace AM.Services
             //return String.Concat(Array.ConvertAll(hash, x => x.ToString("x2")));
         }
 
-        public async Task<string> SendEllieMaeResponse(List<MailAPIResponse> responseReport)
+        public async Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport)
         {
             string json = JsonConvert.SerializeObject(responseReport);
             string hashHMAC = GenerateHashHMAC(Config.EllieMae_Secret, json);
             //var token = await GetToken();
             using (var client = SetupClient(Config.EllieMae_X_API_Key, hashHMAC))
             {
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
                 HttpResponseMessage response = await client.PostAsync(Config.EllieMae_UploadResponseURL, content);
-                var responseString = await response.Content.ReadAsStringAsync();
-                return response.StatusCode.ToString();
+                return response;
             }
         }
 
