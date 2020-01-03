@@ -136,7 +136,7 @@ namespace AM.Console
             {
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
 
-                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.ReportPrepped).Where(ch => ch.SFTChannelId == sftChannelDetails.Id).ToList();
+                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.ReportPrepped).Where(ch => ch.SFTChannelId == sftChannelDetails.Id).Take(100).ToList();
 
                 if (reportPreppedBatches == null || reportPreppedBatches.Count == 0)
                 {
@@ -179,50 +179,58 @@ namespace AM.Console
                     }
                 }
 
-                try
+                switch (sftChannelDetails.Code.Split('_')[0].ToUpper())
                 {
-                    responseResult = genSvc.SendEllieMaeResponse(batchApiResponses.Select(b => b.resp).ToList()).Result;
-                }
-                catch (Exception ex)
-                {
-                    var msg = "Unexpected error occured while sending response to EllieMae endpoint with Error : {0}".Fill(ex.Message);
-                    log.Error(msg, ex);
-                    MailUtility.SendUnexpectedExceptionEmail(msg);
-                }
-
-                if (responseResult.StatusCode.ToString() == "OK")
-                {
-                    //LIST<Response> one by check with uniqueId (check All MPs NOT IN "INPROGRESS"--> check ALL PrintBatches NOT IN "INPROGRESS" Then Execute below.
-                    foreach (var batchResponse in batchApiResponses)
-                    {
+                    case "ELLIEMAE":
                         try
                         {
-                            var mailPieceInfo = mailPieceSvc.GetMailPiecesByMailBatchId(batchResponse.MBId).Where(m => m.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
-                            if (mailPieceInfo.Count > 0)
-                                continue;
-
-                            //int remainingPrintBatchReportedBackCount = 0;
-
-                            //remainingPrintBatchReportedBackCount = mailBatchSvc.RemainingPrintBatchesReportedBackCount(batchResponse.MBId);
-                            //if (remainingPrintBatchReportedBackCount > 0)
-                            //    continue;
-
-                            commonSvc.UpdateBatchPipeLineStatus(batchResponse.MBId, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
+                            responseResult = genSvc.SendEllieMaeResponse(batchApiResponses.Select(b => b.resp).ToList()).Result;
                         }
                         catch (Exception ex)
                         {
-                            var msg = "Error occured in API ReportedBack Method For Mail Batch Id: {0} with Error : {1}".Fill(batchResponse.MBId, ex.Message);
+                            var msg = "Unexpected error occured while sending response to EllieMae endpoint with Error : {0}".Fill(ex.Message);
                             log.Error(msg, ex);
                             MailUtility.SendUnexpectedExceptionEmail(msg);
-                            continue;
+                            break;
                         }
-                    }
-                }
-                else
-                {
-                    var msg = "Error occured while sending response to EllieMae endpoint with Status Code : {0}, Error : {1}".Fill(responseResult.StatusCode,responseResult.RequestMessage);
-                    log.Error(msg);
-                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                        if (responseResult.StatusCode.ToString() == "OK")
+                        {
+                            //LIST<Response> one by check with uniqueId (check All MPs NOT IN "INPROGRESS"--> check ALL PrintBatches NOT IN "INPROGRESS" Then Execute below.
+                            foreach (var batchResponse in batchApiResponses)
+                            {
+                                try
+                                {
+                                    var mailPieceInfo = mailPieceSvc.GetMailPiecesByMailBatchId(batchResponse.MBId).Where(m => m.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+                                    if (mailPieceInfo.Count > 0)
+                                        continue;
+
+                                    //int remainingPrintBatchReportedBackCount = 0;
+
+                                    //remainingPrintBatchReportedBackCount = mailBatchSvc.RemainingPrintBatchesReportedBackCount(batchResponse.MBId);
+                                    //if (remainingPrintBatchReportedBackCount > 0)
+                                    //    continue;
+
+                                    commonSvc.UpdateBatchPipeLineStatus(batchResponse.MBId, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
+                                }
+                                catch (Exception ex)
+                                {
+                                    var msg = "Error occured in API ReportedBack Method For Mail Batch Id: {0} with Error : {1}".Fill(batchResponse.MBId, ex.Message);
+                                    log.Error(msg, ex);
+                                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                                    continue;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            var msg = "Error occured while sending response to EllieMae endpoint with Status Code : {0}, Error : {1}".Fill(responseResult.StatusCode, responseResult.RequestMessage);
+                            log.Error(msg);
+                            MailUtility.SendUnexpectedExceptionEmail(msg);
+                        }
+                        break;
+                    default:
+                        log.Error("Invalid SFT channel.");
+                        break;
                 }
             }
         }
