@@ -186,15 +186,11 @@
     <None Include="CoverTemplates\UNIFYFCU\UNIFYFCU_USPS_10_6X95.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="CoverTemplates\UNIFYFCU\UNIFYFCU_USPS_95X12.pdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="CoverTemplates\UNIFYFCU\UNIFYFCU_USPS_9X12_Tyvek.pdf" />
     <None Include="CoverTemplates\USAA\USAA_10_6X95.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="CoverTemplates\USAA\USAA_USPS_95X12.pdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="CoverTemplates\USAA\USAA_USPS_95X12_Tyvek.pdf" />
     <None Include="CoverTemplates\USAA\USAA_USPS_Generic_FrontBarcode_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
