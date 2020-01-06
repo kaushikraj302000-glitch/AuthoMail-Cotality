@@ -136,12 +136,12 @@ namespace PCI.Service
                 }
                 catch (Exception ex)
                 {
-                    if (ex.Message.Contains("connection attempt failed") || ex.Message.Contains("connected party did not properly respond") || ex.Message.Contains("established connection failed"))
+                    if (ex.Message.Contains("connection attempt failed") || ex.Message.Contains("connected party did not properly respond") || ex.Message.Contains("established connection failed") || ex.Message.Contains("target machine actively refused it"))
                     {
                         var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex);
                         log.Error(connectionMsg);
                         MailUtility.SendSFTConnectionIssueNotificationEmail(connectionMsg, pvCode);
-                        Thread.Sleep(180000);
+                        Thread.Sleep(120000);
                         continue;
                     }
 
@@ -161,6 +161,15 @@ namespace PCI.Service
                 }
                 catch (Exception ex)
                 {
+                    if (ex.Message.Contains("connection attempt failed") || ex.Message.Contains("connected party did not properly respond") || ex.Message.Contains("established connection failed") || ex.Message.Contains("target machine actively refused it"))
+                    {
+                        var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex);
+                        log.Error(connectionMsg);
+                        MailUtility.SendSFTConnectionIssueNotificationEmail(connectionMsg, pvCode);
+                        Thread.Sleep(120000);
+                        continue;
+                    }
+
                     var msg = "SubmitBatchToPrintVendor : Error occured while updating Batch Status for PrintTrailBatchId - {0}".Fill(ptBatch.Id);
                     log.Error(msg, ex);
 
