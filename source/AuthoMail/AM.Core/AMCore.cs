@@ -235,24 +235,16 @@ namespace AM.Core
                                             var msg = "USPS Priority Express is not supporting shipping to provided address for MailPieceId : {0} with Error :{1}. So AM is doing fallback to other shipping service.".Fill(mailPiece.Id, response.ExceptionDetail);
                                             log.Debug(msg);
                                             //NOTE: Here system is check for not deliverable or any other error if occure then system will fall back to USPS Priority service and try to generate label
-                                            var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(client.Id, mailPiece.DocTypeId.Value, docType.PnSConfigId.Value);
+                                            var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailPiece.EffectiveReceivedOnEst.Value, Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());                                           
 
-                                            if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
-                                            {
-                                                //Consider as an Error Because system didn't find any Fallback document type apart from USPS Priority Express
-                                                break;
-                                            }
-
-                                            var priDocType = fallBackDocTypes.SingleOrDefault(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString());
-
-                                            if (priDocType == null)
+                                            if (fbPriority == null)
                                             {
                                                 //Consider as an Error Because system didn't find Fallback document type apart from USPS Priority
                                                 break;
                                             }
 
                                             //NOTE :Need to update Document Type level details like DueDate, PrintLocation, PrintTrailId because system is changing document type and if may have vary configurations.
-                                            docType = priDocType;
+                                            docType = fbPriority;
 
                                             commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client.AppCode);
 
@@ -379,19 +371,11 @@ namespace AM.Core
                                             var msg = "FedEx is not supporting shipping to provided address for MailPieceId : {0} with Error :{1}. So AM is doing fallback to other shipping carrier.".Fill(mailPiece.Id, response.ExceptionDetail);
                                             log.Debug(msg);
                                             //First try to generate eVS label with USPS Priority Express
-                                            var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, docType.PnSConfigId.Value);
+                                            var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
 
-                                            if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
+                                            if (fbPriorityExpress != null)
                                             {
-                                                //Consider as an Error package
-                                                break;
-                                            }
-
-                                            var priExDocType = fallBackDocTypes.SingleOrDefault(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString());
-
-                                            if (priExDocType != null)
-                                            {
-                                                docType = priExDocType;
+                                                docType = fbPriorityExpress;
 
                                                 mailPiece.DocTypeId = docType.Id;
                                                 //Update Due Date and its other calculation based on updated document type.
@@ -405,15 +389,15 @@ namespace AM.Core
                                                 {
                                                     msg = "USPS Priority Express is not supporting shipping to provided address for MailPieceId : {0} with Error :{1}.".Fill(mailPiece.Id, response.ExceptionDetail);
                                                     log.Debug(msg);
-                                                    var priDocType = fallBackDocTypes.SingleOrDefault(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString());
+                                                    var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
 
-                                                    if (priDocType == null)
+                                                    if (fbPriority == null)
                                                     {
                                                         //Consider as an Error package
                                                         break;
                                                     }
 
-                                                    docType = priDocType;
+                                                    docType = fbPriority;
 
                                                     mailPiece.DocTypeId = docType.Id;
 
@@ -427,15 +411,15 @@ namespace AM.Core
                                             }
                                             else
                                             {
-                                                var priDocType = fallBackDocTypes.SingleOrDefault(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString());
+                                                var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
 
-                                                if (priDocType == null)
+                                                if (fbPriority == null)
                                                 {
                                                     //Consider as an Error package
                                                     break;
                                                 }
 
-                                                docType = priDocType;
+                                                docType = fbPriority;
 
                                                 mailPiece.DocTypeId = docType.Id;
 

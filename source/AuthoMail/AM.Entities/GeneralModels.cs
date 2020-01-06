@@ -330,7 +330,9 @@ namespace AM.Entities
         GROUND_HOME_DELIVERY = 5,
         PRIORITY_OVERNIGHT = 6,
         STANDARD_OVERNIGHT = 7,
-        USPS_EXPRESSMAIL = 8
+        USPS_EXPRESSMAIL = 8,
+        PRIORITY_EXPRESS = 9,
+        PRIORITY = 10
     }
 
     public static class SLAType

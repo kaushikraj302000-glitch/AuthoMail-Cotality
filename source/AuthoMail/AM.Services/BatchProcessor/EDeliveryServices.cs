@@ -142,29 +142,23 @@ namespace AM.Services
                 {
                     if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()) || mailPiece.RcptAddressTypes.Contains(AddressType.POBOX.ToString()) || mailPiece.RcptAddressTypes.Contains(AddressType.Territory.ToString()))
                     {
-                        var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, docType.PnSConfigId.Value);
+                        var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailPiece.EffectiveReceivedOnEst.Value, Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
+                       
 
-                        if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
+                        if (fbPriorityExpress != null)
                         {
-                            return;
-                        }
-
-                        var priExDocType = fallBackDocTypes.SingleOrDefault(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString());
-
-                        if (priExDocType != null)
-                        {
-                            docType = priExDocType;
+                            docType = fbPriorityExpress;
                         }
                         else
                         {
-                            var priDocType = fallBackDocTypes.SingleOrDefault(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString());
+                            var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailPiece.EffectiveReceivedOnEst.Value, Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
 
-                            if (priDocType == null)
+                            if (fbPriority == null)
                             {
                                 return;
                             }
 
-                            docType = priDocType;
+                            docType = fbPriority;
                         }
 
                         mailPiece.DocTypeId = docType.Id;
