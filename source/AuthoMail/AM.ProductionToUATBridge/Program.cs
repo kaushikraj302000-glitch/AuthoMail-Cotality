@@ -20,14 +20,14 @@ namespace AM.ProductionToUATBridge
             if (args[0] == "CITIVM")
             {
                 log.Debug("----Batching Process started for Client CITIVM----");
-                PrintReadyClientProcess.GenerateCitiBatch(Common.Now.Date.AddDays(-1));
+                PrintReadyClientProcess.GenerateCitiBatch(Convert.ToDateTime(args[0]));
                 log.Debug("----Batching Process completed for Client CITIVM----");
                 return;
             }
             else if (args[0] == "RPS")
             {
                 log.Debug("----Batching Process started for Client RPS----");
-                PrintReadyClientProcess.GenerateRPSBatch(Common.Now.Date.AddDays(-1));
+                PrintReadyClientProcess.GenerateRPSBatch(Convert.ToDateTime(args[0]));
                 log.Debug("----Batching Process completed for Client RPS----");
                 return;
             }
