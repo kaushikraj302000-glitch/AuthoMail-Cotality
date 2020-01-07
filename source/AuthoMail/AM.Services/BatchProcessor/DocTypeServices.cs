@@ -16,7 +16,7 @@ namespace AM.Services
         DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, DateTime estReceivedOn);
 
         DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, string shippingCarrier, string shippingServiceType);
-        List<DocType> GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, int pnSConfigId);
+        DocType GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, DateTime estReceivedOn, string shippingCarrier, string shippingServiceType);
         DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId);
         List<PnSConfigDetailCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId);
         DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId);
@@ -38,11 +38,16 @@ namespace AM.Services
             return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType });
         }
 
-        public List<DocType> GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, int pnSConfigId)
+        public DocType GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, DateTime estReceivedOn, string shippingCarrier, string shippingServiceType)
         {
-            string query = "SELECT D.* FROM [dbo].[v_DocTypes] D WHERE D.PnSConfigId=@PnSConfigId AND D.ClientId=@ClientId AND D.Id=@DocTypeId AND D.IsActive=1 AND D.IsFallBack=1";
+            string query = "SELECT D.* FROM [dbo].[v_DocTypes] D WHERE D.ClientId=@ClientId AND D.Id=@DocTypeId AND D.IsActive=1 AND D.IsFallBack=1 AND D.ShippingCarrier=@ShippingCarrier AND D.ShippingServiceType=@ShippingServiceType";
 
-            return db.Query<DocType>(query, new { ClientId = clientId, DocTypeId = docTypeId, PnSConfigId = pnSConfigId }).ToList();
+            var docTypeList = db.Query<DocType>(query, new { ClientId = clientId, DocTypeId = docTypeId, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType }).ToList();
+
+            if (docTypeList.Count == 0)
+                return null;
+
+            return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
         }
 
         public DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId)

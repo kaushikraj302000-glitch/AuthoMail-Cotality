@@ -813,36 +813,29 @@ namespace AM.Console
                         {
                             if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
                             {
-                                var fallBackDocTypes = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, docType.PnSConfigId.Value);
-
-                                if (fallBackDocTypes == null || fallBackDocTypes.Count == 0)
+                                var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
+                               
+                                if (fbPriorityExpress != null)
                                 {
-                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                    continue;
-                                }
-
-                                var priExDocType = fallBackDocTypes.SingleOrDefault(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString());
-
-                                if (priExDocType != null)
-                                {
-                                    docType = priExDocType;
+                                    docType = fbPriorityExpress;
                                 }
                                 else
                                 {
-                                    var priDocType = fallBackDocTypes.SingleOrDefault(dt => dt.ShippingCarrier == Carrier.USPS.ToString() && dt.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString());
+                                    var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
 
-                                    if (priDocType == null)
+                                    if (fbPriority == null)
                                     {
                                         mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                         continue;
                                     }
 
-                                    docType = priDocType;
+                                    docType = fbPriority;
+
                                 }
 
                                 mailPiece.DocTypeId = docType.Id;
-                                mailPiece.PnSConfigDetailId = docType.PnSConfigDetailId;
                                 mailPiece.PrintTrailId = docType.PrintTrailId;
+                                mailPiece.PnSConfigDetailId = docType.PnSConfigDetailId;
 
                                 if (!mailPiece.IsReturnInfoSpecified && !mailBatch.IsReturnInfoSpecified && docType.IsReturnInfoSpecified)
                                 {

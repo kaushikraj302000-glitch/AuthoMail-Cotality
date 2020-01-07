@@ -21,8 +21,17 @@
     [SunCutOff]              VARCHAR (255) NULL,
     [SunSLAType]             VARCHAR (255) CONSTRAINT [DF_PnSConfigDetail_SunSLAType] DEFAULT ('NA') NULL,
     [SunTimeSpan]            VARCHAR (255) NULL,
+    [PrintTrailId]           INT           NULL,
+    [BizDayStartTime]        TIME (7)      NULL,
+    [BizDayEndTime]          TIME (7)      NULL,
+    [SatStartTime]           TIME (7)      NULL,
+    [SatEndTime]             TIME (7)      NULL,
+    [SunStartTime]           TIME (7)      NULL,
+    [SunEndTime]             TIME (7)      NULL,
     CONSTRAINT [PK_PnSConfigDetail] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_PnSConfigDetail_Envelopes] FOREIGN KEY ([EnvelopeId]) REFERENCES [Common].[Envelopes] ([Id]),
     CONSTRAINT [FK_PnSConfigDetail_PnSConfig] FOREIGN KEY ([PnSConfigId]) REFERENCES [Common].[PnSConfig] ([Id])
 );
+
+
 

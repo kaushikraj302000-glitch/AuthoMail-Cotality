@@ -158,7 +158,8 @@ namespace PCI.Service
                 using (MailMessage msg = new MailMessage())
                 {
                     msg.IsBodyHtml = true;
-                    msg.To.Add(pvCode == "PCI" ? Common.Email_ToPCI : Common.Email_ToNordis);
+                    msg.To.Add(pvCode == "PCI" ? Common.Email_ToPCI : pvCode == "NORDIS" ? Common.Email_ToNordis : Common.UnexpectedEmail_ToEmail);
+                    msg.CC.Add(Common.UnexpectedEmail_CcEmail + "," + Common.UnexpectedEmail_ToEmail);
                     msg.Subject = Common.ApplicationEnvironment + " : {0} SFT Site Connection issue".Fill(pvCode);
                     msg.Priority = MailPriority.High;
 
