@@ -17,11 +17,12 @@ using Newtonsoft.Json.Serialization;
 using System.Web.Http.Cors;
 using System.Threading.Tasks;
 using System.Text;
+using System.Web.Http.Controllers;
 
 namespace AM.Web.Controllers
 {
     [EnableCors(origins: "*", headers: "*", methods: "*")]
-    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.API)]
+    [CustomAuthorization(Roles = AMRoles.Admin + "," + AMRoles.API)]
     [RoutePrefix("api")]
     public class MailRequestController : ApiController
     {
@@ -368,6 +369,17 @@ namespace AM.Web.Controllers
         {
             public string Code { get; set; }
             public string ErrorMessage { get; set; }
+        }
+    }
+
+    public class CustomAuthorization : AuthorizeAttribute
+    {
+        protected override void HandleUnauthorizedRequest(HttpActionContext actionContext)
+        {
+            actionContext.Response = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.Unauthorized
+            };
         }
     }
 }
