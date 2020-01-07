@@ -22,7 +22,7 @@ using System.Web.Http.Controllers;
 namespace AM.Web.Controllers
 {
     [EnableCors(origins: "*", headers: "*", methods: "*")]
-    [CustomAuthorization(Roles = AMRoles.Admin + "," + AMRoles.API)]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.API)]
     [RoutePrefix("api")]
     public class MailRequestController : ApiController
     {
@@ -372,14 +372,4 @@ namespace AM.Web.Controllers
         }
     }
 
-    public class CustomAuthorization : AuthorizeAttribute
-    {
-        protected override void HandleUnauthorizedRequest(HttpActionContext actionContext)
-        {
-            actionContext.Response = new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.Unauthorized
-            };
-        }
-    }
 }
