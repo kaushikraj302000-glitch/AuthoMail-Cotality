@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 namespace AM.Web.Controllers
 {
     [EnableCors(origins: "*", headers: "*", methods: "*")]
-    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.API)]
+    [CustomAuthorization(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.API)]
     [RoutePrefix("api")]
     public class PullBackApiController : ApiController
     {
