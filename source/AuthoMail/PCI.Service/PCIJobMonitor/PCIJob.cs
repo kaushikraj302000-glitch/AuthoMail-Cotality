@@ -399,7 +399,7 @@ namespace PCI.Service
                     {
                         PieceId = package.MailPieceId.Value,
                         FileName = package.PDFFileName,
-                        DueDate = package.MailPieceDueDate,
+                        DueDate = Common.UtcToEst(package.MailPieceDueDate),
                         TotalSheets = package.TotalSheets,
                         ClientCode = package.AppCode,
                         IsForeignAddress = false,
