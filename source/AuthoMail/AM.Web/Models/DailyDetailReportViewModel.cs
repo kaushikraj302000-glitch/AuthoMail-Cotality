@@ -10,6 +10,7 @@ namespace AM.Web.Models
         public Guid UniqueId { get; set; }
         public string TrackingNo { get; set; }
         public int TotalPages { get; set; }
+        public int TotalBlankPages { get; set; }
         public string ClientBatchId { get; set; }
         public string Channel { get; set; }
         public string DocType { get; set; }

@@ -875,6 +875,96 @@ namespace AM.Console
         }
         #endregion
 
+        public static List<int> CheckIfPdfBlank(int pageCount, List<int> blankPageNos, string localFilePath, iTextSharp.text.pdf.PdfReader reader)
+        {
+            byte[] pdfBytes = File.ReadAllBytes(localFilePath);
+            for (int i = 1; i <= pageCount; i++)
+            {
+                iTextSharp.text.pdf.parser.ITextExtractionStrategy strategy = new iTextSharp.text.pdf.parser.LocationTextExtractionStrategy();
+                string pageContent = iTextSharp.text.pdf.parser.PdfTextExtractor.GetTextFromPage(reader, i, strategy);
+
+                if (string.IsNullOrWhiteSpace(pageContent))
+                {
+                    //check if page contains any image or not
+                    List<System.Drawing.Image> imagesFound = ExtractImagesFromPDF(pdfBytes, i);
+                    if (imagesFound.Count == 0)
+                    {
+                        blankPageNos.Add(i);
+                    }
+                }
+            }
+            return blankPageNos;
+        }
+
+        private static List<System.Drawing.Image> ExtractImagesFromPDF(byte[] bytes, int pageNumber)
+        {
+            var imgs = new List<System.Drawing.Image>();
+            var pdf = new iTextSharp.text.pdf.PdfReader(bytes);
+
+            try
+            {
+
+                iTextSharp.text.pdf.PdfDictionary pg = pdf.GetPageN(pageNumber);
+                List<iTextSharp.text.pdf.PdfObject> objs = FindImageInPDFDictionary(pg);
+
+                foreach (var obj in objs)
+                {
+                    if (obj != null)
+                    {
+                        int XrefIndex = Convert.ToInt32(((iTextSharp.text.pdf.PRIndirectReference)obj).Number.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                        iTextSharp.text.pdf.PdfObject pdfObj = pdf.GetPdfObject(XrefIndex);
+                        iTextSharp.text.pdf.PdfStream pdfStrem = (iTextSharp.text.pdf.PdfStream)pdfObj;
+                        var pdfImage = new iTextSharp.text.pdf.parser.PdfImageObject((iTextSharp.text.pdf.PRStream)pdfStrem);
+                        var img = pdfImage.GetDrawingImage();
+
+                        imgs.Add(img);
+                    }
+                }
+
+            }
+            finally
+            {
+                pdf.Close();
+            }
+
+            return imgs;
+        }
+
+        private static List<iTextSharp.text.pdf.PdfObject> FindImageInPDFDictionary(iTextSharp.text.pdf.PdfDictionary pg)
+        {
+            var res = (iTextSharp.text.pdf.PdfDictionary)iTextSharp.text.pdf.PdfReader.GetPdfObject(pg.Get(iTextSharp.text.pdf.PdfName.RESOURCES));
+            var xobj = (iTextSharp.text.pdf.PdfDictionary)iTextSharp.text.pdf.PdfReader.GetPdfObject(res.Get(iTextSharp.text.pdf.PdfName.XOBJECT));
+            var pdfObgs = new List<iTextSharp.text.pdf.PdfObject>();
+
+            if (xobj != null)
+            {
+                foreach (iTextSharp.text.pdf.PdfName name in xobj.Keys)
+                {
+                    iTextSharp.text.pdf.PdfObject obj = xobj.Get(name);
+                    if (obj.IsIndirect())
+                    {
+                        var tg = (iTextSharp.text.pdf.PdfDictionary)iTextSharp.text.pdf.PdfReader.GetPdfObject(obj);
+                        var type = (iTextSharp.text.pdf.PdfName)iTextSharp.text.pdf.PdfReader.GetPdfObject(tg.Get(iTextSharp.text.pdf.PdfName.SUBTYPE));
+
+                        if (iTextSharp.text.pdf.PdfName.IMAGE.Equals(type)) // image at the root of the pdf
+                        {
+                            pdfObgs.Add(obj);
+                        }
+                        else if (iTextSharp.text.pdf.PdfName.FORM.Equals(type)) // image inside a form
+                        {
+                            FindImageInPDFDictionary(tg).ForEach(o => pdfObgs.Add(o));
+                        }
+                        else if (iTextSharp.text.pdf.PdfName.GROUP.Equals(type)) // image inside a group
+                        {
+                            FindImageInPDFDictionary(tg).ForEach(o => pdfObgs.Add(o));
+                        }
+                    }
+                }
+            }
+
+            return pdfObgs;
+        }
+
         protected override void DisposeManagedObjects()
         {
             services.ForEach(svc => svc.Dispose());

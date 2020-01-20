@@ -54,6 +54,7 @@ namespace AM.Services
         public string Name { get; set; }
         public string Address { get; set; }
         public int TotalPages { get; set; }
+        public int TotalBlankPages { get; set; }
         public bool IsPullBackRequested { get; set; }
         public string Status { get; set; }
         public DateTime? ReceivedOn { get; set; }

@@ -90,6 +90,8 @@
     [ExpiryDate]                          DATETIME         NULL,
     [PnSConfigDetailId]                   INT              NULL,
     [Inserts]                             VARCHAR (255)    NULL,
+    [TotalBlankPages] INT NULL, 
+    [BlankPageNumbers] VARCHAR(255) NULL, 
     CONSTRAINT [PK_MailPieces] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_MailPiece_DocTypes] FOREIGN KEY ([DocTypeId]) REFERENCES [AM].[DocTypes] ([Id]),
     CONSTRAINT [FK_MailPieces_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),

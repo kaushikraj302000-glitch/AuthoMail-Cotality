@@ -774,9 +774,11 @@ namespace AM.Console
             }
 
             int pageCount = 0;
+            List<int> blankPageNos = new List<int>();
             using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
             {
                 pageCount = reader.NumberOfPages;
+                blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
             }
             //NOTE : Here system is storing file size of received pdf in KB
             FileInfo fileInfo = new FileInfo(localFilePath);
@@ -805,9 +807,17 @@ namespace AM.Console
             {
                 return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages) };
             }
+            else if (pageCount == blankPageNos.Count() || pageCount == blankPageNos.Count - 1)//Here we are considering 1st page as cover for print ready client.
+            {
+                mailPieceDTO.TotalBlankPages = blankPageNos.Count;
+                mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);
+                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "All pages are blank in received pdf file." };
+            }
             else
             {
                 //if at mail piece level or at mail batch level, system didn't find return info then it will check for MailBatch level if exist system will use that in mail piece level 
+                mailPieceDTO.TotalBlankPages = blankPageNos.Count;
+                mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);
                 if (!mailPieceDTO.IsReturnInfoSpecified || !mbi.MailBatch.IsReturnInfoSpecified)
                 {
                     mailPieceDTO.RetRcptFirstName = docType.RetRcptFirstName;
