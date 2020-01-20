@@ -17,14 +17,19 @@ namespace AM.ProductionToUATBridge
         public static log4net.ILog log = log4net.LogManager.GetLogger(typeof(Program));
         static void Main(string[] args)
         {
-            if (args[0] == "CITIVM")
+            string clientCode = "";
+            if (args.Length >= 1)
+            {
+                clientCode = args[0];
+            }
+            if (clientCode == "CITIVM")
             {
                 log.Debug("----Batching Process started for Client CITIVM----");
                 PrintReadyClientProcess.GenerateCitiBatch(Common.EstToday.Date.AddDays(Convert.ToInt32(args[1])));
                 log.Debug("----Batching Process completed for Client CITIVM----");
                 return;
             }
-            else if (args[0] == "RPS")
+            else if (clientCode == "RPS")
             {
                 log.Debug("----Batching Process started for Client RPS----");
                 PrintReadyClientProcess.GenerateRPSBatch(Common.EstToday.Date.AddDays(Convert.ToInt32(args[1])));
@@ -33,11 +38,6 @@ namespace AM.ProductionToUATBridge
             }
             else
             {
-                string clientCode = "";
-                if (!string.IsNullOrWhiteSpace(args[0]))
-                {
-                    clientCode = args[0];
-                }
                 log.Debug("Working Log");
                 using (IMailBatchService mailBatchSvc = new MailBatchService())
                 using (IMailPieceService mailPieceSvc = new MailPieceService())
@@ -224,7 +224,7 @@ namespace AM.ProductionToUATBridge
                                     newFile.CreateEntryFromFile(xmlFilePath, Path.GetFileName(xmlFilePath));
                                 }
                                 File.WriteAllText(triggerFilePath, "");
-                                //File.SetLastWriteTimeUtc(triggerFilePath, mpListByMb.Select(mp => mp.ReceivedOn).Distinct().First());
+                                File.SetLastWriteTimeUtc(triggerFilePath, mpListByMb.Select(mp => mp.ReceivedOn).Distinct().First());
                                 sftSite.UploadFile(zipFilePath, Path.Combine(sftChannel.ToADEDir, Path.GetFileName(zipFilePath)));
                                 sftSite.UploadFile(triggerFilePath, Path.Combine(sftChannel.ToADEDir, Path.GetFileName(triggerFilePath)));
 
