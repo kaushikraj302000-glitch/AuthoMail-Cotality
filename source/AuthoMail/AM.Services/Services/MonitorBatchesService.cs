@@ -88,12 +88,14 @@ namespace AM.Services
 
                 var delayedPCIMailPieces = pendingInProgressMailPieces.Where(mp => mp.VendorCode == "PCI" && Common.Now > mp.GetEstimatedSubmittedOn(timings, cutOffMinutes + 15) && mp.MailPieceStatus != ShippingStatus.Shipped.ToString() && mp.MailPieceStatus != ShippingStatus.eDelivered.ToString()).ToList();
 
+                var delayedNordisMailPieces = pendingInProgressMailPieces.Where(mp => mp.VendorCode == "NORDIS" && Common.Now > mp.GetEstimatedSubmittedOn(timings, cutOffMinutes + 15) && mp.MailPieceStatus != ShippingStatus.Shipped.ToString() && mp.MailPieceStatus != ShippingStatus.eDelivered.ToString()).ToList();
+
                 var delayedEDeliveryMailPieces = pendingInProgressMailPieces.Where(e => e.IsEDeliveryRequested == true && e.IsInvitationSent == false).ToList();
 
                 //Delayed PickUp MailPieces
                 delayedPickUpMailPieces = pendingMPsToSubmit.Where(mp => mp.MailPieceStatus == ShippingStatus.Shipped.ToString()).ToList();
 
-                delayedMailPieces = delayedDallasMailPieces.Concat(delayedEmptyPrintLocation).Concat(delayedShippedMailPieces).Concat(delayedPulledBackMailPieces).Concat(delayedErrorMailPieces).Concat(clientIdNullMailPieces).Concat(shippingStatusNullMailPieces).Concat(delayedPCIMailPieces).Concat(delayedEDeliveryMailPieces).ToList();
+                delayedMailPieces = delayedDallasMailPieces.Concat(delayedEmptyPrintLocation).Concat(delayedShippedMailPieces).Concat(delayedPulledBackMailPieces).Concat(delayedErrorMailPieces).Concat(clientIdNullMailPieces).Concat(shippingStatusNullMailPieces).Concat(delayedPCIMailPieces).Concat(delayedNordisMailPieces).Concat(delayedEDeliveryMailPieces).ToList();
 
                 delayedBatches = delayedMailPieces
                     .GroupBy(mp => new { mp.MailBatchId, mp.AppCode, mp.BatchName, mp.ClientId, mp.PipelineStatus, mp.ReceivedOn })
