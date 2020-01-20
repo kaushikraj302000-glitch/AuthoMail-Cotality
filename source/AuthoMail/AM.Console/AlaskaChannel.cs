@@ -343,9 +343,12 @@ namespace AM.Console
                                     //Creating collection for moving or deleting files because it may have same file for multiple nodes so can't move or delete at these level.
                                     fileListToMoveOrDelete.Add(sftFilePath);
 
+                                    List<int> blankPageNos = new List<int>();
                                     using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
                                     {
                                         pageCount = reader.NumberOfPages;
+                                        //check if pdf is blank or not
+                                        blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
                                     }
 
                                     //Document Or Package Type validation
@@ -365,9 +368,19 @@ namespace AM.Console
                                         mailPieceDTO.ErrorDesc = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages);
                                         mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                     }
+                                    else if (pageCount == blankPageNos.Count())
+                                    {
+                                        mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PDF_File;
+                                        mailPieceDTO.ErrorDesc = "All pages are blank in received pdf file.";
+                                        mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                                        mailPieceDTO.TotalBlankPages = blankPageNos.Count;
+                                        mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);
+                                    }
                                     else
                                     {
                                         mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
+                                        mailPieceDTO.TotalBlankPages = blankPageNos.Count;
+                                        mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);
                                     }
                                 }
                             }

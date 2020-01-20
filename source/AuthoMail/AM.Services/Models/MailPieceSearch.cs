@@ -114,6 +114,8 @@ namespace AM.Services
 
         public int TotalPages { get; set; }
         public int TotalSheets { get; set; }
+        public int TotalBlankPages { get; set; }
+        public string BlankPageNumbers { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
         public string ErrorDescription
@@ -507,6 +509,7 @@ namespace AM.Services
         public string ShippingMethod { get; set; }
         public string TrackingNo { get; set; }
         public int TotalPages { get; set; }
+        public int TotalBlankPages { get; set; }
         public DateTime? ReceivedOn { get; set; }
         //public DateTime? PrintedOn { get; set; }
         public DateTime? ShippedOn { get; set; }

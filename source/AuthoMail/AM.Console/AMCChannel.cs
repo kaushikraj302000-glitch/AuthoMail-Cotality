@@ -738,10 +738,15 @@ namespace AM.Console
                                 else
                                 {
                                     int pageCount = 0;
+                                    List<int> blankPageNos = new List<int>();
+
                                     using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
                                     {
                                         pageCount = reader.NumberOfPages;
                                         mailPieceDTO.TotalPages = pageCount; // Note : system will not store this in AM.MailPieces table but store in EDMailPieces table
+
+                                        //check if pdf is blank or not
+                                        blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
                                     }
 
                                     //NOTE : Here system is storing file size of received pdf in KB
@@ -769,6 +774,14 @@ namespace AM.Console
                                             mailPieceDTO.ErrorDesc = client.AppCode == GetInvalidClient().AppCode ? "The specified customer identifier {0} is not configured.".Fill(mailPieceCustomInfo.Single(c => c.Key == "CustomerIdentifier").Value) : "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages);
                                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                         }
+                                        else if (pageCount == blankPageNos.Count())
+                                        {
+                                            mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PDF_File;
+                                            mailPieceDTO.ErrorDesc = "All pages are blank in received pdf file.";
+                                            mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                                            mailPieceDTO.TotalBlankPages = blankPageNos.Count;
+                                            mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);
+                                        }
                                         else if (!mailPieceDTO.IsReturnInfoSpecified && !mailBatch.IsReturnInfoSpecified && !tempDocType.IsReturnInfoSpecified)
                                         {
                                             mailPieceDTO.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
@@ -778,7 +791,8 @@ namespace AM.Console
                                         else
                                         {
                                             mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
-
+                                            mailPieceDTO.TotalBlankPages = blankPageNos.Count;
+                                            mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);
                                             if (!mailPieceDTO.IsReturnInfoSpecified && !mailBatch.IsReturnInfoSpecified && tempDocType.IsReturnInfoSpecified)
                                             {
                                                 mailPieceDTO.RetRcptFirstName = tempDocType.RetRcptFirstName;
@@ -1104,5 +1118,6 @@ namespace AM.Console
 
             yield break;
         }
+
     }
 }
