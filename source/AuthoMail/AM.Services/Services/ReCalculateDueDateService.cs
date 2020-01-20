@@ -21,6 +21,9 @@ namespace AM.Services
         DocTypeInfo GetDocTypeById(int id);
         DocTypeInfo GetPnSConfigDetailId(int clientId, int doctypeId, string shippingCarrier, string shippingServiceType, int totalPages, DateTime estReceivedOn);
         int UpdatePnSConfigDetailId(int mpId, int pnsConfigDetailId);
+        int UpdatePnSConfigDetailIdInPrintBatch(int printBatchId, int docTypeId, int pnsConfigDetailId);
+        int UpdatePnSConfigDetailIdInBatchSummary(int batchSummaryId, int docTypeId, int pnsConfigDetailId);
+        int GetBatchSummaryInfo(int printBatchId);
     }
     public class ReCalculateDueDateService : ServiceBase, IReCalculateDueDateService
     {
@@ -67,7 +70,7 @@ namespace AM.Services
         public List<Recal> GetMPsToUpdatePnSConfigDetailId()
         {
             //return db.Query<Recal>("select Id,ClientId,TotalPages,DocTypeId,ClientDocTypeId from AM.MailPieces where DocTypeId IS NOT NULL").ToList();
-            return db.Query<Recal>("select Id,ClientId,TotalPages,DocTypeId,EffectiveReceivedOnEst from AM.MailPieces where DocTypeId IS NOT NULL").ToList();
+            return db.Query<Recal>("select Id,ClientId,TotalPages,DocTypeId,EffectiveReceivedOnEst,PrintBatchId from AM.MailPieces where DocTypeId IS NOT NULL").ToList();
         }
 
         public DocTypeInfo GetDocTypeById(int id)
@@ -78,7 +81,7 @@ namespace AM.Services
         public DocTypeInfo GetPnSConfigDetailId(int clientId, int doctypeId, string shippingCarrier, string shippingServiceType, int totalPages, DateTime estReceivedOn)
         {
             //return db.QuerySingleOrDefault<DocTypeInfo>("SELECT D.PnSConfigDetailId FROM [dbo].[v_DocTypes] D WHERE D.ClientId=@ClientId AND D.Id=@DocTypeId AND ISNULL(D.ShippingCarrier,'') = ISNULL(@ShippingCarrier,'') AND ISNULL(D.ShippingServiceType,'') = ISNULL(@ShippingServiceType,'') AND @TotalPages BETWEEN MinPage AND MaxPage", new { ClientId = clientId, DocTypeId = doctypeId, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType, TotalPages = totalPages });
-            var docTypes = db.Query<DocTypeInfo>("SELECT D.PnSConfigDetailId FROM [dbo].[v_DocTypes] D WHERE D.ClientId=@ClientId AND D.Id=@DocTypeId AND ISNULL(D.ShippingCarrier,'') = ISNULL(@ShippingCarrier,'') AND ISNULL(D.ShippingServiceType,'') = ISNULL(@ShippingServiceType,'') AND @TotalPages BETWEEN MinPage AND MaxPage", new { ClientId = clientId, DocTypeId = doctypeId, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType, TotalPages = totalPages }).ToList();
+            var docTypes = db.Query<DocTypeInfo>("SELECT D.PnSConfigDetailId, BizDayStartTime, BizDayEndTime, SatStartTime, SatEndTime FROM [dbo].[v_DocTypes] D WHERE D.ClientId=@ClientId AND D.Id=@DocTypeId AND ISNULL(D.ShippingCarrier,'') = ISNULL(@ShippingCarrier,'') AND ISNULL(D.ShippingServiceType,'') = ISNULL(@ShippingServiceType,'') AND @TotalPages BETWEEN MinPage AND MaxPage", new { ClientId = clientId, DocTypeId = doctypeId, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType, TotalPages = totalPages }).ToList();
 
             if (docTypes.Count == 0)
             {
@@ -104,6 +107,21 @@ namespace AM.Services
         {
             return db.Execute("Update AM.MailPieces set PnSConfigDetailId = @PnSConfigDetailId where Id = @mpId", new { PnSConfigDetailId = pnsConfigDetailId, mpId = mpId });
         }
+
+        public int UpdatePnSConfigDetailIdInPrintBatch(int printBatchId, int docTypeId, int pnsConfigDetailId)
+        {
+            return db.Execute("Update AM.PrintBatches set PnSConfigDetailId = @PnSConfigDetailId where Id = @PrintBatchId AND DocTypeId=@DocTypeId", new { PnSConfigDetailId = pnsConfigDetailId, PrintBatchId = printBatchId, DocTypeId = docTypeId });
+        }
+
+        public int UpdatePnSConfigDetailIdInBatchSummary(int batchSummaryId, int docTypeId, int pnsConfigDetailId)
+        {
+            return db.Execute("Update PnS.BatchSummary set PnSConfigDetailId = @PnSConfigDetailId where PrintBatch = @BatchSummaryId AND DocTypeId=@DocTypeId", new { PnSConfigDetailId = pnsConfigDetailId, BatchSummaryId = batchSummaryId, DocTypeId = docTypeId });
+        }
+
+        public int GetBatchSummaryInfo(int printBatchId)
+        {
+            return db.QuerySingleOrDefault<int>("SELECT PrintBatch FROM PnS.BatchSummary WHERE BatchIdentifier = (SELECT UniqueId FROM AM.PrintBatches WHERE Id=@PrintBatchId)", new { PrintBatchId = printBatchId });
+        }
     }
     public class Recal
     {
@@ -126,6 +144,7 @@ namespace AM.Services
         public DateTime? StdSubmissionTime { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }
         public int TotalPages { get; set; }
+        public int? PrintBatchId { get; set; }
     }
 
     public class DocTypeInfo

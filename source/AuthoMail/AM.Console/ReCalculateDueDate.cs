@@ -70,7 +70,8 @@ namespace AM.Console
                 var listofMpToUpdate = rSvc.GetMPsToUpdatePnSConfigDetailId();
                 var columnName = String.Join(",", "MPID", "DocTypeID", "PnSConfigDetailId");
                 var errcolumnName = String.Join(",", "MPID", "ClientId", "ClientDocTypeId", "DocTypeID", "ShippingCarrier", "ShippingServiceType", "TotalPages");
-
+                List<PrintBatchDetail> pbDetails = new List<PrintBatchDetail>();
+                List<BatchSummaryDetail> bsDetails = new List<BatchSummaryDetail>();
                 StringBuilder deliveryReport = new StringBuilder(columnName);
                 StringBuilder errorReport = new StringBuilder(errcolumnName);
 
@@ -87,7 +88,17 @@ namespace AM.Console
 
                         deliveryReport.AppendLine(String.Join(",", mp.Id, mp.DocTypeId, docTypeInfo.PnSConfigDetailId));
 
-                        //rSvc.UpdatePnSConfigDetailId(mp.Id, docTypeInfo.PnSConfigDetailId);
+                        rSvc.UpdatePnSConfigDetailId(mp.Id, docTypeInfo.PnSConfigDetailId);
+
+                        if (mp.ShippingStatus != "Error" && mp.PrintBatchId != null)
+                        {
+                            pbDetails.Add(new PrintBatchDetail() { PrintBatchId = mp.PrintBatchId.Value, DocTypeId = docTypeInfo.Id, PnSConfigDetailId = docTypeInfo.PnSConfigDetailId });
+
+                            var uniqueId = rSvc.GetBatchSummaryInfo(mp.PrintBatchId.Value);
+                            if (uniqueId != 0)
+                                bsDetails.Add(new BatchSummaryDetail() { BatchSummaryId = uniqueId, DocTypeId = docTypeInfo.Id, PnSConfigDetailId = docTypeInfo.PnSConfigDetailId });
+                        }
+
                     }
                     catch (Exception ex)
                     {
@@ -95,10 +106,33 @@ namespace AM.Console
                         errorReport.AppendLine(String.Join(",", mp.Id, mp.ClientId, mp.ClientDocTypeId, mp.DocTypeId, doctype.ShippingCarrier, doctype.ShippingServiceType, mp.TotalPages));
                     }
                 }
+
+                foreach (var pb in pbDetails)
+                {
+                    rSvc.UpdatePnSConfigDetailIdInPrintBatch(pb.PrintBatchId, pb.DocTypeId, pb.PnSConfigDetailId);
+                }
+                foreach (var bs in bsDetails)
+                {
+                    rSvc.UpdatePnSConfigDetailIdInBatchSummary(bs.BatchSummaryId, bs.DocTypeId, bs.PnSConfigDetailId);
+                }
                 File.WriteAllText(@"D:\PnSIds.csv", deliveryReport.ToString());
                 File.WriteAllText(@"D:\ErrorPnSIds.csv", errorReport.ToString());
 
             }
         }
+    }
+
+    internal class PrintBatchDetail
+    {
+        public int PrintBatchId { get; set; }
+        public int DocTypeId { get; set; }
+        public int PnSConfigDetailId { get; set; }
+    }
+
+    internal class BatchSummaryDetail
+    {
+        public int BatchSummaryId { get; set; }
+        public int DocTypeId { get; set; }
+        public int PnSConfigDetailId { get; set; }
     }
 }
