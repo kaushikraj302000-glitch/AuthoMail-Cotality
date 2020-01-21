@@ -877,22 +877,22 @@ namespace AM.Console
 
         public static List<int> CheckIfPdfBlank(int pageCount, List<int> blankPageNos, string localFilePath, iTextSharp.text.pdf.PdfReader reader)
         {
-            byte[] pdfBytes = File.ReadAllBytes(localFilePath);
-            for (int i = 1; i <= pageCount; i++)
-            {
-                iTextSharp.text.pdf.parser.ITextExtractionStrategy strategy = new iTextSharp.text.pdf.parser.LocationTextExtractionStrategy();
-                string pageContent = iTextSharp.text.pdf.parser.PdfTextExtractor.GetTextFromPage(reader, i, strategy);
+            //byte[] pdfBytes = File.ReadAllBytes(localFilePath);
+            //for (int i = 1; i <= pageCount; i++)
+            //{
+            //    iTextSharp.text.pdf.parser.ITextExtractionStrategy strategy = new iTextSharp.text.pdf.parser.LocationTextExtractionStrategy();
+            //    string pageContent = iTextSharp.text.pdf.parser.PdfTextExtractor.GetTextFromPage(reader, i, strategy);
 
-                if (string.IsNullOrWhiteSpace(pageContent))
-                {
-                    //check if page contains any image or not
-                    List<System.Drawing.Image> imagesFound = ExtractImagesFromPDF(pdfBytes, i);
-                    if (imagesFound.Count == 0)
-                    {
-                        blankPageNos.Add(i);
-                    }
-                }
-            }
+            //    if (string.IsNullOrWhiteSpace(pageContent))
+            //    {
+            //        //check if page contains any image or not
+            //        List<System.Drawing.Image> imagesFound = ExtractImagesFromPDF(pdfBytes, i);
+            //        if (imagesFound.Count == 0)
+            //        {
+            //            blankPageNos.Add(i);
+            //        }
+            //    }
+            //}
             return blankPageNos;
         }
 
