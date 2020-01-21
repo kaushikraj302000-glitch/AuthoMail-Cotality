@@ -23,8 +23,7 @@
   <xs:complexType name="RecipientInfo">
     <xs:all>
       <xs:element minOccurs="1" maxOccurs="1" name="Recipient" type="Recipient" />
-      <xs:element minOccurs="0" maxOccurs="1" name="Corecipient" type="Recipient" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Address" type="Address" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Address" type="Address" />
     </xs:all>
   </xs:complexType>
   <xs:complexType name="Recipient">
