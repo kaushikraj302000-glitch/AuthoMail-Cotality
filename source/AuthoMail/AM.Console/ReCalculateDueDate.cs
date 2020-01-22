@@ -90,12 +90,12 @@ namespace AM.Console
 
                         rSvc.UpdatePnSConfigDetailId(mp.Id, docTypeInfo.PnSConfigDetailId);
 
-                        if (mp.ShippingStatus != "Error" && mp.PrintBatchId != null)
+                        if (mp.ShippingStatus != "Error" && mp.PrintBatchId != null && !pbDetails.Select(pb => pb.PrintBatchId).Contains(mp.PrintBatchId.Value))
                         {
                             pbDetails.Add(new PrintBatchDetail() { PrintBatchId = mp.PrintBatchId.Value, DocTypeId = docTypeInfo.Id, PnSConfigDetailId = docTypeInfo.PnSConfigDetailId });
 
                             var uniqueId = rSvc.GetBatchSummaryInfo(mp.PrintBatchId.Value);
-                            if (uniqueId != 0)
+                            if (uniqueId != 0 && !bsDetails.Select(pb => pb.BatchSummaryId).Contains(uniqueId))
                                 bsDetails.Add(new BatchSummaryDetail() { BatchSummaryId = uniqueId, DocTypeId = docTypeInfo.Id, PnSConfigDetailId = docTypeInfo.PnSConfigDetailId });
                         }
 
