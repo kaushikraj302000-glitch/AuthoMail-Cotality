@@ -814,7 +814,7 @@ namespace AM.Console
                             if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
                             {
                                 var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
-                               
+
                                 if (fbPriorityExpress != null)
                                 {
                                     docType = fbPriorityExpress;
@@ -932,37 +932,48 @@ namespace AM.Console
 
         private static List<iTextSharp.text.pdf.PdfObject> FindImageInPDFDictionary(iTextSharp.text.pdf.PdfDictionary pg)
         {
-            var res = (iTextSharp.text.pdf.PdfDictionary)iTextSharp.text.pdf.PdfReader.GetPdfObject(pg.Get(iTextSharp.text.pdf.PdfName.RESOURCES));
-            var xobj = (iTextSharp.text.pdf.PdfDictionary)iTextSharp.text.pdf.PdfReader.GetPdfObject(res.Get(iTextSharp.text.pdf.PdfName.XOBJECT));
-            var pdfObgs = new List<iTextSharp.text.pdf.PdfObject>();
-
-            if (xobj != null)
+            try
             {
-                foreach (iTextSharp.text.pdf.PdfName name in xobj.Keys)
-                {
-                    iTextSharp.text.pdf.PdfObject obj = xobj.Get(name);
-                    if (obj.IsIndirect())
-                    {
-                        var tg = (iTextSharp.text.pdf.PdfDictionary)iTextSharp.text.pdf.PdfReader.GetPdfObject(obj);
-                        var type = (iTextSharp.text.pdf.PdfName)iTextSharp.text.pdf.PdfReader.GetPdfObject(tg.Get(iTextSharp.text.pdf.PdfName.SUBTYPE));
+                var pdfObgs = new List<iTextSharp.text.pdf.PdfObject>();
+                var res = (iTextSharp.text.pdf.PdfDictionary)iTextSharp.text.pdf.PdfReader.GetPdfObject(pg.Get(iTextSharp.text.pdf.PdfName.RESOURCES));
+                if (res == null)
+                    return pdfObgs;
+                var xobj = (iTextSharp.text.pdf.PdfDictionary)iTextSharp.text.pdf.PdfReader.GetPdfObject(res.Get(iTextSharp.text.pdf.PdfName.XOBJECT));
 
-                        if (iTextSharp.text.pdf.PdfName.IMAGE.Equals(type)) // image at the root of the pdf
+                if (xobj != null)
+                {
+                    foreach (iTextSharp.text.pdf.PdfName name in xobj.Keys)
+                    {
+                        iTextSharp.text.pdf.PdfObject obj = xobj.Get(name);
+                        if (obj.IsIndirect())
                         {
-                            pdfObgs.Add(obj);
-                        }
-                        else if (iTextSharp.text.pdf.PdfName.FORM.Equals(type)) // image inside a form
-                        {
-                            FindImageInPDFDictionary(tg).ForEach(o => pdfObgs.Add(o));
-                        }
-                        else if (iTextSharp.text.pdf.PdfName.GROUP.Equals(type)) // image inside a group
-                        {
-                            FindImageInPDFDictionary(tg).ForEach(o => pdfObgs.Add(o));
+                            var tg = (iTextSharp.text.pdf.PdfDictionary)iTextSharp.text.pdf.PdfReader.GetPdfObject(obj);
+                            var type = (iTextSharp.text.pdf.PdfName)iTextSharp.text.pdf.PdfReader.GetPdfObject(tg.Get(iTextSharp.text.pdf.PdfName.SUBTYPE));
+
+                            if (iTextSharp.text.pdf.PdfName.IMAGE.Equals(type)) // image at the root of the pdf
+                            {
+                                pdfObgs.Add(obj);
+                            }
+                            else if (iTextSharp.text.pdf.PdfName.FORM.Equals(type)) // image inside a form
+                            {
+                                FindImageInPDFDictionary(tg).ForEach(o => pdfObgs.Add(o));
+                            }
+                            else if (iTextSharp.text.pdf.PdfName.GROUP.Equals(type)) // image inside a group
+                            {
+                                FindImageInPDFDictionary(tg).ForEach(o => pdfObgs.Add(o));
+                            }
                         }
                     }
                 }
+
+                return pdfObgs;
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
             }
 
-            return pdfObgs;
         }
 
         protected override void DisposeManagedObjects()
