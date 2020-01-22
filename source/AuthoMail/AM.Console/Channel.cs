@@ -875,6 +875,7 @@ namespace AM.Console
         }
         #endregion
 
+        #region Blank Pdf Validation
         public static List<int> CheckIfPdfBlank(int pageCount, List<int> blankPageNos, string localFilePath, iTextSharp.text.pdf.PdfReader reader)
         {
             //byte[] pdfBytes = File.ReadAllBytes(localFilePath);
@@ -897,7 +898,7 @@ namespace AM.Console
         }
 
         public static List<iTextSharp.text.pdf.PdfObject> ExtractImageObjectsFromPDF(byte[] bytes, int pageNumber)
-        {            
+        {
             var pdf = new iTextSharp.text.pdf.PdfReader(bytes);
             List<iTextSharp.text.pdf.PdfObject> objs = new List<iTextSharp.text.pdf.PdfObject>();
             try
@@ -949,7 +950,8 @@ namespace AM.Console
             }
 
             return pdfObgs;
-        }
+        } 
+        #endregion
 
         protected override void DisposeManagedObjects()
         {
