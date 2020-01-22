@@ -235,7 +235,7 @@ namespace AM.Core
                                             var msg = "USPS Priority Express is not supporting shipping to provided address for MailPieceId : {0} with Error :{1}. So AM is doing fallback to other shipping service.".Fill(mailPiece.Id, response.ExceptionDetail);
                                             log.Debug(msg);
                                             //NOTE: Here system is check for not deliverable or any other error if occure then system will fall back to USPS Priority service and try to generate label
-                                            var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailPiece.EffectiveReceivedOnEst.Value, Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());                                           
+                                            var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailPiece.EffectiveReceivedOnEst.Value, Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
 
                                             if (fbPriority == null)
                                             {
@@ -358,11 +358,13 @@ namespace AM.Core
                                     {
                                         System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                                         attemptCount++;
-
+                                        var msg = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, response.ExceptionDetail);
                                         //Setting as an error suppose FedEx is failing continueously then System will consider as an unknown error for that mail piece
                                         mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                                         mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                        mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, response.ExceptionDetail);
+                                        mailPiece.ErrorDesc = msg;
+                                        log.Error(msg + "For MailPiece Id - {0}".Fill(mailPiece.Id));
+                                        SendUnexpectedExceptionEmail("Error occured while generating FedEx label for MailPiece Id {0}<br/> System will try again...<br/>".Fill(mailPiece.Id) + msg);
                                     }
                                     else
                                     {
@@ -684,7 +686,7 @@ namespace AM.Core
                             string localErrorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
                             string ftpErrorReportPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
 
-                            string responseReport = generalSvc.GeneralXMLReport(mailPieces, mbi.MailBatch, mbi.Client.AppCode);
+                            string responseReport = generalSvc.GeneralXMLReport(erroredMPs, mbi.MailBatch, mbi.Client.AppCode);
                             if (!string.IsNullOrWhiteSpace(responseReport))
                             {
                                 File.WriteAllText(localErrorReportPath, responseReport);
