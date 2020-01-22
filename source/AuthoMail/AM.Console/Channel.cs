@@ -814,7 +814,7 @@ namespace AM.Console
                             if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
                             {
                                 var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
-                               
+
                                 if (fbPriorityExpress != null)
                                 {
                                     docType = fbPriorityExpress;
@@ -875,6 +875,7 @@ namespace AM.Console
         }
         #endregion
 
+        #region Blank Pdf Validation
         public static List<int> CheckIfPdfBlank(int pageCount, List<int> blankPageNos, string localFilePath, iTextSharp.text.pdf.PdfReader reader)
         {
             //byte[] pdfBytes = File.ReadAllBytes(localFilePath);
@@ -885,9 +886,9 @@ namespace AM.Console
 
             //    if (string.IsNullOrWhiteSpace(pageContent))
             //    {
-            //        //check if page contains any image or not
-            //        List<System.Drawing.Image> imagesFound = ExtractImagesFromPDF(pdfBytes, i);
-            //        if (imagesFound.Count == 0)
+            //        //check if page contains any image object or not
+            //        List<iTextSharp.text.pdf.PdfObject> pdfObjects = ExtractImageObjectsFromPDF(pdfBytes, i);
+            //        if (pdfObjects.Count == 0)
             //        {
             //            blankPageNos.Add(i);
             //        }
@@ -896,45 +897,31 @@ namespace AM.Console
             return blankPageNos;
         }
 
-        private static List<System.Drawing.Image> ExtractImagesFromPDF(byte[] bytes, int pageNumber)
+        public static List<iTextSharp.text.pdf.PdfObject> ExtractImageObjectsFromPDF(byte[] bytes, int pageNumber)
         {
-            var imgs = new List<System.Drawing.Image>();
             var pdf = new iTextSharp.text.pdf.PdfReader(bytes);
-
+            List<iTextSharp.text.pdf.PdfObject> objs = new List<iTextSharp.text.pdf.PdfObject>();
             try
             {
 
                 iTextSharp.text.pdf.PdfDictionary pg = pdf.GetPageN(pageNumber);
-                List<iTextSharp.text.pdf.PdfObject> objs = FindImageInPDFDictionary(pg);
-
-                foreach (var obj in objs)
-                {
-                    if (obj != null)
-                    {
-                        int XrefIndex = Convert.ToInt32(((iTextSharp.text.pdf.PRIndirectReference)obj).Number.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                        iTextSharp.text.pdf.PdfObject pdfObj = pdf.GetPdfObject(XrefIndex);
-                        iTextSharp.text.pdf.PdfStream pdfStrem = (iTextSharp.text.pdf.PdfStream)pdfObj;
-                        var pdfImage = new iTextSharp.text.pdf.parser.PdfImageObject((iTextSharp.text.pdf.PRStream)pdfStrem);
-                        var img = pdfImage.GetDrawingImage();
-
-                        imgs.Add(img);
-                    }
-                }
-
+                objs = FindImageInPDFDictionary(pg);
             }
             finally
             {
                 pdf.Close();
             }
 
-            return imgs;
+            return objs;
         }
 
         private static List<iTextSharp.text.pdf.PdfObject> FindImageInPDFDictionary(iTextSharp.text.pdf.PdfDictionary pg)
         {
-            var res = (iTextSharp.text.pdf.PdfDictionary)iTextSharp.text.pdf.PdfReader.GetPdfObject(pg.Get(iTextSharp.text.pdf.PdfName.RESOURCES));
-            var xobj = (iTextSharp.text.pdf.PdfDictionary)iTextSharp.text.pdf.PdfReader.GetPdfObject(res.Get(iTextSharp.text.pdf.PdfName.XOBJECT));
             var pdfObgs = new List<iTextSharp.text.pdf.PdfObject>();
+            var res = (iTextSharp.text.pdf.PdfDictionary)iTextSharp.text.pdf.PdfReader.GetPdfObject(pg.Get(iTextSharp.text.pdf.PdfName.RESOURCES));
+            if (res == null)
+                return pdfObgs;
+            var xobj = (iTextSharp.text.pdf.PdfDictionary)iTextSharp.text.pdf.PdfReader.GetPdfObject(res.Get(iTextSharp.text.pdf.PdfName.XOBJECT));
 
             if (xobj != null)
             {
@@ -963,7 +950,8 @@ namespace AM.Console
             }
 
             return pdfObgs;
-        }
+        } 
+        #endregion
 
         protected override void DisposeManagedObjects()
         {
