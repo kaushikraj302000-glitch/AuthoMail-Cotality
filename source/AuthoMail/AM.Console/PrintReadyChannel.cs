@@ -807,7 +807,7 @@ namespace AM.Console
             {
                 return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages) };
             }
-            else if (pageCount == blankPageNos.Count() || pageCount == blankPageNos.Count - 1)//Here we are considering 1st page as cover for print ready client.
+            else if (pageCount == blankPageNos.Count() || pageCount - 1 == blankPageNos.Count)//Here we are considering 1st page as cover for print ready client.
             {
                 mailPieceDTO.TotalBlankPages = blankPageNos.Count;
                 mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);
