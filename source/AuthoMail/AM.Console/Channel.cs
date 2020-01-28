@@ -878,22 +878,22 @@ namespace AM.Console
         #region Blank Pdf Validation
         public static List<int> CheckIfPdfBlank(int pageCount, List<int> blankPageNos, string localFilePath, iTextSharp.text.pdf.PdfReader reader)
         {
-            //byte[] pdfBytes = File.ReadAllBytes(localFilePath);
-            //for (int i = 1; i <= pageCount; i++)
-            //{
-            //    iTextSharp.text.pdf.parser.ITextExtractionStrategy strategy = new iTextSharp.text.pdf.parser.LocationTextExtractionStrategy();
-            //    string pageContent = iTextSharp.text.pdf.parser.PdfTextExtractor.GetTextFromPage(reader, i, strategy);
+            byte[] pdfBytes = File.ReadAllBytes(localFilePath);
+            for (int i = 1; i <= pageCount; i++)
+            {
+                iTextSharp.text.pdf.parser.ITextExtractionStrategy strategy = new iTextSharp.text.pdf.parser.LocationTextExtractionStrategy();
+                string pageContent = iTextSharp.text.pdf.parser.PdfTextExtractor.GetTextFromPage(reader, i, strategy);
 
-            //    if (string.IsNullOrWhiteSpace(pageContent))
-            //    {
-            //        //check if page contains any image object or not
-            //        List<iTextSharp.text.pdf.PdfObject> pdfObjects = ExtractImageObjectsFromPDF(pdfBytes, i);
-            //        if (pdfObjects.Count == 0)
-            //        {
-            //            blankPageNos.Add(i);
-            //        }
-            //    }
-            //}
+                if (string.IsNullOrWhiteSpace(pageContent))
+                {
+                    //check if page contains any image object or not
+                    List<iTextSharp.text.pdf.PdfObject> pdfObjects = ExtractImageObjectsFromPDF(pdfBytes, i);
+                    if (pdfObjects.Count == 0)
+                    {
+                        blankPageNos.Add(i);
+                    }
+                }
+            }
             return blankPageNos;
         }
 
