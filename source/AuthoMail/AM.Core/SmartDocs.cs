@@ -127,11 +127,6 @@ namespace AM.Core
                     {
                         log.Error("Error occured in MailPieceId - {0} while requesting eVS priority express label with following Error {1}".Fill(mailPieceId, eVSRes.Error.Description));
 
-                        if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
-                            eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6L };
-                        else
-                            eVSReq.LabelParameters = new LabelParameters() { XCoordinate = 450, YCoordinate = 500, Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P_PAGE };
-
                         eVSRes = uspsSvc.RequesteVSLabelAsync(sysUserId, eVSReq).Result;
 
                         if (eVSRes.HasError)
@@ -147,10 +142,10 @@ namespace AM.Core
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
                     //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
-                    if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
-                    {
+                    //if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
+                    //{
                         ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
-                    }
+                    //}
                     response.CoverLetterPath = coverLetterPDFPath;
                 }
 
@@ -234,10 +229,10 @@ namespace AM.Core
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
                     //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
-                    if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
-                    {
+                    //if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
+                    //{
                         ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
-                    }
+                    //}
 
                     response.CoverLetterPath = coverLetterPDFPath;
                 }
