@@ -27,11 +27,12 @@ BEGIN
 	 m.RcptFirstName AS FirstName,m.RcptLastName AS LastName,m.RcptAddressCity AS [City],m.RcptAddressZip AS ZIP,
 	 m.RcptAddressState AS [State],m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,
 	 b.ReceivedOn,
-	 d.DocTypeName AS DocType,d.ShippingServiceType AS ShippingMethod,d.ShippingCarrier,
+	 d.DocTypeName AS DocType,PCD.ShippingServiceType AS ShippingMethod,PCD.ShippingCarrier,
 	 ch.Title AS Channel
 	 FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
 	 LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id	 
-	 LEFT OUTER JOIN [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id AND m.PnSConfigDetailId = d.PnSConfigDetailId
+	 LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+	LEFT OUTER JOIN Common.PnSConfigDetail PCD ON m.PnSConfigDetailId = pcd.Id
 	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id AND m.ClientId=@clientId
 	 AND ISNULL(m.BusinessFriendlyIdName, '') = ISNULL(@businessFriendlyIdName, ISNULL(m.BusinessFriendlyIdName, ''))
 	 AND ISNULL(m.BusinessFriendlyIdValue, '') = ISNULL(@businessFriendlyIdValue, ISNULL(m.BusinessFriendlyIdValue, ''))

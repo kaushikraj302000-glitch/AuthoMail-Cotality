@@ -53,9 +53,10 @@ DECLARE	@jobid INT,
 		@jobName=b.[JobName],
 		@pieceid=req.[PieceId],@PrintTrailBatchId=req.[PrintTrailBatchId], @jobid=req.[JobId],@mrdfreqdate=req.[Date],@pdffilename=req.[PDFFileName],
 		@clientAppCode=c.[AppCode],@clientName=c.[Name],
-		@bt=(SELECT [BatchName] FROM #dallasBatchesTimes WHERE EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=d.ShippingCarrier AND ShippingServiceType=d.ShippingServiceType AND AppCode=c.AppCode)
+		@bt=(SELECT [BatchName] FROM #dallasBatchesTimes WHERE EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=PCD.ShippingCarrier AND ShippingServiceType=PCD.ShippingServiceType AND AppCode=c.AppCode)
 		FROM [AM].[MailPieces] m
-		INNER JOIN [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id AND m.PnSConfigDetailId = d.PnSConfigDetailId
+		INNER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+		INNER JOIN Common.PnSConfigDetail PCD ON m.PnSConfigDetailId = PCD.Id
 		INNER JOIN Common.Clients c ON m.ClientId=c.Id
 		LEFT OUTER JOIN PnS.MRDFRequest req ON m.UniqueId = req.UniqueId
 		left outer JOIN PnS.BatchSummary b ON req.JobId = b.PrintBatch
