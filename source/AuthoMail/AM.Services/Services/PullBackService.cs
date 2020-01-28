@@ -30,7 +30,8 @@ namespace AM.Services
         public List<PullBackViewModel> GetMailPieceData(List<string> mpIds)
         {
             string qry = string.Format(@"SELECT AMMP.MailBatchId,AMMP.[UniqueId] as MailPieceUniqueId,PM.PrintTrailBatchId,PB.PrintBatch,AMMP.TrackingNo,D.ShippingServiceType,AMMB.PipelineStatus AS AMBatchPipelineStatus,PB.PipelineStatus AS PnSBatchPipelineStatus,AMMP.ShippingStatus AS AMMailPieceStatus,PM.MailPieceStatus AS PnSMailPieceStatus,AMMP.PrintLocation,AMMP.ErrorDesc AS AMErrorDescription,PM.ErrDesc AS PnSErrorDescription,PLBT.PCIBatchPrepEnd,AMMP.IsEDeliveryRequested,EDMP.SigningRoomId,EDMP.SigningRoomName,EDMP.IsInvitationSent,AMMP.IsPullBackRequested,AMMP.PullBackRequestedOn,AMMP.IsPulledBack,AMMP.PulledBackOn,PU.UserName FROM AM.MailPieces AMMP LEFT OUTER JOIN AM.EDeliveryMailPieces EDMP ON AMMP.UniqueId = EDMP.UniqueId LEFT OUTER JOIN PnS.MRDFRequest PM ON AMMP.[UniqueId] = PM.UniqueId  
-              left outer join [dbo].[v_DocTypes] d ON AMMP.DocTypeId=d.Id and AMMP.PnSConfigDetailId = d.PnSConfigDetailId
+              left outer join [AM].[DocTypes] d ON AMMP.DocTypeId=d.Id 
+              left outer JOIN Common.PnSConfigDetail pcd ON AMMP.PnSConfigDetailId = pcd.Id
               INNER JOIN AM.MailBatches AMMB ON AMMB.Id = AMMP.MailBatchId LEFT OUTER JOIN PnS.BatchSummary PB ON PB.PrintBatch = PM.JobId LEFT OUTER JOIN PnS.LogBatchTimeLine PLBT ON PLBT.BatchId = PB.PrintBatch LEFT OUTER JOIN[Profile].Users PU ON PU.Id = AMMP.PulledBackRequestedBy  WHERE AMMP.[UniqueId] IN @mailPieceIds");
             var data = db.Query<PullBackViewModel>(qry, new { mailPieceIds = mpIds }).ToList();
             return data;
@@ -98,7 +99,8 @@ from AM.MailPieces m
 inner join AM.MailBatches b on m.MailBatchId=b.Id
 inner join Common.Clients c on m.ClientId=c.Id
 LEFT OUTER JOIN [Profile].[Users] u on m.[PulledBackRequestedBy]=u.Id 
-left outer join [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id and m.PnSConfigDetailId = d.PnSConfigDetailId
+left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
 where ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
 
             DynamicParameters parameter = new DynamicParameters();

@@ -426,7 +426,6 @@
     <Content Include="fonts\USPSIMBSTANDARD.TTF" />
     <Content Include="fonts\VERDANA.TTF" />
     <Content Include="fonts\ZapfDingbats.ttf" />
-    <None Include="Properties\PublishProfiles\AuthoMail.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
@@ -578,6 +577,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Properties\PublishProfiles\" />
     <Folder Include="SamplePdfs\" />
     <Folder Include="Views\AccountApi\" />
     <Folder Include="Views\Base\" />

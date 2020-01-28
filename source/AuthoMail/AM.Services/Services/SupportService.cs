@@ -693,7 +693,7 @@ inner join Common.Clients c on d.ClientId=c.Id";
             try
             {
                 if (trackingNo.IsNullOrWhiteSpace()) throw new Exception("Tracking No can't be null.");
-                string query = "SELECT m.[TrackingNo],d.ShippingCarrier,d.ShippingServiceType FROM [AM].[MailPieces] m INNER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id WHERE m.TrackingNo=@trackingNo";
+                string query = "SELECT m.[TrackingNo],pcd.ShippingCarrier,pcd.ShippingServiceType FROM [AM].[MailPieces] m INNER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id INNER JOIN Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id WHERE m.TrackingNo=@trackingNo";
                 model = db.QuerySingleOrDefault<TrackingDetailViewModel>(query, new { trackingNo = trackingNo });
                 if (model == null)
                 {

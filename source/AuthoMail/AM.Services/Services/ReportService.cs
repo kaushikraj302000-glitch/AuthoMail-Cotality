@@ -35,13 +35,14 @@ namespace AM.Services
         public List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
         {
             string query = "[dbo].[uspweb_DailyDetailOperationsReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
-                (b, s, c, m, d) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes,PnSConfigDetail, MailPieces>(query,
+                (b, s, c, m, d,p) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
                     b.SFTChannels = s;
                     m.DocTypes = d;
+                    m.PnSConfigDetails = p;
                     return m;
                 },
                 new
@@ -59,13 +60,14 @@ namespace AM.Services
         public List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
         {
             string query = "[dbo].[uspweb_ErrorReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
-                (b, s, c, m, d) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes,PnSConfigDetail, MailPieces>(query,
+                (b, s, c, m, d,p) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
                     b.SFTChannels = s;
                     m.DocTypes = d;
+                    m.PnSConfigDetails = p;
                     return m;
                 },
                 new
@@ -85,13 +87,14 @@ namespace AM.Services
         {
             string query = "[dbo].[uspweb_SummaryControlReport] @clientId, @startDate, @endDate, @channel";
 
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
-                (b, s, c, m, d) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes,PnSConfigDetail, MailPieces>(query,
+                (b, s, c, m, d,p) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
                     b.SFTChannels = s;
                     m.DocTypes = d;
+                    m.PnSConfigDetails = p;
                     return m;
                 },
                 new
@@ -112,13 +115,14 @@ namespace AM.Services
             bool isReceived = filterBy == "ByReceivedOn" ? true : false;
             DateTime? dt = null;
 
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
-                (b, s, c, m, d) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes,PnSConfigDetail, MailPieces>(query,
+                (b, s, c, m, d,p) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
                     b.SFTChannels = s;
                     m.DocTypes = d;
+                    m.PnSConfigDetails = p;
                     return m;
                 },
                 new
@@ -199,7 +203,8 @@ namespace AM.Services
 
         public List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId)
         {
-            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [dbo].[v_DocTypes] d ON M.DocTypeId=d.Id and M.PnSConfigDetailId = d.PnSConfigDetailId LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId WHERE M.PrintBatchId=@PrintBatchId";
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId WHERE M.PrintBatchId=@PrintBatchId";
 
             var mailPieceDictionary = new Dictionary<int, MailPieces>();
 
@@ -231,7 +236,8 @@ namespace AM.Services
         {
             var mailPieceDictionary = new Dictionary<int, MailPieces>();
 
-            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [dbo].[v_DocTypes] d ON M.DocTypeId=d.Id and M.PnSConfigDetailId = d.PnSConfigDetailId LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId";
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId";
 
             var data = db.Query<MailPieces, MailBatches, DocTypes, MailPieceCustomInfoTest, Clients, MailPieces>(query,
                 (m, b, d, c, cl) =>
@@ -262,7 +268,8 @@ namespace AM.Services
         {
             var mailPieceDictionary = new Dictionary<int, MailPieces>();
 
-            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [dbo].[v_DocTypes] d ON M.DocTypeId=d.Id and M.PnSConfigDetailId = d.PnSConfigDetailId LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON M.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId AND M.UniqueId=@UniqueId";
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON M.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId AND M.UniqueId=@UniqueId";
 
             var data = db.Query<MailPieces, MailBatches, DocTypes, MailPieceCustomInfoTest, Clients, MailPieces>(query,
                 (m, b, d, c, cl) =>
@@ -292,13 +299,14 @@ namespace AM.Services
 
         public List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate)
         {
-            string query = @"SELECT PT.Id as PrintTrailBatchId,PT.[PrintBatchName],PT.SubmittedOn ,MIN(MP.DueDate) AS DueDate, D.ShippingCarrier
-,D.ShippingServiceType,COUNT(*) AS PackageCount,SUM(REQ.TotalSheets) AS TotalPages 
+            string query = @"SELECT PT.Id as PrintTrailBatchId,PT.[PrintBatchName],PT.SubmittedOn ,MIN(MP.DueDate) AS DueDate, pcd.ShippingCarrier
+,pcd.ShippingServiceType,COUNT(*) AS PackageCount,SUM(REQ.TotalSheets) AS TotalPages 
 FROM PnS.PrintTrailBatches PT 
 INNER JOIN PnS.MRDFRequest REQ ON PT.Id=REQ.PrintTrailBatchId
 INNER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
 INNER JOIN Common.PrintTrails PTS ON MP.PrintTrailId=PTS.Id
-left outer join [dbo].[v_DocTypes] d ON mp.DocTypeId=d.Id and mp.PnSConfigDetailId = d.PnSConfigDetailId
+left outer join [AM].[DocTypes] d ON mp.DocTypeId=d.Id 
+left outer join Common.PnSConfigDetail pcd ON mp.PnSConfigDetailId = pcd.Id
 WHERE PT.SubmittedOn >= @StartDate AND  PT.SubmittedOn < @EndDate AND MP.PrintLocation='Fort Mill, SC' 
 AND REQ.MailPieceStatus NOT IN ('Error','PulledBack')
 GROUP BY PT.Id,PT.PrintBatchName,PT.SubmittedOn,D.ShippingCarrier,D.ShippingServiceType
@@ -308,12 +316,13 @@ ORDER BY PrintTrailBatchId";
 
         public List<DALLASSubmittedBatchDetail> GetDALLASReconReport(DateTime startDate, DateTime endDate)
         {
-            string query = @"SELECT C.AppCode,D.ShippingCarrier,D.ShippingServiceType,MIN(P.DueDate) as DueDate,COUNT(*) AS PackageCount,SUM(P.TotalPages) AS TotalPages FROM AM.MailPieces P
-inner join [dbo].[v_DocTypes] d ON P.DocTypeId=d.Id and P.PnSConfigDetailId = d.PnSConfigDetailId
+            string query = @"SELECT C.AppCode,pcd.ShippingCarrier,pcd.ShippingServiceType,MIN(P.DueDate) as DueDate,COUNT(*) AS PackageCount,SUM(P.TotalPages) AS TotalPages FROM AM.MailPieces P
+inner join [AM].[DocTypes] d ON P.DocTypeId=d.Id 
+inner join Common.PnSConfigDetail pcd ON P.PnSConfigDetailId = pcd.Id
 INNER JOIN Common.Clients C ON P.ClientId=C.Id
 WHERE P.ShippingStatus NOT IN ('Error','PulledBack') AND P.EffectiveReceivedOnEst >= @StartDate AND P.EffectiveReceivedOnEst < @EndDate
 AND P.PrintLocation='Dallas CL'
-GROUP BY C.AppCode,D.ShippingCarrier,D.ShippingServiceType";
+GROUP BY C.AppCode,pcd.ShippingCarrier,pcd.ShippingServiceType";
             return db.Query<DALLASSubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
         }
 
@@ -365,13 +374,14 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,m.RcptAddressStreet,
 	 m.RcptAddressState as [State], m.ShippedOn as MailedOn ,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.PrintedOn
 	 ,b.BatchName as BatchId,b.ReceivedOn,m.DocTypeId,m.IsEDeliveryRequested,m.FileName,
-	 d.DocTypeName as DocType,(d.ShippingCarrier + '-' + d.ShippingServiceType) as ShippingMethod,
+	 d.DocTypeName as DocType,(pcd.ShippingCarrier + '-' + pcd.ShippingServiceType) as ShippingMethod,
      m.DocumentOrPackageType,m.TotalPages as PagesShipped,m.TotalBlankPages as BlankPages,
 	 ch.Title as Channel,
      c.AppCode as ClientCode
 	 FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
 	 LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id	 
-	 left outer join [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id and m.PnSConfigDetailId = d.PnSConfigDetailId
+	 left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
 	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id";
             DynamicParameters parameter = new DynamicParameters();
             if (clientId != null && clientId.Count > 0)

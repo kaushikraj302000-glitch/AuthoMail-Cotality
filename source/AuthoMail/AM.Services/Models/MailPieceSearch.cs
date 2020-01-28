@@ -160,6 +160,7 @@ namespace AM.Services
         public Clients Clients { get; set; }
         public DocTypes DocTypes { get; set; }
         public Users Users { get; set; }
+        public PnSConfigDetail PnSConfigDetails { get; set; }
         public string PdfReceivedPath
         {
             get
@@ -232,6 +233,7 @@ namespace AM.Services
         public string RetRcptAddressZIP { get; set; }
         public SFTChannels SFTChannels { get; set; }
         public Clients Clients { get; set; }
+
     }
     public class Clients
     {
@@ -347,6 +349,32 @@ namespace AM.Services
         {
             this.DocTypePageRangeList = new List<DocTypePageRange>();
         }
+    }
+
+    public class PnSConfigDetail
+    {
+        public int Id { get; set; }
+        public string PrintSize { get; set; }
+        public decimal ContentScalePercent { get; set; }
+        public string PrintFormat { get; set; }
+        public decimal QCPercent { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }        
+        public string ShippingAccountCode { get; set; }
+        public string BizdayCutOff { get; set; }
+        public string BizdaySLAType { get; set; }
+        public string BizdayTimeSpan { get; set; }
+        public string SatCutOff { get; set; }
+        public string SatSLAType { get; set; }
+        public string SatTimeSpan { get; set; }
+        public string SunCutOff { get; set; }
+        public string SunSLAType { get; set; }
+        public string SunTimeSpan { get; set; }
+        public string ShippingSpecialService { get; set; }        
+        public int NoOfCopies { get; set; }
+        public int? MinPage { get; set; }
+        public int? MaxPage { get; set; }
+
     }
     public class DocTypePageRange
     {

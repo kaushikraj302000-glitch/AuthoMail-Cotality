@@ -256,7 +256,8 @@ namespace AM.Services
 ,sum(case when m.shippingstatus = 'EDelivered' then 1 else 0 end) as EDelivered
 from AM.MailPieces m
 inner join AM.MailBatches b on m.MailBatchId=b.Id
-inner join [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id and m.PnSConfigDetailId = d.PnSConfigDetailId
+inner join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+inner join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
 where b.ClientId=@clientId AND b.ReceivedOn BETWEEN @startDate AND @endDate
 group by d.DocTypeName order by d.DocTypeName";
             return db.Query<DailySummaryChartVM>(query, new { clientId = clientId, startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc() }).ToList();
@@ -272,7 +273,8 @@ group by d.DocTypeName order by d.DocTypeName";
                 from [AM].[MailPieces] m
                 inner join [AM].[MailBatches] b on m.MailBatchId=b.Id
 				inner join [Common].[Clients] c on m.ClientId=c.Id                
-                inner join [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id and m.PnSConfigDetailId = d.PnSConfigDetailId
+                inner join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+                inner join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
                 where b.ClientId=@clientId
                 and m.ShippingStatus=@status and b.ReceivedOn between @startDate and @endDate and d.DocTypeName=@DocTypeCode";
             //var data = db.Query<MailPieces>(query, new { startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc(), status = status, clientId = clientId, DocTypeCode = DocTypeCode }).ToList();
