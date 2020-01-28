@@ -14,7 +14,8 @@ BEGIN
 	-- interfering with SELECT statements.
 	SELECT *
 	FROM [AM].[MailBatches] b,[Common].[Clients] c,[AM].[MailPieces] m
-	LEFT OUTER JOIN [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id AND m.PnSConfigDetailId = d.PnSConfigDetailId
+	LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+	LEFT OUTER JOIN Common.PnSConfigDetail PCD ON m.PnSConfigDetailId = pcd.Id
 	WHERE m.MailBatchId=b.Id AND b.ClientId=ISNULL(@clientId,b.ClientId)
 	AND m.ShippingStatus=@status AND b.Id=@batchId AND m.ClientId=c.Id
 	END

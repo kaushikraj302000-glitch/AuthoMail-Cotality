@@ -11,16 +11,16 @@ m.Id AS PkgId
 ,sftc.Code AS ChannelCode
 ,d.DocTypeName
 ,m.TrackingNo
-,d.PrintFormat
-,d.PrintSize
-,d.EnvelopeId AS EnvPartNo
+,PCD.PrintFormat
+,PCD.PrintSize
+,PCD.EnvelopeId AS EnvPartNo
 ,IsBRE
 ,BREEnvelopeId AS BREEnvPartNo
-,d.ShippingCarrier
-,d.ShippingServiceType
-,d.ShippingSpecialService
-,d.BizdayCutOff
-,d.SatCutOff
+,PCD.ShippingCarrier
+,PCD.ShippingServiceType
+,PCD.ShippingSpecialService
+,PCD.BizdayCutOff
+,PCD.SatCutOff
 ,QCPercent
 ,ShippingStatus
 ,TotalPages
@@ -50,7 +50,8 @@ FROM AM.MailPieces m
 INNER JOIN AM.MailBatches b ON m.MailBatchId = b.Id
 INNER JOIN Common.Clients c ON b.ClientId = c.Id
 INNER JOIN Common.SFTChannels sftc ON b.SFTChannelId = sftc.Id
-LEFT OUTER JOIN [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id AND m.PnSConfigDetailId = d.PnSConfigDetailId
+LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+LEFT OUTER JOIN Common.PnSConfigDetail PCD ON m.PnSConfigDetailId = PCD.Id
 LEFT OUTER JOIN Common.PrintTrails pt ON m.PrintTrailId = pt.Id
 LEFT OUTER JOIN PnS.MRDFRequest mrq ON m.UniqueId = mrq.UniqueId
 LEFT OUTER JOIN PnS.BatchSummary bs ON mrq.JobId = bs.PrintBatch

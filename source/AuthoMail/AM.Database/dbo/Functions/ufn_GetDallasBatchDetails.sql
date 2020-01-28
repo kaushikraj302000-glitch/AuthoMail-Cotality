@@ -66,7 +66,7 @@ BEGIN
 	b.PrintBatch,b.IsSubmitted,b.PipelineStatus,preq.PrintBatchName,b.JobName,preq.SubmittedOn,
 	req.PieceId,req.PrintTrailBatchId, req.JobId,req.[Date] AS MRDFReqDate,req.PDFFileName, req.UniqueId,req.MailPieceStatus, 
 	res.ProcessingTimeStamp,
-	d.ShippingServiceType,d.ShippingCarrier,d.IsBRE,
+	PCD.ShippingServiceType,PCD.ShippingCarrier,d.IsBRE,
 	c.AppCode,c.Name AS ClientName,(SELECT BatchName FROM @dallasBatchesTimes WHERE EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=d.ShippingCarrier AND ShippingServiceType=d.ShippingServiceType  AND AppCode=c.AppCode) BatchName,
 	req.FilePath
 	FROM [AM].[MailPieces] m
@@ -74,7 +74,8 @@ BEGIN
 	LEFT OUTER JOIN PnS.BatchSummary b ON req.JobId = b.PrintBatch
 	LEFT OUTER JOIN PnS.PrintTrailBatches preq ON req.PrintTrailBatchId=preq.Id
 	LEFT OUTER JOIN PnS.MRDFResponse res ON req.PrintTrailBatchId = res.JobId AND req.PieceId=res.PieceId
-	INNER JOIN [dbo].[v_DocTypes] d ON m.DocTypeId=d.Id AND m.PnSConfigDetailId = d.PnSConfigDetailId
+	INNER JOIN [AM].DocTypes d ON m.DocTypeId=d.Id
+	INNER JOIN Common.PnSConfigDetail PCD ON m.PnSConfigDetailId=PCD.Id
 	INNER JOIN Common.Clients c ON m.ClientId=c.Id
 	WHERE m.PrintLocation=@pl
 	AND m.EffectiveReceivedOnEst >=@minDate
