@@ -256,23 +256,23 @@ namespace AM.Web.Controllers
             return mailAPIResponses;
         }
 
-        [Route("emresponse")]
-        [HttpPost]
-        public async Task<string> ReceviedResponse(List<MailAPIResponse> mailResponse)
-        {
-            var re = Request;
-            var headers = re.Headers;
-            string token = string.Empty;
-            if (headers.Contains("X-API-Key"))
-            {
-                token = headers.GetValues("X-API-Key").First();
-            }
-            if (headers.Contains("Elli-Signature"))
-            {
-                token = headers.GetValues("Elli-Signature").First();
-            }
-            return token;
-        }
+        //[Route("emresponse")]
+        //[HttpPost]
+        //public async Task<string> ReceviedResponse(List<MailAPIResponse> mailResponse)
+        //{
+        //    var re = Request;
+        //    var headers = re.Headers;
+        //    string token = string.Empty;
+        //    if (headers.Contains("X-API-Key"))
+        //    {
+        //        token = headers.GetValues("X-API-Key").First();
+        //    }
+        //    if (headers.Contains("Elli-Signature"))
+        //    {
+        //        token = headers.GetValues("Elli-Signature").First();
+        //    }
+        //    return token;
+        //}
 
         private async static Task InsertInvalidBatch(DateTime receivedTime, SFTChannel sFTChannel, MailBatch mailBatch, int clientId, string errorMessage)
         {
