@@ -35,8 +35,8 @@ namespace AM.Services
         public List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
         {
             string query = "[dbo].[uspweb_DailyDetailOperationsReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes,PnSConfigDetail, MailPieces>(query,
-                (b, s, c, m, d,p) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
+                (b, s, c, m, d, p) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
@@ -60,8 +60,8 @@ namespace AM.Services
         public List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
         {
             string query = "[dbo].[uspweb_ErrorReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes,PnSConfigDetail, MailPieces>(query,
-                (b, s, c, m, d,p) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
+                (b, s, c, m, d, p) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
@@ -87,8 +87,8 @@ namespace AM.Services
         {
             string query = "[dbo].[uspweb_SummaryControlReport] @clientId, @startDate, @endDate, @channel";
 
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes,PnSConfigDetail, MailPieces>(query,
-                (b, s, c, m, d,p) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
+                (b, s, c, m, d, p) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
@@ -115,8 +115,8 @@ namespace AM.Services
             bool isReceived = filterBy == "ByReceivedOn" ? true : false;
             DateTime? dt = null;
 
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes,PnSConfigDetail, MailPieces>(query,
-                (b, s, c, m, d,p) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
+                (b, s, c, m, d, p) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
@@ -239,8 +239,8 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
             string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
 left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId";
 
-            var data = db.Query<MailPieces, MailBatches, DocTypes, MailPieceCustomInfoTest, Clients, MailPieces>(query,
-                (m, b, d, c, cl) =>
+            var data = db.Query<MailPieces, MailBatches, DocTypes, PnSConfigDetail, MailPieceCustomInfoTest, Clients, MailPieces>(query,
+                (m, b, d, p, c, cl) =>
                 {
                     MailPieces mp;
 
@@ -249,6 +249,7 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
                         mp = m;
                         mp.MailBatches = b;
                         mp.DocTypes = d;
+                        mp.PnSConfigDetails = p;
                         mp.Clients = cl;
                         mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
                         mailPieceDictionary.Add(mp.Id, mp);
