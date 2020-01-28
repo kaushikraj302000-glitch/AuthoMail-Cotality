@@ -88,12 +88,13 @@ namespace AM.Services
         public List<MailPieces> GetMailPieceByParam(int batchId, string status, int clientId)
         {
             string query = "[dbo].[uspweb_GetMailPieceByBatchIdAndStatus] @batchId, @status, @clientId";
-            var data = db.Query<MailBatches, Clients, MailPieces, DocTypes, MailPieces>(query,
-                (b, c, m, d) =>
+            var data = db.Query<MailBatches, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
+                (b, c, m, d, p) =>
                 {
                     m.MailBatches = b;
                     m.Clients = c;
                     m.DocTypes = d;
+                    m.PnSConfigDetails = p;
                     return m;
                 },
                 new
@@ -115,12 +116,13 @@ namespace AM.Services
         public List<MailPieces> GetMailPieceByBatchId(int batchId, int clientId)
         {
             string query = "[dbo].[uspweb_GetMailPieceByBatchId] @batchId, @clientId";
-            var data = db.Query<MailBatches, Clients, MailPieces, DocTypes, MailPieces>(query,
-                (b, c, m, d) =>
+            var data = db.Query<MailBatches, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
+                (b, c, m, d, p) =>
                 {
                     m.MailBatches = b;
                     m.Clients = c;
                     m.DocTypes = d;
+                    m.PnSConfigDetails = p;
                     return m;
                 },
                 new
