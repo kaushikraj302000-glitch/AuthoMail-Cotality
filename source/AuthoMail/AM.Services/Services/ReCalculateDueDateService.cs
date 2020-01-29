@@ -24,7 +24,15 @@ namespace AM.Services
         int UpdatePnSConfigDetailIdInPrintBatch(int printBatchId, int docTypeId, int pnsConfigDetailId);
         int UpdatePnSConfigDetailIdInBatchSummary(int batchSummaryId, int docTypeId, int pnsConfigDetailId);
         int GetBatchSummaryInfo(int printBatchId);
+        List<PrintBatchReporting> GetPrintBatchIdsForRegenarateReports();
     }
+
+    public class PrintBatchReporting
+    {
+        public int Id { get; set; }
+        public string AppCode { get; set; }
+    }
+
     public class ReCalculateDueDateService : ServiceBase, IReCalculateDueDateService
     {
 
@@ -121,6 +129,11 @@ namespace AM.Services
         public int GetBatchSummaryInfo(int printBatchId)
         {
             return db.QuerySingleOrDefault<int>("SELECT PrintBatch FROM PnS.BatchSummary WHERE BatchIdentifier = (SELECT UniqueId FROM AM.PrintBatches WHERE Id=@PrintBatchId)", new { PrintBatchId = printBatchId });
+        }
+
+        public List<PrintBatchReporting> GetPrintBatchIdsForRegenarateReports()
+        {
+            return db.Query<PrintBatchReporting>("select * from AM.PrintBatches WHERE Id>=388646 AND ReportPreppedOn >'2020-01-28 03:05:52.137' AND AppCode IN ('USAA','BECU','HSBC','BOTW') ORDER BY ReportPreppedOn,Id", new { }).ToList();
         }
     }
     public class Recal
