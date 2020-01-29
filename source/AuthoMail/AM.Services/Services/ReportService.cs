@@ -312,7 +312,7 @@ left outer join [AM].[DocTypes] d ON mp.DocTypeId=d.Id
 left outer join Common.PnSConfigDetail pcd ON mp.PnSConfigDetailId = pcd.Id
 WHERE PT.SubmittedOn >= @StartDate AND  PT.SubmittedOn < @EndDate AND MP.PrintLocation='Fort Mill, SC' 
 AND REQ.MailPieceStatus NOT IN ('Error','PulledBack')
-GROUP BY PT.Id,PT.PrintBatchName,PT.SubmittedOn,D.ShippingCarrier,D.ShippingServiceType
+GROUP BY PT.Id,PT.PrintBatchName,PT.SubmittedOn,pcd.ShippingCarrier,pcd.ShippingServiceType
 ORDER BY PrintTrailBatchId";
             return db.Query<PCISubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
         }
