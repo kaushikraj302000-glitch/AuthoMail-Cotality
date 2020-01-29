@@ -109,7 +109,7 @@ namespace AM.Services
                             mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? Config.Monitor_AMCPulledBackDate : mailPiece.ShippedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
                             shippingCredCode == null ? string.Empty : shippingCredCode.Value,
                             mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? string.Empty : mailPiece.TrackingNo,
-                            mailPiece.DocTypes == null ? string.Empty : mailPiece.DocTypes.ShippingCarrier,
+                            mailPiece.DocTypes == null ? string.Empty : mailPiece.PnSConfigDetails.ShippingCarrier,
                             custId == null ? string.Empty : custId.Value,
                             mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
                             mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,
