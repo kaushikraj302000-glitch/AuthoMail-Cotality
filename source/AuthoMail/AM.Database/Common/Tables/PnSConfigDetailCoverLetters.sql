@@ -6,3 +6,10 @@
     CONSTRAINT [FK_PnSConfigDetailCoverLetters_PnSConfigDetail] FOREIGN KEY ([PnSConfigDetailId]) REFERENCES [Common].[PnSConfigDetail] ([Id])
 );
 
+
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_PnSConfigDetailCoverLetters_UniqueCoverLetter]
+    ON [Common].[PnSConfigDetailCoverLetters]([PnSConfigDetailId] ASC, [SeqId] ASC, [CoverLetterTemplatePath] ASC) WITH (FILLFACTOR = 90);
+

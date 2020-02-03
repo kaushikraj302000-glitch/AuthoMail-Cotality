@@ -35,3 +35,65 @@
 
 
 
+
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_PnSConfigDetail_UniqueInfo]
+    ON [Common].[PnSConfigDetail]([PnSConfigId] ASC, [ShippingCarrier] ASC, [ShippingServiceType] ASC, [ShippingAccountCode] ASC, [ShippingSpecialService] ASC, [MinPage] ASC, [MaxPage] ASC, [PrintTrailId] ASC, [BizDayStartTime] ASC, [BizDayEndTime] ASC, [SatStartTime] ASC, [SatEndTime] ASC, [SunStartTime] ASC, [SunEndTime] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_PnSConfigDetail_SunStartTime]
+    ON [Common].[PnSConfigDetail]([SunStartTime] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_PnSConfigDetail_SunEndTime]
+    ON [Common].[PnSConfigDetail]([SunEndTime] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_PnSConfigDetail_SatStartTime]
+    ON [Common].[PnSConfigDetail]([SatStartTime] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_PnSConfigDetail_SatEndTime]
+    ON [Common].[PnSConfigDetail]([SatEndTime] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_PnSConfigDetail_PrintTrailId]
+    ON [Common].[PnSConfigDetail]([PrintTrailId] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_PnSConfigDetail_PnSConfigId]
+    ON [Common].[PnSConfigDetail]([PnSConfigId] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_PnSConfigDetail_MinPage]
+    ON [Common].[PnSConfigDetail]([MinPage] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_PnSConfigDetail_MaxPage]
+    ON [Common].[PnSConfigDetail]([MaxPage] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_PnSConfigDetail_EnvelopeId]
+    ON [Common].[PnSConfigDetail]([EnvelopeId] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_PnSConfigDetail_BizDayStartTime]
+    ON [Common].[PnSConfigDetail]([BizDayStartTime] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_PnSConfigDetail_BizDayEndTime]
+    ON [Common].[PnSConfigDetail]([BizDayEndTime] ASC) WITH (FILLFACTOR = 90);
+

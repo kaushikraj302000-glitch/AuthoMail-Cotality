@@ -39,12 +39,14 @@
     [MailPieceStatus]   VARCHAR (255)    NULL,
     [IsPDFReceived]     BIT              CONSTRAINT [DF_MRDFRequest_IsPDFReceived] DEFAULT ((0)) NULL,
     [PrintTrailBatchId] INT              NULL,
-    [PDFFileSize]       BIGINT           NULL,
     [FilePath]          VARCHAR (255)    NULL,
-    CONSTRAINT [PK_MRDFRequest] PRIMARY KEY CLUSTERED ([JobId] ASC, [PieceId] ASC) WITH (FILLFACTOR = 70),
+    [PDFFileSize]       BIGINT           NULL,
+    CONSTRAINT [PK_MRDFRequest] PRIMARY KEY CLUSTERED ([JobId] ASC, [PieceId] ASC) WITH (FILLFACTOR = 90),
     CONSTRAINT [FK_MRDFRequest_BatchSummary] FOREIGN KEY ([JobId]) REFERENCES [PnS].[BatchSummary] ([PrintBatch]),
     CONSTRAINT [FK_MRDFRequest_PrintTrailBatches] FOREIGN KEY ([PrintTrailBatchId]) REFERENCES [PnS].[PrintTrailBatches] ([Id])
 );
+
+
 
 
 GO

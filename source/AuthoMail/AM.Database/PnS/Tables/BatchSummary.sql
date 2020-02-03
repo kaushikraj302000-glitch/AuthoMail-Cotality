@@ -40,8 +40,11 @@
     CONSTRAINT [PK_BatchSummary] PRIMARY KEY CLUSTERED ([PrintBatch] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_BatchSummary_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
     CONSTRAINT [FK_BatchSummary_DocTypes] FOREIGN KEY ([DocTypeId]) REFERENCES [AM].[DocTypes] ([Id]),
+    CONSTRAINT [FK_BatchSummary_PnSConfigDetail] FOREIGN KEY ([PnSConfigDetailId]) REFERENCES [Common].[PnSConfigDetail] ([Id]),
     CONSTRAINT [FK_BatchSummary_PrintTrailBatches] FOREIGN KEY ([PrintTrailId]) REFERENCES [Common].[PrintTrails] ([Id])
 );
+
+
 
 
 GO
@@ -112,4 +115,9 @@ CREATE NONCLUSTERED INDEX [IX_BatchSummary_SuspendedOn]
 GO
 CREATE NONCLUSTERED INDEX [IX_Deliverables_DocTypeId]
     ON [PnS].[BatchSummary]([DocTypeId] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_BatchSummary_BatchIdentifier]
+    ON [PnS].[BatchSummary]([BatchIdentifier] ASC) WHERE ([BatchIdentifier] IS NOT NULL) WITH (FILLFACTOR = 90);
 

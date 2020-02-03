@@ -67,7 +67,7 @@ BEGIN
 	req.PieceId,req.PrintTrailBatchId, req.JobId,req.[Date] AS MRDFReqDate,req.PDFFileName, req.UniqueId,req.MailPieceStatus, 
 	res.ProcessingTimeStamp,
 	PCD.ShippingServiceType,PCD.ShippingCarrier,d.IsBRE,
-	c.AppCode,c.Name AS ClientName,(SELECT BatchName FROM @dallasBatchesTimes WHERE EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=d.ShippingCarrier AND ShippingServiceType=d.ShippingServiceType  AND AppCode=c.AppCode) BatchName,
+	c.AppCode,c.Name AS ClientName,(SELECT BatchName FROM @dallasBatchesTimes WHERE EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=PCD.ShippingCarrier AND ShippingServiceType=PCD.ShippingServiceType  AND AppCode=c.AppCode) BatchName,
 	req.FilePath
 	FROM [AM].[MailPieces] m
 	LEFT OUTER JOIN PnS.MRDFRequest req ON m.UniqueId = req.UniqueId

@@ -111,7 +111,6 @@
     <Build Include="Common\Tables\PnSConfigDetailCoverLetters.sql" />
     <Build Include="API\Tables\USPSeVSCancel.sql" />
     <Build Include="Common\Tables\BusinessUnit.sql" />
-    <Build Include="Common\Tables\PnSConfigDetailPrintTrailMaps.sql" />
     <Build Include="Common\Tables\ClientDomains.sql" />
     <Build Include="Common\Tables\Clients.sql" />
     <Build Include="Common\Tables\ClientSFTChannels.sql" />
@@ -154,7 +153,6 @@
     <Build Include="dbo\Stored Procedures\usp_RevertPipelineStatus.sql" />
     <Build Include="dbo\Stored Procedures\usp_UpdateAMMailBatchesStatus.sql" />
     <Build Include="dbo\Stored Procedures\usp_UpdateEDMailPieceActivityStatus.sql" />
-    <Build Include="dbo\Stored Procedures\Test.sql" />
     <Build Include="dbo\Stored Procedures\uspweb_SummaryControlReport.sql" />
     <Build Include="dbo\Stored Procedures\uspweb_MonthlyReconReport.sql" />
     <Build Include="dbo\Stored Procedures\uspweb_MailPieceSearch.sql" />
@@ -191,7 +189,6 @@
     <Build Include="dbo\Stored Procedures\usp_GetMRDFRequestSchema.sql" />
     <Build Include="dbo\Stored Procedures\usp_GetMRDFResponseDataByJobId.sql" />
     <Build Include="dbo\Stored Procedures\usp_GetMRDFResponseDataByPrintTrailBatchId.sql" />
-    <Build Include="dbo\Stored Procedures\usp_GetMRDFResponseDummyDataByJobId.sql" />
     <Build Include="dbo\Stored Procedures\usp_GetMRDFResponseDummyDataByPrintTrailBatchId.sql" />
     <Build Include="dbo\Stored Procedures\usp_GetMRDFResponseSchema.sql" />
     <Build Include="dbo\Stored Procedures\usp_GetNextBatchIdByJobName.sql" />
@@ -211,5 +208,11 @@
     <Build Include="Security\PnS.sql" />
     <Build Include="Security\Profile.sql" />
     <Build Include="dbo\Sequences\ReportingSequence.sql" />
+    <Build Include="dbo\Views\vPrintReadyLegacy.sql" />
+    <Build Include="dbo\Views\view_MailPiecesInformation.sql" />
+    <Build Include="dbo\Views\vAPIs.sql" />
+    <Build Include="dbo\Functions\ufn_ConvertDateTimeFromAnyTimeZoneToAnyTimeZone.sql" />
+    <Build Include="dbo\Functions\IsBusinessDay.sql" />
+    <Build Include="dbo\Functions\GetNextWorkingDay.sql" />
   </ItemGroup>
 </Project>

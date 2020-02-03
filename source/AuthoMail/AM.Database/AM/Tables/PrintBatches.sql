@@ -19,8 +19,11 @@
     CONSTRAINT [PK_PrintBatches] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_PrintBatches_DocTypes] FOREIGN KEY ([DocTypeId]) REFERENCES [AM].[DocTypes] ([Id]),
     CONSTRAINT [FK_PrintBatches_MailBatches] FOREIGN KEY ([MailBatchId]) REFERENCES [AM].[MailBatches] ([Id]),
+    CONSTRAINT [FK_PrintBatches_PnSConfigDetail] FOREIGN KEY ([PnSConfigDetailId]) REFERENCES [Common].[PnSConfigDetail] ([Id]),
     CONSTRAINT [FK_PrintBatches_PrintTrails] FOREIGN KEY ([PrintTrailId]) REFERENCES [Common].[PrintTrails] ([Id])
 );
+
+
 
 
 GO
@@ -46,4 +49,9 @@ CREATE NONCLUSTERED INDEX [IX_PrintBatches_SubmittedToShippingOn]
 GO
 CREATE UNIQUE NONCLUSTERED INDEX [IX_PrintBatches_UniqueId]
     ON [AM].[PrintBatches]([UniqueId] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_PrintBatches_PnSConfigDetailId]
+    ON [AM].[PrintBatches]([PnSConfigDetailId] ASC) WITH (FILLFACTOR = 90);
 

@@ -77,22 +77,22 @@
     [IsPickedUp]                          AS               (case when [PickedUpOn] IS NULL then (0) else (1) end),
     [EffectiveReceivedOnEst]              DATETIME         NULL,
     [RcptAddressTypes]                    VARCHAR (255)    NULL,
-    [MissedSLAReason]                     VARCHAR (15)     NULL,
     [StdSubmissionTime]                   DATETIME         NULL,
     [MaxSubmissionTime]                   DATETIME         NULL,
+    [MissedSLAReason]                     VARCHAR (15)     NULL,
     [PrintTrailId]                        INT              NULL,
-    [PDFFileSize]                         BIGINT           NULL,
     [RcptAddressCountry]                  VARCHAR (255)    NULL,
     [RetRcptAddressCountry]               VARCHAR (255)    NULL,
+    [PDFFileSize]                         BIGINT           NULL,
     [IsEDeliveryRequested]                BIT              NULL,
     [IsFallBackRequested]                 BIT              NULL,
     [RcptEmailId]                         VARCHAR (255)    NULL,
     [ExpiryDate]                          DATETIME         NULL,
     [PnSConfigDetailId]                   INT              NULL,
     [Inserts]                             VARCHAR (255)    NULL,
-    [TotalBlankPages] INT NULL, 
-    [BlankPageNumbers] VARCHAR(255) NULL, 
-    CONSTRAINT [PK_MailPieces] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
+    [TotalBlankPages]                     INT              NULL,
+    [BlankPageNumbers]                    VARCHAR (255)    NULL,
+    CONSTRAINT [PK_MailPieces] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
     CONSTRAINT [FK_MailPiece_DocTypes] FOREIGN KEY ([DocTypeId]) REFERENCES [AM].[DocTypes] ([Id]),
     CONSTRAINT [FK_MailPieces_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
     CONSTRAINT [FK_MailPieces_MailBatches] FOREIGN KEY ([MailBatchId]) REFERENCES [AM].[MailBatches] ([Id]),
@@ -101,6 +101,8 @@
     CONSTRAINT [FK_MailPieces_PrintTrails] FOREIGN KEY ([PrintTrailId]) REFERENCES [Common].[PrintTrails] ([Id]),
     CONSTRAINT [FK_MailPieces_Users] FOREIGN KEY ([PulledBackRequestedBy]) REFERENCES [Profile].[Users] ([Id])
 );
+
+
 
 
 GO
@@ -186,4 +188,9 @@ CREATE NONCLUSTERED INDEX [IX_MailPieces_TrackingNo]
 GO
 CREATE UNIQUE NONCLUSTERED INDEX [IX_MailPieces_UniqueId]
     ON [AM].[MailPieces]([UniqueId] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailPieces_PnSConfigDetailId]
+    ON [AM].[MailPieces]([PnSConfigDetailId] ASC) WITH (FILLFACTOR = 90);
 

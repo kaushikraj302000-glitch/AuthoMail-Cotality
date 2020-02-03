@@ -16,7 +16,7 @@
     [MeterDate]             VARCHAR (50)   NULL,
     [StatusSource]          VARCHAR (50)   NULL,
     [PostageMetered]        DECIMAL (7, 4) NULL,
-    [WeightMeasured]        DECIMAL (4, 3) NULL,
+    [WeightMeasured]        DECIMAL (7, 4) NULL,
     [ExitLocation]          VARCHAR (50)   NULL,
     [TotalSheets]           INT            NULL,
     [PDFFileName]           VARCHAR (255)  NULL,
@@ -24,6 +24,8 @@
     CONSTRAINT [PK_MRDFResponse] PRIMARY KEY CLUSTERED ([JobId] ASC, [PieceId] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_MRDFResponse_PrintTrailBatches] FOREIGN KEY ([JobId]) REFERENCES [PnS].[PrintTrailBatches] ([Id])
 );
+
+
 
 
 GO

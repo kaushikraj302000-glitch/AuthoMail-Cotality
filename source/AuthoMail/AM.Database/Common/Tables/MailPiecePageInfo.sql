@@ -6,3 +6,10 @@
     CONSTRAINT [FK_MailPiecePageInfo_MailPieces] FOREIGN KEY ([MailPieceId]) REFERENCES [AM].[MailPieces] ([Id])
 );
 
+
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_MailPiecePageInfo_PageCount]
+    ON [Common].[MailPiecePageInfo]([PageCount] ASC) WITH (FILLFACTOR = 90);
+

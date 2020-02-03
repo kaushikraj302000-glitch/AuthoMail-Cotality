@@ -28,16 +28,14 @@
     [CreatedOn]                           DATETIME       NULL,
     [CreatedBy]                           NVARCHAR (128) NULL,
     [ModifiedBy]                          NVARCHAR (128) NULL,
+    [DocTypeName]                         VARCHAR (512)  DEFAULT ('desc') NOT NULL,
     [IsBRE]                               BIT            CONSTRAINT [DF_DocTypes_IsBRE] DEFAULT ((0)) NOT NULL,
     [NoOfCopies]                          INT            NOT NULL,
     [BREEnvelopeId]                       INT            NULL,
     [RetRcptAddressCountry]               VARCHAR (255)  NULL,
     [IsPrintReady]                        BIT            NULL,
-    [DocTypeName]                         VARCHAR (255)  NULL,
     [PnSConfigId]                         INT            NULL,
-    CONSTRAINT [PK_DocTypes] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
-    CONSTRAINT [FK__DocTypes__CreatedBy] FOREIGN KEY ([CreatedBy]) REFERENCES [Profile].[Users] ([Id]),
-    CONSTRAINT [FK__DocTypes__ModifiedBy] FOREIGN KEY ([ModifiedBy]) REFERENCES [Profile].[Users] ([Id]),
+    CONSTRAINT [PK_DocTypes] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
     CONSTRAINT [FK_CreatedBy_DocTypes_User] FOREIGN KEY ([CreatedBy]) REFERENCES [Profile].[Users] ([Id]),
     CONSTRAINT [FK_DocTypes_BREEnvelopes] FOREIGN KEY ([BREEnvelopeId]) REFERENCES [Common].[Envelopes] ([Id]),
     CONSTRAINT [FK_DocTypes_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
@@ -46,7 +44,19 @@
 );
 
 
+
+
 GO
 CREATE NONCLUSTERED INDEX [IX_DocTypes_ClientId]
     ON [AM].[DocTypes]([ClientId] ASC) WITH (FILLFACTOR = 70);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_DocTypes_PnSConfigId]
+    ON [AM].[DocTypes]([PnSConfigId] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_DocTypes_ClientId_DocTypeName]
+    ON [AM].[DocTypes]([ClientId] ASC, [DocTypeName] ASC) WITH (FILLFACTOR = 90);
 

@@ -5,3 +5,10 @@
     CONSTRAINT [PK_Holidays] PRIMARY KEY CLUSTERED ([Id] ASC)
 );
 
+
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Holidays_HolidayDate]
+    ON [Common].[Holidays]([HolidayDate] ASC) WITH (FILLFACTOR = 90);
+
