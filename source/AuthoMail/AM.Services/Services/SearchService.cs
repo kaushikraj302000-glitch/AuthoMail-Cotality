@@ -31,7 +31,7 @@ namespace AM.Services
      inner join Common.SFTChannels ch on b.SFTChannelId=ch.Id
      inner join Common.Clients c on m.ClientId=c.Id     
 	 left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
-inner join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
+     left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
 	 left outer JOIN Profile.Users u ON m.PulledBackRequestedBy=u.Id	 
 	 WHERE m.ClientId=@clientId";
             string fields = @"m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
