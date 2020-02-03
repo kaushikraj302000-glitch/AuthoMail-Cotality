@@ -29,7 +29,8 @@ namespace AM.ProductionToUATBridge
                 using (IMailPieceService mailPieceSvc = new MailPieceService())
                 using (IClientService clientSvc = new ClientService())
                 {
-                    List<MBInfo> mailBatches = mailPieceSvc.GetReportedBackRecordsFromUATBridge();
+                    //List<MBInfo> mailBatches = mailPieceSvc.GetReportedBackRecordsFromUATBridge();
+                    List<MBInfo> mailBatches = mailPieceSvc.GetReportedBackAMRecordsFromUATBridge();
 
                     if (mailBatches.Count == 0)
                     {
@@ -64,7 +65,8 @@ namespace AM.ProductionToUATBridge
                 using (IMailPieceService mailPieceSvc = new MailPieceService())
                 using (IClientService clientSvc = new ClientService())
                 {
-                    List<MBInfo> mailBatches = mailPieceSvc.GetReportedBackRecordsFromUATBridge();
+                    //List<MBInfo> mailBatches = mailPieceSvc.GetReportedBackRecordsFromUATBridge();
+                    List<MBInfo> mailBatches = mailPieceSvc.GetReportedBackPnSRecordsFromUATBridge();
 
                     if (mailBatches.Count == 0)
                     {
