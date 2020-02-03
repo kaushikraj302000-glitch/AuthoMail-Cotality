@@ -25,6 +25,10 @@ namespace AM.Services
         int UpdatePnSConfigDetailIdInBatchSummary(int batchSummaryId, int docTypeId, int pnsConfigDetailId);
         int GetBatchSummaryInfo(int printBatchId);
         List<PrintBatchReporting> GetPrintBatchIdsForRegenarateReports();
+        List<UspsAPI> GetUSPSRecordsToPurge();
+        List<UspsAPI> GetUSPSeVSRecordsToPurge();
+        int UpdateUSPSRecords(int Id);
+        int UpdateUSPSeVSRecords(int Id);
     }
 
     public class PrintBatchReporting
@@ -135,6 +139,31 @@ namespace AM.Services
         {
             return db.Query<PrintBatchReporting>("select * from AM.PrintBatches WHERE Id>=388646 AND ReportPreppedOn >'2020-01-28 03:05:52.137' AND AppCode IN ('USAA','BECU','HSBC','BOTW') ORDER BY ReportPreppedOn,Id", new { }).ToList();
         }
+
+        public List<UspsAPI> GetUSPSRecordsToPurge()
+        {
+            string q = @"DECLARE @Offset AS nvarchar(256)
+                        SET @Offset = (SELECT current_utc_offset FROM sys.time_zone_info WHERE NAME = N'US Eastern Standard Time') select Id,APIRequestedOn from [API].[USPS] where APIRequestedOn <= DATEADD(MONTH, -2, DATEADD(hour,case when @Offset = '-04:00' then -4 when @Offset = '-05:00' then -5 end,GETUTCDATE()))";
+            return db.Query<UspsAPI>(q).ToList();
+        }
+
+        public List<UspsAPI> GetUSPSeVSRecordsToPurge()
+        {
+            string q = @"DECLARE @Offset AS nvarchar(256) SET @Offset = (SELECT current_utc_offset FROM sys.time_zone_info WHERE            NAME = N'US Eastern Standard Time') select Id,APIRequestedOn from [API].[USPSeVS] where APIRequestedOn             <= DATEADD(MONTH, -2, DATEADD(hour,case when @Offset = '-04:00' then -4 when @Offset = '-05:00' then -5             end,GETUTCDATE()))";
+            return db.Query<UspsAPI>(q).ToList();
+        }
+
+        public int UpdateUSPSRecords(int Id)
+        {
+            string q = "UPDATE [API].[USPS] SET USPSRequest = null, USPSResponse = null, APIResponse = null WHERE Id = @Id";
+            return db.Execute(q, new { Id = Id });
+        }
+
+        public int UpdateUSPSeVSRecords(int Id)
+        {
+            string q = "UPDATE [API].[USPSeVS] SET USPSResponse = null, APIResponse = null WHERE Id = @Id";
+            return db.Execute(q, new { Id = Id });
+        }
     }
     public class Recal
     {
@@ -172,5 +201,11 @@ namespace AM.Services
         public TimeSpan? SatEndTime { get; set; }
         public TimeSpan? SunStartTime { get; set; }
         public TimeSpan? SunEndTime { get; set; }
+    }
+
+    public class UspsAPI
+    {
+        public int Id { get; set; }
+        public DateTime APIRequestedOn { get; set; }
     }
 }
