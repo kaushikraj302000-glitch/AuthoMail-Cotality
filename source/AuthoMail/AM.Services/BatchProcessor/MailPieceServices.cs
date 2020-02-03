@@ -28,6 +28,8 @@ namespace AM.Services
         List<MailPieceDTO> GetMailPiecesForUATBridge(DateTime utcStartDate, int clientId);
         List<MailPieceCustomInfo> GetMailPieceCustomInfos(int mailPieceId);
         BatchResponse GetMailPieceDetailsByMailPieceUniqueId(string uniqueId);
+        List<MBInfo> GetReportedBackRecordsFromUATBridge();
+        List<MBInfo> GetPnSReportedBackRecordsFromUATBridge();
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -212,6 +214,22 @@ where MP.UniqueId = @UniqueId
 ";
 
             return db.QuerySingleOrDefault<BatchResponse>(query, new { UniqueId = uniqueId });
+        }
+
+        public List<MBInfo> GetReportedBackRecordsFromUATBridge()
+        {
+            string query = @"SELECT Distinct B.Id AS MailBatchId,C.AppCode FROM AM.MailBatches B INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE B.PipelineStatus='ReportedBack' AND B.IsReportedBack=1 AND B.BatchName LIKE 'UAT%'";
+
+            var data = db.Query<MBInfo>(query).ToList();
+            return data;
+        }
+
+        public List<MBInfo> GetPnSReportedBackRecordsFromUATBridge()
+        {
+            string query = @"SELECT BS.PrintBatch AS MailBatchId,C.AppCode FROM PnS.BatchSummary BS INNER JOIN Common.Clients C ON BS.ClientId=C.Id WHERE BS.BatchIdentifier IN (SELECT UniqueId FROM AM.PrintBatches WHERE MailBatchId IN (SELECT Distinct B.Id AS MailBatchId FROM AM.MailBatches B INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE B.PipelineStatus='ReportedBack' AND B.IsReportedBack=1 AND B.BatchName LIKE 'UAT%')) AND BS.IsReportedBack=1";
+
+            var data = db.Query<MBInfo>(query).ToList();
+            return data;
         }
     }
 }

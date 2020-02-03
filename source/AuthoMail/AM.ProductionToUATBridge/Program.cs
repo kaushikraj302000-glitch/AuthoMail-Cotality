@@ -17,12 +17,83 @@ namespace AM.ProductionToUATBridge
         public static log4net.ILog log = log4net.LogManager.GetLogger(typeof(Program));
         static void Main(string[] args)
         {
+
             string clientCode = "";
             if (args.Length >= 1)
             {
                 clientCode = args[0];
             }
-            if (clientCode == "CITIVM")
+            if (clientCode == "DELETE_COMPLETED_AM")
+            {
+                using (IMailBatchService mailBatchSvc = new MailBatchService())
+                using (IMailPieceService mailPieceSvc = new MailPieceService())
+                using (IClientService clientSvc = new ClientService())
+                {
+                    List<MBInfo> mailBatches = mailPieceSvc.GetReportedBackRecordsFromUATBridge();
+
+                    if (mailBatches.Count == 0)
+                    {
+                        log.Info("No records found for deleting old records.");
+                        return;
+                    }
+
+                    foreach (var mb in mailBatches)
+                    {
+                        string rootPath = Config.Common_AuthoMailRootFolder;
+
+                        string batchPath = Path.Combine(rootPath, mb.AppCode, mb.MailBatchId.ToString());
+
+                        if (Directory.Exists(batchPath))
+                        {
+                            Directory.Delete(batchPath, true);
+                            Console.WriteLine("Removed Batch :" + mb.MailBatchId.ToString() + " FROM AppCode :" + mb.AppCode);
+                            log.Info("Removed Batch :" + mb.MailBatchId.ToString() + " FROM AppCode :" + mb.AppCode);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Path Not Found For Batch :" + mb.MailBatchId.ToString() + " FROM AppCode :" + mb.AppCode);
+                            log.Info("Path Not Found For Batch :" + mb.MailBatchId.ToString() + " FROM AppCode :" + mb.AppCode);
+                        }
+                    }
+                }
+
+            }
+            else if (clientCode == "DELETE_COMPLETED_PnS")
+            {
+                using (IMailBatchService mailBatchSvc = new MailBatchService())
+                using (IMailPieceService mailPieceSvc = new MailPieceService())
+                using (IClientService clientSvc = new ClientService())
+                {
+                    List<MBInfo> mailBatches = mailPieceSvc.GetReportedBackRecordsFromUATBridge();
+
+                    if (mailBatches.Count == 0)
+                    {
+                        log.Info("No records found for deleting old records.");
+                        return;
+                    }
+
+                    foreach (var mb in mailBatches)
+                    {
+                        string rootPath = @"D:\MTC\AuthoMail\PnSService\PCIRoot";
+
+                        string batchPath = Path.Combine(rootPath, mb.AppCode, mb.MailBatchId.ToString());
+
+                        if (Directory.Exists(batchPath))
+                        {
+                            Directory.Delete(batchPath, true);
+                            Console.WriteLine("Removed Batch :" + mb.MailBatchId.ToString() + " FROM AppCode :" + mb.AppCode);
+                            log.Info("Removed Batch :" + mb.MailBatchId.ToString() + " FROM AppCode :" + mb.AppCode);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Path Not Found For Batch :" + mb.MailBatchId.ToString() + " FROM AppCode :" + mb.AppCode);
+                            log.Info("Path Not Found For Batch :" + mb.MailBatchId.ToString() + " FROM AppCode :" + mb.AppCode);
+                        }
+                    }
+                }
+
+            }
+            else if (clientCode == "CITIVM")
             {
                 log.Debug("----Batching Process started for Client CITIVM----");
                 PrintReadyClientProcess.GenerateCitiBatch(Common.EstToday.Date.AddDays(Convert.ToInt32(args[1])));
@@ -51,12 +122,12 @@ namespace AM.ProductionToUATBridge
                         return;
                     }
                     var mpByClients = mailPieces.GroupBy(mp => mp.ClientId).ToList();
-                    //Dictionary<string, float> ratioList = new Dictionary<string, float>();
-                    //Configuration.ProductionVolumnRatio.ToList().ForEach(rt =>
-                    //{
-                    //    var clRatio = rt.Split('|');
-                    //    ratioList.Add(clRatio[0], float.Parse(clRatio[1]));
-                    //});
+                    Dictionary<string, float> ratioList = new Dictionary<string, float>();
+                    Configuration.ProductionVolumnRatio.ToList().ForEach(rt =>
+                    {
+                        var clRatio = rt.Split('|');
+                        ratioList.Add(clRatio[0], float.Parse(clRatio[1]));
+                    });
 
                     foreach (var mpData in mpByClients)
                     {
@@ -91,29 +162,29 @@ namespace AM.ProductionToUATBridge
                                 var mpListByMb = mbList.ToList();
 
                                 log.Debug("----Batching Process started for Client {0}----".Fill(client.AppCode));
-                                //#region Production Ratio
-                                //double qcCount = 0;
-                                //float qcPercentage = ratioList[client.AppCode] / 100;
-                                //qcCount = Math.Ceiling(mpListByMb.Count * qcPercentage);
-                                //log.Debug("Record Count : {0}".Fill(qcCount));
-                                //var randomIndexes = new List<int>();
-                                //while (randomIndexes.Count < qcCount)
-                                //{
-                                //    var index = random.Next(0, mpListByMb.Count - 1);
-                                //    if (!randomIndexes.Contains(index))
-                                //    {
-                                //        randomIndexes.Add(index);
-                                //    }
-                                //}
-                                //log.Debug("While Going to randomIndexes");
-                                //randomIndexes.ForEach(index =>
-                                //{
-                                //    mpListByMb[index].IsQCRequested = true;
-                                //});
-                                //log.Debug("Going to randomIndexes");
-                                //#endregion
+                                #region Production Ratio
+                                double qcCount = 0;
+                                float qcPercentage = ratioList[client.AppCode] / 100;
+                                qcCount = Math.Ceiling(mpListByMb.Count * qcPercentage);
+                                log.Debug("Record Count : {0}".Fill(qcCount));
+                                var randomIndexes = new List<int>();
+                                while (randomIndexes.Count < qcCount)
+                                {
+                                    var index = random.Next(0, mpListByMb.Count - 1);
+                                    if (!randomIndexes.Contains(index))
+                                    {
+                                        randomIndexes.Add(index);
+                                    }
+                                }
+                                log.Debug("While Going to randomIndexes");
+                                randomIndexes.ForEach(index =>
+                                {
+                                    mpListByMb[index].IsQCRequested = true;
+                                });
+                                log.Debug("Going to randomIndexes");
+                                #endregion
 
-                                var selectedMPs = mpListByMb.ToList();
+                                var selectedMPs = mpListByMb.Where(mp => mp.IsQCRequested == true).ToList();
                                 log.Debug("Selected MailPieces Count : {0}".Fill(selectedMPs.Count));
                                 string clientBatchId = "UAT_{0}{1}".Fill(client.AppCode, Common.Now.ToString("yyyyMMddhhmmss"));
                                 log.Debug("ClientBatchId : {0}".Fill(clientBatchId));

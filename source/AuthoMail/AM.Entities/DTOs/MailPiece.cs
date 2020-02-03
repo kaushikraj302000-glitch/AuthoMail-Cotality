@@ -160,4 +160,10 @@ namespace AM.Entities
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
     }
+
+    public class MBInfo
+    {
+        public int MailBatchId { get; set; }
+        public string AppCode { get; set; }
+    }
 }
