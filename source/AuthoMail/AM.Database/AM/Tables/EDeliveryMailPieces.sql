@@ -40,3 +40,60 @@
     CONSTRAINT [PK_EDeliveryMailPieces] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70)
 );
 
+
+
+
+GO
+CREATE NONCLUSTERED INDEX [Idx_EDeliveryMailPieces_ValidatedOn]
+    ON [AM].[EDeliveryMailPieces]([ValidatedOn] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [Idx_EDeliveryMailPieces_SigningRoomCreatedOn]
+    ON [AM].[EDeliveryMailPieces]([SigningRoomCreatedOn] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [Idx_EDeliveryMailPieces_ReportedBackOn]
+    ON [AM].[EDeliveryMailPieces]([ReportedBackOn] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [Idx_EDeliveryMailPieces_ReceivedOn]
+    ON [AM].[EDeliveryMailPieces]([ReceivedOn] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [Idx_EDeliveryMailPieces_InvitationSentOn]
+    ON [AM].[EDeliveryMailPieces]([InvitationSentOn] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [Idx_EDeliveryMailPieces_eDeliveredOn]
+    ON [AM].[EDeliveryMailPieces]([eDeliveredOn] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [Idx_EDeliveryMailPieces_DownloadedOn]
+    ON [AM].[EDeliveryMailPieces]([DownloadedOn] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [Idx_EDeliveryMailPieces_DocReviewedOn]
+    ON [AM].[EDeliveryMailPieces]([DocReviewedOn] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [Idx_EDeliveryMailPieces_DocDownloadedOn]
+    ON [AM].[EDeliveryMailPieces]([DocDownloadedOn] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [Idx_EDeliveryMailPieces_ConsentDeclinedOn]
+    ON [AM].[EDeliveryMailPieces]([ConsentDeclinedOn] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [Idx_EDeliveryMailPieces_ConsentAcceptedOn]
+    ON [AM].[EDeliveryMailPieces]([ConsentAcceptedOn] ASC) WITH (FILLFACTOR = 90);
+

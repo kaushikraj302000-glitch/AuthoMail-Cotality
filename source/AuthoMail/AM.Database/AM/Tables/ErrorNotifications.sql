@@ -10,6 +10,8 @@
 );
 
 
+
+
 GO
 CREATE NONCLUSTERED INDEX [Idx_ErrorNotifications_ClientId]
     ON [AM].[ErrorNotifications]([ClientId] ASC);
@@ -18,4 +20,14 @@ CREATE NONCLUSTERED INDEX [Idx_ErrorNotifications_ClientId]
 GO
 CREATE UNIQUE NONCLUSTERED INDEX [Idx_ErrorNotifications_MailBatchId]
     ON [AM].[ErrorNotifications]([MailBatchId] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [Idx_ErrorNotifications_ReceivedOn]
+    ON [AM].[ErrorNotifications]([ReceivedOn] ASC) WITH (FILLFACTOR = 90);
+
+
+GO
+CREATE NONCLUSTERED INDEX [Idx_ErrorNotifications_CreatedOn]
+    ON [AM].[ErrorNotifications]([CreatedOn] ASC) WITH (FILLFACTOR = 90);
 
