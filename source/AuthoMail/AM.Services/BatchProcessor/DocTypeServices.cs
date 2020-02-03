@@ -5,69 +5,161 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
+using AM.Lib;
 
 namespace AM.Services
 {
     public interface IDocTypeService : IDisposable
     {
-        List<DocType> GetDocTypesByClientId(int clientId);
-        DocType GetDocTypeByDocTypeCode(int clientId, string docTypeCode);
         DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount);
-        List<DocType> GetFallBackDocTypeByClientDocTypeId(int clientId, int clientDocTypeId);
-        DocType GetDocTypeById(int docTypeId);
-        List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int docTypeId);
+
+        DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, DateTime estReceivedOn);
+
+        DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, string shippingCarrier, string shippingServiceType);
+        DocType GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, DateTime estReceivedOn, string shippingCarrier, string shippingServiceType);
+        DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId);
+        List<PnSConfigDetailCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId);
         DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId);
     }
 
     public class DocTypeService : ServiceBase, IDocTypeService
     {
-        public List<DocType> GetDocTypesByClientId(int clientId)
-        {
-            string query = "SELECT * FROM [AM].[DocTypes] WHERE ClientId=@ClientId AND IsActive=1";
-
-            return db.Query<DocType>(query, new { ClientId = clientId }).ToList();
-        }
-
-        public DocType GetDocTypeByDocTypeCode(int clientId, string docTypeCode)
-        {
-            string query = "SELECT * FROM [AM].[DocTypes]  WHERE ClientId=@clientId AND DocTypeCode=@docTypeCode  AND IsActive=1";
-
-            return db.QuerySingleOrDefault<DocType>(query, new { clientId = clientId, docTypeCode = docTypeCode });
-        }
-
         public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount)
         {
-            string query = "SELECT D.*,CDT.DocTypeName FROM [AM].[DocTypes] D INNER JOIN [AM].[ClientDocTypes] CDT ON D.ClientDocTypeId=CDT.Id WHERE CDT.ClientId=@ClientId AND CDT.DocTypeName = @DocumentOrPackageName AND @PageCount BETWEEN D.MinPage AND D.MaxPage AND D.IsActive=1 AND D.IsFallBack=0";
+            string query = "SELECT * FROM [dbo].[v_DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + {0}) BETWEEN D.MinPage AND D.MaxPage AND D.IsFallBack = 0 AND D.IsActive = 1".Fill(pageCount);
 
             return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount });
         }
 
-        public List<DocType> GetFallBackDocTypeByClientDocTypeId(int clientId, int clientDocTypeId)
+        public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, string shippingCarrier, string shippingServiceType)
         {
-            string query = "SELECT D.*,CDT.DocTypeName FROM [AM].[DocTypes] D INNER JOIN [AM].[ClientDocTypes] CDT ON D.ClientDocTypeId=CDT.Id WHERE CDT.ClientId=@ClientId AND CDT.Id = @ClientDocTypeId AND D.IsActive=1 AND D.IsFallBack=1";
+            string query = "SELECT * FROM [dbo].[v_DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + {0}) BETWEEN D.MinPage AND D.MaxPage AND D.IsActive = 1 AND D.ShippingCarrier=@ShippingCarrier AND D.ShippingServiceType=@ShippingServiceType".Fill(pageCount);
 
-            return db.Query<DocType>(query, new { ClientId = clientId, ClientDocTypeId = clientDocTypeId }).ToList();
+            return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType });
         }
 
-        public DocType GetDocTypeById(int docTypeId)
+        public DocType GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, DateTime estReceivedOn, string shippingCarrier, string shippingServiceType)
         {
-            string query = "SELECT * FROM [AM].[DocTypes] WHERE Id=@docTypeId  AND IsActive=1";
+            string query = "SELECT D.* FROM [dbo].[v_DocTypes] D WHERE D.ClientId=@ClientId AND D.Id=@DocTypeId AND D.IsActive=1 AND D.IsFallBack=1 AND D.ShippingCarrier=@ShippingCarrier AND D.ShippingServiceType=@ShippingServiceType";
 
-            return db.QuerySingleOrDefault<DocType>(query, new { docTypeId = docTypeId });
+            var docTypeList = db.Query<DocType>(query, new { ClientId = clientId, DocTypeId = docTypeId, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType }).ToList();
+
+            if (docTypeList.Count == 0)
+                return null;
+
+            return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
         }
 
-        public List<DocTypeCoverLetter> GetDocumentCoverLetterTemplates(int docTypeId)
+        public DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId)
         {
-            string query = "SELECT * FROM [AM].[DocTypeCoverLetters] WHERE DocTypeId=@docTypeId";
+            string query = "SELECT D.* FROM [dbo].[v_DocTypes] D WHERE D.Id=@DocTypeId AND D.PnSConfigDetailId=@PnSConfigDetailId AND D.IsActive=1";
 
-            return db.Query<DocTypeCoverLetter>(query, new { docTypeId = docTypeId }).ToList();
+            return db.QuerySingleOrDefault<DocType>(query, new { DocTypeId = docTypeId, PnsConfigDetailId = pnsConfigDetailId });
+        }
+
+        public List<PnSConfigDetailCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId)
+        {
+            string query = "SELECT * FROM [Common].[PnSConfigDetailCoverLetters] WHERE PnSConfigDetailId=@PnSConfigDetailId";
+
+            return db.Query<PnSConfigDetailCoverLetter>(query, new { PnSConfigDetailId = pnSConfigDetailId }).ToList();
         }
 
         public DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId)
         {
-            string query = "SELECT Top 1 * FROM AM.DocTypes WHERE BizdayCutOff=(SELECT MAX(CAST(BizdayCutOff as time)) as maxCutOff FROM AM.DocTypes WHERE ClientId=@clientId AND IsActive=1) AND ClientId=@clientId AND IsActive=1";
+            string query = "SELECT TOP 1 D.* FROM [dbo].[v_DocTypes] D WHERE BizdayCutOff=(SELECT MAX(CAST(BizdayCutOff as time)) as maxCutOff FROM [dbo].[v_DocTypes] WHERE ClientId=@ClientId AND IsActive=1) AND ClientId=@ClientId AND IsActive=1";
 
-            return db.QuerySingleOrDefault<DocType>(query, new { clientId = clientId });
+            return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId });
+        }
+
+        public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, DateTime estReceivedOn)
+        {
+            using (ICommonService commonSvc = new CommonService())
+            {
+                string query = "SELECT * FROM [dbo].[v_DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + {0}) BETWEEN D.MinPage AND D.MaxPage AND D.IsFallBack = 0 AND D.IsActive = 1".Fill(pageCount);
+
+                var docTypeList = db.Query<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount }).ToList();
+
+                if (docTypeList.Count == 0)
+                    return null;
+
+                return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+            }
+        }
+
+        private DocType GetDocTypeByDocTypeName(List<DocType> docTypeList, DateTime estReceivedOn)
+        {
+            var estReceivedOnDate = estReceivedOn.Date;
+            bool isSatWorkDay = true;
+            bool isSunWorkDay = true;
+
+            DayOfWeek dayOfWeek = estReceivedOn.DayOfWeek;
+            string slaCutOff = string.Empty;
+            string slaType = string.Empty;
+            string maxDocTypeCutOffTime = "";
+
+            if (dayOfWeek == DayOfWeek.Sunday)
+            {
+                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.SunCutOff).First().SunCutOff;
+
+                if (maxDocTypeCutOffTime.IsNullOrWhiteSpace())
+                {
+                    estReceivedOn = estReceivedOn.Date.AddDays(1);
+                    return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+                    //using (ICommonService commonSvc = new CommonService())
+                    //{
+                    //    estReceivedOn = commonSvc.GetNextWorkingDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
+
+                    //    //Recalculate same function for updated document type with new effective received date;
+                    //    return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+                    //}
+                }
+            }
+            else if (dayOfWeek == DayOfWeek.Saturday)
+            {
+                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.SatCutOff).First().SatCutOff;
+                if (maxDocTypeCutOffTime.IsNullOrWhiteSpace())
+                {
+                    estReceivedOn = estReceivedOn.Date.AddDays(1);
+                    return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+                    //using (ICommonService commonSvc = new CommonService())
+                    //{
+                    //    estReceivedOn = commonSvc.GetNextWorkingDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
+
+                    //    //Recalculate same function for updated document type with new effective received date;
+                    //    return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+                    //}
+                }
+            }
+            else
+                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.BizdayCutOff).First().BizdayCutOff;
+
+            var maxCutOffDateTimeEst = estReceivedOnDate + TimeSpan.Parse(maxDocTypeCutOffTime);
+
+            using (ICommonService commonSvc = new CommonService())
+            {
+                if (!commonSvc.IsBusinessDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay) || (estReceivedOn > maxCutOffDateTimeEst))
+                {
+                    estReceivedOn = commonSvc.GetNextWorkingDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
+
+                    //Recalculate same function for updated document type with new effective received date;
+                    return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+                }
+
+                estReceivedOnDate = estReceivedOn.Date;
+
+                dayOfWeek = estReceivedOn.DayOfWeek;
+
+                DocType maxCutOffDocType = null;
+
+                if (dayOfWeek == DayOfWeek.Sunday)
+                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + dt.SunStartTime && estReceivedOn <= estReceivedOnDate + dt.SunEndTime).First();
+                else if (dayOfWeek == DayOfWeek.Saturday)
+                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + dt.SatStartTime && estReceivedOn <= estReceivedOnDate + dt.SatEndTime).First();
+                else
+                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + dt.BizdayStartTime && estReceivedOn <= estReceivedOnDate + dt.BizdayEndTime).First();
+
+                return maxCutOffDocType;
+            }
         }
     }
 }

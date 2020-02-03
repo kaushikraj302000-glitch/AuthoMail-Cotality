@@ -18,7 +18,7 @@ namespace AM.Services
         List<MailBatchDTO> InsertBatchDetails(List<MailBatchDTO> mailBatches);
         int DeleteMailPiecesDetailsByMailBatchId(int mailBatchId);
         int UpdateBatchDetails(MailBatchDTO mailBatch);
-        int MarkMailBatchAsInvalid(int id, string errorDesc);
+        Task<int> MarkMailBatchAsInvalid(int id, string errorDesc);
         List<MailBatchDTO> GetBatchesByPipelineStatusAndClientId(string batchPipelineStatus, int? clientId = null);
         List<MailBatchDTO> GetBatchesByPipelineStatusAndSFTChannelId(string batchPipelineStatus, int? sftChannelId = null);
         BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
@@ -30,6 +30,8 @@ namespace AM.Services
         int GetMailBatchesReceivedCount(DateTime startTime, DateTime endTime, string status);
         int UpdatePrintBatchPipelineStatus(int printBatchId, string pipeLineStatus, DateTime timestamp);
         int RemainingPrintBatchesReportedBackCount(int mailBatchId);
+        Task<int> InsertBatchDetails(MailBatch mailBatch, int clientId, SFTChannel sFTChannel);
+        int InsertLastProcessTimeForUATBatches(DateTime lastProcessedDateTime);
     }
     public class MailBatchService : ServiceBase, IMailBatchService //It implements Interfaces 
     {
@@ -51,7 +53,7 @@ namespace AM.Services
 
             string query = @"INSERT INTO [AM].[MailBatchCustomInfo]([MailBatchId], [Key], [DataType], [Value]) VALUES (@MailBatchId, @Key, @DataType, @Value)";
 
-            db.Execute(query, mailBatchCustomInfo);
+            db.ExecuteAsync(query, mailBatchCustomInfo);
 
             return mailBatchId;
         }
@@ -81,11 +83,11 @@ namespace AM.Services
             return db.Execute(query, mailBatch);
         }
 
-        public int MarkMailBatchAsInvalid(int id, string errorDesc)
+        public async Task<int> MarkMailBatchAsInvalid(int id, string errorDesc)
         {
             string query = "UPDATE [AM].[MailBatches] SET [ValidationStatus] = @ValidationStatus, [ValidationErrors] = @ValidationErrors WHERE Id=@Id";
 
-            return db.Execute(query, new { ValidationStatus = BatchValidationStatus.Invalid, ValidationErrors = errorDesc, Id = id });
+            return await db.ExecuteAsync(query, new { ValidationStatus = BatchValidationStatus.Invalid, ValidationErrors = errorDesc, Id = id });
         }
 
         public List<MailBatchDTO> GetBatchesByPipelineStatusAndClientId(string batchPipelineStatus, int? clientId)
@@ -98,21 +100,29 @@ namespace AM.Services
 
             switch (batchPipelineStatus)
             {
-                case BatchPipelineStatus.Received: query += " AND IsReceived=1 AND IsDownloaded=0";
+                case BatchPipelineStatus.Received:
+                    query += " AND IsReceived=1 AND IsDownloaded=0";
                     break;
-                case BatchPipelineStatus.Downloaded: query += " AND IsDownloaded=1 AND IsValidated=0";
+                case BatchPipelineStatus.Downloaded:
+                    query += " AND IsDownloaded=1 AND IsValidated=0";
                     break;
-                case BatchPipelineStatus.Validated: query += " AND IsValidated=1 AND IsAcknowledged=0";
+                case BatchPipelineStatus.Validated:
+                    query += " AND IsValidated=1 AND IsAcknowledged=0";
                     break;
-                case BatchPipelineStatus.Acknowledged: query += " AND IsAcknowledged=1 AND IsPrepped=0";
+                case BatchPipelineStatus.Acknowledged:
+                    query += " AND IsAcknowledged=1 AND IsPrepped=0";
                     break;
-                case BatchPipelineStatus.Prepped: query += " AND IsPrepped=1 AND IsSubmittedToShipping=0";
+                case BatchPipelineStatus.Prepped:
+                    query += " AND IsPrepped=1 AND IsSubmittedToShipping=0";
                     break;
-                case BatchPipelineStatus.SubmittedToShipping: query += " AND IsSubmittedToShipping=1 AND IsShippingResponseReceived=0";
+                case BatchPipelineStatus.SubmittedToShipping:
+                    query += " AND IsSubmittedToShipping=1 AND IsShippingResponseReceived=0";
                     break;
-                case BatchPipelineStatus.ShippingResponseReceived: query += " AND IsShippingResponseReceived=1 AND IsReportPrepped=0";
+                case BatchPipelineStatus.ShippingResponseReceived:
+                    query += " AND IsShippingResponseReceived=1 AND IsReportPrepped=0";
                     break;
-                case BatchPipelineStatus.ReportPrepped: query += " AND IsReportPrepped=1 AND IsReportedBack=0";
+                case BatchPipelineStatus.ReportPrepped:
+                    query += " AND IsReportPrepped=1 AND IsReportedBack=0";
                     break;
                 default:
                     break;
@@ -132,21 +142,29 @@ namespace AM.Services
 
             switch (batchPipelineStatus)
             {
-                case BatchPipelineStatus.Received: query += " AND IsReceived=1 AND IsDownloaded=0";
+                case BatchPipelineStatus.Received:
+                    query += " AND IsReceived=1 AND IsDownloaded=0";
                     break;
-                case BatchPipelineStatus.Downloaded: query += " AND IsDownloaded=1 AND IsValidated=0";
+                case BatchPipelineStatus.Downloaded:
+                    query += " AND IsDownloaded=1 AND IsValidated=0";
                     break;
-                case BatchPipelineStatus.Validated: query += " AND IsValidated=1 AND IsAcknowledged=0";
+                case BatchPipelineStatus.Validated:
+                    query += " AND IsValidated=1 AND IsAcknowledged=0";
                     break;
-                case BatchPipelineStatus.Acknowledged: query += " AND IsAcknowledged=1 AND IsPrepped=0";
+                case BatchPipelineStatus.Acknowledged:
+                    query += " AND IsAcknowledged=1 AND IsPrepped=0";
                     break;
-                case BatchPipelineStatus.Prepped: query += " AND IsPrepped=1 AND IsSubmittedToShipping=0";
+                case BatchPipelineStatus.Prepped:
+                    query += " AND IsPrepped=1 AND IsSubmittedToShipping=0";
                     break;
-                case BatchPipelineStatus.SubmittedToShipping: query += " AND IsSubmittedToShipping=1 AND IsShippingResponseReceived=0";
+                case BatchPipelineStatus.SubmittedToShipping:
+                    query += " AND IsSubmittedToShipping=1 AND IsShippingResponseReceived=0";
                     break;
-                case BatchPipelineStatus.ShippingResponseReceived: query += " AND IsShippingResponseReceived=1 AND IsReportPrepped=0";
+                case BatchPipelineStatus.ShippingResponseReceived:
+                    query += " AND IsShippingResponseReceived=1 AND IsReportPrepped=0";
                     break;
-                case BatchPipelineStatus.ReportPrepped: query += " AND IsReportPrepped=1 AND IsReportedBack=0";
+                case BatchPipelineStatus.ReportPrepped:
+                    query += " AND IsReportPrepped=1 AND IsReportedBack=0";
                     break;
                 default:
                     break;
@@ -160,7 +178,7 @@ namespace AM.Services
             BatchData data = null;
             string query = @"SELECT * FROM [AM].[MailBatches] WHERE Id=@mailBatchId 
                             SELECT * FROM [AM].[MailBatchCustomInfo] WHERE MailBatchId=@mailBatchId
-                            SELECT * FROM [AM].[MailPieces] WHERE MailBatchId=@mailBatchId
+                            SELECT P.*,D.IsPrintReady FROM [AM].[MailPieces] P LEFT OUTER JOIN AM.DocTypes D ON P.DocTypeId=D.Id WHERE MailBatchId=@mailBatchId
                             SELECT * FROM [AM].[MailPieceCustomInfo] WHERE MailPieceId IN (SELECT Id FROM [AM].[MailPieces] WHERE MailBatchId=@mailBatchId)";
 
             using (var multi = db.QueryMultiple(query, new { mailBatchId = mailBatchId }))
@@ -188,7 +206,7 @@ namespace AM.Services
         public int InsertPrintBatchDetails(PrintBatch printBatch)
         {
             //Sql Query
-            string query = "INSERT INTO [AM].[PrintBatches](UniqueId, AppCode, PrintTrailId, DocTypeId, MailBatchId) Output Inserted.Id VALUES (@UniqueId, @AppCode, @PrintTrailId, @DocTypeId, @MailBatchId)";
+            string query = "INSERT INTO [AM].[PrintBatches](UniqueId, AppCode, PrintTrailId, DocTypeId,PnSConfigDetailId, MailBatchId) Output Inserted.Id VALUES (@UniqueId, @AppCode, @PrintTrailId, @DocTypeId, @PnSConfigDetailId, @MailBatchId)";
 
             var printBatchId = db.ExecuteScalar<int>(query, printBatch);
             foreach (var mailPiece in printBatch.MailPieces)
@@ -232,7 +250,7 @@ namespace AM.Services
             if (status == "Received")
                 query += " AND IsReceived=1";
             else
-                query += " AND (IsPrepped = 1 OR IsReportPrepped = 1 OR IsReportedBack = 1)";
+                query += " AND (IsPrepped = 1 OR IsReportPrepped = 1 OR IsReportedBack = 1 OR PipelineStatus='SubmittedToEDelivery')";
 
             return db.ExecuteScalar<int>(query, new { StartDate = startDateTime, EndDate = endDateTime });
         }
@@ -249,6 +267,19 @@ namespace AM.Services
             string query = @"SELECT COUNT(*) FROM AM.PrintBatches PB WHERE PB.MailBatchId=@MailBatchId AND PB.IsReportedBack=0";
 
             return db.ExecuteScalar<int>(query, new { MailBatchId = mailBatchId });
+        }
+
+        public async Task<int> InsertBatchDetails(MailBatch mailBatch, int clientId, SFTChannel sFTChannel)
+        {
+            string query = @"INSERT INTO [AM].[MailBatches](UniqueId, ClientId, SFTChannelId, ClientBatchId,  BatchName, Priority) Output Inserted.Id VALUES (@UniqueId, @ClientId, @SFTChannelId, @ClientBatchId, @BatchName, @Priority)";
+
+            return await db.ExecuteScalarAsync<int>(query, new { UniqueId = mailBatch.Id, ClientId = clientId, SFTChannelId = sFTChannel.Id, ClientBatchId = mailBatch.ClientBatchId, BatchName = mailBatch.ClientBatchId, Priority = Priority.Low.ToString() });
+        }
+
+        public int InsertLastProcessTimeForUATBatches(DateTime lastProcessedDateTime)
+        {
+            string query = "INSERT INTO dbo.ProductionBridge(LastProcessedOn) VALUES (@LastProcessedDateTimeOn)";
+            return db.Execute(query, new { LastProcessedDateTimeOn = lastProcessedDateTime });
         }
     }
 }

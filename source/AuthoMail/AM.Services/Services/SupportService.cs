@@ -23,18 +23,18 @@ namespace AM.Services
         List<DocTypes> GetDocTypes();
         List<DocTypeVM> GetDocTypesByClientId(int ClientId);
         List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id);
-        KeyValuePair<bool, string> SaveDocTypeCoverLetter(DocTypeCoverLetter dtcl);
-        KeyValuePair<bool, string> ValidateDocTypeCoverLetter(DocTypeCoverLetter dtcl);
+        KeyValuePair<bool, string> SaveDocTypeCoverLetter(PnSConfigDetailCoverLetter dtcl);
+        KeyValuePair<bool, string> ValidateDocTypeCoverLetter(PnSConfigDetailCoverLetter dtcl);
         KeyValuePair<bool, string> RemoveCoverletter(int docTypeId, int seqId, string filePath);
-        KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMap> model);
+        KeyValuePair<bool, string> SaveDocTypePrintTrail(List<PnSConfigDetailPrintTrailMap> model);
         KeyValuePair<bool, string> SavePrintTrail(PrintTrail model);
         PrintTrail GetPrintTrailById(int Id);
         KeyValuePair<bool, string> RemovePrintTrail(int Id);
         KeyValuePair<bool, string> SimulatePrintTrail(int Id, bool isSimulate);
         List<PrintTrail> GetPrintTrails();
         List<PrintVendor> GetPrintVendors();
-        List<DocTypePrintTrailMap> GetDocTypePrintTrail();
-        Tuple<DocType, List<DocTypePrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId);
+        List<PnSConfigDetailPrintTrailMap> GetDocTypePrintTrail();
+        Tuple<DocType, List<PnSConfigDetailPrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId);
         //Clients
         List<Clients> GetClients();
         Clients FindByClientId(int Id);
@@ -524,9 +524,8 @@ where cd.Id=@Id";
         #endregion docType
         public List<DocTypes> GetDocTypes()
         {
-            string query = @"select d.*,c.Name as ClientName,cd.DocTypeName as ClientDocTypesName,c.Name as ClientName from AM.ClientDocTypes cd
-inner join AM.DocTypes d on cd.Id = d.ClientDocTypeId
-inner join Common.Clients c on cd.ClientId=c.Id";
+            string query = @"select d.*,c.Name as ClientName,d.DocTypeName as ClientDocTypesName,c.Name as ClientName from AM.DocTypes d
+inner join Common.Clients c on d.ClientId=c.Id";
             var model = db.Query<DocTypes>(query).ToList();
             //var list = GetDocTypesToClientDocTypes(model);
             return model;
@@ -694,7 +693,7 @@ inner join Common.Clients c on cd.ClientId=c.Id";
             try
             {
                 if (trackingNo.IsNullOrWhiteSpace()) throw new Exception("Tracking No can't be null.");
-                string query = "SELECT m.[TrackingNo],d.ShippingCarrier,d.ShippingServiceType FROM [AM].[MailPieces] m INNER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id WHERE m.TrackingNo=@trackingNo";
+                string query = "SELECT m.[TrackingNo],pcd.ShippingCarrier,pcd.ShippingServiceType FROM [AM].[MailPieces] m INNER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id INNER JOIN Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id WHERE m.TrackingNo=@trackingNo";
                 model = db.QuerySingleOrDefault<TrackingDetailViewModel>(query, new { trackingNo = trackingNo });
                 if (model == null)
                 {
@@ -719,7 +718,7 @@ inner join Common.Clients c on cd.ClientId=c.Id";
 
         public List<DocTypeVM> GetDocTypesByClientId(int ClientId)
         {
-            string q = "select cd.Id,cd.ClientId,cd.DocTypeName as DocTypeCode,c.Name as ClientName,c.AppCode from AM.ClientDocTypes cd,Common.Clients c where cd.ClientId = c.Id and ClientId =@clientId";
+            string q = "select cd.Id,cd.ClientId,cd.DocTypeName as DocTypeCode,c.Name as ClientName,c.AppCode from [dbo].[v_DocTypes] cd,Common.Clients c where cd.ClientId = c.Id and ClientId =@clientId";
             return db.Query<DocTypeVM>(q, new { clientId = ClientId }).ToList();
         }
         public List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id)
@@ -727,7 +726,7 @@ inner join Common.Clients c on cd.ClientId=c.Id";
             string q = "select * from AM.DocTypeCoverLetters where DocTypeId=@id";
             return db.Query<DocTypeCoverLetterVM>(q, new { id = Id }).ToList();
         }
-        public KeyValuePair<bool, string> SaveDocTypeCoverLetter(DocTypeCoverLetter dtcl)
+        public KeyValuePair<bool, string> SaveDocTypeCoverLetter(PnSConfigDetailCoverLetter dtcl)
         {
             try
             {
@@ -743,7 +742,7 @@ inner join Common.Clients c on cd.ClientId=c.Id";
             }
         }
 
-        public KeyValuePair<bool, string> ValidateDocTypeCoverLetter(DocTypeCoverLetter dtcl)
+        public KeyValuePair<bool, string> ValidateDocTypeCoverLetter(PnSConfigDetailCoverLetter dtcl)
         {
             try
             {
@@ -778,7 +777,7 @@ inner join Common.Clients c on cd.ClientId=c.Id";
 
 
 
-        public KeyValuePair<bool, string> SaveDocTypePrintTrail(List<DocTypePrintTrailMap> model)
+        public KeyValuePair<bool, string> SaveDocTypePrintTrail(List<PnSConfigDetailPrintTrailMap> model)
         {
             var result = Has24HrsWithoutOverlap(model);
             if (!result.Key) return result;
@@ -787,8 +786,8 @@ inner join Common.Clients c on cd.ClientId=c.Id";
             var t = db.BeginTransaction();
             try
             {
-                int docTypeId = model.Select(m => m.DocTypeId).First();
-                db.Execute("delete from Common.DocTypePrintTrailMaps where doctypeid=@doctypeid", new { doctypeid = docTypeId }, transaction: t);
+                int docTypeId = model.Select(m => m.PnSConfigDetailId).First();
+                db.Execute("delete from Common.DocTypePrintTrailMaps where PnSConfigDetailId=@doctypeid", new { doctypeid = docTypeId }, transaction: t);
 
                 string q = @"INSERT INTO Common.DocTypePrintTrailMaps (DocTypeId ,PrintTrailId ,BizDayStartTime ,BizDayEndTime ,SatStartTime ,SatEndTime ,SunStartTime ,SunEndTime) VALUES (@DocTypeId ,@PrintTrailId ,@BizDayStartTime ,@BizDayEndTime ,@SatStartTime ,@SatEndTime ,@SunStartTime ,@SunEndTime)";
                 db.Execute(q, model, transaction: t);
@@ -841,7 +840,7 @@ inner join Common.Clients c on cd.ClientId=c.Id";
                 return new KeyValuePair<bool, string>(false, ex.Message);
             }
         }
-        private KeyValuePair<bool, string> Has24HrsWithoutOverlap(List<DocTypePrintTrailMap> TSList)
+        private KeyValuePair<bool, string> Has24HrsWithoutOverlap(List<PnSConfigDetailPrintTrailMap> TSList)
         {
             if (TSList == null || TSList.Count == 0)
                 return new KeyValuePair<bool, string>(false, "All times can't be null.");
@@ -917,18 +916,18 @@ inner join Common.Clients c on cd.ClientId=c.Id";
             return model;
         }
 
-        public List<DocTypePrintTrailMap> GetDocTypePrintTrail()
+        public List<PnSConfigDetailPrintTrailMap> GetDocTypePrintTrail()
         {
-            var model = db.Query<DocTypePrintTrailMap>("select * from Common.DocTypePrintTrailMaps").ToList();
+            var model = db.Query<PnSConfigDetailPrintTrailMap>("select * from Common.DocTypePrintTrailMaps").ToList();
             return model;
         }
 
 
-        public Tuple<DocType, List<DocTypePrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId)
+        public Tuple<DocType, List<PnSConfigDetailPrintTrailMap>> GetDocTypePrintTrailByDocTypeId(int docTypeId)
         {
-            var model = db.Query<DocTypePrintTrailMap>("select * from Common.DocTypePrintTrailMaps where doctypeid=@doctypeid", new { doctypeid = docTypeId }).ToList();
+            var model = db.Query<PnSConfigDetailPrintTrailMap>("select * from Common.DocTypePrintTrailMaps where doctypeid=@doctypeid", new { doctypeid = docTypeId }).ToList();
             var docType = db.QuerySingle<DocType>("select * from AM.DocTypes where id=@doctypeid", new { doctypeid = docTypeId });
-            return Tuple.Create<DocType, List<DocTypePrintTrailMap>>(docType, model);
+            return Tuple.Create<DocType, List<PnSConfigDetailPrintTrailMap>>(docType, model);
         }
 
 

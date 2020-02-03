@@ -43,8 +43,11 @@ namespace AM.Web.Models
                 return this.DocTypeCode.Split('|').First();
             }
         }
+        public bool IsEDeliveryRequested { get; set; }
         public int TotalPages { get; set; }
         public int TotalSheets { get; set; }
+        public int TotalBlankPages { get; set; }
+        public string BlankPageNumbers { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
         public bool IsRcptInfoSpecified { get; set; }

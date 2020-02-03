@@ -6,6 +6,7 @@ using System.Web.Http;
 using System.Net.Http;
 using Newtonsoft.Json.Serialization;
 using System.Net.Http.Headers;
+using Newtonsoft.Json;
 
 namespace AM.Web
 {
@@ -21,6 +22,7 @@ namespace AM.Web
     .Add(new MediaTypeHeaderValue("application/json"));
             // Web API routes
             config.MapHttpAttributeRoutes();
+            config.Formatters.JsonFormatter.SerializerSettings = new JsonSerializerSettings();
 
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",

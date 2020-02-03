@@ -22,6 +22,12 @@ namespace AM.Services
         public string AMErrorDescription { get; set; }
         public string PnSErrorDescription { get; set; }
         public DateTime? PCIBatchPrepEnd { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
+        public int SigningRoomId { get; set; }
+        public string SigningRoomName { get; set; }
+        public bool IsInvitationSent { get; set; }
+        public bool IsDocReviewed { get; set; }
+        public bool IsDocDownloaded { get; set; }
         public bool IsPullBackRequested { get; set; }
         public DateTime? PullBackRequestedOn { get; set; }
         public bool IsPulledBack { get; set; }
@@ -48,12 +54,14 @@ namespace AM.Services
         public string Name { get; set; }
         public string Address { get; set; }
         public int TotalPages { get; set; }
+        public int TotalBlankPages { get; set; }
         public bool IsPullBackRequested { get; set; }
         public string Status { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public DateTime? DueDate { get; set; }
         public string TrackingNo { get; set; }
         public string DocType { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
         public string DisplayDocType
         {
             get

@@ -9,8 +9,8 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using AM.Lib;
-namespace AM.Console
+
+namespace AM.Lib
 {
     public class ValidationResult
     {
@@ -36,11 +36,6 @@ namespace AM.Console
             vResult.Errors = sbErrorMessage.ToString();
 
             return vResult;
-        }
-
-        public static bool IsNullOrEmpty(this string inputString)
-        {
-            return string.IsNullOrEmpty(inputString);
         }
 
         public static bool IsAttNullOrWhiteSpace(this XmlElement node, string attributeName)

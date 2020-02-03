@@ -34,7 +34,14 @@ namespace AM.Web
                     // This is a security feature which is used when you change a password or add an external login to your account.  
                     OnValidateIdentity = SecurityStampValidator.OnValidateIdentity<AMUserManager, ProfileUser>(
                         validateInterval: TimeSpan.FromMinutes(1),
-                        regenerateIdentity: (manager, user) => user.GenerateUserIdentityAsync(manager))
+                        regenerateIdentity: (manager, user) => user.GenerateUserIdentityAsync(manager)),
+                    OnApplyRedirect = ctx =>
+                    {
+                        if (!IsAjaxRequest(ctx.Request))
+                        {
+                            ctx.Response.Redirect(ctx.RedirectUri);
+                        }
+                    }
                 }
             });
             //app.UseCookieAuthentication(new CookieAuthenticationOptions());
@@ -55,6 +62,17 @@ namespace AM.Web
             app.UseOAuthAuthorizationServer(OAuthOptions);
             //app.UseOAuthBearerAuthentication(new OAuthBearerAuthenticationOptions());
             app.UseOAuthBearerTokens(OAuthOptions);
+        }
+
+        private static bool IsAjaxRequest(IOwinRequest request)
+        {
+            IReadableStringCollection query = request.Query;
+            if ((query != null) && (query["X-Requested-With"] == "XMLHttpRequest"))
+            {
+                return true;
+            }
+            IHeaderDictionary headers = request.Headers;
+            return ((headers != null) && (headers["X-Requested-With"] == "XMLHttpRequest"));
         }
     }
 }

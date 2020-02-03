@@ -127,16 +127,25 @@ namespace AM.Core
                     {
                         log.Error("Error occured in MailPieceId - {0} while requesting eVS priority express label with following Error {1}".Fill(mailPieceId, eVSRes.Error.Description));
 
-                        response.HasError = true;
-                        response.ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
-                        response.ExceptionCode = OutComeCodes.Unknown_Error;
-                        return response;
-                    }
+                        eVSRes = uspsSvc.RequesteVSLabelAsync(sysUserId, eVSReq).Result;
 
+                        if (eVSRes.HasError)
+                        {
+                            response.HasError = true;
+                            response.ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
+                            response.ExceptionCode = OutComeCodes.Unknown_Error;
+                            return response;
+                        }
+                    }
                     response.ShippingServiceType = eVSReq.ServiceType.Value;
 
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
+                    //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
+                    //if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
+                    //{
+                        ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
+                    //}
                     response.CoverLetterPath = coverLetterPDFPath;
                 }
 
@@ -220,10 +229,10 @@ namespace AM.Core
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
                     //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
-                    if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
-                    {
+                    //if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
+                    //{
                         ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
-                    }
+                    //}
 
                     response.CoverLetterPath = coverLetterPDFPath;
                 }

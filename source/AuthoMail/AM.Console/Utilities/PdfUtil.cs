@@ -134,5 +134,20 @@ namespace AM.Console
         {
             return size.GetAsNumber(3).FloatValue - size.GetAsNumber(1).FloatValue;
         }
+
+        public static int GetTotalPageCount(string filePath)
+        {
+            using (PdfReader reader = new PdfReader(filePath))
+            {
+                return reader.NumberOfPages;
+            }
+        }
+
+        public static Int64 GetFileSizeInKB(this string filePath)
+        {
+            //NOTE : Here system is storing file size of received pdf in KB
+            FileInfo fileInfo = new FileInfo(filePath);
+            return (fileInfo.Length / 1024);
+        }
     }
 }

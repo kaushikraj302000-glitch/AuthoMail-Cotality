@@ -33,6 +33,7 @@ namespace AM.Entities
     {
         public const string Received = "Received";
         public const string Downloaded = "Downloaded";
+        public const string SubmittedToEDelivery = "SubmittedToEDelivery";
         public const string Validated = "Validated";
         public const string Acknowledged = "Acknowledged";
         public const string Prepped = "Prepped";
@@ -42,6 +43,43 @@ namespace AM.Entities
         public const string ReportedBack = "ReportedBack";
         public const string Suspended = "Suspended";
         public const string Cancelled = "Cancelled";
+    }
+
+    public static class EDPipelineStatus
+    {
+        public const string Received = "Received";
+        public const string Downloaded = "Downloaded";
+        public const string Validated = "Validated";
+        public const string SigningRoomCreated = "SigningRoomCreated";
+        public const string InvitationSent = "InvitationSent";
+        public const string eDelivered = "eDelivered";
+        public const string Expired = "Expired";
+        public const string Declined = "Declined";
+        public const string ReportedBack = "ReportedBack";
+    }
+
+    public static class ActivityStatus
+    {
+        public const string ESignConsentAccepted = "ESIGN Consent Accepted";
+        public const string ESignConsentDeclined = "ESIGN Consent Declined";
+        public const string DocumentReviewed = "Document Reviewed";
+        public const string DocumentSigned = "Document Signed";
+        public const string DocumentDownloaded = "Document Downloaded";
+    }
+
+    public static class EDeliveryStatus
+    {
+        public const string Consented = "Consented";
+        public const string NotConsented = "NotConsented";
+        public const string DocReviewed = "DocReviewed";
+        public const string DocDownloaded = "DocDownloaded";
+        public const string ESigned = "ESigned";
+    }
+
+    public static class SigningRoomStatus
+    {
+        public const string InProgress = "InProgress";
+        public const string Expired = "Expired";
     }
 
     public static class OutComeCodes
@@ -59,7 +97,9 @@ namespace AM.Entities
         public const string Invalid_PackageType = "Invalid_PackageType";
         public const string Invalid_ShippingDetail = "Invalid_ShippingDetail";
         public const string Invalid_DuplicateKey = "Invalid_DuplicateKey";
-
+        public const string Issue_In_EDelivery = "Issue_In_EDelivery";
+        public const string SigningRoomExpired = "SigningRoomExpired";
+        public const string ConsentDeclined = "ConsentDeclined";
         public static string GetAMCMappingCode(string amOutcomecode)
         {
             switch (amOutcomecode)
@@ -205,7 +245,10 @@ namespace AM.Entities
         PulledBack,
         Error,
         Shipped,
-        Unknown
+        eDelivered,
+        Unknown,
+        Acknowledgement,
+        NotFound
     }
 
     public static class PostDownloadAction
@@ -287,7 +330,9 @@ namespace AM.Entities
         GROUND_HOME_DELIVERY = 5,
         PRIORITY_OVERNIGHT = 6,
         STANDARD_OVERNIGHT = 7,
-        USPS_EXPRESSMAIL = 8
+        USPS_EXPRESSMAIL = 8,
+        PRIORITY_EXPRESS = 9,
+        PRIORITY = 10
     }
 
     public static class SLAType

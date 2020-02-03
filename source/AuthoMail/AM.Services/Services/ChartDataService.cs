@@ -88,12 +88,13 @@ namespace AM.Services
         public List<MailPieces> GetMailPieceByParam(int batchId, string status, int clientId)
         {
             string query = "[dbo].[uspweb_GetMailPieceByBatchIdAndStatus] @batchId, @status, @clientId";
-            var data = db.Query<MailBatches, Clients, MailPieces, DocTypes, MailPieces>(query,
-                (b, c, m, d) =>
+            var data = db.Query<MailBatches, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
+                (b, c, m, d, p) =>
                 {
                     m.MailBatches = b;
                     m.Clients = c;
                     m.DocTypes = d;
+                    m.PnSConfigDetails = p;
                     return m;
                 },
                 new
@@ -115,12 +116,13 @@ namespace AM.Services
         public List<MailPieces> GetMailPieceByBatchId(int batchId, int clientId)
         {
             string query = "[dbo].[uspweb_GetMailPieceByBatchId] @batchId, @clientId";
-            var data = db.Query<MailBatches, Clients, MailPieces, DocTypes, MailPieces>(query,
-                (b, c, m, d) =>
+            var data = db.Query<MailBatches, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
+                (b, c, m, d, p) =>
                 {
                     m.MailBatches = b;
                     m.Clients = c;
                     m.DocTypes = d;
+                    m.PnSConfigDetails = p;
                     return m;
                 },
                 new
@@ -248,17 +250,18 @@ namespace AM.Services
             //    }
             //    ).ToList();
             //return dailySummaryChartList;
-            string query = @"select dc.DocTypeName as DocTypeCode
+            string query = @"select d.DocTypeName as DocTypeCode
 ,sum(case when m.shippingstatus = 'Shipped' then 1 else 0 end) as Shipped
 ,sum(case when m.shippingstatus = 'InProgress' then 1 else 0 end) as InProgress
 ,sum(case when m.shippingstatus = 'Error' then 1 else 0 end) as Error
 ,sum(case when m.shippingstatus = 'Pulledback' then 1 else 0 end) as Pulledback
+,sum(case when m.shippingstatus = 'EDelivered' then 1 else 0 end) as EDelivered
 from AM.MailPieces m
 inner join AM.MailBatches b on m.MailBatchId=b.Id
-inner join AM.DocTypes d  on m.DocTypeId=d.Id
-inner join AM.ClientDocTypes dc  on d.ClientDocTypeId=dc.Id
+inner join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+inner join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
 where b.ClientId=@clientId AND b.ReceivedOn BETWEEN @startDate AND @endDate
-group by dc.DocTypeName order by dc.DocTypeName";
+group by d.DocTypeName order by d.DocTypeName";
             return db.Query<DailySummaryChartVM>(query, new { clientId = clientId, startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc() }).ToList();
 
         }
@@ -271,20 +274,21 @@ group by dc.DocTypeName order by dc.DocTypeName";
             string query = @"select *
                 from [AM].[MailPieces] m
                 inner join [AM].[MailBatches] b on m.MailBatchId=b.Id
-				inner join [Common].[Clients] c on m.ClientId=c.Id
-                inner join [AM].[DocTypes] d ON m.DocTypeId=d.Id
-                inner join AM.ClientDocTypes dc  on d.ClientDocTypeId=dc.Id
+				inner join [Common].[Clients] c on m.ClientId=c.Id                
+                inner join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+                inner join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
                 where b.ClientId=@clientId
-                and m.ShippingStatus=@status and b.ReceivedOn between @startDate and @endDate and dc.DocTypeName=@DocTypeCode";
+                and m.ShippingStatus=@status and b.ReceivedOn between @startDate and @endDate and d.DocTypeName=@DocTypeCode";
             //var data = db.Query<MailPieces>(query, new { startDate = date.ToStartDateTime().EstToUtc(), endDate = date.ToEndDateTime().EstToUtc(), status = status, clientId = clientId, DocTypeCode = DocTypeCode }).ToList();
             //return data;
 
-            var data = db.Query<MailPieces, MailBatches, Clients, DocTypes, MailPieces>(query,
-                (m, b, c, d) =>
+            var data = db.Query<MailPieces, MailBatches, Clients, DocTypes, PnSConfigDetail, MailPieces>(query,
+                (m, b, c, d, p) =>
                 {
                     m.MailBatches = b;
                     m.Clients = c;
                     m.DocTypes = d;
+                    m.PnSConfigDetails = p;
                     return m;
                 },
                 new

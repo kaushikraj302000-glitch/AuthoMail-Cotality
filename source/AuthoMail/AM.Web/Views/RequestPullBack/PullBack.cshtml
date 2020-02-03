@@ -7,9 +7,11 @@
     .show-calendar {
         width: 484px !important;
     }
+
     #bsselectId .bootstrap-select {
         width: 100% !important;
     }
+
     .bootstrap-select {
         width: 165px !important;
     }
@@ -17,9 +19,14 @@
     .dataTables_wrapper {
         margin-top: -1.5% !important;
     }
+
     .popover-content {
         word-wrap: break-word;
         color: red;
+    }
+     
+    .label.label-Edelivery {
+        background-color: #0cc9de;
     }
 </style>
 <div class="panel-group">
@@ -138,7 +145,9 @@
                 <th>Recipient Name</th>
                 <th>Recipient Address</th>
                 <th>Document Type</th>
+                <th>Delivery Type</th>
                 <th>Pages Shipped</th>
+                <th>Blank Pages</th>
                 <th>Tracking Number</th>
                 <th>File Name</th>
 
@@ -159,7 +168,9 @@
                 <td><span>{Name}</span></td>
                 <td><span>{Address}</span></td>
                 <td><span>{DocType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{TotalPages}</span></td>
+                <td><span>{TotalBlankPages}</span></td>
                 <td><span>{TrackingNo}</span></td>
                 <td><span>{FileName}</span></td>
             </tr>
@@ -391,7 +402,9 @@
                     case "InProgress":
                         status = '<span id="statusid_' + cnt + '"><span class="label medium label-blue">' + this.Status + '</span></span>';
                         break;
-
+                    case "eDelivered":
+                        status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
+                        break;
                 }
                 this.ShippingStatusFormatted = status;
                 // \''+this.TrackingNo+'\',\''+this.ShippingMethod+'\'
@@ -399,6 +412,7 @@
                 //this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
                 this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
                 this.IsPullBackRequestedFormatted = requestedPullback;
 
                 var checkbox = '<span id="resPullBack_' + cnt + '" data-trigger="hover" data-html="true" data-toggle="popover" data-placement="right"></span>';
@@ -406,6 +420,7 @@
                     case "PulledBack":
                     case "Error":
                     case "Shipped":
+                    case "eDelivered":
                         checkbox = checkbox + '<input type="checkbox" disabled id="checkbox-demo_' + cnt + '"  class="cl-check" /><label for="checkbox-demo_' + cnt + '"></label>';
                         break;
                     case "InProgress":
@@ -469,7 +484,7 @@
             //el.html(mailpieceIds);
             $.ajax({
                 type: "POST",
-                url: baseUrl + "api/pullback/RequestPullBack",
+                url: baseUrl + "api/pullback/pullbackold",
                 data: JSON.stringify(mailpieceIds),
                 contentType: "application/json; charset=utf-8",
                 dataType: "JSON",

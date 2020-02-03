@@ -9,6 +9,7 @@
       <xs:element minOccurs="1" maxOccurs="1" name="ReceivedDate" type="xs:dateTime" />
       <xs:element minOccurs="1" maxOccurs="1" name="File" type="nonEmptyString" />
       <xs:element minOccurs="0" maxOccurs="1" name="ReturnInfo" type="ReturnInfo" />
+      <xs:element minOccurs="0" maxOccurs="1" name="eDelivery" type="eDelivery" />
       <xs:element minOccurs="1" maxOccurs="1" name="ShippingMethod" type="ShippingMethod" />
       <xs:element minOccurs="1" maxOccurs="1" name="ShippingCredentials" type="ShippingCredential" />
       <xs:element minOccurs="1" maxOccurs="1" name="CustomerIdentifier" type="nonEmptyString" />
@@ -16,10 +17,15 @@
       <xs:element minOccurs="1" maxOccurs="1" name="PackageName" type="nonEmptyString" />
     </xs:sequence>
   </xs:complexType>
+  <xs:complexType name="eDelivery">
+    <xs:attribute name="ExpiryDate" type="xs:date" use="optional" />
+    <xs:attribute name="PrintAndShipOnExpiry" type="xs:boolean" use="required" />
+  </xs:complexType>
   <xs:complexType name="RecipientInfo">
     <xs:sequence>
       <xs:element minOccurs="1" maxOccurs="unbounded" name="Recipient" type="Recipient" />
       <xs:element minOccurs="0" maxOccurs="1" name="RecipientPhoneNo" type="usphoneno"/>
+      <xs:element minOccurs="0" maxOccurs="1" name="RecipientEmailId" type="xs:string"/>
       <xs:element minOccurs="1" maxOccurs="1" name="Address" type="Address" />
     </xs:sequence>
   </xs:complexType>
@@ -62,7 +68,7 @@
       <xs:enumeration value="PRIORITY_OVERNIGHT" />
       <xs:enumeration value="STANDARD_OVERNIGHT" />
     </xs:restriction>
-  </xs:simpleType>  
+  </xs:simpleType>
   <xs:simpleType name="guid">
     <xs:restriction base="xs:string">
       <xs:pattern value="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}" />

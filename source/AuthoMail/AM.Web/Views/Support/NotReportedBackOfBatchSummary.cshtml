@@ -107,6 +107,7 @@
                 <th>Print File Name</th>
                 <th>Pipeline Status</th>
                 <th>Document Type </th>
+                <th>Delivery Type</th>
                 <th>Shipping Carrier</th>
                 <th>ShippingServiceType</th>
                 <th>Print Location</th>
@@ -128,6 +129,7 @@
                 <td><span data-toggle="tooltip" data-container="body" data-placement="bottom" title='{PrintFileName}'>{ShortFileName}</span></td>
                 <td><span>{PipelineStatus}</span></td>
                 <td><span>{DocTypeCode}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{ShippingCarrier}</span></td>
                 <td><span>{ShippingServiceType}</span></td>
                 <td><span>{PrintLocation}</span></td>
@@ -317,6 +319,7 @@
 
                 }
                 this.MailPieceStatus = status;
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
         }

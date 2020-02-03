@@ -23,7 +23,7 @@ namespace AM.Reporting
                 using (IHSBCService hsbcSvc = new HSBCService())
                 using (ICommonService commonSvc = new CommonService())
                 {
-                    Client client = clientSvc.GetClientByAppCode("HSBC");
+                    Client client = clientSvc.GetClientByAppCode("HSBC").Result;
 
                     string clientReportFolderPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, "ConsolidatedReport");
 

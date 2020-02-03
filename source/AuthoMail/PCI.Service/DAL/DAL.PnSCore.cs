@@ -25,12 +25,12 @@ namespace PCI.Service
                 slaDays = batchSummary.SLADays;
             }
 
-            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[BatchSummary] SET ValidationStatus=@p1, OnValidationErrors=@p2, ValidationErrors=@p3, JulianDate=@p4, Images=@p5, dueDate=@p6,  slaDays=@p7, BatchIdentifier=@p8, PrintTrailId=@p9, PrintFileName=@p10,PrintLocation=@p11, DocTypeId=@p12  WHERE PrintBatch = @p13", batchSummary.ValidationStatus, batchSummary.OnValidationErrors, batchSummary.ValidationErrors, batchSummary.JulianDate, batchSummary.Images, dueDate, slaDays, batchSummary.BatchIdentifier, batchSummary.PrintTrailId, batchSummary.PrintFileName, batchSummary.PrintLocation, batchSummary.DocTypeId, batchSummary.PrintBatch);
+            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[BatchSummary] SET ValidationStatus=@p1, OnValidationErrors=@p2, ValidationErrors=@p3, JulianDate=@p4, Images=@p5, dueDate=@p6,  slaDays=@p7, BatchIdentifier=@p8, PrintTrailId=@p9, PrintFileName=@p10,PrintLocation=@p11, DocTypeId=@p12, PnSConfigDetailId=@p13  WHERE PrintBatch = @p14", batchSummary.ValidationStatus, batchSummary.OnValidationErrors, batchSummary.ValidationErrors, batchSummary.JulianDate, batchSummary.Images, dueDate, slaDays, batchSummary.BatchIdentifier, batchSummary.PrintTrailId, batchSummary.PrintFileName, batchSummary.PrintLocation, batchSummary.DocTypeId, batchSummary.PnSConfigDetailId, batchSummary.PrintBatch);
         }
 
         public static void UpdateBatchSummaryData(List<PCIField> batchSummarySchema, BatchSummary batchSummary)
         {
-            var usedColumns = new[] { "PrintFileName", "JulianDate", "Images", "DueDate", "SLADays", "ValidationStatus", "OnValidationErrors", "ValidationErrors", "BatchIdentifier", "PrintTrailId", "PrintLocation", "DocTypeId" };
+            var usedColumns = new[] { "PrintFileName", "JulianDate", "Images", "DueDate", "SLADays", "ValidationStatus", "OnValidationErrors", "ValidationErrors", "BatchIdentifier", "PrintTrailId", "PrintLocation", "DocTypeId", "PnSConfigDetailId" };
 
             var skippedColumns = new[] { "PrintBatch", "ClientId", "JobName" };
 
@@ -47,7 +47,7 @@ namespace PCI.Service
 
             var defaultValues = defaultedColumns.Select(c => c.Value).ToList();
 
-            var usedColumnValues = new object[] { batchSummary.PrintBatch, batchSummary.PrintFileName, batchSummary.JulianDate, batchSummary.Images, batchSummary.DueDate, batchSummary.SLADays, batchSummary.ValidationStatus, batchSummary.OnValidationErrors, batchSummary.ValidationErrors, batchSummary.BatchIdentifier, batchSummary.PrintTrailId, batchSummary.PrintLocation, batchSummary.DocTypeId };
+            var usedColumnValues = new object[] { batchSummary.PrintBatch, batchSummary.PrintFileName, batchSummary.JulianDate, batchSummary.Images, batchSummary.DueDate, batchSummary.SLADays, batchSummary.ValidationStatus, batchSummary.OnValidationErrors, batchSummary.ValidationErrors, batchSummary.BatchIdentifier, batchSummary.PrintTrailId, batchSummary.PrintLocation, batchSummary.DocTypeId, batchSummary.PnSConfigDetailId };
 
             var allValues = usedColumnValues.Concat(defaultValues).ToArray();
 
@@ -170,7 +170,8 @@ namespace PCI.Service
         {
             if (printResponse.PackageReports.Count == 0)
                 return;
-
+            //NOTE : System will ignore all the RJ codes from the response file which starts from IV_ OR RJ_.
+            var packageReports = printResponse.PackageReports.Except(printResponse.PackageReports.Where(mp => mp.PrintStatus == PrintStatus.Error && (mp.ErrorCode.Contains("IV_") || mp.ErrorCode.Contains("RJ_"))));
             foreach (var res in printResponse.PackageReports)
             {
                 int pieceId = GetRequestPieceId(printResponse.JobId, res.PieceId);
@@ -232,7 +233,7 @@ namespace PCI.Service
                 mailPiece.ErrId = row.Field<int>("ErrId");
                 mailPiece.MailPieceStatus = row.Field<string>("MailPieceStatus").ParseEnum<MailPieceStatus>();
                 mailPiece.PDFFileName = row.Field<string>("PDFFileName");
-                mailPiece.PostageCost = row.Field<decimal>("PostageCost");
+                mailPiece.PostageCost = Math.Round(row.Field<decimal>("PostageCost"), 3, MidpointRounding.AwayFromZero);
                 mailPiece.PulledBackOn = mailPiece.MailPieceStatus == MailPieceStatus.PulledBack ? DateTime.SpecifyKind(row.Field<DateTime>("ShippedOn"), DateTimeKind.Utc) : DateTime.MinValue;
                 mailPiece.ShippedOn = row.Field<DateTime?>("ShippedOn") == null || mailPiece.MailPieceStatus == MailPieceStatus.Error || mailPiece.MailPieceStatus == MailPieceStatus.PulledBack ? DateTime.MinValue : DateTime.SpecifyKind(row.Field<DateTime>("ShippedOn"), DateTimeKind.Utc);
                 mailPiece.PrintedOn = mailPiece.ShippedOn;
@@ -321,6 +322,8 @@ namespace PCI.Service
                     AppCode = row.Field<string>("AppCode"),
                     DocTypeId = row.Field<int>("DocTypeId"),
                     Address1 = row.Field<string>("Address1"),
+                    PrintSize = row.Field<string>("PrintSize"),
+                    PrintFormat = row.Field<string>("PrintFormat"),
                     Date = row.Field<DateTime>("Date"),
                     DivertVS3 = int.Parse(row.Field<string>("DivertVS3")),
                     ErrDesc = row.Field<string>("ErrDesc"),

@@ -77,6 +77,7 @@ namespace AM.Services
         public string BatchId { get; set; }
         public string Channel { get; set; }
         public string DocumentOrPackageType { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
         //public string BusinessIdName { get; set; }
         //public string BusinessIdValue { get; set; }
         public string LoanNumber { get; set; }
@@ -95,6 +96,7 @@ namespace AM.Services
         public string ZIP { get; set; }
         public string PrintLocation { get; set; }
         public int PagesShipped { get; set; }
+        public int BlankPages { get; set; }
         public string Status { get; set; }
 
     }

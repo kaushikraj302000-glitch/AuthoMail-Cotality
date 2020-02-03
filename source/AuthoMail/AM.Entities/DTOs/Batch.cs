@@ -55,6 +55,8 @@ namespace AM.Entities
         public string RetRcptAddressCity { get; set; }
         public string RetRcptAddressState { get; set; }
         public string RetRcptAddressZIP { get; set; }
+        //This property will be used only to identify as E-Delivery Batch while separating. System will not store anywhere in database.
+        public bool IsEDeliveryBatch { get; set; }
     }
 
     public class MailBatchCustomInfo
@@ -82,6 +84,7 @@ namespace AM.Entities
         public string AppCode { get; set; }
         public string PrintLocation { get; set; }
         public int DocTypeId { get; set; }
+        public int PnSConfigDetailId { get; set; }
         public List<MailPieceDTO> MailPieces { get; set; }
     }
 

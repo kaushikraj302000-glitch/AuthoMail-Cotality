@@ -18,8 +18,11 @@ namespace AM.Services
         #region General
         [Description("To indicate on which environment job is running.")]
         public static string Common_Environment { get; private set; }
+        public static string Common_EnvironmentInitial { get; private set; }
         public static string Common_AuthoMailRootFolder { get; private set; }
+        public static string Common_EDeliveryRootFolder { get; private set; }
         public static List<Holiday> Common_Holidays { get; private set; }
+        public static List<Holiday> Common_FederalHolidays { get; private set; }
         public static int Common_ProcessingBufferTime { get; private set; }
         public static string Common_FedExTrackingAccountCode { get; private set; }
         public static string Common_FedExTrackingUrl { get; private set; }
@@ -51,7 +54,7 @@ namespace AM.Services
         public static string Core_CountryCode { get; private set; }
         public static int Core_NoofTime_AttemptFedexService { get; private set; }
         public static int Core_FedexServiceAttemptInterval { get; private set; }
-        public static string Core_DirectReportBackChannelCodes { get; private set; }
+        public static string Core_IncrementalReportingChannelCodes { get; private set; }
 
 
         //FedEx URLs
@@ -97,8 +100,10 @@ namespace AM.Services
         [Description("When mailpiece is pulledback.")]
         public static string Web_Msg_API_PB_PulledBack { get; private set; }
         public static string Web_Msg_API_PB_PulledBackSuccess { get; private set; }
-        [Description("When mailpiece statis is shipped then it can not be pullback.")]
+        [Description("When mailpiece status is shipped then it can not be pullback.")]
         public static string Web_Msg_API_PB_Shipped { get; private set; }
+        [Description("When mailpiece status is EDelivered then it can not be pullback.")]
+        public static string Web_Msg_API_PB_EDelivered { get; private set; }
         [Description("To whom need to send email.")]
         public static string Web_API_Email_To { get; private set; }
         [Description("To whom need to send email.")]
@@ -186,6 +191,19 @@ namespace AM.Services
 
         #endregion
 
+        #region E-DeliveryAPI
+        public static string E_API_BaseURL { get; set; }
+        public static string E_API_ClientId { get; set; }
+        public static string E_API_UserName { get; set; }
+        public static string E_API_Password { get; set; }
+        public static string E_API_CreateSigningRoomURL { get; set; }
+        public static string E_API_SendInvitationURL { get; set; }
+        public static string E_API_SigningRoomActivityLogSearchURL { get; set; }
+        public static string E_API_SigningRoomSummaryURL { get; set; }
+        public static string E_API_DeleteSigningRoomURL { get; set; }
+
+        #endregion
+
         #region Support
         [Description("Default emails for getting notification from registration request.")]
         public static string Web_RegistrationDefaultEmails { get; private set; }
@@ -197,7 +215,14 @@ namespace AM.Services
         public static int Common_InventoryBufferStockDays { get; set; }
         #endregion Support
 
+        #region EllieMae_API
 
+        public static string EllieMae_Secret { get; set; }
+        public static string EllieMae_X_API_Key { get; set; }
+        public static string EllieMae_BaseURL { get; set; }
+        public static string EllieMae_UploadResponseURL { get; set; }
+
+        #endregion
 
 
         private static List<string> errors;
@@ -208,6 +233,7 @@ namespace AM.Services
             using (ICommonService commonSvc = new CommonService())
             {
                 Common_Holidays = commonSvc.GetHolidayList();
+                Common_FederalHolidays = commonSvc.GetFederalHolidayList();
             }
         }
 

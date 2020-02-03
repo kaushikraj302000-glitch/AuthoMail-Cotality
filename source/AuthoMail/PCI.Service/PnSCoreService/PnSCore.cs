@@ -108,7 +108,7 @@ namespace PCI.Service
                         ReportInvalidBatch(bi, msg);
                         continue;
                     }
-                    var validDocType = docTypes.Where(x => x.DocTypeId == pnsRequest.DocTypeId).FirstOrDefault();
+                    var validDocType = docTypes.Where(x => x.DocTypeId == pnsRequest.DocTypeId && x.PnSConfigDetailId == pnsRequest.PnSConfigDetailId).FirstOrDefault();
                     if (validDocType == null)
                     {
                         var msg = "The specified document type id '{0}' is not valid.".Fill(pnsRequest.DocTypeId);
@@ -116,7 +116,7 @@ namespace PCI.Service
                         continue;
                     }
                     batchSummary.DocTypeId = pnsRequest.DocTypeId;
-
+                    batchSummary.PnSConfigDetailId = pnsRequest.PnSConfigDetailId;
                     //TODO: Mapping validation with DocTypeId also
 
                     //Ensure that the DocTypeCode is valid
@@ -552,9 +552,11 @@ namespace PCI.Service
                     size = iTextSharp.text.PageSize.LEDGER;
                     break;
                 case "LETTER-IP":
+                case "LETTER-RC":
                     size = iTextSharp.text.PageSize.LETTER;
                     break;
                 case "LEGAL-IP":
+                case "LEGAL-RC":
                     size = iTextSharp.text.PageSize.LEGAL;
                     break;
                 case "WC24-LTR-PERF":
@@ -578,7 +580,7 @@ namespace PCI.Service
 
                 #region Resize and Bookmarking
                 ScaleEvent evn;
-                if (docType.PrintSize == "MixMedia")
+                if (docType.PrintSize == "MixMedia" || docType.PrintSize == "MixMedia-RC")
                 {
                     evn = new ScaleEvent(1f, 1f);
                 }
@@ -652,7 +654,7 @@ namespace PCI.Service
                             {
                                 AddBookmark(writer, p, "Check");
                             }
-                            else if (docType.PrintSize == "MixMedia")
+                            else if (docType.PrintSize == "MixMedia" || docType.PrintSize == "MixMedia-RC")
                             {
                                 AddBookmark(writer, p, pageSize);
                             }
@@ -870,7 +872,10 @@ namespace PCI.Service
                             }
 
                             if (printResponse.PackageReports.Count > 0)
+                            {
+                                bundlingRootPath.CreateDirectoryIfNotExist();
                                 File.WriteAllText(xmlOutFilePath, printResponse.ToXml());
+                            }
                             break;
                         default:
                             var mrdfOutFilePath = Path.Combine(bundlingRootPath, printTrailBatchDetail.PrintBatchName + ".OUT");

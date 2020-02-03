@@ -73,14 +73,15 @@
                 var FilterData = function (response) {
                     //if (response == null || response == "") return false;
                     var notifyObj = FilterAndStorage(response);
+                        //console.log(notifyObj);
                     if (notifyObj.HasErrors) {
                         $('#ErrorNotificationSpan').html('<a href="'+baseUrl+'Report/ErrorsReport" title="Errors"><i class="fa fa-exclamation-triangle" style="color:red;"></i></a>');
                         if (notifyObj.HasNotify)
                             notify(notifyObj.Message);
                     }
                     else {
-                        //$('#ErrorNotificationSpan').html("");
-                        $('#ErrorNotificationSpan').html('<a href="'+baseUrl+'Report/ErrorsReport" title="Errors"><i class="fa fa-exclamation-triangle" style="color:white;"></i></a>');
+                        $('#ErrorNotificationSpan').html("");
+                        //$('#ErrorNotificationSpan').html('<a href="'+baseUrl+'Report/ErrorsReport" title="Errors"><i class="fa fa-exclamation-triangle" style="color:white;"></i></a>');
                     }
                 }
                 NotificationHub();

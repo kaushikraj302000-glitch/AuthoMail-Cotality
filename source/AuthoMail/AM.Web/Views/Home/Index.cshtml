@@ -22,6 +22,10 @@
         /*max-width: 453px !important;*/
         word-wrap: break-word !important;
     }
+
+    .label.label-Edelivery {
+        background-color: #0cc9de;
+    }
 </style>
 <div class="row">
     @*<div class="col-md-6">
@@ -45,7 +49,7 @@
                     Daily Summary Details
                 </div>
             </div>
-            <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;">
+            <div class="panel-body panel-gray" style="        padding: 2% 2% 2% 2% !important;">
                 <div id="DailySummaryByDocType"></div>
             </div>
 
@@ -59,7 +63,7 @@
                     <div class="panel-heading">
                         <div class="panel-title">Weekly Batch Details</div>
                     </div>
-                    <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;">
+                    <div class="panel-body panel-gray" style="        padding: 2% 2% 2% 2% !important;">
                         <div id="weeklyChart"></div>
 
                     </div>
@@ -82,7 +86,7 @@
                                     <input class="form-control" name="loanNumber" placeholder="@ViewBag.BusinessId[0]" required id="BusinessFriendlyIdValue">
                                     <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
                                 </div>
-                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                                <div class="text-red pull-left" style="        display: none" id="BusinessFriendlyIdValueError">This field is required.</div>
                             }
                             else if (ViewBag.BusinessId.Count > 1)
                             {
@@ -99,16 +103,17 @@
                                     <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" required id="BusinessFriendlyIdValue">
 
                                 </div>
-                                <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdNameError">This field is required.</div>
-                                <div class="text-red pull-right" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
+                                <div class="text-red pull-left" style="        display: none" id="BusinessFriendlyIdNameError">This field is required.</div>
+                                <div class="text-red pull-right" style="        display: none" id="BusinessFriendlyIdValueError">This field is required.</div>
                             }
                             else
                             {
                                 <style>
-                                    #pullback {
-                                        display: none;
-                                    }
-                                </style>
+    #pullback {
+        display: none;
+    }
+
+    </style>
                                 <div class='alert alert-yellow'><span>No business friendly id found!</span></div>
                             }
 
@@ -119,7 +124,7 @@
                             <label for="pullback">&nbsp;&nbsp;&nbsp;</label>
                             <button type="button" id="pullback" class="btn btn-primary ">
                                 <span class="sr-only"></span>
-                                <i class="fa fa-reply fa-2x" style="margin-top: 24%;"></i>
+                                <i class="fa fa-reply fa-2x" style="        margin-top: 24%;"></i>
 
                             </button>
                         </div>
@@ -221,7 +226,7 @@
         </div>
     </div>
 </div>
-<div id="charDatatable" style="display:none"></div>
+<div id="charDatatable" style="        display: none"></div>
 <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog modal-lg col-md-12" role="document">
         <div class="modal-content">
@@ -246,8 +251,9 @@
 </div>
 
 <!--PullbackRequest table html template code -->
-<div id="pullbackTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
+<div id="pullbackTableContent" style="        display: none">
+    <table class="table table-responsive" style="        overflow-x: scroll;
+        margin-bottom: 2%;">
         <thead>
             <tr>
                 <th>Shipping Status</th>
@@ -265,7 +271,7 @@
         <tbody id="pullbackbodyContent"></tbody>
     </table>
 </div>
-<div style="display:none">
+<div style="        display: none">
     <table>
         <tbody id="pullbackBody">
             <tr class="row-small">
@@ -285,8 +291,9 @@
 </div>
 <!-- end table template code -->
 <!--ChartMailPiece table html template code -->
-<div id="ChartMailPieceTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
+<div id="ChartMailPieceTableContent" style="        display: none">
+    <table class="table table-responsive" style="        overflow-x: scroll;
+        margin-bottom: 2%;">
         <thead>
             <tr>
                 <th>@businessId</th>
@@ -296,7 +303,9 @@
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Document Type</th>
+                <th>Delivery Type</th>
                 <th>Pages</th>
+                <th>Blank Pages</th>
                 <th>Tracking Number</th>
                 <th>Shipping Status</th>
             </tr>
@@ -304,7 +313,7 @@
         <tbody id="ChartMailPiecebodyContent"></tbody>
     </table>
 </div>
-<div style="display:none">
+<div style="        display: none">
     <table>
         <tbody id="ChartMailPieceBody">
             <tr class="row-small">
@@ -315,7 +324,9 @@
                 <td class="receivedon"><span>{MailPieceReceivedOn}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{DocType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{TotalPages}</span></td>
+                <td><span>{TotalBlankPages}</span></td>
                 <td><span class="small">{TrackingNo}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
             </tr>
@@ -324,8 +335,9 @@
 </div>
 <!-- end table template code -->
 <!--ChartMailPiece table html template code -->
-<div id="WeeklyChartMailPieceTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
+<div id="WeeklyChartMailPieceTableContent" style="        display: none">
+    <table class="table table-responsive" style="        overflow-x: scroll;
+        margin-bottom: 2%;">
         <thead>
             <tr>
                 <th>@businessId</th>
@@ -335,7 +347,9 @@
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Document Type</th>
+                <th>Delivery Type</th>
                 <th>Pages</th>
+                <th>Blank Pages</th>
                 <th>Tracking Number</th>
                 <th>Shipping Status</th>
             </tr>
@@ -343,7 +357,7 @@
         <tbody id="WeeklyChartMailPiecebodyContent"></tbody>
     </table>
 </div>
-<div style="display:none">
+<div style="        display: none">
     <table>
         <tbody id="WeeklyChartMailPieceBody">
             <tr class="row-small">
@@ -354,7 +368,9 @@
                 <td><span>{MailPieceReceivedOn}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{DocType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{TotalPages}</span></td>
+                <td><span>{TotalBlankPages}</span></td>
                 <td><span class="small">{TrackingNo}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
             </tr>
@@ -363,8 +379,9 @@
 </div>
 <!-- end table template code -->
 <!--Weekly Chart table html template code -->
-<div id="WeeklyChartTableContent" style="display:none">
-    <table class="table table-responsive" style="overflow-x:scroll;margin-bottom:2%;">
+<div id="WeeklyChartTableContent" style="        display: none">
+    <table class="table table-responsive" style="        overflow-x: scroll;
+        margin-bottom: 2%;">
         <thead>
             <tr>
                 <th>Batch Id</th>
@@ -378,7 +395,7 @@
         <tbody id="WeeklyChartbodyContent"></tbody>
     </table>
 </div>
-<div style="display:none">
+<div style="        display: none">
     <table>
         <tbody id="WeeklyChartBody">
             <tr class="row-small">
@@ -580,7 +597,7 @@
                         var pulledBackCount = parseInt(response[cnt].PulledBack == 0 ? null : response[cnt].PulledBack);
                         var shippedAllCount = parseInt(response[cnt].ShippedAll == 0 ? null : response[cnt].ShippedAll);
                         var shippedPartialCount = parseInt(response[cnt].ShippedPartial == 0 ? null : response[cnt].ShippedPartial);
-
+                        
                         chartData.push([response[cnt].Weekday, inProgressCount, failedCount, pulledBackCount, shippedAllCount, shippedPartialCount, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
                         sumArr.push(response[cnt].InProgress + response[cnt].Failed + response[cnt].PulledBack + response[cnt].ShippedAll + response[cnt].ShippedPartial);
 
@@ -657,9 +674,10 @@
                         var errorCountBatch = parseInt(response[cnt].Error == 0 ? null : response[cnt].Error);
                         var pulledBackCountBatch = parseInt(response[cnt].PulledBack == 0 ? null : response[cnt].PulledBack);
                         var shippedCountBatch = parseInt(response[cnt].Shipped == 0 ? null : response[cnt].Shipped);
+                        var eDeliveredCountBatch = parseInt(response[cnt].eDelivered == 0 ? null : response[cnt].eDelivered);
 
-                        chartData.push([response[cnt].ClientBatchId, inProgressCountBatch, errorCountBatch, pulledBackCountBatch, shippedCountBatch, response[cnt].MailBatchId, moment(response[cnt].ReceivedOn).format("MM/DD/YYYY  HH:mm:ss")]);
-                        sumArr.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped);
+                        chartData.push([response[cnt].ClientBatchId, inProgressCountBatch, errorCountBatch, pulledBackCountBatch, shippedCountBatch,eDeliveredCountBatch, response[cnt].MailBatchId, moment(response[cnt].ReceivedOn).format("MM/DD/YYYY  HH:mm:ss")]);
+                        sumArr.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped + response[cnt].eDelivered);
 
                         cnt++;
                     }
@@ -769,13 +787,14 @@
                 vTitle = "";//"Week Days";
             }
             else {
-                view.setColumns([0, 1, 2, 3, 4]);
+                view.setColumns([0, 1, 2, 3, 4,5]);
                 //colors = ['#069', '#e03c31', '#e7ab08', '#539536'];
                 series = {
                     0: { color: '#069' },
                     1: { color: '#e03c31' },
                     2: { color: '#e7ab08' },
-                    3: { color: '#539536' }
+                    3: { color: '#539536' },
+                    4: { color: '#0cc9de' }
                 };
             }
             var ticksArr = new Array();
@@ -873,7 +892,7 @@
             var el = $("#myModal").find('.modal-body');
             $.ajax({
                 type: "POST",
-                url: baseUrl + "api/pullback/RequestPullBack",
+                url: baseUrl + "api/pullback/pullbackold",
                 data: JSON.stringify(mailpieceIds),
                 contentType: "application/json; charset=utf-8",
                 dataType: "JSON",
@@ -1047,7 +1066,6 @@
 
                     case "PulledBack":
                         status = '<span class="label medium label-yellow">' + this.Status + '</span>';
-
                         break;
                     case "Error":
                         status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error : ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.Status + '</span>';
@@ -1058,7 +1076,9 @@
                     case "InProgress":
                         status = '<span class="label medium label-blue">' + this.Status + '</span>';
                         break;
-
+                    case "eDelivered":
+                        status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
+                        break;
                 }
                 // \''+this.TrackingNo+'\',\''+this.ShippingMethod+'\'
                 this.MailPieceReceivedOn = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
@@ -1070,6 +1090,7 @@
                 //this.RcptNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
 
                 this.IsPullBackRequestedFormatted = requestedPullback;
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
             //console.log(Model);
@@ -1103,7 +1124,9 @@
                     case "InProgress":
                         status = '<span class="label medium label-blue">' + this.Status + '</span>';
                         break;
-
+                    case "eDelivered":
+                        status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
+                        break;
                 }
                 // \''+this.TrackingNo+'\',\''+this.ShippingMethod+'\'
                 //this.MailPieceReceivedOn = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
@@ -1135,6 +1158,7 @@
 
                 }
                 this.BatchStatusFormatted = batchStatus;
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
             //console.log(Model);
@@ -1170,7 +1194,7 @@
                         return;
                     }
                     var chartData = [];
-                    chartData.push(['DocTypeCode', 'InProgress', 'Error', 'PulledBack', 'Shipped']);
+                    chartData.push(['DocTypeCode', 'InProgress', 'Error', 'PulledBack', 'Shipped','eDelivered']);
                     var cnt = 0;
                     //var ticksArr = [];
                     sumArrDS = new Array();
@@ -1180,9 +1204,10 @@
                         var errorCountBatch = parseInt(response[cnt].Error == 0 ? null : response[cnt].Error);
                         var pulledBackCountBatch = parseInt(response[cnt].PulledBack == 0 ? null : response[cnt].PulledBack);
                         var shippedCountBatch = parseInt(response[cnt].Shipped == 0 ? null : response[cnt].Shipped);
+                        var eDeliveredCountBatch = parseInt(response[cnt].eDelivered == 0 ? null : response[cnt].eDelivered);
 
-                        chartData.push([response[cnt].DocTypeCode, inProgressCountBatch, errorCountBatch, pulledBackCountBatch, shippedCountBatch]);
-                        sumArrDS.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped);
+                        chartData.push([response[cnt].DocTypeCode, inProgressCountBatch, errorCountBatch, pulledBackCountBatch, shippedCountBatch, eDeliveredCountBatch]);
+                        sumArrDS.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped, response[cnt].eDelivered);
 
                         cnt++;
                     }
@@ -1200,13 +1225,14 @@
             var series;
             var hTitle = "Mailpieces";
             var vTitle = "Doc Types";
-            view.setColumns([0, 1, 2, 3, 4]);
+            view.setColumns([0, 1, 2, 3, 4, 5]);
             //colors = ['#069', '#e03c31', '#e7ab08', '#539536'];
             series = {
                 0: { color: '#069' },
                 1: { color: '#e03c31' },
                 2: { color: '#e7ab08' },
-                3: { color: '#539536' }
+                3: { color: '#539536' },
+                4: { color: '#0cc9de' }
             };
             var ticksArr = new Array();
             if (sumArr.length > 0) {

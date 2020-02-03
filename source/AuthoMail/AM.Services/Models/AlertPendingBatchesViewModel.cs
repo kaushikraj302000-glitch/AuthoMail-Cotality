@@ -20,6 +20,7 @@ namespace AM.Services
         public DateTime ReceivedOn { get; set; }
         public DateTime? DueDate { get; set; }
         public string PipelineStatus { get; set; }
+        public string EDPipelineStatus { get; set; }
         public string ShippingStatus { get; set; }
         public string MailPieceStatus { get; set; }
         public string DocTypeCode { get; set; }
@@ -38,6 +39,9 @@ namespace AM.Services
         public string VendorCode { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }
         public string MissedSLAReason { get; set; }
+        public bool? IsEDeliveryRequested { get; set; }
+        public bool? IsInvitationSent { get; set; }
+        public bool? IsFallBackRequested { get; set; }
         public string PrintTrail { get; set; }
         public double MinRemainingHours
         {

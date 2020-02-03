@@ -16,7 +16,8 @@ namespace AM.Entities
     public class DocType
     {
         public int Id { get; set; }
-        public int ClientDocTypeId { get; set; }
+        public int? PnSConfigId { get; set; }
+        public int? PnSConfigDetailId { get; set; }
         public string DocTypeName { get; set; }
         public bool IsBRE { get; set; }
         public string PrintSize { get; set; }
@@ -70,11 +71,21 @@ namespace AM.Entities
         public int MinPage { get; set; }
         public int MaxPage { get; set; }
         public bool IsFallBack { get; set; }
+        public bool IsPrintReady { get; set; }
+
+        public TimeSpan? BizdayStartTime { get; set; }
+        public TimeSpan? BizdayEndTime { get; set; }
+        public TimeSpan? SatStartTime { get; set; }
+        public TimeSpan? SatEndTime { get; set; }
+        public TimeSpan? SunStartTime { get; set; }
+        public TimeSpan? SunEndTime { get; set; }
+        public int PrintTrailId { get; set; }
+        public string PrintLocation { get; set; }
     }
 
-    public class DocTypeCoverLetter
+    public class PnSConfigDetailCoverLetter
     {
-        public int DocTypeId { get; set; }
+        public int PnSConfigDetailId { get; set; }
         public int SeqId { get; set; }
         public string CoverLetterTemplatePath { get; set; }
     }
@@ -98,9 +109,9 @@ namespace AM.Entities
         public string PrintVendor { get; set; }
     }
 
-    public class DocTypePrintTrailMap
+    public class PnSConfigDetailPrintTrailMap
     {
-        public int DocTypeId { get; set; }
+        public int PnSConfigDetailId { get; set; }
         public int PrintTrailId { get; set; }
         public TimeSpan? BizDayStartTime { get; set; }
         public TimeSpan? BizDayEndTime { get; set; }

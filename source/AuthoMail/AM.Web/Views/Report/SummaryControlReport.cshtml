@@ -90,6 +90,7 @@
                 <th>MailPiece Id</th>
                 <th>Channel</th>
                 <th>Document Type</th>
+                <th>Delivery Type</th>
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
                 <th>Status</th>
                 <th>File Name</th>
@@ -99,7 +100,7 @@
                 <th>Mailed Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Client Code</th>
                 <th>Tracking Number</th>
-                <th>Shipping Method</th>
+                <th>Shipping Method<span class="fa fa-question-circle" title="Shipping Carrier / Service type"></span></th>
                 <th>First Name</th>
                 <th>Last Name</th>
                 <th>Recipient Street Address</th>
@@ -108,6 +109,7 @@
                 <th>Recipient Zip</th>
                 <th>Print Location</th>
                 <th>Pages Shipped</th>
+                <th>Blank Pages</th>
                 <th class="ErrorCode">Error Code</th>
                 <th class="ErrorText">Error Text</th>
                 <th class="BatchId">BatchId</th>
@@ -124,6 +126,7 @@
                 <td><span>{UniqueId}</span></td>
                 <td><span>{Channel}</span></td>
                 <td><span>{DocType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{BusinessIdValue}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
                 <td><span>{FileName}</span></td>
@@ -133,7 +136,7 @@
                 <td><span>{MailedOnFormatted}</span></td>
                 <td><span>{ClientCode}</span></td>
                 <td><span>{TrackingNo}</span></td>
-                <td><span>{ShippingMethod}</span></td>
+                <td><span>{ShippingCarrier} / {ShippingMethod}</span></td>
                 <td><span>{FirstName}</span></td>
                 <td><span>{LastName}</span></td>
                 <td><span>{Address}</span></td>
@@ -142,6 +145,7 @@
                 <td><span>{ZIP}</span></td>
                 <td><span>{PrintLocation}</span></td>
                 <td><span>{TotalPages}</span></td>
+                <td><span>{TotalBlankPages}</span></td>
                 <td><span>{ErrorDescPopover}</span></td>
                 <td><span>{ErrorDesc}</span></td>
                 <td>{BatchId}</td>
@@ -271,6 +275,7 @@
 
                 }
                 this.ShippingStatusFormatted = status;
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
         }

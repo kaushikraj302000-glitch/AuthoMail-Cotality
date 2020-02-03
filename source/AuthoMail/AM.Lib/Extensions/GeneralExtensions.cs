@@ -26,6 +26,11 @@ namespace AM.Lib
             return String.IsNullOrWhiteSpace(value);
         }
 
+        public static string TrimIfNotNull(this string value)
+        {
+            return !value.IsNullOrWhiteSpace() ? value.Trim() : value;
+        }
+
         public static string ToTitleCase(this string value)
         {
             return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value.ToLower());
@@ -144,6 +149,12 @@ namespace AM.Lib
         {
             return dt.ClientTimeZoneToUtc("Eastern Standard Time");
         }
+
+        public static DateTime PstToUtc(this DateTime dt)
+        {
+            return dt.ClientTimeZoneToUtc("Pacific Standard Time");
+        }
+
         public static DateTime ToStartDateTime(this DateTime dt)
         {
             return (dt.Date + new TimeSpan(00, 00, 00));

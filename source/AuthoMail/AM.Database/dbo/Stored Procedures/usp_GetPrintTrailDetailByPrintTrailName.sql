@@ -1,0 +1,17 @@
+﻿CREATE PROCEDURE [dbo].[usp_GetPrintTrailDetailByPrintTrailName] 
+@printTrailName VARCHAR(255)
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+	
+	SELECT TOP 1 PT.id as PrintTrailId, PT.PrintVendorId,PT.TrailName, PT.SimulateTrail,
+	PV.Name as PrintVendorName,PV.BusinessCode,PV.VendorCode ,PV.SFTChannelId,
+	SC.Protocol,SC.Host,SC.UserName,SC.[Password],SC.ToADEDir,SC.FromADEDir 
+	FROM Common.PrintTrails PT
+	INNER JOIN Common.PrintVendors PV ON PV.Id=PT.PrintVendorId
+	INNER JOIN Common.SFTChannels SC ON PV.SFTChannelId=SC.Id
+	WHERE PT.TrailName=@printTrailName
+END
+

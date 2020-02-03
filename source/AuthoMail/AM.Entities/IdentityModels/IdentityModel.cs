@@ -83,6 +83,7 @@ namespace AM.Entities
         public DateTime ChangePasswordDateUTC { get; set; }
         public string StatusModifiedBy { get; set; }
         public DateTime? StatusModifiedOn { get; set; }
+        public int? SFTChannelId { get; set; }
         public int PasswordExpirationDays
         {
             get

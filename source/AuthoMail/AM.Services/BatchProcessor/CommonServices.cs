@@ -12,8 +12,9 @@ namespace AM.Services
 {
     public interface ICommonService : IDisposable
     {
-        int UpdateBatchPipeLineStatus(int batchId, string pipeLineStatus, DateTime timestamp);
-        int UpdateBatchStatus(int batchId, string batchStatus);
+        Task<int> UpdateBatchPipeLineStatus(int batchId, string pipeLineStatus, DateTime timestamp);
+        int UpdateEDeliveryPipelineStatus(int batchId, string pipeLineStatus, DateTime timestamp);
+        Task<int> UpdateBatchStatus(int batchId, string batchStatus);
         int UpdateBatchValidationStatus(int batchId, string validationStatus, string validationErrors);
         int AMLogBatchTimeLine(int batchId, string activityName, DateTime timeStamp);
         int UpdatePrintBatchStatus(int printBatchId, string batchStatus, string statusDescription = null);
@@ -24,35 +25,53 @@ namespace AM.Services
         List<Deliverable> GetDeliverablesByClientId(int clientId);
         Deliverable GetDeliverableByReportType(int clientId, string reportType);
         List<Holiday> GetHolidayList();
+        List<Holiday> GetFederalHolidayList();
         string GetSystemUserId();
         List<DallasBatch> GetDallasBatches(DateTime estToday);
         DateTime GetStandardSubmissionTime(string appCode, string vendorCode, DateTime receivedOn, List<Sweep> sweepTimings);
         List<Sweep> GetSweepTimings();
-        List<DocTypePrintTrailMap> GetTrailMapDetailsByDocTypeId(int docTypeId);
-        PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId);
+        List<PnSConfigDetailPrintTrailMap> GetTrailMapDetailsByPnSConfigDetailId(int pnsConfigDetailId);
+        PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId, DateTime? effectiveReceivedOnEst = null);
         DateTime GetMaximumSubmissionTime(DocType docType, DateTime effectiveReceivedOnEst);
-        int GetPrintTrail(DocType docType, DateTime estEffectiveReceivedOn);
+        int GetPrintTrail(int pnsConfigDetailId, DateTime estEffectiveReceivedOn);
         DateTime GetDueDate(DocType docType, DateTime estEffectiveReceivedOn);
         DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn);
+        bool IsBusinessDay(DateTime dueDate, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay);
+        DateTime GetNextWorkingDay(DateTime estDateTime, List<Holiday> HolidayList, bool isSatWorkDay, bool isSunWorkDay);
         int InsertErrorNotifications(int mailBatchId);
         string GetErrorNotificationEmailSubscriberList(int clientId);
         void GetUpdatedDueDateAndPrintLocation(DateTime receivedOn, MailPieceDTO mailPiece, DocType docType, string appCode);
+        int GetReportingSequence();
+        bool CheckForDuplicateMailPieceUniqueId(Guid mpUniqueId);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
 
-        public int UpdateBatchPipeLineStatus(int batchId, string pipeLineStatus, DateTime timestamp)
+        public async Task<int> UpdateBatchPipeLineStatus(int batchId, string pipeLineStatus, DateTime timestamp)
         {
-            string query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {0}On = @timestamp WHERE Id = @batchId".Fill(pipeLineStatus);
+            string query;
+            if (pipeLineStatus == BatchPipelineStatus.SubmittedToEDelivery)//System will move pipelinestatus to SubmittedToEDelivery to exclude it from regular print and ship process.
+            {
+                query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, ValidatedOn = @timestamp WHERE Id = @batchId";
+            }
+            else
+                query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {0}On = @timestamp WHERE Id = @batchId".Fill(pipeLineStatus);
+
+            return await db.ExecuteAsync(query, new { pipeLineStatus = pipeLineStatus, timestamp = timestamp, batchId = batchId });
+        }
+
+        public int UpdateEDeliveryPipelineStatus(int batchId, string pipeLineStatus, DateTime timestamp)
+        {
+            string query = "UPDATE [AM].[EDeliveryMailPieces] SET PipelineStatus = @pipelineStatus, {0}On = @timestamp WHERE MailBatchId = @batchId".Fill(pipeLineStatus);
 
             return db.Execute(query, new { pipeLineStatus = pipeLineStatus, timestamp = timestamp, batchId = batchId });
         }
 
-        public int UpdateBatchStatus(int batchId, string batchStatus)
+        public async Task<int> UpdateBatchStatus(int batchId, string batchStatus)
         {
             string query = "UPDATE [AM].[MailBatches] SET BatchStatus = @batchStatus WHERE Id = @batchId";
 
-            return db.Execute(query, new { batchStatus = batchStatus, batchId = batchId });
+            return await db.ExecuteAsync(query, new { batchStatus = batchStatus, batchId = batchId });
         }
 
         public int UpdateBatchValidationStatus(int batchId, string validationStatus, string validationErrors)
@@ -148,6 +167,13 @@ namespace AM.Services
             return db.Query<Holiday>(query, null).ToList();
         }
 
+        public List<Holiday> GetFederalHolidayList()
+        {
+            string query = "SELECT * FROM [Common].[FederalHolidays]";
+
+            return db.Query<Holiday>(query, null).ToList();
+        }
+
         public string GetSystemUserId()
         {
             string q = "select Id from [Profile].[Users] where email = @email";
@@ -202,16 +228,17 @@ namespace AM.Services
             return db.Query<Sweep>("SELECT * from ufn_GetSweepTimings()").ToList();
         }
 
-        public List<DocTypePrintTrailMap> GetTrailMapDetailsByDocTypeId(int docTypeId)
+        public List<PnSConfigDetailPrintTrailMap> GetTrailMapDetailsByPnSConfigDetailId(int pnsConfigDetailId)
         {
-            string query = "select * from [Common].[DocTypePrintTrailMaps] where DocTypeId = @docTypeId";
-            return db.Query<DocTypePrintTrailMap>(query, new { docTypeId = docTypeId }).ToList();
+            string query = "SELECT * FROM [Common].[PnSConfigDetailPrintTrailMaps] WHERE PnSConfigDetailId = @PnSConfigDetailId";
+            return db.Query<PnSConfigDetailPrintTrailMap>(query, new { PnSConfigDetailId = pnsConfigDetailId }).ToList();
         }
 
-        public PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId)
+        public PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId, DateTime? effectiveReceivedOnEst = null)
         {
-            string query = "select pv.*,pt.PrintLocation from [Common].[PrintTrails] as pt inner join  [Common].[PrintVendors] as pv on pt.PrintVendorId = pv.Id where pt.Id = @printTrailId";
-            return db.QuerySingleOrDefault<PrintVendor>(query, new { printTrailId = printTrailId });
+            string query = "SELECT pv.*,CASE WHEN DATEPART(DW,@EffectiveReceivedOnEst)=7 AND pv.VendorCode='NORDIS' THEN 'Las Vegas' ELSE pt.PrintLocation END AS PrintLocation FROM [Common].[PrintTrails] AS pt INNER JOIN  [Common].[PrintVendors] AS pv ON pt.PrintVendorId = pv.Id WHERE pt.Id = @printTrailId";
+
+            return db.QuerySingleOrDefault<PrintVendor>(query, new { printTrailId = printTrailId, EffectiveReceivedOnEst = effectiveReceivedOnEst });
         }
 
         public DateTime GetMaximumSubmissionTime(DocType docType, DateTime effectiveReceivedOnEst)
@@ -239,13 +266,13 @@ namespace AM.Services
             return maxSubmissionDateTime.EstToUtc();
         }
 
-        public int GetPrintTrail(DocType docType, DateTime estEffectiveReceivedOn)
+        public int GetPrintTrail(int pnsConfigDetailId, DateTime estEffectiveReceivedOn)
         {
-            DocTypePrintTrailMap docTypePrintTrail;
+            PnSConfigDetailPrintTrailMap docTypePrintTrail;
 
             using (ICommonService commonSvc = new CommonService())
             {
-                List<DocTypePrintTrailMap> docTypePrintTrailMaps = commonSvc.GetTrailMapDetailsByDocTypeId(docType.Id);
+                List<PnSConfigDetailPrintTrailMap> docTypePrintTrailMaps = commonSvc.GetTrailMapDetailsByPnSConfigDetailId(pnsConfigDetailId);
                 var dayofWeek = estEffectiveReceivedOn.DayOfWeek;
 
                 if (dayofWeek == DayOfWeek.Saturday)
@@ -415,16 +442,30 @@ namespace AM.Services
         public void GetUpdatedDueDateAndPrintLocation(DateTime receivedOn, MailPieceDTO mailPiece, DocType docType, string appCode)
         {
             mailPiece.DocTypeId = docType.Id;
+            mailPiece.PrintTrailId = docType.PrintTrailId;
+            mailPiece.PnSConfigDetailId = docType.PnSConfigDetailId;
             mailPiece.EffectiveReceivedOnEst = GetEffectiveEstReceivedOn(docType, receivedOn);
             //Calculate Due Date for Mail Pieces doc type wise
             mailPiece.DueDate = GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
             //Set print location where mail piece will go for print and ship
-            mailPiece.PrintTrailId = GetPrintTrail(docType, mailPiece.EffectiveReceivedOnEst.Value);
-            var printVendorDetails = GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value);
+            //mailPiece.PrintTrailId = GetPrintTrail(mailPiece.PnSConfigDetailId.Value, mailPiece.EffectiveReceivedOnEst.Value);
+            var printVendorDetails = GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value, mailPiece.EffectiveReceivedOnEst);
             mailPiece.PrintLocation = printVendorDetails.PrintLocation;
             mailPiece.StdSubmissionTime = GetStandardSubmissionTime(appCode, printVendorDetails.VendorCode, receivedOn, GetSweepTimings());
             mailPiece.MaxSubmissionTime = GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
 
+        }
+
+        public int GetReportingSequence()
+        {
+            string query = "SELECT NEXT VALUE FOR dbo.ReportingSequence";
+            return db.ExecuteScalar<int>(query);
+        }
+
+        public bool CheckForDuplicateMailPieceUniqueId(Guid mpUniqueId)
+        {
+            string query = "SELECT Count(*) from AM.MailPieces where UniqueId = @UniqueId";
+            return db.ExecuteScalar<bool>(query,new { UniqueId = mpUniqueId });
         }
     }
 }

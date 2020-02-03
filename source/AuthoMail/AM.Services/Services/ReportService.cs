@@ -20,6 +20,7 @@ namespace AM.Services
         List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate);
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId);
         List<MailPieces> GetMailPiecesDataFromMailBatchId(int mailBatchId);
+        MailPieces GetMailPiecesDataFromMailBatchIdAndUniqueId(int mailBatchId, Guid uniqueId);
         List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate);
         List<DALLASSubmittedBatchDetail> GetDALLASReconReport(DateTime startDate, DateTime endDate);
         List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes);
@@ -34,13 +35,14 @@ namespace AM.Services
         public List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
         {
             string query = "[dbo].[uspweb_DailyDetailOperationsReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
-                (b, s, c, m, d) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
+                (b, s, c, m, d, p) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
                     b.SFTChannels = s;
                     m.DocTypes = d;
+                    m.PnSConfigDetails = p;
                     return m;
                 },
                 new
@@ -58,13 +60,14 @@ namespace AM.Services
         public List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
         {
             string query = "[dbo].[uspweb_ErrorReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
-                (b, s, c, m, d) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
+                (b, s, c, m, d, p) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
                     b.SFTChannels = s;
                     m.DocTypes = d;
+                    m.PnSConfigDetails = p;
                     return m;
                 },
                 new
@@ -84,13 +87,14 @@ namespace AM.Services
         {
             string query = "[dbo].[uspweb_SummaryControlReport] @clientId, @startDate, @endDate, @channel";
 
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, MailPieces>(query,
-                (b, s, c, m, d) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
+                (b, s, c, m, d, p) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
                     b.SFTChannels = s;
                     m.DocTypes = d;
+                    m.PnSConfigDetails = p;
                     return m;
                 },
                 new
@@ -111,14 +115,14 @@ namespace AM.Services
             bool isReceived = filterBy == "ByReceivedOn" ? true : false;
             DateTime? dt = null;
 
-            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, ClientDocTypes, MailPieces>(query,
-                (b, s, c, m, d, cd) =>
+            var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
+                (b, s, c, m, d, p) =>
                 {
                     m.Clients = c;
                     m.MailBatches = b;
                     b.SFTChannels = s;
                     m.DocTypes = d;
-                    m.DocTypes.ClientDocTypes = cd;
+                    m.PnSConfigDetails = p;
                     return m;
                 },
                 new
@@ -199,12 +203,13 @@ namespace AM.Services
 
         public List<MailPieces> GetMailPiecesDataFromPrintBatchId(int printBatchId)
         {
-            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId WHERE M.PrintBatchId=@PrintBatchId";
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId WHERE M.PrintBatchId=@PrintBatchId";
 
             var mailPieceDictionary = new Dictionary<int, MailPieces>();
 
-            var data = db.Query<MailPieces, MailBatches, MailPieceCustomInfoTest, MailPieces>(query,
-                (m, b, c) =>
+            var data = db.Query<MailPieces, MailBatches, DocTypes, PnSConfigDetail, MailPieceCustomInfoTest, MailPieces>(query,
+                (m, b, d, p, c) =>
                 {
                     MailPieces mp;
 
@@ -212,6 +217,8 @@ namespace AM.Services
                     {
                         mp = m;
                         mp.MailBatches = b;
+                        mp.DocTypes = d;
+                        mp.PnSConfigDetails = p;
                         mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
                         mailPieceDictionary.Add(mp.Id, mp);
                     }
@@ -222,7 +229,7 @@ namespace AM.Services
                 new
                 {
                     PrintBatchId = printBatchId
-                }, splitOn: "Id,MailPieceId").Distinct().ToList();
+                }, splitOn: "Id,Id,MailPieceId").Distinct().ToList();
             return data;
         }
 
@@ -230,10 +237,11 @@ namespace AM.Services
         {
             var mailPieceDictionary = new Dictionary<int, MailPieces>();
 
-            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId";
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId";
 
-            var data = db.Query<MailPieces, MailBatches, MailPieceCustomInfoTest, Clients, MailPieces>(query,
-                (m, b, c, cl) =>
+            var data = db.Query<MailPieces, MailBatches, DocTypes, PnSConfigDetail, MailPieceCustomInfoTest, Clients, MailPieces>(query,
+                (m, b, d, p, c, cl) =>
                 {
                     MailPieces mp;
 
@@ -241,6 +249,8 @@ namespace AM.Services
                     {
                         mp = m;
                         mp.MailBatches = b;
+                        mp.DocTypes = d;
+                        mp.PnSConfigDetails = p;
                         mp.Clients = cl;
                         mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
                         mailPieceDictionary.Add(mp.Id, mp);
@@ -252,41 +262,77 @@ namespace AM.Services
                 new
                 {
                     MailBatchId = mailBatchId
-                }, splitOn: "Id,MailPieceId,Id").Distinct().ToList();
+                }, splitOn: "Id,Id,MailPieceId,Id").Distinct().ToList();
             return data;
+        }
+
+        public MailPieces GetMailPiecesDataFromMailBatchIdAndUniqueId(int mailBatchId, Guid uniqueId)
+        {
+            var mailPieceDictionary = new Dictionary<int, MailPieces>();
+
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON M.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId AND M.UniqueId=@UniqueId";
+
+            var data = db.Query<MailPieces, MailBatches, DocTypes, PnSConfigDetail, MailPieceCustomInfoTest, Clients, MailPieces>(query,
+                (m, b, d, p, c, cl) =>
+                {
+                    MailPieces mp;
+
+                    if (!mailPieceDictionary.TryGetValue(m.Id, out mp))
+                    {
+                        mp = m;
+                        mp.MailBatches = b;
+                        mp.DocTypes = d;
+                        mp.PnSConfigDetails = p;
+                        mp.Clients = cl;
+                        mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
+                        mailPieceDictionary.Add(mp.Id, mp);
+                    }
+
+                    mp.MailPieceCustomInfoTest.Add(c);
+                    return mp;
+                },
+                new
+                {
+                    MailBatchId = mailBatchId,
+                    UniqueId = uniqueId
+                }, splitOn: "Id,Id,MailPieceId,Id").Distinct().ToList();
+            return data.SingleOrDefault();
         }
 
         public List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate)
         {
-            string query = @"SELECT PT.Id as PrintTrailBatchId,PT.[PrintBatchName],PT.SubmittedOn ,MIN(MP.DueDate) AS DueDate, D.ShippingCarrier
-,D.ShippingServiceType,COUNT(*) AS PackageCount,SUM(REQ.TotalSheets) AS TotalPages 
+            string query = @"SELECT PT.Id as PrintTrailBatchId,PT.[PrintBatchName],PT.SubmittedOn ,MIN(MP.DueDate) AS DueDate, pcd.ShippingCarrier
+,pcd.ShippingServiceType,COUNT(*) AS PackageCount,SUM(REQ.TotalSheets) AS TotalPages 
 FROM PnS.PrintTrailBatches PT 
 INNER JOIN PnS.MRDFRequest REQ ON PT.Id=REQ.PrintTrailBatchId
 INNER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
 INNER JOIN Common.PrintTrails PTS ON MP.PrintTrailId=PTS.Id
-LEFT OUTER JOIN AM.DocTypes D ON MP.DocTypeId=D.Id
+left outer join [AM].[DocTypes] d ON mp.DocTypeId=d.Id 
+left outer join Common.PnSConfigDetail pcd ON mp.PnSConfigDetailId = pcd.Id
 WHERE PT.SubmittedOn >= @StartDate AND  PT.SubmittedOn < @EndDate AND MP.PrintLocation='Fort Mill, SC' 
 AND REQ.MailPieceStatus NOT IN ('Error','PulledBack')
-GROUP BY PT.Id,PT.PrintBatchName,PT.SubmittedOn,D.ShippingCarrier,D.ShippingServiceType
+GROUP BY PT.Id,PT.PrintBatchName,PT.SubmittedOn,pcd.ShippingCarrier,pcd.ShippingServiceType
 ORDER BY PrintTrailBatchId";
             return db.Query<PCISubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
         }
 
         public List<DALLASSubmittedBatchDetail> GetDALLASReconReport(DateTime startDate, DateTime endDate)
         {
-            string query = @"SELECT C.AppCode,D.ShippingCarrier,D.ShippingServiceType,MIN(P.DueDate) as DueDate,COUNT(*) AS PackageCount,SUM(P.TotalPages) AS TotalPages FROM AM.MailPieces P
-INNER JOIN AM.DocTypes D ON P.DocTypeId=D.Id
+            string query = @"SELECT C.AppCode,pcd.ShippingCarrier,pcd.ShippingServiceType,MIN(P.DueDate) as DueDate,COUNT(*) AS PackageCount,SUM(P.TotalPages) AS TotalPages FROM AM.MailPieces P
+inner join [AM].[DocTypes] d ON P.DocTypeId=d.Id 
+inner join Common.PnSConfigDetail pcd ON P.PnSConfigDetailId = pcd.Id
 INNER JOIN Common.Clients C ON P.ClientId=C.Id
 WHERE P.ShippingStatus NOT IN ('Error','PulledBack') AND P.EffectiveReceivedOnEst >= @StartDate AND P.EffectiveReceivedOnEst < @EndDate
 AND P.PrintLocation='Dallas CL'
-GROUP BY C.AppCode,D.ShippingCarrier,D.ShippingServiceType";
+GROUP BY C.AppCode,pcd.ShippingCarrier,pcd.ShippingServiceType";
             return db.Query<DALLASSubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
         }
 
         public List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes)
         {
             envelopes.RemoveAll(e => e == "");
-            string query = @"select * from Common.EnvelopeInventory et
+            string query = @"select et.*,e.Id,e.EnvelopeName,e.CurrentQuantity,e.PartNumber from Common.EnvelopeInventory et
 inner join Common.Envelopes e on et.EnvelopeId=e.Id";
             DynamicParameters parameter = new DynamicParameters();
             if (envelopes != null && envelopes.Count > 0)
@@ -330,15 +376,15 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
             string query = @"SELECT m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,m.RcptAddressStreet,
 	 m.RcptAddressState as [State], m.ShippedOn as MailedOn ,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.PrintedOn
-	 ,b.BatchName as BatchId,b.ReceivedOn,m.DocTypeId,m.FileName,
-	 cd.DocTypeName as DocType,(d.ShippingCarrier + '-' + d.ShippingServiceType) as ShippingMethod,
-     m.DocumentOrPackageType,m.TotalPages as PagesShipped,
+	 ,b.BatchName as BatchId,b.ReceivedOn,m.DocTypeId,m.IsEDeliveryRequested,m.FileName,
+	 d.DocTypeName as DocType,(pcd.ShippingCarrier + '-' + pcd.ShippingServiceType) as ShippingMethod,
+     m.DocumentOrPackageType,m.TotalPages as PagesShipped,m.TotalBlankPages as BlankPages,
 	 ch.Title as Channel,
      c.AppCode as ClientCode
 	 FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
 	 LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id	 
-	 LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id
-     left outer join AM.ClientDocTypes cd on d.ClientDocTypeId=cd.Id
+	 left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
 	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id";
             DynamicParameters parameter = new DynamicParameters();
             if (clientId != null && clientId.Count > 0)
@@ -372,7 +418,7 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 
             if (docType != null && docType.Count > 0)
             {
-                query = string.Format("{0} and cd.ClientDocTypeId in @docType", query);
+                query = string.Format("{0} and d.Id in @docType", query);
                 parameter.Add("@docType", docType);
             }
             if (shippingMethod != null && shippingMethod.Count > 0)
@@ -457,12 +503,10 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
             }
         }
 
-
         public string GetAppcodeByClientid(int clientId)
         {
             return db.QuerySingle<string>("select AppCode from Common.Clients where Id=@clientId", new { clientId = clientId });
         }
-
 
         public List<string> GetMonthlyReconDate(int clientId)
         {

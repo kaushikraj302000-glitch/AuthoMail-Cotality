@@ -24,7 +24,7 @@ namespace AM.Reporting
                 using (IReportService reportSvc = new ReportService())
                 using (ICommonService commonSvc = new CommonService())
                 {
-                    Client client = clientSvc.GetClientByAppCode("USAA");
+                    Client client = clientSvc.GetClientByAppCode("USAA").Result;
 
                     if (client != null)
                     {
@@ -34,7 +34,7 @@ namespace AM.Reporting
                         {
                             foreach (var sftChannel in sftChannelList)
                             {
-                                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(sftChannel.SFTChannelId);
+                                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelId(sftChannel.SFTChannelId).Result;
 
                                 if (sftChannelDetails == null)
                                 {

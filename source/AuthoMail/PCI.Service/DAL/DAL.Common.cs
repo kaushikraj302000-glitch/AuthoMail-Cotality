@@ -107,14 +107,14 @@ namespace PCI.Service
         public static PrintTrailDetail GetPrintTrailDetailByPrintTrailName(string printTrailName)
         {
             var printTrailDetail = db.ExecuteDataSet("usp_GetPrintTrailDetailByPrintTrailName", printTrailName);
-            return printTrailDetail.DataTableAccessor<PrintTrailDetail>(false).Single();
+            return printTrailDetail.DataTableAccessor<PrintTrailDetail>(false).SingleOrDefault();
         }
 
         public static bool CheckBatchesInQueue(DateTime startDateTime, DateTime endDateTime)
         {
             int receivedCount = db.ExecuteSqlScalar<int>("SELECT COUNT(*) FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND B.IsReceived=1", startDateTime, endDateTime);
 
-            int amSubmittedOrReportedCount = db.ExecuteSqlScalar<int>("SELECT COUNT(*) FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsSubmittedToShipping=1 OR B.IsReportedBack=1 OR B.IsReportPrepped=1)", startDateTime, endDateTime);
+            int amSubmittedOrReportedCount = db.ExecuteSqlScalar<int>("SELECT COUNT(*) FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsSubmittedToShipping=1 OR B.IsReportedBack=1 OR B.IsReportPrepped=1 OR B.PipelineStatus='SubmittedToEDelivery')", startDateTime, endDateTime);
 
             if (receivedCount != amSubmittedOrReportedCount)
                 return false;

@@ -39,7 +39,7 @@ namespace AM.Services
                 // All the loans where outcome code is anything except no_error are processed invalid loans.
                 foreach (MailPieces mailPiece in erroredData)
                 {
-                    DocType docType = mailPiece.DocTypeId.HasValue ? docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value) : null;
+                    DocType docType = mailPiece.DocTypeId.HasValue ? docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value) : null;
 
                     var custId = mailPiece.MailPieceCustomInfoTest.Where(c => c.MailPieceId == mailPiece.Id && c.Key == "CustomerIdentifier").SingleOrDefault();
 
@@ -80,7 +80,7 @@ namespace AM.Services
 
             deliveryReport.AppendLine();
 
-            var shippedData = mailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString() || l.ShippingStatus == ShippingStatus.PulledBack.ToString()).ToList();
+            var shippedData = mailPieces.Where(l => l.ShippingStatus == ShippingStatus.Shipped.ToString() || l.ShippingStatus == ShippingStatus.eDelivered.ToString() || l.ShippingStatus == ShippingStatus.PulledBack.ToString()).ToList();
 
             if (shippedData == null || shippedData.Count == 0)
             {
@@ -109,7 +109,7 @@ namespace AM.Services
                             mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? Config.Monitor_AMCPulledBackDate : mailPiece.ShippedOn.Value.ToString(Config.Monitor_AMC_ReportDateFormat),
                             shippingCredCode == null ? string.Empty : shippingCredCode.Value,
                             mailPiece.ShippingStatus == ShippingStatus.PulledBack.ToString() ? string.Empty : mailPiece.TrackingNo,
-                            mailPiece.DocTypes == null ? string.Empty : mailPiece.DocTypes.ShippingCarrier,
+                            mailPiece.DocTypes == null ? string.Empty : mailPiece.PnSConfigDetails.ShippingCarrier,
                             custId == null ? string.Empty : custId.Value,
                             mailPiece.RcptFirstName == null ? string.Empty : mailPiece.RcptFirstName,
                             mailPiece.RcptLastName == null ? string.Empty : mailPiece.RcptLastName,

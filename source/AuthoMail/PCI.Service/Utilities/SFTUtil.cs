@@ -420,14 +420,7 @@ namespace PCI.Service.Utilities
                 foreach (string remoteFile in remoteFiles)
                 {
                     DownloadFile(remoteFile, Path.Combine(localDirPath, Path.GetFileName(remoteFile)), deleteRemoteFile);
-                }
-                foreach (string remoteFile in remoteFiles)
-                {
-                    if (deleteRemoteFile)
-                    {
-                        File.Delete(remoteFile);
-                    }
-                }
+                }                
             }
             else
             {

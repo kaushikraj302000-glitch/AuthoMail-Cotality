@@ -94,6 +94,7 @@
                 <th class="MailPieceId">MailPiece Id</th>
                 <th class="Channel">Channel</th>
                 <th class="DocType">Document Type</th>
+                <th class="DeliveryType">Delivery Type</th>
                 <th class="LoanNumber">@Html.Action("GetHeadingForBusinessId", "Common")</th>
                 <th class="FileName">File Name</th>
                 <th class="ErrorCode">Error</th>
@@ -104,8 +105,8 @@
                 <th class="RecipientCity">Recipient City</th>
                 <th class="RecipientState">Recipient State</th>
                 <th class="RecipientZip">Recipient Zip</th>
-                <th class="ErrorText">Error Text</th>
-                <th class="ShippingMethod">Shipping Method</th>
+                <th class="ErrorText">Error Text</th>                
+                <th class="ShippingMethod">Shipping Method<span class="fa fa-question-circle" title="Shipping Carrier / Service type"></span></th>
                 <th class="BatchId">BatchId</th>
 
             </tr>
@@ -121,6 +122,7 @@
                 <td><span>{UniqueId}</span></td>
                 <td><span>{Channel}</span></td>
                 <td><span>{DocType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{BusinessIdValue}</span></td>
                 <td><span>{FileName}</span></td>
                 <td><span>{ErrorDescPopover}</span></td>
@@ -132,7 +134,7 @@
                 <td><span>{State}</span></td>
                 <td><span>{ZIP}</span></td>
                 <td><span>{ErrorDesc}</span></td>
-                <td><span>{ShippingMethod}</span></td>
+                <td><span>{ShippingCarrier} / {ShippingMethod}</span></td>
                 <td>{BatchId}</td>
             </tr>
         </tbody>
@@ -196,7 +198,7 @@
                     filename: filename,
                     title: title,
                     exportOptions: {
-                        columns: [".ClientBatchId", ".MailPieceId", ".Channel", ".DocType", ".LoanNumber", ".FileName", ".ErrorCode", ".ErrorText", ".ReceivedDate", ".FirstName", ".LastName", ".RecipientAddress", ".RecipientCity", ".RecipientState", ".RecipientZip", ".ShippingMethod"],// [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16]
+                        columns: [".ClientBatchId", ".MailPieceId", ".Channel", ".DocType",".DeliveryType", ".LoanNumber", ".FileName", ".ErrorCode", ".ErrorText", ".ReceivedDate", ".FirstName", ".LastName", ".RecipientAddress", ".RecipientCity", ".RecipientState", ".RecipientZip", ".ShippingMethod"],// [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16]
                     }
 
                 }
@@ -238,7 +240,7 @@
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
                 var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
-               
+               this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
         }

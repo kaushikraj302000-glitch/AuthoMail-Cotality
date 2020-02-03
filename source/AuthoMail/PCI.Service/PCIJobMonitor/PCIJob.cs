@@ -106,7 +106,6 @@ namespace PCI.Service
 
             //NOTE : Here system will try to submit bundle batches 5 times if any error is coming during execution
             30.TimesAttempt(() => SubmitBundledBatches(pvCode));
-
         }
 
         public static void SubmitBundledBatches(string pvCode)
@@ -137,12 +136,12 @@ namespace PCI.Service
                 }
                 catch (Exception ex)
                 {
-                    if (ex.Message.Contains("connection attempt failed") || ex.Message.Contains("connected party did not properly respond") || ex.Message.Contains("established connection failed"))
+                    if (ex.Message.Contains("connection attempt failed") || ex.Message.Contains("connected party did not properly respond") || ex.Message.Contains("established connection failed") || ex.Message.Contains("target machine actively refused it"))
                     {
                         var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex);
                         log.Error(connectionMsg);
                         MailUtility.SendSFTConnectionIssueNotificationEmail(connectionMsg, pvCode);
-                        Thread.Sleep(180000);
+                        Thread.Sleep(120000);
                         continue;
                     }
 
@@ -162,6 +161,15 @@ namespace PCI.Service
                 }
                 catch (Exception ex)
                 {
+                    if (ex.Message.Contains("connection attempt failed") || ex.Message.Contains("connected party did not properly respond") || ex.Message.Contains("established connection failed") || ex.Message.Contains("target machine actively refused it"))
+                    {
+                        var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex);
+                        log.Error(connectionMsg);
+                        MailUtility.SendSFTConnectionIssueNotificationEmail(connectionMsg, pvCode);
+                        Thread.Sleep(120000);
+                        continue;
+                    }
+
                     var msg = "SubmitBatchToPrintVendor : Error occured while updating Batch Status for PrintTrailBatchId - {0}".Fill(ptBatch.Id);
                     log.Error(msg, ex);
 
@@ -179,6 +187,12 @@ namespace PCI.Service
             PrintTrailBatch ptBatchDetail;
 
             PrintTrailDetail ptDetail = DAL.GetPrintTrailDetailByPrintTrailName(ptName);
+
+            if (ptDetail == null)
+            {
+                log.Debug("SubmitBatchToPrintVendor : Print Trail {0} is not exist in the system. Please verify it.".Fill(ptName));
+                return;
+            }
 
             List<MailPieceDetail> mpDetails = DAL.GetMRDFRequestDataByPrintTrailId(ptDetail.PrintTrailId);
 
@@ -202,11 +216,11 @@ namespace PCI.Service
 
                 mpDetails.ForEach(mp =>
                 {
-                    mp.PrintTrailBatchId = ptBatchDetail.Id;
                     if (mp.MailPieceStatus == MailPieceStatus.PulledBack.ToString() || mp.MailPieceStatus == MailPieceStatus.Error.ToString())
                         mp.SequenceNo = -1;
                     else
                     {
+                        mp.PrintTrailBatchId = ptBatchDetail.Id;
                         mp.SequenceNo = sequenceNo++;
                     }
                 });
@@ -225,7 +239,14 @@ namespace PCI.Service
                 DAL.UpdatedPrintTrailBatchIdInMRDFRequest(ptBatchDetail.Id, mpDetails);
                 log.Info("Updating Data Completed For MRDFRequest.");
 
-                ptBatchDetail.PrintBatchName = "{0}-{1}-{2}".Fill(ptDetail.BusinessCode, ptBatchDetail.Id, ptDetail.TrailName);
+                if (ptDetail.VendorCode == "NORDIS")
+                {
+                    ptBatchDetail.PrintBatchName = "{0}_{1}_{2}".Fill(ptDetail.BusinessCode, ptBatchDetail.Id, ptDetail.TrailName);
+                }
+                else
+                {
+                    ptBatchDetail.PrintBatchName = "{0}-{1}-{2}".Fill(ptDetail.BusinessCode, ptBatchDetail.Id, ptDetail.TrailName);
+                }
 
                 log.Info("Updating Data Started For PrintTrailBatch.");
                 DAL.UpdatePrintTrailBatchDetail(ptBatchDetail);
@@ -365,9 +386,12 @@ namespace PCI.Service
 
         private static string CreateNordisBatch(List<MailPieceDetail> mpList, PrintTrailBatch ptBatchDetails, string zipFilePath, string xmlFilePath, PrintTrailDetail ptDetails)
         {
+            var shippingMethod = mpList.Select(x => new { ShippingCarrier = x.ShippingCarrier, ShippingServiceType = x.ShippingServiceType == "IMB" ? "FIRSTCLASS" : x.ShippingServiceType }).Distinct().First();
             List<Package> packageData = new List<Package>();
             PrintRequest printRequestXml = new PrintRequest();
             printRequestXml.JobId = ptBatchDetails.Id;
+            printRequestXml.ShippingMethod = shippingMethod.ShippingCarrier.ParseEnum<ShippingMethod>();
+            printRequestXml.ShippingServiceType = shippingMethod.ShippingServiceType.ParseEnum<Nordis.Lib.ShippingServiceType>();
             foreach (MailPieceDetail package in mpList)
             {
                 printRequestXml.Packages.Add(
@@ -375,16 +399,14 @@ namespace PCI.Service
                     {
                         PieceId = package.MailPieceId.Value,
                         FileName = package.PDFFileName,
-                        DueDate = package.MailPieceDueDate,
+                        DueDate = Common.UtcToEst(package.MailPieceDueDate),
                         TotalSheets = package.TotalSheets,
                         ClientCode = package.AppCode,
                         IsForeignAddress = false,
                         TotalImages = package.TotalPages,
                         PaperSize = package.PrintSize,
                         PrintFormat = package.PrintFormat.ParseEnum<PrintFormat>(),
-                        EnvelopePartNo = package.EnvelopePartNo.ToString(),
-                        EnvelopeDesc = package.EnvelopeDesc,
-                        BREPartNo = package.BREPartNo.ToString(),
+                        BREPartNo = package.BREPartNo,
                         BREDesc = package.BREDesc,
                         QCReqd = package.DivertVS3 == 1 ? true : false,
                     });
@@ -516,7 +538,7 @@ namespace PCI.Service
                     var currentBatch = dallasBatches.Single(b => (b.AppCode == client.AppCode && effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == mailPiece.ShippingCarrier && b.ShippingServiceType == mailPiece.ShippingServiceType);
 
                     //NOTE: Folder structure will be like  /gos/ClientCode/SweepTime/ShippingCarrier_ShippingServiceType/EnvelopeName_BREEnvelopeName
-                    string submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType, "{0}_{1}".Fill(mailPiece.EnvelopeName, mailPiece.BREEnvelopeName));
+                    string submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType, "{0}_{1}".Fill(mailPiece.EnvelopeName, mailPiece.BREEnvelopeName)).TrimEnd('_');
 
                     if (!sftSite.IsDownloadDirectoryAvailable(submitDir))
                         sftSite.CreateDirectory(submitDir);
@@ -566,91 +588,135 @@ namespace PCI.Service
             List<string> responseFiles;
             responseFiles = sftSite.ListDirectory(printVendorDetail.ToADEDir);
 
-            string printVendorResponseType = string.Empty; // This will be used for downloading main file format from print vendor's SFT site.
-            string printVendorResponseFileExtention = string.Empty;// This will be used for looking for file extention format from provided zip file.
-
             switch (printVendorDetail.VendorCode)
             {
                 case "PCI":
-                    printVendorResponseType = ".zip";
-                    printVendorResponseFileExtention = "OUT";
+                    string printVendorResponseType = ".zip";
+                    string printVendorResponseFileExtention = "OUT";
+
+                    if (string.IsNullOrEmpty(printVendorResponseType) || string.IsNullOrEmpty(printVendorResponseFileExtention))
+                        return;
+
+                    var printVendorResponseFiles = responseFiles
+                        .Where(file => Path.GetExtension(file).ToLower() == printVendorResponseType)
+                        .Select(file => new KeyValuePair<string, string>(Path.GetFileNameWithoutExtension(file), file))
+                        .ToList();
+
+                    foreach (var batch in submittedPrintBatches)
+                    {
+                        batch.ReceivedFileList.AddRange(printVendorResponseFiles.Where(resfile => resfile.Key.StartsWith(batch.PrintBatchName, StringComparison.CurrentCultureIgnoreCase)).Select(resfile => resfile.Value));
+                    }
+
+                    var downloadableFiles = submittedPrintBatches.Where(c => c.ReceivedFileList != null && c.ReceivedFileList.Count > 0).ToList();
+
+                    if (downloadableFiles.Count == 0)
+                    {
+                        log.Debug("Print vendor {0}'s responses are not available for download.".Fill(printVendorDetail.VendorCode));
+                        return;
+                    }
+
+                    #region Download MRDF
+
+                    foreach (var downloadableBatch in downloadableFiles)
+                    {
+                        log.Debug("Downloading print response For Print Trail Batch-ID : " + downloadableBatch.PrintTrailBatchId.ToString());
+                        foreach (string filePath in downloadableBatch.ReceivedFileList)
+                        {
+                            log.Debug("Downloading Print Vendor Response Job Started For Batch {0}".Fill(Path.GetFileNameWithoutExtension(filePath)));
+
+                            string localPrintVendorResponseZipFilePath = Path.Combine(Common.PCIRootFolder, filePath);
+                            string localPrintVendorResponseFilePath = Path.Combine(Common.PCIRootFolder, "{0}.{1}".Fill(Path.GetFileNameWithoutExtension(localPrintVendorResponseZipFilePath), printVendorResponseFileExtention));
+                            string remoteVendorResponsePath = Path.Combine(printVendorDetail.ToADEDir, filePath);
+
+                            DateTime responseReceivedOn = sftSite.LastModifiedTimeOfFile(remoteVendorResponsePath);
+                            DateTime responseDownloadStartTime = Common.GetCurrentTime();
+
+                            bool responseDelete = printVendorDetail.PostDownloadAction == "Archive" ? false : true;
+
+                            sftSite.DownloadFile(remoteVendorResponsePath, localPrintVendorResponseZipFilePath, responseDelete, false);
+
+                            if (!responseDelete)
+                            {
+                                sftSite.MoveFile(remoteVendorResponsePath, Path.Combine(printVendorDetail.ToADEDir, "Archive", filePath));
+                            }
+
+                            using (ZipArchive archive = ZipFile.OpenRead(localPrintVendorResponseZipFilePath))
+                            {
+                                foreach (ZipArchiveEntry entry in archive.Entries)
+                                {
+                                    if (entry.FullName.ToUpper().EndsWith(".{0}".Fill(printVendorResponseFileExtention), StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        entry.ExtractToFile(localPrintVendorResponseFilePath, true);
+                                    }
+                                }
+                            }
+
+                            IdentifyAndUpdateBatchStatus(localPrintVendorResponseZipFilePath, localPrintVendorResponseFilePath, responseReceivedOn, downloadableBatch.PrintTrailBatchId);
+                        }
+                    }
+
+                    #endregion
                     break;
                 case "NORDIS":
-                    printVendorResponseType = ".zip";
-                    printVendorResponseFileExtention = "xml";
+                    var nordisResponseExtention = ".xml";
+
+                    if (string.IsNullOrEmpty(nordisResponseExtention))
+                        return;
+
+                    printVendorResponseFiles = responseFiles
+                        .Where(file => Path.GetExtension(file).ToLower() == nordisResponseExtention)
+                        .Select(file => new KeyValuePair<string, string>(Path.GetFileNameWithoutExtension(file), file))
+                        .ToList();
+
+                    foreach (var batch in submittedPrintBatches)
+                    {
+                        batch.ReceivedFileList.AddRange(printVendorResponseFiles.Where(resfile => resfile.Key.StartsWith(batch.PrintBatchName, StringComparison.CurrentCultureIgnoreCase)).Select(resfile => resfile.Value));
+                    }
+
+                    downloadableFiles = submittedPrintBatches.Where(c => c.ReceivedFileList != null && c.ReceivedFileList.Count > 0).ToList();
+
+                    if (downloadableFiles.Count == 0)
+                    {
+                        log.Debug("Print vendor {0}'s responses are not available for download.".Fill(printVendorDetail.VendorCode));
+                        return;
+                    }
+
+                    #region Download MRDF
+
+                    foreach (var downloadableBatch in downloadableFiles)
+                    {
+                        log.Debug("Downloading print response For Print Trail Batch-ID : " + downloadableBatch.PrintTrailBatchId.ToString());
+                        foreach (string filePath in downloadableBatch.ReceivedFileList)
+                        {
+                            log.Debug("Downloading Print Vendor Response Job Started For Batch {0}".Fill(Path.GetFileNameWithoutExtension(filePath)));
+
+
+                            string localPrintVendorResponseFilePath = Path.Combine(Common.PCIRootFolder, "{0}.{1}".Fill(Path.GetFileNameWithoutExtension(filePath), nordisResponseExtention));
+                            string remoteVendorResponsePath = Path.Combine(printVendorDetail.ToADEDir, filePath);
+
+                            DateTime responseReceivedOn = sftSite.LastModifiedTimeOfFile(remoteVendorResponsePath);
+                            DateTime responseDownloadStartTime = Common.GetCurrentTime();
+
+                            bool responseDelete = printVendorDetail.PostDownloadAction == "Archive" ? false : true;
+
+                            sftSite.DownloadFile(remoteVendorResponsePath, localPrintVendorResponseFilePath, responseDelete, false);
+
+                            if (!responseDelete)
+                            {
+                                sftSite.MoveFile(remoteVendorResponsePath, Path.Combine(printVendorDetail.ToADEDir, "Archive", filePath));
+                            }
+
+                            IdentifyAndUpdateNORDISBatchStatus(localPrintVendorResponseFilePath, responseReceivedOn, downloadableBatch.PrintTrailBatchId);
+                        }
+                    }
+
+                    #endregion
                     break;
                 default:
                     break;
             }
 
-            if (string.IsNullOrEmpty(printVendorResponseType) || string.IsNullOrEmpty(printVendorResponseFileExtention))
-                return;
 
-            var printVendorResponseFiles = responseFiles
-                .Where(file => Path.GetExtension(file).ToLower() == printVendorResponseType)
-                .Select(file => new KeyValuePair<string, string>(Path.GetFileNameWithoutExtension(file), file))
-                .ToList();
-
-            foreach (var batch in submittedPrintBatches)
-            {
-                batch.ReceivedFileList.AddRange(printVendorResponseFiles.Where(resfile => resfile.Key.StartsWith(batch.PrintBatchName, StringComparison.CurrentCultureIgnoreCase)).Select(resfile => resfile.Value));
-            }
-
-            var downloadableFiles = submittedPrintBatches.Where(c => c.ReceivedFileList != null && c.ReceivedFileList.Count > 0).ToList();
-
-            if (downloadableFiles.Count == 0)
-            {
-                log.Debug("Print vendor {0}'s responses are not available for download.".Fill(printVendorDetail.VendorCode));
-                return;
-            }
-
-            #region Download MRDF
-
-            foreach (var downloadableBatch in downloadableFiles)
-            {
-                log.Debug("Downloading print response For Print Trail Batch-ID : " + downloadableBatch.PrintTrailBatchId.ToString());
-                foreach (string filePath in downloadableBatch.ReceivedFileList)
-                {
-                    log.Debug("Downloading Print Vendor Response Job Started For Batch {0}".Fill(Path.GetFileNameWithoutExtension(filePath)));
-
-                    string localPrintVendorResponseZipFilePath = Path.Combine(Common.PCIRootFolder, filePath);
-                    string localPrintVendorResponseFilePath = Path.Combine(Common.PCIRootFolder, "{0}.{1}".Fill(Path.GetFileNameWithoutExtension(localPrintVendorResponseZipFilePath), printVendorResponseFileExtention));
-                    string remoteVendorResponsePath = Path.Combine(printVendorDetail.ToADEDir, filePath);
-
-                    DateTime responseReceivedOn = sftSite.LastModifiedTimeOfFile(remoteVendorResponsePath);
-                    DateTime responseDownloadStartTime = Common.GetCurrentTime();
-
-                    bool responseDelete = printVendorDetail.PostDownloadAction == "Archive" ? false : true;
-
-                    sftSite.DownloadFile(remoteVendorResponsePath, localPrintVendorResponseZipFilePath, responseDelete, false);
-
-                    if (!responseDelete)
-                    {
-                        sftSite.MoveFile(remoteVendorResponsePath, Path.Combine(printVendorDetail.ToADEDir, "Archive", filePath));
-                    }
-
-                    using (ZipArchive archive = ZipFile.OpenRead(localPrintVendorResponseZipFilePath))
-                    {
-                        foreach (ZipArchiveEntry entry in archive.Entries)
-                        {
-                            if (entry.FullName.ToUpper().EndsWith(".{0}".Fill(printVendorResponseFileExtention), StringComparison.OrdinalIgnoreCase))
-                            {
-                                entry.ExtractToFile(localPrintVendorResponseFilePath, true);
-                            }
-                        }
-                    }
-
-                    IdentifyAndUpdateBatchStatus(localPrintVendorResponseZipFilePath, localPrintVendorResponseFilePath, responseReceivedOn, downloadableBatch.PrintTrailBatchId);
-
-                    //if (bi != null)
-                    //{
-                    //    DAL.LogBatchTimeLine(bi.BatchSummary.PrintBatch, LogBatchTimeLine.MRDFDownloadStart, mrdfDownloadStartTime);
-                    //    DAL.LogBatchTimeLine(bi.BatchSummary.PrintBatch, LogBatchTimeLine.MRDFDownloadEnd, Common.GetCurrentTime());
-                    //}
-                }
-            }
-
-            #endregion
         }
 
         private static void IdentifyAndUpdateBatchStatus(string localResponseZipFilePath, string localResponseFilePath, DateTime responseReceivedOn, int printTrailBatchId)
@@ -685,6 +751,30 @@ namespace PCI.Service
             }
         }
 
+        private static void IdentifyAndUpdateNORDISBatchStatus(string localResponseFilePath, DateTime responseReceivedOn, int printTrailBatchId)
+        {
+            string fileName = Path.GetFileNameWithoutExtension(localResponseFilePath);
+            string outFileName = Path.GetFileNameWithoutExtension(localResponseFilePath);
+
+            PrintTrailBatch printBatchDetail = DAL.GetPrintBatchDetailByPrintBatchTrailId(printTrailBatchId);
+
+            if (printBatchDetail != null)
+            {
+                var bundlingRootPath = Path.Combine(Common.BundlingRootFolder, printTrailBatchId.ToString(), Common.BundlingResponseFolderName);
+
+                if (!Directory.Exists(bundlingRootPath))
+                {
+                    bundlingRootPath.CreateDirectoryIfNotExist();
+                }
+
+                if (File.Exists(Path.Combine(bundlingRootPath, Path.GetFileName(localResponseFilePath))))
+                    File.Delete(Path.Combine(bundlingRootPath, Path.GetFileName(localResponseFilePath)));
+
+                File.Move(localResponseFilePath, Path.Combine(bundlingRootPath, Path.GetFileName(localResponseFilePath)));
+
+                log.DebugFormat("Response moved in proper batch folder : {0} after batch identified.", printTrailBatchId);
+            }
+        }
         #endregion
 
         #region Return PDF Zip File Logic

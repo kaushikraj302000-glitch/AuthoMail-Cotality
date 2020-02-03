@@ -10,7 +10,7 @@ namespace AM.Entities
     {
         public int Id { get; set; }
         public int ClientId { get; set; }
-        public int? ClientDocTypeId { get; set; }
+        public int? PnSConfigDetailId { get; set; }
         public int MailBatchId { get; set; }
         public int? PrintBatchId { get; set; }
         public Guid UniqueId { get; set; }
@@ -18,6 +18,7 @@ namespace AM.Entities
         public string BusinessFriendlyIdValue { get; set; }
         public string FileName { get; set; }
         public string FilePattern { get; set; }
+        public string Inserts { get; set; }
         public string DocumentOrPackageType { get; set; }
         public DateTime? DueDate { get; set; }
         public string ShippingStatus { get; set; }
@@ -27,6 +28,7 @@ namespace AM.Entities
         public string RcptMiddleName { get; set; }
         public string RcptLastName { get; set; }
         public string RcptSuffix { get; set; }
+        public string RcptEmailId { get; set; }
         public string RcptPhone { get; set; }
         public string RcptOrganization { get; set; }
         public string CoRcptPrefix { get; set; }
@@ -66,6 +68,8 @@ namespace AM.Entities
         public string RetRcptAddressCountry { get; set; }
         public int TotalPages { get; set; }
         public int TotalSheets { get; set; }
+        public int TotalBlankPages { get; set; }
+        public string BlankPageNumbers { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
         public string TrackingNo { get; set; }
@@ -93,6 +97,14 @@ namespace AM.Entities
         public string MissedSLAReason { get; set; }
         public int? PrintTrailId { get; set; }
         public Int64? PDFFileSize { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
+        public bool IsFallBackRequested { get; set; }
+        public DateTime? ExpiryDate { get; set; }
+        public bool IsPrintReady { get; set; }
+
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
+        public DateTime ReceivedOn { get; set; }
     }
 
     public class MailPieceCustomInfo
@@ -147,5 +159,11 @@ namespace AM.Entities
         public string AppCode { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
+    }
+
+    public class MBInfo
+    {
+        public int MailBatchId { get; set; }
+        public string AppCode { get; set; }
     }
 }

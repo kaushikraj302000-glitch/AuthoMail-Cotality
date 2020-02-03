@@ -4,6 +4,7 @@
   <xs:complexType name="MailPiece">
     <xs:all>
       <xs:element minOccurs="1" maxOccurs="1" name="DocumentOrPackage" type="DocumentOrPackage" />
+      <xs:element minOccurs="0" maxOccurs="1" name="eDelivery" type="eDelivery" />
       <xs:element minOccurs="0" maxOccurs="1" name="RecipientInfo" type="RecipientInfo" />
       <xs:element minOccurs="0" maxOccurs="1" name="ReturnInfo" type="ReturnInfo" />
       <xs:element minOccurs="0" maxOccurs="1" name="CustomInfo" type="CustomInfo" />
@@ -17,12 +18,12 @@
     <xs:attribute name="Name" type="nonEmptyString" use="optional" />
     <xs:attribute name="Pattern" type="nonEmptyString" use="optional" />
     <xs:attribute name="Base64String" type="xs:base64Binary" use="optional" />
+    <xs:attribute name="Inserts" type="xs:string" use="optional" />
   </xs:complexType>
   <xs:complexType name="RecipientInfo">
     <xs:all>
       <xs:element minOccurs="1" maxOccurs="1" name="Recipient" type="Recipient" />
-      <xs:element minOccurs="0" maxOccurs="1" name="Corecipient" type="Recipient" />
-      <xs:element minOccurs="1" maxOccurs="1" name="Address" type="Address" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Address" type="Address" />
     </xs:all>
   </xs:complexType>
   <xs:complexType name="Recipient">
@@ -33,17 +34,23 @@
     <xs:attribute name="LastName" type="xs:string" use="optional"  />
     <xs:attribute name="Suffix" type="xs:string"  use="optional" />
     <xs:attribute name="Phone" type="NAPhone" use="optional" />
+    <xs:attribute name="EmailAddress" type="nonEmptyString" use="optional"  />
   </xs:complexType>
   <xs:complexType name="Address">
     <xs:attribute name="OptionalLine1AboveStreet" type="xs:string" use="optional"  />
     <xs:attribute name="OptionalLine2AboveStreet" type="xs:string" use="optional"  />
-    <xs:attribute name="Street" type="nonEmptyString" use="required"  />
+    <xs:attribute name="Street" type="nonEmptyString" use="optional"  />
     <xs:attribute name="AptOrSuiteOrOther" type="xs:string" use="optional"  />
     <xs:attribute name="OptionalLine1BelowStreet" type="xs:string" use="optional"  />
     <xs:attribute name="OptionalLine2BelowStreet" type="xs:string" use="optional"  />
-    <xs:attribute name="City" type="nonEmptyString" use="required"  />
-    <xs:attribute name="State" type="nonEmptyString" use="required"  />
-    <xs:attribute name="Zip" type="USZIP" use="required"  />
+    <xs:attribute name="City" type="nonEmptyString" use="optional"  />
+    <xs:attribute name="State" type="nonEmptyString" use="optional"  />
+    <xs:attribute name="Zip" type="USZIP" use="optional"  />
+    <xs:attribute name="Country" type="nonEmptyString" use="optional"  />
+  </xs:complexType>
+  <xs:complexType name="eDelivery">
+    <xs:attribute name="ExpiryDate" type="xs:date" use="optional" />
+    <xs:attribute name="PrintAndShipOnExpiry" type="xs:boolean" use="required" />
   </xs:complexType>
   <xs:complexType name="ReturnInfo">
     <xs:all>

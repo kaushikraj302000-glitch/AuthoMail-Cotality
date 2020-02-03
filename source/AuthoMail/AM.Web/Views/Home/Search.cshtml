@@ -35,6 +35,10 @@
     .margin-bottom-2 {
         margin-bottom: 2px !important;
     }
+
+    .label.label-Edelivery {
+        background-color: #0cc9de;
+    }
 </style>
 <div class="panel-group">
     <div class="panel panel-default">
@@ -108,6 +112,7 @@
                                     <option value="PulledBack">Pulledback</option>
                                     <option value="Error">Error</option>
                                     <option value="Shipped">Shipped</option>
+                                    <option value="eDelivered">eDelivered</option>
                                 </select>
                             </div>
 
@@ -252,6 +257,7 @@
                 <th>Shipped <span class="fontcapitalize">(Local)</span></th>
                 <th>PickedUp <span class="fontcapitalize">(Local)</span></th>
                 <th>Document Type</th>
+                <th>Delivery Type</th>
                 <th>Channel</th>
                 <th>Shipping Method<span class="fa fa-question-circle" title="Shipping Carrier / Service type"></span></th>
                 <th class="ErrorCode">Error Code</th>
@@ -276,7 +282,8 @@
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{ShippedOnFormatted}</span></td>
                 <td><span>{PickedUpOnFormatted}</span></td>
-                <td><span>{DisplayDocType}</span></td>
+                <td><span>{DocType}</span></td>
+                <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{Channel}</span></td>
                 <td>{ShippingCarrier} / {ShippingMethod}</td>
                 <td>{ErrorCode}</td>
@@ -372,6 +379,12 @@
             </div>
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">Delivery Type:&nbsp; </label>
+                    <span class="form-control-static">{IsEDeliveryRequested}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
                     <label for="BusinessFriendlyIdValue">SLA Days:&nbsp; </label>
                     <span class="form-control-static">{SLADays}</span>
                 </div>
@@ -456,12 +469,12 @@
                     <span class="form-control-static">{IsQCPerformed}</span>
                 </div>
             </div>
-            <div class="form-group margin-bottom-2">
-                <div class="input-group">
-                    <label for="BusinessFriendlyIdValue">Document Type Code:&nbsp; </label>
-                    <span class="form-control-static">{DisplayDocTypeCode}</span>
-                </div>
+            @*<div class="form-group margin-bottom-2">
+            <div class="input-group">
+                <label for="BusinessFriendlyIdValue">Document Type Code:&nbsp; </label>
+                <span class="form-control-static">{DocTypeCode}</span>
             </div>
+        </div>*@
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">PullBack Requested:&nbsp; </label>
@@ -509,6 +522,18 @@
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Total Pages:&nbsp; </label>
                     <span class="form-control-static">{TotalPages}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">Total Blank Pages:&nbsp; </label>
+                    <span class="form-control-static">{TotalBlankPages}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">Blank Page Numbers:&nbsp; </label>
+                    <span class="form-control-static">{BlankPageNumbers}</span>
                 </div>
             </div>
         </div>
@@ -705,7 +730,7 @@
             return val;
         }
         function FormatMailPieceObject(Model) {
-
+            console.log(Model);
             $(Model).each(function () {
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.IsPrinted = MakeYesNoLabel(this.IsPrinted);
@@ -753,7 +778,9 @@
                     case "InProgress":
                         status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
                         break;
-
+                    case "eDelivered":
+                        status = '<span class="label medium label-Edelivery">' + this.ShippingStatus + '</span>';
+                        break;
                 }
                 this.ShippingStatus = status;
                 var trackingNo = "";
@@ -780,6 +807,7 @@
                 this.TrackingNoFormatted = trackingNo;
                 var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
                 this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             //console.log(Model);
             return Model;
@@ -813,7 +841,9 @@
                     case "InProgress":
                         status = '<span class="label medium label-blue">' + this.Status + '</span>';
                         break;
-
+                    case "eDelivered":
+                        status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
+                        break;
                 }
                 this.ShippingStatusFormatted = status;
                 var trackingNo = "";
@@ -840,6 +870,7 @@
                 }
                 this.TrackingNoFormatted = trackingNo;
                 //this.TrackingNo == null ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
         }

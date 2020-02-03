@@ -38,7 +38,7 @@ namespace AM.Console
         {
             alaskaSvc = GetService<AlaskaService>();
             string appCode = channelCode.Split('_')[0];
-            client = clientSvc.GetClientByAppCode(appCode);
+            client = clientSvc.GetClientByAppCode(appCode).Result;
             this.channelType = channelType;
         }
 
@@ -94,9 +94,9 @@ namespace AM.Console
                     }
 
                     //Update Pipeline Status of Batch Received
-                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, lastModifiedTime);
+                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, lastModifiedTime).Wait();
 
-                    commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString());
+                    commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString()).Wait();
                 }
                 catch (Exception ex)
                 {
@@ -181,7 +181,7 @@ namespace AM.Console
                         sftSite.DeleteFile(ftpXmlFilePath);
                     }
 
-                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now);
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now).Wait();
                 }
                 catch (Exception ex)
                 {
@@ -343,30 +343,44 @@ namespace AM.Console
                                     //Creating collection for moving or deleting files because it may have same file for multiple nodes so can't move or delete at these level.
                                     fileListToMoveOrDelete.Add(sftFilePath);
 
+                                    List<int> blankPageNos = new List<int>();
                                     using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
                                     {
                                         pageCount = reader.NumberOfPages;
+                                        //check if pdf is blank or not
+                                        blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
                                     }
 
                                     //Document Or Package Type validation
-                                    var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount);
+                                    var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst());
 
                                     if (docType != null)
                                     {
-                                        mailPieceDTO.ClientDocTypeId = docType.ClientDocTypeId;
                                         mailPieceDTO.DocTypeId = docType.Id;
+                                        mailPieceDTO.PnSConfigDetailId = docType.PnSConfigDetailId;
+                                        mailPieceDTO.PrintTrailId = docType.PrintTrailId;
                                     }
 
                                     if (docType == null)
                                     {
                                         mailPieceDTO.PrintLocation = null;
                                         mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PackageType;
-                                        mailPieceDTO.ErrorDesc = "The specified document or package type '{0}' is not configured.".Fill(mailPieceDTO.DocumentOrPackageType);
+                                        mailPieceDTO.ErrorDesc = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages);
                                         mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                                    }
+                                    else if (pageCount == blankPageNos.Count())
+                                    {
+                                        mailPieceDTO.ErrorCode = OutComeCodes.Invalid_PDF_File;
+                                        mailPieceDTO.ErrorDesc = "All pages are blank in received pdf file.";
+                                        mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                                        mailPieceDTO.TotalBlankPages = blankPageNos.Count;
+                                        mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);
                                     }
                                     else
                                     {
                                         mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
+                                        mailPieceDTO.TotalBlankPages = blankPageNos.Count;
+                                        mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);
                                     }
                                 }
                             }
@@ -444,11 +458,13 @@ namespace AM.Console
                         if (validMailPieces.Count > 0)
                             Channel.ValidateAddressType(mailBatch, validMailPieces);
 
+                        validMailPieces = validMailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
+
                         if (validMailPieces.Count == 0)
                         {
                             mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
                             mbi.MailBatch.ValidationErrors = "Xml does not contain any valid respacontrol nodes.";
-                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+                            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString()).Wait();
                         }
                         else if (validMailPieces.Count < mailPieceData.Count)
                         {
@@ -469,7 +485,7 @@ namespace AM.Console
 
                     Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
 
-                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now).Wait();
                 }
                 catch (Exception ex)
                 {
@@ -527,11 +543,11 @@ namespace AM.Console
         {
             MailUtility.SendNoDataNotificationEmail(mbi, deliverables.EmailChannel, msg);
             //For Invalid Batch, we will generate error File
-            mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, msg);
+            mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, msg).Wait();
 
-            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
 
-            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString()).Wait();
         }
 
         protected override void AcknowledgeBatches()
@@ -575,7 +591,7 @@ namespace AM.Console
                                 }
 
                                 // Batch status Prepped
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now);
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
 
                                 //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
                                 commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
@@ -602,12 +618,12 @@ namespace AM.Console
                                             sftSite.Disconnect();
                                     }
                                 }
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now).Wait();
                             }
                             else
                             {
                                 // Batch is valid
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now);
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now).Wait();
                             }
 
                             if (reportDeliverable.EmailChannel != null)

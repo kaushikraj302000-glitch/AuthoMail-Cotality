@@ -38,7 +38,7 @@ namespace AM.Console
         {
             hsbcSvc = GetService<HSBCService>();
             string appCode = channelCode.Split('_')[0];
-            client = clientSvc.GetClientByAppCode(appCode);
+            client = clientSvc.GetClientByAppCode(appCode).Result;
             this.channelType = channelType;
         }
 
@@ -87,7 +87,7 @@ namespace AM.Console
                 //Update Pipeline Status of Batch Received
                 commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, lastModifiedTime);
 
-                commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString());
+                commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString()).Wait();
             }
 
             if (sftSite.IsConnected)
@@ -422,7 +422,7 @@ namespace AM.Console
                     {
                         mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
                         mbi.MailBatch.ValidationErrors = "Xml does not contain any valid respacontrol nodes.";
-                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString()).Wait();
                     }
                     else if (validMailPieces.Count < mailPieceData.Count)
                     {
@@ -501,11 +501,11 @@ namespace AM.Console
             MailUtility.SendNoDataNotificationEmail(mbi, deliverable.EmailChannel, mailMsg, errorReportPath);
 
             //For Invalid Batch, we will generate error File
-            mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, msg);
+            mailBatchSvc.MarkMailBatchAsInvalid(mbi.MailBatch.Id, msg).Wait();
 
             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now);
 
-            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString());
+            commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString()).Wait();
         }
 
         protected override void AcknowledgeBatches()
