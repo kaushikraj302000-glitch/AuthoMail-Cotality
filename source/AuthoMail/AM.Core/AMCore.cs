@@ -1405,6 +1405,9 @@ namespace AM.Core
             if (vendorCode == "PCI")
                 return MissedSLAReason.PCI;
 
+            if (vendorCode == "NORDIS")
+                return MissedSLAReason.NORDIS;
+
             return MissedSLAReason.AM;
         }
 
