@@ -165,28 +165,28 @@ namespace AM.ProductionToUATBridge
 
                                 log.Debug("----Batching Process started for Client {0}----".Fill(client.AppCode));
                                 #region Production Ratio
-                                double qcCount = 0;
-                                float qcPercentage = ratioList[client.AppCode] / 100;
-                                qcCount = Math.Ceiling(mpListByMb.Count * qcPercentage);
-                                log.Debug("Record Count : {0}".Fill(qcCount));
-                                var randomIndexes = new List<int>();
-                                while (randomIndexes.Count < qcCount)
-                                {
-                                    var index = random.Next(0, mpListByMb.Count - 1);
-                                    if (!randomIndexes.Contains(index))
-                                    {
-                                        randomIndexes.Add(index);
-                                    }
-                                }
-                                log.Debug("While Going to randomIndexes");
-                                randomIndexes.ForEach(index =>
-                                {
-                                    mpListByMb[index].IsQCRequested = true;
-                                });
-                                log.Debug("Going to randomIndexes");
+                                //double qcCount = 0;
+                                //float qcPercentage = ratioList[client.AppCode] / 100;
+                                //qcCount = Math.Ceiling(mpListByMb.Count * qcPercentage);
+                                //log.Debug("Record Count : {0}".Fill(qcCount));
+                                //var randomIndexes = new List<int>();
+                                //while (randomIndexes.Count < qcCount)
+                                //{
+                                //    var index = random.Next(0, mpListByMb.Count - 1);
+                                //    if (!randomIndexes.Contains(index))
+                                //    {
+                                //        randomIndexes.Add(index);
+                                //    }
+                                //}
+                                //log.Debug("While Going to randomIndexes");
+                                //randomIndexes.ForEach(index =>
+                                //{
+                                //    mpListByMb[index].IsQCRequested = true;
+                                //});
+                                //log.Debug("Going to randomIndexes");
                                 #endregion
 
-                                var selectedMPs = mpListByMb.Where(mp => mp.IsQCRequested == true).ToList();
+                                var selectedMPs = mpListByMb.ToList();
                                 log.Debug("Selected MailPieces Count : {0}".Fill(selectedMPs.Count));
                                 string clientBatchId = "UAT_{0}{1}".Fill(client.AppCode, Common.Now.ToString("yyyyMMddhhmmss"));
                                 log.Debug("ClientBatchId : {0}".Fill(clientBatchId));
@@ -297,7 +297,7 @@ namespace AM.ProductionToUATBridge
                                     newFile.CreateEntryFromFile(xmlFilePath, Path.GetFileName(xmlFilePath));
                                 }
                                 File.WriteAllText(triggerFilePath, "");
-                                File.SetLastWriteTimeUtc(triggerFilePath, mpListByMb.Select(mp => mp.ReceivedOn).Distinct().First());
+                                //File.SetLastWriteTimeUtc(triggerFilePath, mpListByMb.Select(mp => mp.ReceivedOn).Distinct().First());
                                 sftSite.UploadFile(zipFilePath, Path.Combine(sftChannel.ToADEDir, Path.GetFileName(zipFilePath)));
                                 sftSite.UploadFile(triggerFilePath, Path.Combine(sftChannel.ToADEDir, Path.GetFileName(triggerFilePath)));
 
