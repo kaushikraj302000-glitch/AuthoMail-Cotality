@@ -21,6 +21,7 @@
     <xs:attribute name="DocumentOrPackageType" type="tns:nonEmptyString" use="optional" />
     <xs:attribute name="FileName" type="tns:nonEmptyString" use="optional" />
     <xs:attribute name="MailingStatus" type="tns:MailingStatus" use="required" />
+    <xs:attribute name="TrackingNumber" type="tns:nonEmptyString" use="optional"/>
     <xs:attribute name="TotalSheets" type="tns:TotalSheets" use="optional" />
     <xs:attribute name="ShippedOn" type="xs:dateTime" use="optional" />
     <xs:attribute name="PulledBackOn" type="xs:dateTime" use="optional" />
