@@ -251,6 +251,7 @@ namespace AM.Core
 
         private void SetPackageLineItems(ProcessShipmentRequest request, MailPieceDTO mailPiece)
         {
+            string refNotes = "{0}_{1}".Fill(mailPiece.Id, Path.GetFileNameWithoutExtension(mailPiece.FileName));
             request.RequestedShipment.RequestedPackageLineItems = new RequestedPackageLineItem[1];
             request.RequestedShipment.RequestedPackageLineItems[0] = new RequestedPackageLineItem();
             request.RequestedShipment.RequestedPackageLineItems[0].SequenceNumber = "1";
@@ -258,7 +259,7 @@ namespace AM.Core
             request.RequestedShipment.RequestedPackageLineItems[0].Weight.Value = 1.0M;
             request.RequestedShipment.RequestedPackageLineItems[0].Weight.Units = WeightUnits.LB;
             request.RequestedShipment.RequestedPackageLineItems[0].CustomerReferences = new CustomerReference[1];
-            request.RequestedShipment.RequestedPackageLineItems[0].CustomerReferences[0] = new CustomerReference() { CustomerReferenceType = CustomerReferenceType.CUSTOMER_REFERENCE, Value = "{0}_{1}".Fill(mailPiece.Id, Path.GetFileNameWithoutExtension(mailPiece.FileName)) };
+            request.RequestedShipment.RequestedPackageLineItems[0].CustomerReferences[0] = new CustomerReference() { CustomerReferenceType = CustomerReferenceType.CUSTOMER_REFERENCE, Value = refNotes.Length > 39 ? refNotes.Substring(0, 39) : refNotes };
 
             request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested = new PackageSpecialServicesRequested();
             request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SpecialServiceTypes = new PackageSpecialServiceType[1];

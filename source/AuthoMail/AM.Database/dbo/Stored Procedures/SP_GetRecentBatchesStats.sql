@@ -19,7 +19,7 @@ BEGIN
 		count(case when MailPieceStatus = 'InProgress' and IsSubmitted=1 then 1 else null end) as PendingCount,
 		count(case when MailPieceStatus <> 'InProgress' and (ProcessingTimeStamp between @startdate and @enddate) then 1 else null end) as ScannedCount
 		from dbo.ufn_GetDallasBatchDetails(@EstDate)
-		where ClientId=@clientId and ((MailPieceStatus = 'InProgress' and IsSubmitted=1) or (MailPieceStatus <> 'InProgress' and (ProcessingTimeStamp between @startdate and @enddate)))
+		where ClientId=@clientId and ((MailPieceStatus = 'InProgress' and IsSubmitted=1) or (MailPieceStatus <> 'InProgress' and (ProcessingTimeStamp between @startdate and @enddate))) AND BatchName IS NOT NULL
 		group by BatchName
 	),		
 	sw as

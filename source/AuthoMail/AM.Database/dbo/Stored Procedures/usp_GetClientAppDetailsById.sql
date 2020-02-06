@@ -8,7 +8,8 @@ BEGIN
 	  ,B.Id AS BUId
 	  ,B.BusinessUnit
 	  ,B.CustCode
-      ,[AppCode]
+	  ,C.AppCode
+      ,CASE WHEN C.Alias IS NULL OR C.Alias='' THEN C.AppCode ELSE C.Alias END AS Alias
       ,[Name]
 	  ,[TimeZone]
       ,[IsAMActive]

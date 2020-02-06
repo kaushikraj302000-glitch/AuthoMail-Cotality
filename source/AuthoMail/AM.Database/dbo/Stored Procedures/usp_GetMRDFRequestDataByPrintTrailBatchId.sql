@@ -32,8 +32,8 @@ BEGIN
  END
  ELSE
  BEGIN
-  SELECT REQ.*,MP.Id AS MailPieceId,MP.EffectiveReceivedOnEst, BS.ClientId,BS.DocTypeId,PCD.ShippingCarrier,
-  PCD.ShippingServiceType,C.AppCode,MP.DueDate AS MailPieceDueDate,PCD.EnvelopeId,d.BREEnvelopeId,E.EnvelopeName,BE.EnvelopeName AS BREEnvelopeName
+   SELECT REQ.*,MP.Id AS MailPieceId,MP.EffectiveReceivedOnEst, BS.ClientId,BS.DocTypeId,PCD.ShippingCarrier,
+  PCD.ShippingServiceType,C.AppCode,CASE WHEN C.Alias IS NULL OR C.Alias='' THEN C.AppCode ELSE C.Alias END AS Alias,MP.DueDate AS MailPieceDueDate,PCD.EnvelopeId,d.BREEnvelopeId,E.EnvelopeName,BE.EnvelopeName AS BREEnvelopeName
   ,E.PartNumber AS EnvelopePartNo,BE.PartNumber AS BREPartNo,E.EnvelopeName AS EnvelopeDesc,BE.EnvelopeName AS BREDesc,PCD.PrintFormat,PCD.PrintSize
   FROM PnS.MRDFRequest REQ
   INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch

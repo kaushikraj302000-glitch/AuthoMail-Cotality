@@ -320,6 +320,7 @@ namespace PCI.Service
                     PrintTrailBatchId = row.Field<int?>("PrintTrailBatchId"),
                     ClientId = row.Field<int>("ClientId"),
                     AppCode = row.Field<string>("AppCode"),
+                    Alias = row.Field<string>("Alias"),
                     DocTypeId = row.Field<int>("DocTypeId"),
                     Address1 = row.Field<string>("Address1"),
                     PrintSize = row.Field<string>("PrintSize"),
