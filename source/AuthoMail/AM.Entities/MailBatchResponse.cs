@@ -65,6 +65,16 @@ namespace AM.Entities
         public MailingStatus MailingStatus { get; set; }
 
         /// <summary>
+        /// This is for getting tracking number of the package
+        /// </summary>
+        [XmlAttribute]
+        public string TrackingNumber { get; set; }
+        public bool ShouldSerializeTrackingNumber()
+        {
+            return (!string.IsNullOrEmpty(TrackingNumber.ToString()) && MailingStatus == MailingStatus.Shipped);
+        }
+
+        /// <summary>
         /// This is for getting date and time of print and ship
         /// </summary>
         [XmlAttribute]
