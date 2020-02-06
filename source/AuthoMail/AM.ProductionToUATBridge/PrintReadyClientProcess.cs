@@ -111,6 +111,7 @@ namespace AM.ProductionToUATBridge
                         string destinationPDFPath = Path.Combine(destinationPath, mp.FileName);
                         if (File.Exists(amRequestPDFPath))
                         {
+                            log.Error("Path exist : MailBatchId-{0} || MailPieceId-{1}".Fill(mailBatch.Id, mp.Id));
                             //logic to implement remove its cover page and update new cover page accordingly and merge pdf.
                             Dictionary<string, string> mpPDFFiller = new Dictionary<string, string>();
                             mpPDFFiller.Add("FromAddress", (mp.RetRcptFirstName + " " + mp.RetRcptLastName).Trim() + "\n" + mp.RetRcptAddressStreet + "\n" + mp.RetRcptAddressCity + " " + mp.RetRcptAddressState + " " + mp.RetRcptAddressZIP);
@@ -128,6 +129,10 @@ namespace AM.ProductionToUATBridge
 
                             if (File.Exists(outputPDFWithoutCoverPagePath))
                                 File.Delete(outputPDFWithoutCoverPagePath);
+                        }
+                        else
+                        {
+                            log.Error("Path does not exist : MailBatchId-{0} || MailPieceId-{1}".Fill(mailBatch.Id, mp.Id));
                         }
                     }
                     catch (Exception ex)
