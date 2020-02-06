@@ -106,13 +106,13 @@
         @{
             //string[] colorcode = { "primary", "info", "inverse", "warning" };
             string[] colorcode = { "warning", "success", "info", "warning" };
-            string[] ClientListWithName = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split('|');
+            string[] ClientListWithName = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split(',');
             List<AM.Scanner.Models.ClientDetails> clientdetailsList = new List<AM.Scanner.Models.ClientDetails>();
             for (int i = 0; i < ClientListWithName.Length; i++)
             {
                 AM.Scanner.Models.ClientDetails clientdetail = new AM.Scanner.Models.ClientDetails();
-                clientdetail.ClientName = ClientListWithName[i].Split(',')[0].ToString();
-                clientdetail.ClientCode = ClientListWithName[i].Split(',')[1].ToString();
+                clientdetail.ClientName = ClientListWithName[i].ToString();
+                clientdetail.ClientCode = ClientListWithName[i].ToString();
                 clientdetailsList.Add(clientdetail);
             }
             string[] clientCodeList = new string[ClientListWithName.Length];
@@ -157,7 +157,7 @@
                                             <p id="box@(cntbox)" class="lead strong margin-none">
                                                 @item.ClientName
                                             </p>
-                                            <p><strong id="@(item.ClientCode.Trim())scanCount" class="text-large">--/--</strong></p>
+                                            <p><strong id="@(item.ClientCode.Trim())scanCount" class="text-large">0/0</strong></p>
                                             <div class="text-center" id="displaycount@(item.ClientCode.Trim())">
                                             </div>
                                         </div>
@@ -230,29 +230,38 @@
         inverseColor = '#45484d';
 
     var themerPrimaryColor = primaryColor;
-    function GetScanCount(clientCode) {
+    function GetScanCount() {
         var result = 0;
         $.ajax({
             type: "GET",
             url: '@Url.Content("~/Home/GetScanCount")',
-            data: { clientCode: clientCode.trim() },
+            data: { },
             async: false,
             success: function (response) {
-                //console.log("#" + clientCode.trim() + "scanCount" + "test " + response.ScanCount + "/" + response.TotalCount);
-                //var totalcount = response.split('$');
-                if (typeof response.ScanCount === "undefined" || typeof response.TotalCount === "undefined") {
-                    $("#" + clientCode.trim() + "scanCount").empty();
-                    $("#" + clientCode.trim() + "scanCount").text("--/--");
+                //console.log(response.length);
+                //var groups = group( response, function( item ) { return [ item.AppCode ]; } );
+                ////console.log(groups);
+                ////console.log("#" + clientCode.trim() + "scanCount" + "test " + response.ScanCount + "/" + response.TotalCount);
+                ////var totalcount = response.split('$');
+                ////console.log(groups.count);
+                for (var i = 0; i < response.length; i++)
+                {
+                    var data = response[i];
+                    console.log("data:"+data);
+                    if (typeof data.ScanCount === "undefined" || typeof data.TotalCount === "undefined") {
+                    $("#" + data.AppCode.trim() + "scanCount").empty();
+                    $("#" + data.AppCode.trim() + "scanCount").text("--/--");
                     window.location.reload();
                     return;
-                }
+                    }
 
-                $("#" + clientCode.trim() + "scanCount").empty();
-                $("#" + clientCode.trim() + "scanCount").text(response.ScanCount + "/" + response.TotalCount);
-                result = response.ScanCount == response.TotalCount ? 0 : 1;
+                    $("#" + data.AppCode.trim() + "scanCount").empty();
+                    $("#" + data.AppCode.trim() + "scanCount").text(data.ScanCount + "/" + data.TotalCount);
+                }
+                    result = response;
             },
             error: function (xhr, data) {
-                // console.log(xhr.status + " :" + xhr.responseText);
+                console.log(xhr.status + " :" + xhr.responseText);
                 $("#" + clientCode.trim() + "scanCount").empty();
                 $("#" + clientCode.trim() + "scanCount").text("--/--");
             }
@@ -336,24 +345,34 @@
     }
 
     $(document).ready(function () {
+       var res = GetScanCount();
         var clientCodeList = $("#ClientCodeList").val().split(',');
         var clientCode = "";
         for (var i = 0; i < clientCodeList.length; i++) {
-            clientCode = clientCodeList[i].trim();
-            //alert(clientCode);
-            isProductionIncomplete(GetScanCount(clientCode), clientCode);
+            for (var j = 0; j < res.length; j++) {
+                var isInComplete = 0;
+                clientCode = clientCodeList[i].trim();
+                if (res[j].AppCode == clientCode) {
+                    isInComplete = res[j].ScanCount == res[j].TotalCount ? 0 : 1;                    
+            isProductionIncomplete(isInComplete, clientCode);
+                }
+            }
             GetAllBatchForScan(clientCode.trim(), i);
-            /*  End Ajax  */
         }
 
         /*  Updating Batch Count on every 60 Second using Ajax */
         window.setInterval(function () {
+            var res = GetScanCount();
             for (var i = 0; i < clientCodeList.length; i++) {
+                for (var j = 0; j < res.length; j++) {
+                var isInComplete = 0;
                 clientCode = clientCodeList[i].trim();
-                //console.log(clientCode);
-                isProductionIncomplete(GetScanCount(clientCode), clientCode);
+                if (res[j].AppCode == clientCode) {
+                    isInComplete = res[j].ScanCount == res[j].TotalCount ? 0 : 1;
+                isProductionIncomplete(isInComplete, clientCode);
+                    }
+                }
                 GetAllBatchForScan(clientCode.trim(), i);
-                /*  End Ajax  */
             }
         }, 60000);
 

@@ -194,3 +194,17 @@ INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsS
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'EllieMae_BaseURL', N'String', 'https://dev.api.ellielabs.com/', 'UAT Base URL to upload response', 0, 'https://dev.api.ellielabs.com/', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'EllieMae_UploadResponseURL', N'String', 'fulfillment/v1/packages/completed', 'UAT upload reponse URL', 0, 'fulfillment/v1/packages/completed', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'SP_GetScanStats', N'String', 'SP_GetScanStats', 'SP to get scanned count and total count', 0, 'SP_GetScanStats', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'SP_RegisterScan', N'String', 'SP_RegisterScan', 'SP to register scanned package', 0, 'SP_RegisterScan', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'SP_RegisterUSPSScan', N'String', 'SP_RegisterUSPSScan', 'SP to register usps scanned package', 0, 'SP_RegisterUSPSScan', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'SP_GetScanReportData', N'String', 'SP_GetScanReportData', 'SP to fetch scanned records', 0, 'SP_GetScanReportData', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'SP_GetRecentBatchesStats', N'String', 'SP_GetRecentBatchesStats', 'SP to fetch recent batch count', 0, 'SP_GetRecentBatchesStats', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'SP_GetPendingScanning', N'String', 'SP_GetPendingScanning', 'SP to fetch records that are not scanned yet', 0, 'SP_GetPendingScanning', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'SP_GetScannedMailPieces', N'String', 'SP_GetScannedMailPieces', 'SP to fetch scanned mailpieces', 0, 'SP_GetScannedMailPieces', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())

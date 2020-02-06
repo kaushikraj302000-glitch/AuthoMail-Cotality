@@ -113,6 +113,8 @@
     <Compile Include="Models\IeVSCancelRequest.cs" />
     <Compile Include="Models\EDMailPiece.cs" />
     <Compile Include="Models\ProjectRequest.cs" />
+    <Compile Include="Models\ScanDetails.cs" />
+    <Compile Include="Models\ScannerReportViewModel.cs" />
     <Compile Include="Models\SigningRoomActivityLogResponse.cs" />
     <Compile Include="Models\SigningRoomRequest.cs" />
     <Compile Include="Models\SigningRoomResponse.cs" />
@@ -154,6 +156,7 @@
     <Compile Include="Services\PullBackService.cs" />
     <Compile Include="Services\ReCalculateDueDateService.cs" />
     <Compile Include="Services\ReportService.cs" />
+    <Compile Include="Services\ScannerService.cs" />
     <Compile Include="Services\SearchService.cs" />
     <Compile Include="Services\SupportReportService.cs" />
     <Compile Include="Services\SupportService.cs" />
