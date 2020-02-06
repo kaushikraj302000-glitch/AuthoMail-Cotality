@@ -59,6 +59,7 @@ namespace PCI.Service
                 {
                     ClientId = row.Field<int>("ClientId"),
                     AppCode = row.Field<string>("AppCode"),
+                    Alias = row.Field<string>("Alias"),
                     DocTypeId = row.Field<int>("DocTypeId"),
                     Address1 = row.Field<string>("Address1"),
                     Date = row.Field<DateTime>("Date"),

@@ -116,6 +116,7 @@ namespace PCI.Service
     {
         public int ClientId { get; set; }
         public string AppCode { get; set; }
+        public string Alias { get; set; }
         public int DocTypeId { get; set; }
         public int? MailPieceId { get; set; }
         public string ShippingCarrier { get; set; }
