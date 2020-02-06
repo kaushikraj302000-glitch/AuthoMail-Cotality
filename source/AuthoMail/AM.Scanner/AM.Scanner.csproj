@@ -330,6 +330,10 @@
       <Project>{75996573-6449-4675-a5ff-f1c39c84d685}</Project>
       <Name>AM.Lib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\AM.Services\AM.Services.csproj">
+      <Project>{A60D6E77-74FC-419C-BF13-A7684012D0A5}</Project>
+      <Name>AM.Services</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

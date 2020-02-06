@@ -7,11 +7,19 @@ using System.Web.Mvc;
 using AM.Scanner.Models;
 using System.IO;
 using System.Configuration;
+using AM.Services;
+
 namespace AM.Scanner.Controllers
 {
     [Authorize]
     public class HomeController : Controller
     {
+        IScannerService scannerSvc;
+
+        public HomeController(IScannerService scannerSvc)
+        {
+            this.scannerSvc = scannerSvc;
+        }
         public ActionResult Index()
         {
             return View();
@@ -24,11 +32,11 @@ namespace AM.Scanner.Controllers
         //    return Json(model, JsonRequestBehavior.AllowGet);
         //}
         [HttpGet]
-        public ActionResult GetScanCount(string clientCode)
+        public ActionResult GetScanCount()
         {
             using (new PerfTimerLogger("GetScanCount[HomeController]: "))
             {
-                var model = DBHelper.GetScanStats(clientCode.Trim());
+                var model = scannerSvc.GetScanStats();
                 return Json(model, JsonRequestBehavior.AllowGet);
             }
         }

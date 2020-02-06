@@ -224,6 +224,16 @@ namespace AM.Services
 
         #endregion
 
+        #region Scanner
+        public static string SP_GetScanStats { get; set; }
+        public static string SP_RegisterScan { get; set; }
+        public static string SP_RegisterUSPSScan { get; set; }
+        public static string SP_GetScanReportData { get; set; }
+        public static string SP_GetRecentBatchesStats { get; set; }
+        public static string SP_GetPendingScanning { get; set; }
+        public static string SP_GetScannedMailPieces { get; set; }
+        #endregion
+
 
         private static List<string> errors;
         static Config()
