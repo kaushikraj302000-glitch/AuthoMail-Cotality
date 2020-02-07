@@ -71,7 +71,7 @@ namespace AM.Entities
         public string TrackingNumber { get; set; }
         public bool ShouldSerializeTrackingNumber()
         {
-            return (!string.IsNullOrEmpty(TrackingNumber.ToString()) && MailingStatus == MailingStatus.Shipped);
+            return (!string.IsNullOrEmpty(TrackingNumber) && MailingStatus == MailingStatus.Shipped);
         }
 
         /// <summary>
