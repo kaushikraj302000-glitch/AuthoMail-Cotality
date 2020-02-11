@@ -98,14 +98,14 @@ namespace AM.ProductionToUATBridge
             else if (clientCode == "CITIVM")
             {
                 log.Debug("----Batching Process started for Client CITIVM----");
-                PrintReadyClientProcess.GenerateCitiBatch(Common.EstToday.Date.AddDays(Convert.ToInt32(args[1])));
+                //PrintReadyClientProcess.GenerateCitiBatch(Common.EstToday.Date);
                 log.Debug("----Batching Process completed for Client CITIVM----");
                 return;
             }
             else if (clientCode == "RPS")
             {
                 log.Debug("----Batching Process started for Client RPS----");
-                PrintReadyClientProcess.GenerateRPSBatch(Common.EstToday.Date.AddDays(Convert.ToInt32(args[1])));
+                //PrintReadyClientProcess.GenerateRPSBatch(Common.EstToday.Date);
                 log.Debug("----Batching Process completed for Client RPS----");
                 return;
             }
@@ -136,12 +136,23 @@ namespace AM.ProductionToUATBridge
                         try
                         {
                             var client = clientSvc.GetClientById(mpData.Key);
-
                             if (!string.IsNullOrWhiteSpace(clientCode) && client.AppCode != clientCode)
                                 continue;
 
-                            if (client.AppCode == "RPS" || client.AppCode == "CITIVM")
+                            var mpList = mpData.ToList();
+                            var mpByBatchId = mpList.GroupBy(mp => mp.MailBatchId).ToList();
+
+                            if (client.AppCode == "RPS")
+                            {
+                                PrintReadyClientProcess.GenerateRPSBatch(mpList);
                                 continue;
+                            }
+
+                            if (client.AppCode == "CITIVM")
+                            {
+                                PrintReadyClientProcess.GenerateCitiBatch(mpList);
+                                continue;
+                            }
 
                             SFTChannel sftChannel;
                             if (Configuration.PrintReadyClientCodes.Contains(client.AppCode))
@@ -156,8 +167,7 @@ namespace AM.ProductionToUATBridge
                             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
                             sftSite.Connect();
 
-                            var mpList = mpData.ToList();
-                            var mpByBatchId = mpList.GroupBy(mp => mp.MailBatchId).ToList();
+
                             foreach (var mbList in mpByBatchId)
                             {
                                 int mbId = mbList.Key;

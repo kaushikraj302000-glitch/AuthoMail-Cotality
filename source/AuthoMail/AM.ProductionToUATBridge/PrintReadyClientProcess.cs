@@ -16,18 +16,18 @@ namespace AM.ProductionToUATBridge
     {
         public static log4net.ILog log = log4net.LogManager.GetLogger(typeof(PrintReadyClientProcess));
         private static Random random = new Random();
-        public static void GenerateCitiBatch(DateTime inputDate)
+        public static void GenerateCitiBatch(List<MailPieceDTO> mailPieces)
         {
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             using (IClientService clientSvc = new ClientService())
             {
                 int clientId = 103;
-                List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesForUATBridge(inputDate, clientId);
-                if (mailPieces.Count == 0)
-                {
-                    log.Debug("No MailPieces Found");
-                    return;
-                }
+                //List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesForUATBridge(inputDate, clientId);
+                //if (mailPieces.Count == 0)
+                //{
+                //    log.Debug("No MailPieces Found");
+                //    return;
+                //}
                 var client = clientSvc.GetClientById(clientId);
 
                 SFTChannel sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Configuration.PrintReadyUATChannelCode);
@@ -225,18 +225,18 @@ namespace AM.ProductionToUATBridge
             }
         }
 
-        public static void GenerateRPSBatch(DateTime inputDate)
+        public static void GenerateRPSBatch(List<MailPieceDTO> mailPieces)
         {
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             using (IClientService clientSvc = new ClientService())
             {
                 int clientId = 110;
-                List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesForUATBridge(inputDate, clientId);
-                if (mailPieces.Count == 0)
-                {
-                    log.Debug("No MailPieces Found");
-                    return;
-                }
+                //List<MailPieceDTO> mailPieces = mailPieceSvc.GetMailPiecesForUATBridge(inputDate, clientId);
+                //if (mailPieces.Count == 0)
+                //{
+                //    log.Debug("No MailPieces Found");
+                //    return;
+                //}
                 var client = clientSvc.GetClientById(clientId);
 
                 SFTChannel sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(Configuration.PrintReadyUATChannelCode);
