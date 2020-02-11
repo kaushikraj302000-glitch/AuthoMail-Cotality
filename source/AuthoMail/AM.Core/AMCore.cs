@@ -235,7 +235,7 @@ namespace AM.Core
                                             var msg = "USPS Priority Express is not supporting shipping to provided address for MailPieceId : {0} with Error :{1}. So AM is doing fallback to other shipping service.".Fill(mailPiece.Id, response.ExceptionDetail);
                                             log.Debug(msg);
                                             //NOTE: Here system is check for not deliverable or any other error if occure then system will fall back to USPS Priority service and try to generate label
-                                            var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailPiece.EffectiveReceivedOnEst.Value, Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
+                                            var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
 
                                             if (fbPriority == null)
                                             {
