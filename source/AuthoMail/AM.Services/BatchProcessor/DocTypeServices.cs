@@ -99,39 +99,25 @@ namespace AM.Services
 
             if (dayOfWeek == DayOfWeek.Sunday)
             {
-                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.SunCutOff).First().SunCutOff;
+                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.MaxSunCutOff).First().MaxSunCutOff;
 
                 if (maxDocTypeCutOffTime.IsNullOrWhiteSpace())
                 {
                     estReceivedOn = estReceivedOn.Date.AddDays(1);
                     return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
-                    //using (ICommonService commonSvc = new CommonService())
-                    //{
-                    //    estReceivedOn = commonSvc.GetNextWorkingDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
-
-                    //    //Recalculate same function for updated document type with new effective received date;
-                    //    return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
-                    //}
                 }
             }
             else if (dayOfWeek == DayOfWeek.Saturday)
             {
-                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.SatCutOff).First().SatCutOff;
+                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.MaxSatCutOff).First().MaxSatCutOff;
                 if (maxDocTypeCutOffTime.IsNullOrWhiteSpace())
                 {
                     estReceivedOn = estReceivedOn.Date.AddDays(1);
                     return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
-                    //using (ICommonService commonSvc = new CommonService())
-                    //{
-                    //    estReceivedOn = commonSvc.GetNextWorkingDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
-
-                    //    //Recalculate same function for updated document type with new effective received date;
-                    //    return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
-                    //}
                 }
             }
             else
-                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.BizdayCutOff).First().BizdayCutOff;
+                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.MaxBizdayCutOff).First().MaxBizdayCutOff;
 
             var maxCutOffDateTimeEst = estReceivedOnDate + TimeSpan.Parse(maxDocTypeCutOffTime);
 
