@@ -143,13 +143,13 @@ namespace AM.Services
         public List<UspsAPI> GetUSPSRecordsToPurge()
         {
             string q = @"DECLARE @Offset AS nvarchar(256)
-                        SET @Offset = (SELECT current_utc_offset FROM sys.time_zone_info WHERE NAME = N'US Eastern Standard Time') select Id,APIRequestedOn from [API].[USPS] where APIRequestedOn <= DATEADD(MONTH, -2, DATEADD(hour,case when @Offset = '-04:00' then -4 when @Offset = '-05:00' then -5 end,GETUTCDATE()))";
+                        SET @Offset = (SELECT current_utc_offset FROM sys.time_zone_info WHERE NAME = N'US Eastern Standard Time') select Id,APIRequestedOn from [API].[USPS] where APIRequestedOn <= DATEADD(MONTH, -2, DATEADD(hour,case when @Offset = '-04:00' then -4 when @Offset = '-05:00' then -5 end,GETUTCDATE())) and USPSResponse IS NOT NULL";
             return db.Query<UspsAPI>(q).ToList();
         }
 
         public List<UspsAPI> GetUSPSeVSRecordsToPurge()
         {
-            string q = @"DECLARE @Offset AS nvarchar(256) SET @Offset = (SELECT current_utc_offset FROM sys.time_zone_info WHERE            NAME = N'US Eastern Standard Time') select Id,APIRequestedOn from [API].[USPSeVS] where APIRequestedOn             <= DATEADD(MONTH, -2, DATEADD(hour,case when @Offset = '-04:00' then -4 when @Offset = '-05:00' then -5             end,GETUTCDATE()))";
+            string q = @"DECLARE @Offset AS nvarchar(256) SET @Offset = (SELECT current_utc_offset FROM sys.time_zone_info WHERE            NAME = N'US Eastern Standard Time') select Id,APIRequestedOn from [API].[USPSeVS] where APIRequestedOn             <= DATEADD(MONTH, -2, DATEADD(hour,case when @Offset = '-04:00' then -4 when @Offset = '-05:00' then -5             end,GETUTCDATE())) and USPSResponse IS NOT NULL";
             return db.Query<UspsAPI>(q).ToList();
         }
 
