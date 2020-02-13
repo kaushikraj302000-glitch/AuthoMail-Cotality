@@ -98,7 +98,7 @@ namespace AM.ProductionToUATBridge
             else if (clientCode == "CITIVM")
             {
                 log.Debug("----Batching Process started for Client CITIVM----");
-                //PrintReadyClientProcess.GenerateCitiBatch(Common.EstToday.Date);
+                PrintReadyClientProcess.GenerateCitiBatch(Common.EstToday.Date.AddDays(Convert.ToInt32(args[1])));
                 log.Debug("----Batching Process completed for Client CITIVM----");
                 return;
             }
