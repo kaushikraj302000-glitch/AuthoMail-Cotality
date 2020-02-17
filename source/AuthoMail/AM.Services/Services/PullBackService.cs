@@ -146,7 +146,7 @@ where ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
             {
                 foreach (var item in pullBackData)
                 {
-                    if (item.VendorCode == "PCI")
+                    if (item.VendorCode == "PCI" || item.VendorCode == "NORDIS")
                     {
                         Dictionary<string, string> dataForPullBackForm = new Dictionary<string, string>();
                         DateTime eastern = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, Config.Web_API_PB_ClientTimeZone);
@@ -164,7 +164,7 @@ where ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
                         //string outputPdfPath = Path.Combine(Config.API_PB_OutputDir, string.Format("{0}_{1}.pdf", item.PrintBatch.ToString(), DateTime.Now.ToString("ddMMyyyyhhmmss")));
                         //Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, outputPdfPath);
                         Helper.MailMerge(System.Web.Hosting.HostingEnvironment.MapPath(Config.Web_API_PB_PullBackFormTemplatePath), dataForPullBackForm, ref output);
-                        bool isEmailSent = SendEmailWithPullBackForm(output, attachmentPdfName);
+                        bool isEmailSent = SendEmailWithPullBackForm(output, attachmentPdfName, item.VendorCode);
                     }
 
                 }
@@ -177,7 +177,7 @@ where ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
             return isGenerated;
         }
 
-        private bool SendEmailWithPullBackForm(byte[] attachmentPdf, string attachmentPdfName)
+        private bool SendEmailWithPullBackForm(byte[] attachmentPdf, string attachmentPdfName, string vendorCode)
         {
             bool isEmailSent = false;
 
@@ -186,11 +186,18 @@ where ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
                 using (MailMessage msg = new MailMessage())
                 {
                     msg.IsBodyHtml = true;
-                    msg.To.Add(Config.Web_API_Email_To);
-                    msg.CC.Add(Config.Web_API_Email_Cc);
-                    msg.Subject = Config.Web_API_Email_Subject;
+                    if (vendorCode == "PCI")
+                    {
+                        msg.To.Add(Config.Web_API_PB_Email_To_PCI);
+                    }
+                    else if (vendorCode == "NORDIS")
+                    {
+                        msg.To.Add(Config.Web_API_PB_Email_To_NORDIS);
+                    }
+                    msg.CC.Add(Config.Web_API_PB_Email_Cc);
+                    msg.Subject = Config.Web_API_PB_Email_Subject;
                     msg.Priority = MailPriority.High;
-                    msg.Body = string.Format("{0} {1}.", Config.Web_API_Email_BodyMsg, attachmentPdfName);
+                    msg.Body = string.Format("{0} {1}.", Config.Web_API_PB_Email_BodyMsg, attachmentPdfName);
                     msg.Attachments.Add(new Attachment(new MemoryStream(attachmentPdf), attachmentPdfName));
                     SmtpClient sc = new SmtpClient();
                     sc.Send(msg);
