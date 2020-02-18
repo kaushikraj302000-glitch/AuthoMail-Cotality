@@ -105,15 +105,19 @@ namespace AM.Services
         [Description("When mailpiece status is EDelivered then it can not be pullback.")]
         public static string Web_Msg_API_PB_EDelivered { get; private set; }
         [Description("To whom need to send email.")]
-        public static string Web_API_Email_To { get; private set; }
+        public static string Web_API_PB_Email_To_PCI { get; private set; }
         [Description("To whom need to send email.")]
-        public static string Web_API_Email_Cc { get; private set; }
-        public static string Web_API_Email_Subject { get; private set; }
-        public static string Web_API_Email_BodyMsg { get; private set; }
+        public static string Web_API_PB_Email_To_NORDIS { get; private set; }
+        [Description("To whom need to send email.")]
+        public static string Web_API_PB_Email_Cc { get; private set; }
+        public static string Web_API_PB_Email_Subject { get; private set; }
+        public static string Web_API_PB_Email_BodyMsg { get; private set; }
         [Description("Define client's local timezone.")]
-        public static string Web_API_PB_ClientTimeZone { get; private set; }
-        [Description("Path of pdf template which is used to send when pullback is requested.")]
-        public static string Web_API_PB_PullBackFormTemplatePath { get; private set; }
+        public static string Web_API_PB_ClientTimeZone { get; private set; }        
+        [Description("Path of PCI pdf template which is used to send when pullback is requested.")]
+        public static string Web_API_PB_PullBackForm_PCI { get; private set; }
+        [Description("Path of NORDIS pdf template which is used to send when pullback is requested.")]
+        public static string Web_API_PB_PullBackForm_NORDIS { get; private set; }
         #endregion
 
         #region WEB AccountController
