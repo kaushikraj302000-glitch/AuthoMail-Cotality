@@ -113,9 +113,11 @@ namespace AM.Services
         public static string Web_API_PB_Email_Subject { get; private set; }
         public static string Web_API_PB_Email_BodyMsg { get; private set; }
         [Description("Define client's local timezone.")]
-        public static string Web_API_PB_ClientTimeZone { get; private set; }
-        [Description("Path of pdf template which is used to send when pullback is requested.")]
-        public static string Web_API_PB_PullBackFormTemplatePath { get; private set; }
+        public static string Web_API_PB_ClientTimeZone { get; private set; }        
+        [Description("Path of PCI pdf template which is used to send when pullback is requested.")]
+        public static string Web_API_PB_PullBackForm_PCI { get; private set; }
+        [Description("Path of NORDIS pdf template which is used to send when pullback is requested.")]
+        public static string Web_API_PB_PullBackForm_NORDIS { get; private set; }
         #endregion
 
         #region WEB AccountController
