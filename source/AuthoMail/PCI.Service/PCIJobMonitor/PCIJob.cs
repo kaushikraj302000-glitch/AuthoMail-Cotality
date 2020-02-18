@@ -392,38 +392,41 @@ namespace PCI.Service
             printRequestXml.JobId = ptBatchDetails.Id;
             printRequestXml.ShippingMethod = shippingMethod.ShippingCarrier.ParseEnum<ShippingMethod>();
             printRequestXml.ShippingServiceType = shippingMethod.ShippingServiceType.ParseEnum<Nordis.Lib.ShippingServiceType>();
-            foreach (MailPieceDetail package in mpList)
-            {
-                printRequestXml.Packages.Add(
-                    new Package()
-                    {
-                        PieceId = package.MailPieceId.Value,
-                        FileName = package.PDFFileName,
-                        DueDate = Common.UtcToEst(package.MailPieceDueDate),
-                        TotalSheets = package.TotalSheets,
-                        ClientCode = package.Alias,
-                        IsForeignAddress = false,
-                        TotalImages = package.TotalPages,
-                        PaperSize = package.PrintSize,
-                        PrintFormat = package.PrintFormat.ParseEnum<PrintFormat>(),
-                        BREPartNo = package.BREPartNo,
-                        BREDesc = package.BREDesc,
-                        QCReqd = package.DivertVS3 == 1 ? true : false,
-                    });
-            }
 
-            File.WriteAllText(xmlFilePath, printRequestXml.ToXml());
+            if (File.Exists(zipFilePath))
+            {
+                log.Debug("File was already exist on path {0}.".Fill(zipFilePath));
+                File.Delete(zipFilePath);
+            }
 
             using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
             {
-                foreach (var mailPiece in mpList)
+                foreach (var package in mpList)
                 {
+                    printRequestXml.Packages.Add(
+                        new Package()
+                        {
+                            PieceId = package.MailPieceId.Value,
+                            FileName = package.PDFFileName,
+                            DueDate = Common.UtcToEst(package.MailPieceDueDate),
+                            TotalSheets = package.TotalSheets,
+                            ClientCode = package.AppCode,
+                            IsForeignAddress = false,
+                            TotalImages = package.TotalPages,
+                            PaperSize = package.PrintSize,
+                            PrintFormat = package.PrintFormat.ParseEnum<PrintFormat>(),
+                            BREPartNo = package.BREPartNo,
+                            BREDesc = package.BREDesc,
+                            QCReqd = package.DivertVS3 == 1 ? true : false,
+                        });
+
                     //NOTE:Here we are directly creating Zip with Bundling into another path
                     //We have folder structure like PCIRoot/AppCode/JobId/PCIRequest
-                    var localFilePath = Path.Combine(Common.PCIRootFolder, mailPiece.AppCode, mailPiece.JobId.ToString(), Common.PCIRequestFolderName, mailPiece.PDFFileName);
-                    newFile.CreateEntryFromFile(localFilePath, mailPiece.PDFFileName);
+                    var localFilePath = Path.Combine(Common.PCIRootFolder, package.AppCode, package.JobId.ToString(), Common.PCIRequestFolderName, package.PDFFileName);
+                    newFile.CreateEntryFromFile(localFilePath, package.PDFFileName);
                 }
 
+                File.WriteAllText(xmlFilePath, printRequestXml.ToXml());
                 //make an entry for mrdf file after making entries of files into zip
                 newFile.CreateEntryFromFile(xmlFilePath, Path.GetFileName(xmlFilePath));
             }
