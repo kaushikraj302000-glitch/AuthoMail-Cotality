@@ -523,7 +523,7 @@
     <Content Include="Views\Common\_Channel.cshtml" />
     <Content Include="Views\Common\_TrackingInfo.cshtml" />
     <Content Include="Views\Report\PullbackRequestReport.cshtml" />
-    <Content Include="Template\PullBackForm.pdf" />
+    <Content Include="Template\PullBackForm_PCI.pdf" />
     <Content Include="Views\Common\_GetHeadingForBusinessId.cshtml" />
     <Content Include="Views\Shared\InActiveUser.cshtml" />
     <Content Include="Views\Shared\_IsCoreLogicUser.cshtml" />
@@ -574,6 +574,7 @@
     <Content Include="Views\Admin\_AddNewRowPrintTrail.cshtml" />
     <Content Include="Views\Admin\_DocTypePageRange.cshtml" />
     <Content Include="Views\Admin\CreateOrEditDocType.cshtml" />
+    <Content Include="Template\PullBackForm_NORDIS.pdf" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
