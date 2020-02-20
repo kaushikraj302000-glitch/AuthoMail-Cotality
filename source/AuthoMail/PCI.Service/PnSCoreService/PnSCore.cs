@@ -1233,7 +1233,7 @@ namespace PCI.Service
             if (!req.Field<string>("PDFFileName").Trim().Equals(res.Field<string>("PDFFileName").Trim(), StringComparison.CurrentCultureIgnoreCase))
                 yield return "PDFFileName : Request({0}), Response({1})".Fill(req.Field<string>("PDFFileName").Trim(), res.Field<string>("PDFFileName").Trim());
 
-            if (req.Field<int>("TotalSheets") != res.Field<int>("TotalSheets"))
+            if (req.Field<string>("PrintStatus") == PrintStatus.Shipped.ToString() && req.Field<int>("TotalSheets") != res.Field<int>("TotalSheets"))
                 yield return "TotalSheets : Request({0}), Response({1})".Fill(req.Field<int>("TotalSheets"), res.Field<int>("TotalSheets"));
 
             if (res.Field<string>("Disposition").Trim() == "6")
