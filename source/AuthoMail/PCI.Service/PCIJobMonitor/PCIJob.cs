@@ -126,57 +126,68 @@ namespace PCI.Service
 
         private static void SubmitBatches(List<PrintTrailBatch> ptBatchList, string pvCode)
         {
+            var job = new List<Task>();
             foreach (PrintTrailBatch ptBatch in ptBatchList)
             {
-                try
+                log.Info("Task execution started for PrintTrailBatchId : {0}".Fill(ptBatch.Id));
+                var task = Task.Run(() => { ProcessPrintTrailBatches(ptBatch, pvCode); });
+                log.Info("Task execution completed for PrintTrailBatchId : {0}".Fill(ptBatch.Id));
+                job.Add(task);
+                Thread.Sleep(30000);
+            }
+            Task.WhenAll(job).Wait();
+        }
+
+        private static void ProcessPrintTrailBatches(PrintTrailBatch ptBatch, string pvCode)
+        {
+            try
+            {
+                log.Info("Prepped Stage Execution Started For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
+                PrepAndUploadStage(ptBatch);
+                log.Info("Prepped Stage Execution Completed For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("connection attempt failed") || ex.Message.Contains("connected party did not properly respond") || ex.Message.Contains("established connection failed") || ex.Message.Contains("target machine actively refused it"))
                 {
-                    log.Info("Prepped Stage Execution Started For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
-                    PrepAndUploadStage(ptBatch);
-                    log.Info("Prepped Stage Execution Completed For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
+                    var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex);
+                    log.Error(connectionMsg);
+                    MailUtility.SendSFTConnectionIssueNotificationEmail(connectionMsg, pvCode);
+                    Thread.Sleep(60000);
+                    return;
                 }
-                catch (Exception ex)
+
+                var msg = "SubmitBatchToPrintVendor : Error occured while uploading batch to print vendor for PrintTrailBatchId - {0}".Fill(ptBatch.Id);
+                log.Error(msg, ex);
+
+                MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
+
+                return;
+            }
+
+            try
+            {
+                log.Info("Submitted Stage Execution Started For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
+                SubmitStage(ptBatch);
+                log.Info("Submitted Stage Execution Completed For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("connection attempt failed") || ex.Message.Contains("connected party did not properly respond") || ex.Message.Contains("established connection failed") || ex.Message.Contains("target machine actively refused it"))
                 {
-                    if (ex.Message.Contains("connection attempt failed") || ex.Message.Contains("connected party did not properly respond") || ex.Message.Contains("established connection failed") || ex.Message.Contains("target machine actively refused it"))
-                    {
-                        var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex);
-                        log.Error(connectionMsg);
-                        MailUtility.SendSFTConnectionIssueNotificationEmail(connectionMsg, pvCode);
-                        Thread.Sleep(120000);
-                        continue;
-                    }
-
-                    var msg = "SubmitBatchToPrintVendor : Error occured while uploading batch to print vendor for PrintTrailBatchId - {0}".Fill(ptBatch.Id);
-                    log.Error(msg, ex);
-
-                    MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
-
-                    continue;
+                    var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex);
+                    log.Error(connectionMsg);
+                    MailUtility.SendSFTConnectionIssueNotificationEmail(connectionMsg, pvCode);
+                    Thread.Sleep(60000);
+                    return;
                 }
 
-                try
-                {
-                    log.Info("Submitted Stage Execution Started For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
-                    SubmitStage(ptBatch);
-                    log.Info("Submitted Stage Execution Completed For PrintTrailBatchId - {0}".Fill(ptBatch.Id));
-                }
-                catch (Exception ex)
-                {
-                    if (ex.Message.Contains("connection attempt failed") || ex.Message.Contains("connected party did not properly respond") || ex.Message.Contains("established connection failed") || ex.Message.Contains("target machine actively refused it"))
-                    {
-                        var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex);
-                        log.Error(connectionMsg);
-                        MailUtility.SendSFTConnectionIssueNotificationEmail(connectionMsg, pvCode);
-                        Thread.Sleep(120000);
-                        continue;
-                    }
+                var msg = "SubmitBatchToPrintVendor : Error occured while updating Batch Status for PrintTrailBatchId - {0}".Fill(ptBatch.Id);
+                log.Error(msg, ex);
 
-                    var msg = "SubmitBatchToPrintVendor : Error occured while updating Batch Status for PrintTrailBatchId - {0}".Fill(ptBatch.Id);
-                    log.Error(msg, ex);
+                MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
 
-                    MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
-
-                    continue;
-                }
+                return;
             }
         }
 
@@ -263,6 +274,12 @@ namespace PCI.Service
             var ptDetails = DAL.GetPrintTrailDetailByPrintTrailId(ptBatchDetails.PrintTrailId);
 
             var mpList = DAL.GetMRDFRequestListByPrintTrailBatchId(ptBatchDetails.Id);
+
+            if (mpList.Count == 0)
+            {
+                log.Info("System did not find any records with PrintTrailBatchId : {0}.".Fill(ptBatchDetails.Id));
+                return;
+            }
 
             if (Common.ApplicationEnvironment == Env.Prod || ptDetails.SimulateTrail == false)
             {
