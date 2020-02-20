@@ -410,7 +410,7 @@ namespace PCI.Service
                             FileName = package.PDFFileName,
                             DueDate = Common.UtcToEst(package.MailPieceDueDate),
                             TotalSheets = package.TotalSheets,
-                            ClientCode = package.AppCode,
+                            ClientCode = package.Alias,
                             IsForeignAddress = false,
                             TotalImages = package.TotalPages,
                             PaperSize = package.PrintSize,
