@@ -589,6 +589,14 @@ namespace AM.Console
                 log.Error("No trigger files found hence no batches are available to download.");
             }
 
+            if (SFTChannel.Code.Contains("PENFED") && availableTriggerFilePaths.Count > 0)
+            {
+                if (SFTChannel.Host.Contains("FAGOSFTP"))
+                {
+                    availableTriggerFilePaths = availableTriggerFilePaths.Where(path => Path.GetFileNameWithoutExtension(path).StartsWith(Config.Common_EnvironmentInitial)).ToList();
+                }
+            }
+
             return availableTriggerFilePaths;
         }
         #endregion
