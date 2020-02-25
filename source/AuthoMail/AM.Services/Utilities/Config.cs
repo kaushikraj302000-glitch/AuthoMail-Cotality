@@ -130,6 +130,7 @@ namespace AM.Services
         public static string Web_Msg_Inactive_Account { get; private set; }
         public static bool Web_Login_PasswordExpirationIsEnable { get; private set; }
         public static int Web_Login_PasswordExpirationDays { get; private set; }
+        public static string Web_Msg_Login_IPRestricted { get; private set; }
 
         #endregion
 
@@ -225,6 +226,12 @@ namespace AM.Services
         public static string EllieMae_X_API_Key { get; set; }
         public static string EllieMae_BaseURL { get; set; }
         public static string EllieMae_UploadResponseURL { get; set; }
+
+        #endregion
+
+        #region HSBC_IPRestriction
+
+        public static string HSBC_WhiteListedIPs { get; set; }
 
         #endregion
 
