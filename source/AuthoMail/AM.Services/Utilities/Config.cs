@@ -130,6 +130,7 @@ namespace AM.Services
         public static string Web_Msg_Inactive_Account { get; private set; }
         public static bool Web_Login_PasswordExpirationIsEnable { get; private set; }
         public static int Web_Login_PasswordExpirationDays { get; private set; }
+        public static string Web_Msg_Login_IPRestricted { get; private set; }
 
         #endregion
 
@@ -236,6 +237,12 @@ namespace AM.Services
         public static string SP_GetRecentBatchesStats { get; set; }
         public static string SP_GetPendingScanning { get; set; }
         public static string SP_GetScannedMailPieces { get; set; }
+        #endregion
+
+        #region HSBC_IPRestriction
+
+        public static string HSBC_WhiteListedIPs { get; set; }
+
         #endregion
 
 
