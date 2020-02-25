@@ -236,6 +236,12 @@ namespace AM.Services
 
         #endregion
 
+        #region HSBC_IPRestriction
+
+        public static string HSBC_WhiteListedIPs { get; set; }
+
+        #endregion
+
 
         private static List<string> errors;
         static Config()
