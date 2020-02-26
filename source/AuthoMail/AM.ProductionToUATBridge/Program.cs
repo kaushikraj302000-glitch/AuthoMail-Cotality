@@ -23,7 +23,17 @@ namespace AM.ProductionToUATBridge
             {
                 clientCode = args[0];
             }
-            if (clientCode == "DELETE_COMPLETED_AM")
+            if (clientCode == "PDFGEN")
+            {
+                log.Info("Document generation is started.");
+                int minPageCount = Convert.ToInt32(args[1]);
+                string originFilePath = @"C:\Users\sagar.g\Desktop\Nordis Scenariso\GOS\10397_Caliber_TEST871130.pdf";
+                string destFilePath = @"C:\Users\sagar.g\Desktop\Nordis Scenariso\GOS\Converted\10397_Caliber_TEST871130_{0}.pdf".Fill(minPageCount);
+                GeneratePDFWithNumberOfPages(minPageCount, originFilePath, destFilePath);
+                log.Info("Document generation is completed.");
+                return;
+            }
+            else if (clientCode == "DELETE_COMPLETED_AM")
             {
                 using (IMailBatchService mailBatchSvc = new MailBatchService())
                 using (IMailPieceService mailPieceSvc = new MailPieceService())
@@ -329,6 +339,26 @@ namespace AM.ProductionToUATBridge
 
                 }
             }
+        }
+
+        private static void GeneratePDFWithNumberOfPages(int minPageCount, string originFilePath, string destFilePath)
+        {
+
+            int pageCount = PdfUtil.GetPageCount(originFilePath);
+            int loopCount = 0;
+            int finalPageCount = 0;
+            while (finalPageCount < minPageCount)
+            {
+                finalPageCount += pageCount;
+                loopCount++;
+            }
+            List<string> filePaths = new List<string>();
+            for (int i = 0; i < loopCount; i++)
+            {
+                filePaths.Add(originFilePath);
+            }
+            filePaths.Add(destFilePath);
+            PdfUtil.MergePDFs(filePaths.ToArray());
         }
     }
 }
