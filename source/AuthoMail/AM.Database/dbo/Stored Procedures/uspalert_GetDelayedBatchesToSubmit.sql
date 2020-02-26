@@ -1,10 +1,9 @@
 ﻿CREATE PROCEDURE [dbo].[uspalert_GetDelayedBatchesToSubmit] 	
-	@cutOffMinutes INT
+	@cutOffMinutes int
 AS
 BEGIN
  SELECT mp.Id,mp.businessfriendlyidvalue AS LoanNumber,mp.TrackingNo,mb.Id AS MailBatchId,rq.UniqueId,bs.IsSubmitted,c.AppCode,
- mb.BatchName,mb.ReceivedOn,mb.PipelineStatus,mp.DueDate, mp.ShippingStatus,d.DocTypeName AS DocTypeCode,
- PCD.ShippingCarrier,PCD.ShippingServiceType,mp.ClientId,pv.Name AS PrintLocation,pv.VendorCode,rq.MailPieceStatus,mp.IsEDeliveryRequested,emp.IsInvitationSent,mp.IsFallBackRequested,pt.TrailName AS PrintTrail  
+ mb.BatchName,mb.ReceivedOn,mb.PipelineStatus,mp.DueDate, mp.ShippingStatus,d.DocTypeName AS DocTypeCode,PCD.ShippingCarrier,PCD.ShippingServiceType,mp.ClientId,mp.PrintLocation,pv.VendorCode, rq.MailPieceStatus,mp.IsEDeliveryRequested,emp.IsInvitationSent,mp.IsFallBackRequested,pt.TrailName AS PrintTrail  
  FROM AM.MailPieces mp
  INNER JOIN AM.MailBatches mb ON mp.MailBatchId=mb.Id
  LEFT OUTER JOIN AM.EDeliveryMailPieces emp ON mp.UniqueId = emp.UniqueId
