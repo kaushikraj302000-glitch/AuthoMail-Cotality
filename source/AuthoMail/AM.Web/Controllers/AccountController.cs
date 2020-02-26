@@ -19,6 +19,7 @@ using System.IO;
 using System.Configuration;
 using System.Net;
 using System.Collections.Generic;
+using System.Net.Http;
 
 namespace AM.Web.Controllers
 {
@@ -29,6 +30,7 @@ namespace AM.Web.Controllers
         private AMUserManager _userManager;
         private ISupportService supportSvc;
         private IAccountManageService accSvc;
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public AccountController()
         {
         }
@@ -75,8 +77,22 @@ namespace AM.Web.Controllers
         [AllowAnonymous]
         public ActionResult Login(string returnUrl)
         {
+            //ViewBag.clientIP = GetIp();
+            //ViewBag.clientIP = Request.UserHostAddress;
             ViewBag.ReturnUrl = returnUrl;
             return View();
+        }
+        public string GetIp()
+        {
+            string ipAddress = System.Web.HttpContext.Current.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+            if (!string.IsNullOrEmpty(ipAddress))
+            {
+                var addresses = ipAddress.Split(':');
+                if (addresses.Length != 0)
+                    return addresses[0];
+            }
+
+            return System.Web.HttpContext.Current.Request.UserHostAddress;
         }
 
         //
@@ -88,15 +104,37 @@ namespace AM.Web.Controllers
         {
             try
             {
+                model.UserName = model.UserName.Contains("@") ? model.UserName : model.UserName + "@corelogic.com";
+                var mailAddress = new MailAddress(model.UserName);
+                if (mailAddress.Host.Equals("us.hsbc.com", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    string clientIP = GetIp();
+                    IPNetwork ipnetwork;
+                    IPAddress ipaddress;
+                    bool isIPInRange = false;
+                    foreach (var ipRange in Config.HSBC_WhiteListedIPs.Split(',').ToList())
+                    {
+                        ipnetwork = IPNetwork.Parse(ipRange);
+                        ipaddress = IPAddress.Parse(clientIP);
+
+                        if (ipnetwork.Contains(ipaddress))
+                        {
+                            isIPInRange = true;
+                            break;
+                        }
+                    }
+                    if (!isIPInRange)
+                    {
+                        ModelState.AddModelError("", string.Format(Config.Web_Msg_Login_IPRestricted, clientIP));
+                        return View(model);
+                    }                
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return View(model);
                 }
                 bool isCoreLogicUser = false;
-
-                model.UserName = model.UserName.Contains("@") ? model.UserName : model.UserName + "@corelogic.com";
-
-                var mailAddress = new MailAddress(model.UserName);
 
                 if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
                 {
@@ -180,6 +218,29 @@ namespace AM.Web.Controllers
                 ModelState.AddModelError("", Config.Web_Msg_Login_Default);
                 return View(model);
             }
+        }
+
+        public string GetClientIpAddress(HttpRequestMessage request)
+        {
+            if (request.Properties.ContainsKey("MS_HttpContext"))
+            {
+                dynamic ctx = request.Properties["MS_HttpContext"];
+                if (ctx != null)
+                {
+                    return ctx.Request.UserHostAddress;
+                }
+            }
+
+            if (request.Properties.ContainsKey("System.ServiceModel.Channels.RemoteEndpointMessageProperty"))
+            {
+                dynamic remoteEndpoint = request.Properties["System.ServiceModel.Channels.RemoteEndpointMessageProperty"];
+                if (remoteEndpoint != null)
+                {
+                    return remoteEndpoint.Address;
+                }
+            }
+
+            return null;
         }
 
         //

@@ -123,6 +123,9 @@
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.6\lib\net45\System.Net.Http.Formatting.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Net.IPNetwork, Version=2.4.0.187, Culture=neutral, PublicKeyToken=717343cc2c25edcf, processorArchitecture=MSIL">
+      <HintPath>..\packages\IPNetwork2.2.4.0.187\lib\net45\System.Net.IPNetwork.dll</HintPath>
+    </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
@@ -426,6 +429,7 @@
     <Content Include="fonts\USPSIMBSTANDARD.TTF" />
     <Content Include="fonts\VERDANA.TTF" />
     <Content Include="fonts\ZapfDingbats.ttf" />
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
@@ -578,7 +582,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Properties\PublishProfiles\" />
     <Folder Include="SamplePdfs\" />
     <Folder Include="Views\AccountApi\" />
     <Folder Include="Views\Base\" />
