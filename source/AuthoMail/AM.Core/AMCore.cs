@@ -24,7 +24,7 @@ namespace AM.Core
         private static readonly List<string> fallBackDescriptions = new List<string>() { "Recipient Postal Code not Served", "Recipient Postal Code not found", "Recipient Postal-State Mismatch" };
         private static readonly List<string> fedExExceptionCodes = new List<string>() { "3022", "1000", "2998", "Unknown_Error" };
         private static readonly List<string> fedExExceptionDescriptions = new List<string>() { "General Failure" };
-        private static readonly List<string> uspsExceptionCodes = new List<string>() { "80040B18" };
+        private static readonly List<string> uspsExceptionCodes = new List<string>() { "80040B18", "Unknown_Error" };
         private static readonly List<string> uspsExceptionDescriptions = new List<string>() { "error has occurred with the service", "connected party did not properly respond", "existing connection was forcibly closed" };
 
         #region PrepPnSJob
@@ -227,6 +227,7 @@ namespace AM.Core
                                         if (response.HasError && (uspsExceptionCodes.Any(code => response.ExceptionCode.Contains(code)) || uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
                                         {
                                             //NOTE: Here system is check for unusal error like connection issue or timeout issue if occure then system will retry to generate label
+                                            log.Error("Priority Express had some unexpected error {0}".Fill(response.ExceptionDetail));
                                             System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                                             reTrycnt++;
                                         }
@@ -288,6 +289,7 @@ namespace AM.Core
                                         if (response.HasError && (uspsExceptionCodes.Any(code => response.ExceptionCode.Contains(code)) || uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
                                         {
                                             //NOTE: Here system is check for unusal error like connection issue or timeout issue if occure then system will retry to generate label
+                                            log.Error("Priority had some unexpected error {0}".Fill(response.ExceptionDetail));
                                             System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
                                             reTrycnt++;
                                         }
