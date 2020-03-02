@@ -1239,7 +1239,7 @@ namespace PCI.Service
             if (res.Field<string>("Disposition").Trim() == "6")
                 yield return "Disposition : Response(6)";
 
-            if (res.Field<DateTime>("ProcessingTimeStamp") < submittedOn)
+            if (req.Field<string>("MailPieceStatus") == PrintStatus.Shipped.ToString() && res.Field<DateTime>("ProcessingTimeStamp") < submittedOn)
                 yield return "ProcessingTimeStamp : Submitted({0} EST), ProcessingTimeStamp({1} EST)".Fill(Common.UtcToEst(submittedOn), Common.UtcToEst(res.Field<DateTime>("ProcessingTimeStamp")));
             //if (res.Field<string>("Disposition").Trim() == "7")
             //    yield return "Disposition : Response(7)";
