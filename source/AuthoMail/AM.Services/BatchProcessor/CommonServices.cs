@@ -43,6 +43,7 @@ namespace AM.Services
         void GetUpdatedDueDateAndPrintLocation(DateTime receivedOn, MailPieceDTO mailPiece, DocType docType, string appCode);
         int GetReportingSequence();
         bool CheckForDuplicateMailPieceUniqueId(Guid mpUniqueId);
+        List<DallasNotificationMap> GetDallasNotificationMaps();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -466,6 +467,13 @@ namespace AM.Services
         {
             string query = "SELECT Count(*) from AM.MailPieces where UniqueId = @UniqueId";
             return db.ExecuteScalar<bool>(query,new { UniqueId = mpUniqueId });
+        }
+
+        public List<DallasNotificationMap> GetDallasNotificationMaps()
+        {
+            string query = "SELECT AppCode,SeqNo FROM [Common].[DallasNotificationMapping]";
+
+            return db.Query<DallasNotificationMap>(query, null).ToList();
         }
     }
 }
