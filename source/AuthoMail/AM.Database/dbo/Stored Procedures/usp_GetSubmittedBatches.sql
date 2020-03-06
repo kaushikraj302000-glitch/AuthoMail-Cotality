@@ -19,7 +19,7 @@ SELECT B.Id as PrintTrailBatchId,B.PrintBatchName
 FROM [PnS].PrintTrailBatches B
 INNER JOIN Common.PrintTrails PT ON B.PrintTrailId=PT.Id
 INNER JOIN Common.PrintVendors PV ON PT.PrintVendorId=PV.Id
-WHERE B.IsSubmitted=1 AND B.IsMRDFReceived=0  AND PV.VendorCode=@printVendorCode
+WHERE B.IsSubmitted=1 AND B.IsMRDFReceived=0  AND PV.VendorCode=@printVendorCode AND B.IsSuspended=0
 END
 
 END
