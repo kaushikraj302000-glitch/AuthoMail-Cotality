@@ -79,4 +79,10 @@ namespace AM.Entities
         public int ClientId { get; set; }
         public string AMCCustId { get; set; }
     }
+
+    public class DallasNotificationMap
+    {
+        public string AppCode { get; set; }
+        public int SeqNo { get; set; }
+    }
 }

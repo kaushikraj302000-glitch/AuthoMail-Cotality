@@ -21,10 +21,12 @@ namespace AM.Reporting
             {
                 log.Debug("Dallas Notification Execution Triggered at {0} Est".Fill(Common.Now.UtcToEst()));
                 List<DallasBatch> dallasBatches;
+                List<DallasNotificationMap> notificationSequence;
                 //We have Batch timings in EST time Zone.
                 using (ICommonService commonSvc = new CommonService())
                 {
                     dallasBatches = commonSvc.GetDallasBatches(Common.EstToday);
+                    notificationSequence = commonSvc.GetDallasNotificationMaps();
                 }
 
                 var currentEstDateTime = Common.Now.UtcToEst();
@@ -71,10 +73,10 @@ namespace AM.Reporting
                         List<Notification> notificationList = new List<Notification>();
                         foreach (var g in batchSummary)
                         {
-                            notificationList.Add(new Notification() { ClientCode = g.Key.AppCode, ShippingCarrier = g.Key.ShippingCarrier, ShippingServiceType = g.Key.ShippingServiceType, IsBRE = g.Key.IsBRE ? "Yes" : "No", MailPieceCount = g.Count(), TotalPagesCount = g.Sum(b => b.TotalPages) });
+                            notificationList.Add(new Notification() { ClientCode = g.Key.AppCode, ShippingCarrier = g.Key.ShippingCarrier, ShippingServiceType = g.Key.ShippingServiceType, IsBRE = g.Key.IsBRE ? "Yes" : "No", MailPieceCount = g.Count(), TotalPagesCount = g.Sum(b => b.TotalPages), SeqNo = notificationSequence.SingleOrDefault(c => c.AppCode == g.Key.AppCode) == null ? 999 : notificationSequence.SingleOrDefault(c => c.AppCode == g.Key.AppCode).SeqNo });
                         }
 
-                        SendEmailNotification(notificationList, Common.EstToday, batch.Key);
+                        SendEmailNotification(notificationList.OrderBy(cd => cd.SeqNo).ToList(), Common.EstToday, batch.Key);
                     }
                 }
                 log.Debug("Dallas Notification Execution Completed at {0} Est".Fill(Common.Now.UtcToEst()));
@@ -161,5 +163,6 @@ namespace AM.Reporting
         public string IsBRE { get; set; }
         public int MailPieceCount { get; set; }
         public int TotalPagesCount { get; set; }
+        public int SeqNo { get; set; }
     }
 }
