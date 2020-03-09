@@ -41,5 +41,30 @@ namespace AM.Services
         public string FileName { get; set; }
         [Description("This is mandatory field to set the document data in base64 string.")]
         public string DocumentData { get; set; }
+        [Description("Used to Gets or sets the list of signers if clients wants e-Sign functionality.")]
+        public List<DocumentSigners> DocumentSigners { get; set; }
     }
+
+    public class DocumentSigners
+    {
+        [Description("This is mandatory field to set the first name of participant.")]
+        public string FirstName { get; set; }
+        [Description("This is mandatory field to set the last name of participant.")]
+        public string LastName { get; set; }
+        [Description("This is mandatory field to set the email address of participant.")]
+        public string InvitationEmail { get; set; }
+        [Description("Gets or sets the list of document annotations associated with the new signer.")]
+        public List<DocumentAnnotations> DocumentAnnotations { get; set; }
+    }
+
+    public class DocumentAnnotations
+    {
+        [Description("Gets or sets the annotation's annotation type. In our case 'Signature'.")]
+        public string AnnotationType { get; set; }
+        [Description("Gets or sets a value indicating whether the document annotation is optional.")]
+        public bool Optional { get; set; }
+        [Description("Used to indicate the field location where signer needs to sign.")]
+        public string TextFieldName { get; set; }
+    }
+
 }
