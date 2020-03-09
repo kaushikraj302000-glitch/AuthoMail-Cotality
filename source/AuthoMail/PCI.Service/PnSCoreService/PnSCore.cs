@@ -726,53 +726,53 @@ namespace PCI.Service
                             //If we have print vendor as "NORDIS" then we will put sequence number in each package each page. at one of side like Bottom Right or Top Right or it may change as per requirments.
 
                             //NOTE: Please comment one of Sequence Number region based on requirement
-                            if (printTrailDetail.VendorCode == "NORDIS")
-                            {
-                                int mailPieceId = DAL.GetMailPieceIdFromGuid(mailPiece.UniqueId);
-                                var dr = writer.DirectContent;
-                                var chunk = new Chunk(mailPieceId.ToString(), new iTextSharp.text.Font(arial, 8));
-                                chunk.SetCharacterSpacing(1);
-                                var seqNo = new Phrase(chunk);
+                            //if (printTrailDetail.VendorCode == "NORDIS")
+                            //{
+                            //    int mailPieceId = DAL.GetMailPieceIdFromGuid(mailPiece.UniqueId);
+                            //    var dr = writer.DirectContent;
+                            //    var chunk = new Chunk(mailPieceId.ToString(), new iTextSharp.text.Font(arial, 8));
+                            //    chunk.SetCharacterSpacing(1);
+                            //    var seqNo = new Phrase(chunk);
 
-                                #region Top-Right Sequence Number
-                                ////With Verticle Seq
-                                //if (rotation == 90)
-                                //{
-                                //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.TopMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.RightMargin.ToPoint(), rotation + 90);
-                                //}
-                                //else if (rotation == 180)
-                                //{
-                                //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.RightMargin.ToPoint(), BarcodeInfo.TopMargin.ToPoint(), rotation + 90);
-                                //}
-                                //else if (rotation == 270)
-                                //{
-                                //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.TopMargin.ToPoint(), BarcodeInfo.RightMargin.ToPoint(), rotation + 90);
-                                //}
-                                //else
-                                //{
-                                //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.RightMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.TopMargin.ToPoint(), rotation + 90);
-                                //}
-                                #endregion
+                            //    #region Top-Right Sequence Number
+                            //    ////With Verticle Seq
+                            //    //if (rotation == 90)
+                            //    //{
+                            //    //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.TopMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.RightMargin.ToPoint(), rotation + 90);
+                            //    //}
+                            //    //else if (rotation == 180)
+                            //    //{
+                            //    //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.RightMargin.ToPoint(), BarcodeInfo.TopMargin.ToPoint(), rotation + 90);
+                            //    //}
+                            //    //else if (rotation == 270)
+                            //    //{
+                            //    //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.TopMargin.ToPoint(), BarcodeInfo.RightMargin.ToPoint(), rotation + 90);
+                            //    //}
+                            //    //else
+                            //    //{
+                            //    //    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.RightMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.TopMargin.ToPoint(), rotation + 90);
+                            //    //}
+                            //    #endregion
 
-                                #region Bottom-Right Sequence Number
-                                if (rotation == 90)
-                                {
-                                    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.BottomMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.LeftMargin.ToPoint(), rotation);
-                                }
-                                else if (rotation == 180)
-                                {
-                                    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.LeftMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.BottomMargin.ToPoint(), rotation);
-                                }
-                                else if (rotation == 270)
-                                {
-                                    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.BottomMargin.ToPoint(), BarcodeInfo.LeftMargin.ToPoint(), rotation);
-                                }
-                                else
-                                {
-                                    ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.LeftMargin.ToPoint(), BarcodeInfo.BottomMargin.ToPoint(), rotation);
-                                }
-                                #endregion
-                            }
+                            //    #region Bottom-Right Sequence Number
+                            //    if (rotation == 90)
+                            //    {
+                            //        ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.BottomMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.LeftMargin.ToPoint(), rotation);
+                            //    }
+                            //    else if (rotation == 180)
+                            //    {
+                            //        ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.LeftMargin.ToPoint(), page.ScaledHeight - BarcodeInfo.BottomMargin.ToPoint(), rotation);
+                            //    }
+                            //    else if (rotation == 270)
+                            //    {
+                            //        ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, BarcodeInfo.BottomMargin.ToPoint(), BarcodeInfo.LeftMargin.ToPoint(), rotation);
+                            //    }
+                            //    else
+                            //    {
+                            //        ColumnText.ShowTextAligned(dr, PdfContentByte.ALIGN_RIGHT, seqNo, page.ScaledWidth - BarcodeInfo.LeftMargin.ToPoint(), BarcodeInfo.BottomMargin.ToPoint(), rotation);
+                            //    }
+                            //    #endregion
+                            //}
 
                             document.NewPage();
                         }
@@ -1239,7 +1239,7 @@ namespace PCI.Service
             if (res.Field<string>("Disposition").Trim() == "6")
                 yield return "Disposition : Response(6)";
 
-            if (res.Field<DateTime>("ProcessingTimeStamp") < submittedOn)
+            if ((req.Field<string>("MailPieceStatus") == PrintStatus.Shipped.ToString() || req.Field<string>("MailPieceStatus") == PrintStatus.PulledBack.ToString()) && res.Field<DateTime>("ProcessingTimeStamp") < submittedOn)
                 yield return "ProcessingTimeStamp : Submitted({0} EST), ProcessingTimeStamp({1} EST)".Fill(Common.UtcToEst(submittedOn), Common.UtcToEst(res.Field<DateTime>("ProcessingTimeStamp")));
             //if (res.Field<string>("Disposition").Trim() == "7")
             //    yield return "Disposition : Response(7)";

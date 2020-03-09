@@ -133,7 +133,7 @@ namespace PCI.Service
                 var task = Task.Run(() => { ProcessPrintTrailBatches(ptBatch, pvCode); });
                 log.Info("Task execution completed for PrintTrailBatchId : {0}".Fill(ptBatch.Id));
                 job.Add(task);
-                Thread.Sleep(30000);
+                Thread.Sleep(2000);
             }
             Task.WhenAll(job).Wait();
         }
