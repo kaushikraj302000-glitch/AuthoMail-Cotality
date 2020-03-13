@@ -68,7 +68,7 @@
     [IsShipped]                           AS               (case when [ShippedOn] IS NULL then (0) else (1) end),
     [ShippedOn]                           DATETIME         NULL,
     [ShippingCost]                        DECIMAL (7, 4)   NULL,
-    [Weight]                              DECIMAL (6, 3)   NULL,
+    [Weight]                              DECIMAL (7, 4)   NULL,
     [IsQCRequested]                       BIT              CONSTRAINT [DF_MailPieces_IsQCRequested] DEFAULT ((0)) NULL,
     [IsQCPerformed]                       BIT              CONSTRAINT [DF_MailPieces_IsQCPerformed] DEFAULT ((0)) NULL,
     [DocTypeId]                           INT              NULL,

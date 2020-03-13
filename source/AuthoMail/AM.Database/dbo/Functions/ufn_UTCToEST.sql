@@ -1,11 +1,4 @@
-﻿
-
--- =============================================
--- Author:		Sagar
--- Create date: <Create Date, ,>
--- Description:	<Description, ,>
--- =============================================
-CREATE FUNCTION [dbo].[ufn_UTCToEST]
+﻿CREATE FUNCTION [dbo].[ufn_UTCToEST]
 (
 	@UTCDate DATETIME
 )
@@ -15,7 +8,8 @@ BEGIN
 	
 
 	-- Return the result of the function
-	RETURN DATEADD(HOUR,-5,@UTCDate)
+	--RETURN DATEADD(HOUR,-5,@UTCDate)
+	RETURN CAST((CAST(@UTCDate AS datetime2) AT TIME ZONE 'UTC') AT TIME ZONE 'Eastern Standard Time' AS datetime)
 
 END
 
