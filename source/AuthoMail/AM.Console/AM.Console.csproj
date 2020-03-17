@@ -95,7 +95,7 @@
     <Compile Include="Purging.cs" />
     <Compile Include="ReCalculateDueDate.cs" />
     <Compile Include="Schema.cs" />
-    <Compile Include="TestChannel.cs" />
+    <Compile Include="CapOneChannel.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\MailUtility.cs" />
     <Compile Include="Utilities\PdfUtil.cs" />
