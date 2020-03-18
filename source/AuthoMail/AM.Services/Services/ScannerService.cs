@@ -14,7 +14,7 @@ namespace AM.Services
         ScanDetails RegisterScan(string barcode, string clientCode, string username, string machineName, string batchName);
         List<ScanDetails> GetScanStats();
         List<RegisterScanDetails> GetScannedMailPieces(string clientCode, string batchName);
-        List<GetAllBatchCountDetails> GetRecentBatchesStats(string clientCode);
+        List<GetAllBatchCountDetails> GetRecentBatchesStats();
         List<ScanedDocument> GetScanReportData(string clientCode, string barcodeValue, string loanNumber, string printOnFrom, string printOnTo, string shippedOnFrom, string shippedOnTo);
         List<PendingScanning> GetPendingScanning(string clientCode);
         USPSScanDetails RegisterUSPSScan(int mailPieceId, string trackingNo, string clientCode);
@@ -28,7 +28,7 @@ namespace AM.Services
             try
             {
                 var estToday = DateTime.UtcNow.UtcToEst().Date;
-                string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid, @batchName, @estDate", Config.SP_RegisterScan);
+                string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid, @batchName, @estDate", "SP_RegisterScan");
                 var registerScanData = db.QuerySingleOrDefault<RegisterScanDetails>(query, new { barcode = barcode, clientCode = clientCode, operatorid = username, machineid = machineName, batchName = batchName, estDate = estToday });
                 // var batchWiseCount =GetRecentBatchesListStats(clientCode,db).Single(b => b.BatchName == batchName);
                 db.Dispose();
@@ -53,7 +53,7 @@ namespace AM.Services
         {
             try
             {
-                string scanCountQuery = string.Format("{0} @estDate, @startdate, @enddate", Config.SP_GetScanStats);
+                string scanCountQuery = string.Format("{0} @estDate, @startdate, @enddate", "SP_GetScanStats_Temp");
                 var estToday = DateTime.UtcNow.UtcToEst().Date;
                 // EST Week
                 var startDate = (estToday + new TimeSpan(0, 0, 0)).EstToUtc();
@@ -72,7 +72,7 @@ namespace AM.Services
         {
             try
             {               
-                string scanCountQuery = string.Format("{0} @appcode, @batchName, @startdate, @enddate, @estDate", Config.SP_GetScannedMailPieces);
+                string scanCountQuery = string.Format("{0} @appcode, @batchName, @startdate, @enddate, @estDate", "SP_GetScannedMailPieces");
                 var estToday = DateTime.UtcNow.UtcToEst().Date;
                 // EST Week
                 var startDate = (estToday + new TimeSpan(0, 0, 0)).EstToUtc();
@@ -88,11 +88,11 @@ namespace AM.Services
             }
         }
 
-        public List<GetAllBatchCountDetails> GetRecentBatchesStats(string clientCode)
+        public List<GetAllBatchCountDetails> GetRecentBatchesStats()
         {
             try
             {
-                var batchList = GetRecentBatchesListStats(clientCode);
+                var batchList = GetRecentBatchesListStats();
                 
                 return batchList;
 
@@ -103,14 +103,14 @@ namespace AM.Services
                 throw e;
             }
         }
-        public List<GetAllBatchCountDetails> GetRecentBatchesListStats(string clientCode)
+        public List<GetAllBatchCountDetails> GetRecentBatchesListStats()
         {
-            string scanCountQuery = string.Format("{0} @appcode, @estDate, @startdate, @enddate", Config.SP_GetRecentBatchesStats);
+            string scanCountQuery = string.Format("{0} @estDate, @startdate, @enddate", "SP_GetRecentBatchesStats_Temp");
             var estToday = DateTime.UtcNow.UtcToEst().Date;
             // EST Week
             var startDate = (estToday + new TimeSpan(0, 0, 0)).EstToUtc();
             var endDate = (estToday + new TimeSpan(23, 59, 59)).EstToUtc();
-            var batchList = db.Query<GetAllBatchCountDetails>(scanCountQuery, new { appcode = clientCode, estDate = estToday, startDate = startDate, endDate = endDate }).ToList();
+            var batchList = db.Query<GetAllBatchCountDetails>(scanCountQuery, new { estDate = estToday, startDate = startDate, endDate = endDate }).ToList();
             return batchList;
         }
         public List<ScanedDocument> GetScanReportData(string clientCode, string barcodeValue, string loanNumber, string printOnFrom, string printOnTo, string shippedOnFrom, string shippedOnTo)
@@ -126,7 +126,7 @@ namespace AM.Services
                 DateTime shippedOnEnd = (DateTime.ParseExact(shippedOnTo.Trim(), "MMMM d,yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).Date + new TimeSpan(23, 59, 59)).EstToUtc();
                 
                 var estToday = Common.EstToday;
-                string query = string.Format("{0} @loanNumber, @trackingNo, @appcode, @estDate, @substartdate, @subenddate, @scanstartDate,@scanendDate", Config.SP_GetScanReportData);
+                string query = string.Format("{0} @loanNumber, @trackingNo, @appcode, @estDate, @substartdate, @subenddate, @scanstartDate,@scanendDate", "SP_GetScanReportData");
 
                 var batchList = db.Query<ScanedDocument>(query, new { loanNumber = loanNumber, trackingNo = barcodeValue, appcode = clientCode, estDate = estToday, substartdate = shippedOnStart, subenddate = shippedOnEnd, scanstartDate = printOnStart, scanendDate = printOnEnd }).ToList();                
                 return batchList;
@@ -144,7 +144,7 @@ namespace AM.Services
             try
             {                
                 var estToday = DateTime.UtcNow.UtcToEst().Date;
-                string query = string.Format("{0} @appcode, @estDate", Config.SP_GetPendingScanning);
+                string query = string.Format("{0} @appcode, @estDate", "SP_GetPendingScanning");
                 var batchList = db.Query<PendingScanning>(query, new { appcode = clientCode, estDate = estToday }).ToList();
                 return batchList;
             }
@@ -160,7 +160,7 @@ namespace AM.Services
 
             try
             {                
-                string query = string.Format("{0} @mailPieceId,@trackingNo", Config.SP_RegisterUSPSScan);
+                string query = string.Format("{0} @mailPieceId,@trackingNo", "SP_USPSScan");
                 var registerScanData = db.QuerySingleOrDefault<USPSScanDetails>(query, new { mailPieceId = mailPieceId, trackingNo = trackingNo });
                 registerScanData.AppCode = clientCode;
                 db.Dispose();

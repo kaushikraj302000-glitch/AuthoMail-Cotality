@@ -17,9 +17,9 @@ namespace AM.Scanner.Controllers
     public class BaseAPIController : ApiController
     {
         IScannerService scannerSvc;
-        public BaseAPIController(IScannerService scannerSvc)
+        public BaseAPIController()
         {
-            this.scannerSvc = scannerSvc;
+            this.scannerSvc = new ScannerService();
         }
         [HttpGet]
         [Route("ScanedDocumentList")]
@@ -45,12 +45,21 @@ namespace AM.Scanner.Controllers
 
         [HttpGet]
         [Route("GetAllBatchForScan")]
-        public List<Services.GetAllBatchCountDetails> GetAllBatchForScan(string clientCode)
+        public List<AppCodeBatchDetails> GetAllBatchForScan()
         {
             using (new PerfTimerLogger("GetAllBatchForScan[BaseAPIController]: "))
             {
-                var model = scannerSvc.GetRecentBatchesStats(clientCode.Trim());
-                return model;
+                var model = scannerSvc.GetRecentBatchesStats();
+                List<AppCodeBatchDetails> appCodeBatchDetails = new List<AppCodeBatchDetails>();
+                foreach (var appCode in model.GroupBy(s=> s.AppCode))
+                {
+                    AppCodeBatchDetails appCodeBatchDetail = new AppCodeBatchDetails();
+                    appCodeBatchDetail.AppCode = appCode.Key;
+                    appCodeBatchDetail.Batches = new List<Services.GetAllBatchCountDetails>();
+                    appCodeBatchDetail.Batches.AddRange(appCode.ToList());
+                    appCodeBatchDetails.Add(appCodeBatchDetail);
+                }
+                return appCodeBatchDetails;
             }
         }
     }

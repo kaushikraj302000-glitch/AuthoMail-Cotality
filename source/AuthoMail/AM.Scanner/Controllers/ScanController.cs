@@ -17,9 +17,9 @@ namespace AM.Scanner.Controllers
         IScannerService scannerSvc;
         // GET: Scan
         readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        public ScanController(IScannerService scannerSvc)
+        public ScanController()
         {
-            this.scannerSvc = scannerSvc;
+            this.scannerSvc = new ScannerService();
         }
         public ActionResult Index(string clientCode, string batchTime)
         {
@@ -77,7 +77,7 @@ namespace AM.Scanner.Controllers
         {
             using (new PerfTimerLogger("GetScanCountByBatchName[ScanController]: "))
             {
-                var model = scannerSvc.GetRecentBatchesStats(clientCode.Trim());
+                var model = scannerSvc.GetRecentBatchesStats();
                 Services.ScanDetails scanDetails = new Services.ScanDetails();
                 scanDetails.AppCode = clientCode;
                 if (model != null)

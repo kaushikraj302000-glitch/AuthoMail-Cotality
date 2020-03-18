@@ -277,12 +277,24 @@
             url: '@Url.Content("~/api/report/GetAllBatchForScan")',
             dataType: 'json',
             async: false,
-            data: { clientCode: clientCode.trim() },
             success: function (data) {
                 // alert(JSON.stringify(data[0].ReceivedOn) + JSON.stringify(data[0].TotalLoans));
                 //debugger;
-                //console.log(data);
-                $("#displaycount" + clientCode).empty();
+                console.log(data);
+                for (var j = 0; j < data.length; j++) {
+                    iterateBatchesScanCount(data[j].Batches,data[j].AppCode,j);
+                }
+            },
+            error: function (xhr, data) {
+                //console.log(xhr.status+" :"+xhr.responseText);
+            }
+        });
+
+        $(".tooltip.fade.top.in").remove();
+    }
+
+    function iterateBatchesScanCount(data,clientCode,i) {
+         $("#displaycount" + clientCode).empty();
 
                 for (var j = 0; j < data.length; j++) {
 
@@ -325,14 +337,6 @@
 
                 $("#displaycount" + clientCode).append("<div class='clearfix'></div>");
                 $('[data-toggle="tooltip"]').tooltip();
-
-            },
-            error: function (xhr, data) {
-                //console.log(xhr.status+" :"+xhr.responseText);
-            }
-        });
-
-        $(".tooltip.fade.top.in").remove();
     }
 
     function isProductionIncomplete(isMsgShow, client) {
@@ -353,13 +357,13 @@
                 var isInComplete = 0;
                 clientCode = clientCodeList[i].trim();
                 if (res[j].AppCode == clientCode) {
-                    isInComplete = res[j].ScanCount == res[j].TotalCount ? 0 : 1;                    
+                    isInComplete = res[j].ScanCount == res[j].TotalCount ? 0 : 1;
             isProductionIncomplete(isInComplete, clientCode);
                 }
             }
-            GetAllBatchForScan(clientCode.trim(), i);
+           // GetAllBatchForScan(clientCode.trim(), i);
         }
-
+        GetAllBatchForScan(clientCodeList);
         /*  Updating Batch Count on every 60 Second using Ajax */
         window.setInterval(function () {
             var res = GetScanCount();
@@ -372,8 +376,9 @@
                 isProductionIncomplete(isInComplete, clientCode);
                     }
                 }
-                GetAllBatchForScan(clientCode.trim(), i);
+                //GetAllBatchForScan(clientCode.trim(), i);
             }
+            GetAllBatchForScan(clientCodeList);
         }, 60000);
 
 

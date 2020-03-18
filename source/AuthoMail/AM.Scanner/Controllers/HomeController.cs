@@ -16,9 +16,9 @@ namespace AM.Scanner.Controllers
     {
         IScannerService scannerSvc;
 
-        public HomeController(IScannerService scannerSvc)
+        public HomeController()
         {
-            this.scannerSvc = scannerSvc;
+            this.scannerSvc = new ScannerService();
         }
         public ActionResult Index()
         {
