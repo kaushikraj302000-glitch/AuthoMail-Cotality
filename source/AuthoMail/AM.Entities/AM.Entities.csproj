@@ -48,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DTOs\Batch.cs" />
+    <Compile Include="DTOs\CapOneData.cs" />
     <Compile Include="DTOs\Client.cs" />
     <Compile Include="DTOs\DocType.cs" />
     <Compile Include="DTOs\FedExAccountInfo.cs" />

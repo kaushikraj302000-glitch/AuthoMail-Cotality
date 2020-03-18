@@ -214,5 +214,9 @@
     <Build Include="dbo\Functions\ufn_ConvertDateTimeFromAnyTimeZoneToAnyTimeZone.sql" />
     <Build Include="dbo\Functions\IsBusinessDay.sql" />
     <Build Include="dbo\Functions\GetNextWorkingDay.sql" />
+    <Build Include="AM\Tables\CustomTemplates.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <RefactorLog Include="AM.Database.refactorlog" />
   </ItemGroup>
 </Project>
