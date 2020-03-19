@@ -77,7 +77,7 @@ namespace AM.Scanner.Controllers
         {
             using (new PerfTimerLogger("GetScanCountByBatchName[ScanController]: "))
             {
-                var model = scannerSvc.GetRecentBatchesStats();
+                var model = scannerSvc.GetRecentBatchesStatsWithAppCode(clientCode);
                 Services.ScanDetails scanDetails = new Services.ScanDetails();
                 scanDetails.AppCode = clientCode;
                 if (model != null)
