@@ -47,6 +47,7 @@ namespace AM.Services
         public static string Monitor_Exception_Email_To { get; private set; }
         public static string Monitor_Exception_Email_Cc { get; private set; }
         public static string Monitor_AMCBackupReportUploadPath { get; set; }
+        public static string Monitor_CustomTemplateFolder { get; private set; }
 
         //Core
         public static string Core_PnS_SFT_RootDir { get; private set; }

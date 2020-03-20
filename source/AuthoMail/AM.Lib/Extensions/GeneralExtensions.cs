@@ -231,5 +231,37 @@ namespace AM.Lib
 
             return "";
         }
+
+        public static List<string> SplitCsv(this string csv)
+        {
+            var values = new List<string>();
+
+            int last = -1;
+            bool inQuotes = false;
+
+            int n = 0;
+            while (n < csv.Length)
+            {
+                switch (csv[n])
+                {
+                    case '"':
+                        inQuotes = !inQuotes;
+                        break;
+                    case ',':
+                        if (!inQuotes)
+                        {
+                            values.Add(csv.Substring(last + 1, (n - last)).Trim(' ', ','));
+                            last = n;
+                        }
+                        break;
+                }
+                n++;
+            }
+
+            if (last != csv.Length - 1)
+                values.Add(csv.Substring(last + 1).Trim());
+
+            return values;
+        }
     }
 }

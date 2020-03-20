@@ -72,7 +72,6 @@
       <DependentUpon>AMCoreService.cs</DependentUpon>
     </Compile>
     <Compile Include="CreateFedExLabel.cs" />
-    <Compile Include="PdfUtil.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Service References\ShipWebServiceRef\Reference.cs">

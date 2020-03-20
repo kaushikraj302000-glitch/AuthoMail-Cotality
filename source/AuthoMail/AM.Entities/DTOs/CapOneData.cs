@@ -24,4 +24,10 @@ namespace AM.Entities
         public DateTime NoticeDate { get; set; }
         public string ClientCode { get; set; }
     }
+
+    public class CustomTemplate
+    {
+        public int ClientId { get; set; }
+        public string CustomTemplatePath { get; set; }
+    }
 }

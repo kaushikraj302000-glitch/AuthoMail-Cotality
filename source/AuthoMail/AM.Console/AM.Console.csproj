@@ -98,13 +98,15 @@
     <Compile Include="CapOneChannel.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\MailUtility.cs" />
-    <Compile Include="Utilities\PdfUtil.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
       <SubType>Designer</SubType>
+    </None>
+    <None Include="CustomTemplates\CommercialCapitalOne.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

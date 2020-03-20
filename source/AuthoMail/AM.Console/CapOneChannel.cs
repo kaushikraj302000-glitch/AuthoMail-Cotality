@@ -80,7 +80,8 @@ namespace AM.Console
 
                     #region Download Zip
                     string csvFileName = "{0}.csv".Fill(batchName);
-                    string localCsvFilePath = Path.Combine(channelDownloadPath, csvFileName);
+                    string localCsvDirPath = Path.Combine(channelDownloadPath, Path.GetFileNameWithoutExtension(csvFileName));
+                    string localCsvFilePath = Path.Combine(localCsvDirPath, csvFileName);
                     string ftpCsvFilePath = Path.Combine(SFTChannel.ToADEDir, csvFileName);
 
                     if (!sftSite.IsFileAvailable(ftpCsvFilePath))
@@ -91,10 +92,10 @@ namespace AM.Console
                     }
 
                     //Some time it is not creating AMC folder in flow so here we are again checking this if not created then below code will create
-                    if (!Directory.Exists(channelDownloadPath))
+                    if (!Directory.Exists(localCsvDirPath))
                     {
                         log.Error("General Channel Folder was not created as expected.");
-                        Directory.CreateDirectory(channelDownloadPath);
+                        Directory.CreateDirectory(localCsvDirPath);
                     }
 
                     DownloadBatchCsvFile(sftSite, ftpCsvFilePath, localCsvFilePath);
@@ -108,8 +109,17 @@ namespace AM.Console
                     {
                         caponeClientData.Add(clInfo.Key, clInfo.Where(cl => cl.ClientCode == clInfo.Key).ToList());
                     }
-                    SeparatePackages(caponeClientData, localCsvFilePath, batchName, channelDownloadPath, lastModifiedTime, sftSite);
+
+                    bool isAllSuccess = SeparatePackages(caponeClientData, localCsvFilePath, batchName, localCsvDirPath, lastModifiedTime, sftSite);
                     #endregion
+
+                    //Deleting Local Directory 
+                    if (Directory.Exists(localCsvDirPath))
+                        Directory.Delete(localCsvDirPath, true);
+
+
+                    if (isAllSuccess)
+                        MoveBatchToBackupDir(sftSite, ftpCsvFilePath);
 
                 }
                 catch (Exception ex)
@@ -122,8 +132,9 @@ namespace AM.Console
             }
         }
 
-        private void SeparatePackages(Dictionary<string, List<CapOneData>> caponeClientData, string localCsvFilePath, string batchName, string channelDownloadPath, DateTime lastModifiedTime, SFTUtil sftSite)
+        private bool SeparatePackages(Dictionary<string, List<CapOneData>> caponeClientData, string localCsvFilePath, string batchName, string localCsvDirPath, DateTime lastModifiedTime, SFTUtil sftSite)
         {
+            bool isAllSuccess = false;
             List<MailBatchDTO> mbList = new List<MailBatchDTO>();
             foreach (var clKey in caponeClientData.Keys)
             {
@@ -145,9 +156,19 @@ namespace AM.Console
                     if (client == null)
                     {
                         var msg = "Client code {0} is not valid from provided csv.".Fill(clientCode);
-                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), "as");
+                        //ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), "as");
                         continue;
                     }
+
+                    string batchPathByClient = Path.Combine(localCsvDirPath, client.AppCode);
+
+                    if (!Directory.Exists(batchPathByClient))
+                    {
+                        log.Info("Directory path was not exist.So creating new directory based on client {0}".Fill(batchPathByClient));
+                        Directory.CreateDirectory(batchPathByClient);
+                    }
+
+                    //NOTE : Path : {channelDownloadPath}/{localCsvFilePath}.FileNameWithOutExtention/{ClientCode}/{XML}
 
                     mailBatch = new MailBatchDTO
                     {
@@ -169,8 +190,10 @@ namespace AM.Console
                         ClientCode = clKey
                     };
 
+                    int cnt = 0;
                     foreach (var loanInfo in caponeClientData[clKey])
                     {
+                        cnt++;
                         MailPiece mp = new MailPiece()
                         {
                             BusinessFriendlyIdName = "LoanNumber",
@@ -205,47 +228,71 @@ namespace AM.Console
                         mp.RecipientInfo = recipientInfo;
                         mp.CustomInfo = mpCustInfo;
 
+                        DocumentOrPackage borrowerDocument = new DocumentOrPackage();
+                        borrowerDocument.Name = "{0}_{1}.pdf".Fill(loanInfo.LoanNumber.Trim(), cnt);
+
+                        mp.DocumentOrPackage = borrowerDocument;
+                        //NOTE : CODE FOR Generating PDFs for selected templates Naming Conventions = {LoanNumber+ +_+{cnt}.pdf                       
                         mb.MailPieces.Add(mp);
                     }
 
+                    //NOTE : Generate XML 
+
+                    var xmlByClient = mb.Serialize<MailBatch>();
+
+                    string xmlFilePath = Path.Combine(localCsvDirPath, "{0}_{1}.xml".Fill(client.AppCode, lastModifiedTime.ToString("MMddyyyyhhmmss")));
+                    File.WriteAllText(xmlFilePath, xmlByClient);
+
+                    mbList.Add(mailBatch);
                 }
                 catch (Exception ex)
                 {
                     var msg = "Error occured while processing batch from Batch '{0}.xml'".Fill(batchName);
                     log.Error(msg, ex);
+
+                    if (Directory.Exists(localCsvDirPath))
+                        Directory.Delete(localCsvDirPath, true);
+
                     MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
-                    return;
+                    return isAllSuccess;
                 }
             }
 
-            //using (TransactionScope scope = new TransactionScope())
-            //{
-            //    try
-            //    {
-            //        mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch, mailBatchCustomInfoList);
+            using (TransactionScope scope = new TransactionScope())
+            {
+                try
+                {
+                    foreach (var mb in mbList)
+                    {
 
-            //        MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
+                        mb.Id = mailBatchSvc.InsertBatchDetails(mb);
+                        Client client = clientSvc.GetClientById(mb.ClientId);
+                        //NOTE : Generate Batch path
+                        string channelBatchPath = Path.Combine(localCsvDirPath, client.AppCode);
+                        MailBatchInfo mbi = new MailBatchInfo(mb, client, Config.Common_AuthoMailRootFolder);
 
-            //        //Here we create folder structure
-            //        mbi.AMResponsePath.CreateDirectoryIfNotExist();
-            //        mbi.PnSRequestPath.CreateDirectoryIfNotExist();
-            //        mbi.PnSResponsePath.CreateDirectoryIfNotExist();
-            //        //Here we are moving whole directory so no need to create AMRequestPath directly.
-            //        Directory.Move(batchPath, mbi.AMRequestPath);
+                        //Here we create folder structure
+                        mbi.AMResponsePath.CreateDirectoryIfNotExist();
+                        mbi.PnSRequestPath.CreateDirectoryIfNotExist();
+                        mbi.PnSResponsePath.CreateDirectoryIfNotExist();
+                        //Here we are moving whole directory so no need to create AMRequestPath directly.
+                        Directory.Move(channelBatchPath, mbi.AMRequestPath);
 
-            //        commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now).Wait();
+                        commonSvc.UpdateBatchPipeLineStatus(mb.Id, BatchPipelineStatus.Received, Common.Now).Wait();
+                    }
+                    scope.Complete();
+                    isAllSuccess = true;
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured while inserting General Channel batches details for Batch '{0}.xml'".Fill(batchName);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
 
-            //        scope.Complete();
-
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        var msg = "Error occured while inserting General Channel batches details for Batch '{0}.xml'".Fill(batchName);
-            //        log.Error(msg, ex);
-            //        MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
-            //    }
-            //}
-
+                    return isAllSuccess;
+                }
+            }
+            return isAllSuccess;
         }
 
         private void ReportInvalidBatch(MailBatchDTO mailBatch, string localXMLFilePath)
@@ -283,10 +330,10 @@ namespace AM.Console
             if (sftSite.IsFileAvailable(Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".zip")))
                 //MoveBatchToBackupDir(sftSite, Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".zip"));
 
-            //MoveBatchToBackupDir(sftSite, Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".go"));
+                //MoveBatchToBackupDir(sftSite, Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".go"));
 
-            if (sftSite.IsConnected)
-                sftSite.Disconnect();
+                if (sftSite.IsConnected)
+                    sftSite.Disconnect();
 
             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
         }
@@ -314,7 +361,7 @@ namespace AM.Console
 
         private CapOneData FromCsv(string csvLine)
         {
-            string[] values = csvLine.Split(',');
+            List<string> values = csvLine.SplitCsv();
             CapOneData caponeValues = new CapOneData();
             caponeValues.BorrowerLastName = values[2];
             caponeValues.BorrowerFirstName = values[3];
@@ -341,13 +388,17 @@ namespace AM.Console
             return localCsvFilePath;
         }
 
-        public string ToXML(MailBatch mailBatch)
+        private void MoveBatchToBackupDir(SFTUtil sftSite, string ftpFilePath)
         {
-            using (var stringwriter = new System.IO.StringWriter())
+            string ftpBackUpFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(ftpFilePath));
+            if (sftSite.IsFileAvailable(ftpFilePath))
             {
-                var serializer = new XmlSerializer(mailBatch.GetType());
-                serializer.Serialize(stringwriter, mailBatch);
-                return stringwriter.ToString();
+                if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
+                {
+                    sftSite.MoveFile(ftpFilePath, ftpBackUpFilePath);
+                }
+                else
+                    sftSite.DeleteFile(ftpFilePath);
             }
         }
 
@@ -375,7 +426,83 @@ namespace AM.Console
 
         protected override void DownloadBatches()
         {
-            //Generate template logic and xml
+            log.Debug("CAPONE download job is started.");
+
+            List<MailBatchDTO> downloadBatches = mailBatchSvc.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.Received, SFTChannel.Id);
+            if (downloadBatches.Count == 0)
+            {
+                log.Debug("CAPONE download job queue is empty.");
+                return;
+            }
+
+            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+            sftSite.Connect();
+
+            foreach (var mailBatch in downloadBatches)
+            {
+                try
+                {
+                    Client client = clientSvc.GetClientById(mailBatch.ClientId);
+
+                    MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
+
+                    CustomTemplate customTemplate = commonSvc.GetCustomTemplateByClientId(client.Id);
+
+                    if (customTemplate == null)
+                    {
+                        log.Error("No Tempalte found");
+                        //NOTE Report Invalid
+                        continue;
+                    }
+
+                    var templateFilePath = Path.Combine(Config.Monitor_CustomTemplateFolder, client.AppCode, customTemplate.CustomTemplatePath);
+
+                    var xmlFilePath = Directory.EnumerateDirectories(mbi.AMRequestPath, "*.xml").SingleOrDefault();
+
+                    if (string.IsNullOrWhiteSpace(xmlFilePath))
+                    {
+                        log.Error("File does not exist");
+                        //Report Invalid
+                    }
+
+                    var mbData = File.ReadAllText(xmlFilePath).Deserialize<MailBatch>();
+
+                    foreach (var mp in mbData.MailPieces)
+                    {
+                        Dictionary<string, string> templateFieldData = new Dictionary<string, string>();
+                        templateFieldData.Add("LoanNumber", mp.BusinessFriendlyIdValue);
+                        templateFieldData.Add("BorrowerName", mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).Trim() : "" : "");
+                        templateFieldData.Add("BorrowerAddress", mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}\n{1}".Fill(mp.RecipientInfo.Address.Street, "{0}, {1} {2}".Fill(mp.RecipientInfo.Address.City, mp.RecipientInfo.Address.State, mp.RecipientInfo.Address.Zip)).Trim() : "" : "");
+
+                        if (mp.CustomInfo != null)
+                        {
+                            templateFieldData.Add("PropertyAddress1", mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value);
+                            templateFieldData.Add("PropertyAddress2", "{0}, {1} {2}".Fill(mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyZip").Value));
+                            templateFieldData.Add("DocumentDate", mp.CustomInfo.SingleOrDefault(m => m.Key == "DocumentDate").Value);
+                            templateFieldData.Add("NoticeDate", mp.CustomInfo.SingleOrDefault(m => m.Key == "NoticeDate").Value);
+                            templateFieldData.Add("CommunityName", mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityName").Value);
+                        }
+
+                        var printReadyTemplatePath = Path.Combine(mbi.AMRequestPath, mp.DocumentOrPackage.Name);
+
+                        PdfUtil.PdfFormFiller(templateFilePath, printReadyTemplatePath, templateFieldData);
+                    }
+
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now).Wait();
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured in DownloadBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    continue;
+                }
+            }
+
+            if (sftSite.IsConnected)
+                sftSite.Disconnect();
+
+            log.Debug("Download job queue is completed.");
         }
 
         protected override void ValidateBatches()

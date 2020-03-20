@@ -7,10 +7,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AM.Console
+namespace AM.Lib
 {
     public static class PdfUtil
     {
+        public static string FlattenPDF(string srcPath, string destPath)
+        {
+            PdfReader.unethicalreading = true;
+            PdfReader reader = new PdfReader(srcPath);
+            PdfStamper stamper = new PdfStamper(reader, new FileStream(destPath, FileMode.Create));
+            stamper.FormFlattening = true;
+            stamper.Close();
+            reader.Close();
+            PdfReader.unethicalreading = false;
+            return destPath;
+        }
+
         public static void MergePDFs(params string[] pdflist)
         {
             // Make sure we have enough arguments to work with
@@ -71,6 +83,7 @@ namespace AM.Console
 
             File.Move(temp, dest);
         }
+
         public static void BookmarkedPdfFilesMerge(string outputPdf, string[] sourcePdfs)
         {
             PdfReader reader = null;
@@ -125,6 +138,31 @@ namespace AM.Console
             document.Close();
         }
 
+        public static void ShrinkAndCenterPDF(string src, string dest, float scalePercent)
+        {
+            float percent = scalePercent / 100.0f;
+            PdfReader reader = new PdfReader(src);
+            PdfStamper stamper = new PdfStamper(reader, new FileStream(dest, FileMode.Create));
+            int n = reader.NumberOfPages;
+            for (int p = 1; p <= n; p++)
+            {
+                float offsetX = (reader.GetPageSize(p).Width * (1 - percent)) / 2;
+                float offsetY = (reader.GetPageSize(p).Height * (1 - percent)) / 2;
+                stamper.GetUnderContent(p).SetLiteral(String.Format("\nq {0} 0 0 {0} {1} {2} cm\nq\n", percent, offsetX, offsetY));
+                stamper.GetOverContent(p).SetLiteral("\nQ\nQ\n");
+            }
+            stamper.Close();
+            reader.Close();
+        }
+
+        public static int GetPageCount(string filePath)
+        {
+            using (PdfReader reader = new PdfReader(filePath))
+            {
+                return reader.NumberOfPages;
+            }
+        }
+
         public static float GetWidth(this PdfArray size)
         {
             return size.GetAsNumber(2).FloatValue - size.GetAsNumber(0).FloatValue;
@@ -135,19 +173,33 @@ namespace AM.Console
             return size.GetAsNumber(3).FloatValue - size.GetAsNumber(1).FloatValue;
         }
 
-        public static int GetTotalPageCount(string filePath)
+        public static void PdfFormFiller(string templatePDFPath, string filledPDFPath, Dictionary<string, string> fieldData)
         {
-            using (PdfReader reader = new PdfReader(filePath))
+            using (var existingFileStream = new FileStream(templatePDFPath, FileMode.Open))
+            using (var newFileStream = new FileStream(filledPDFPath, FileMode.Create))
             {
-                return reader.NumberOfPages;
-            }
-        }
+                // Open existing PDF
+                var pdfReader = new PdfReader(existingFileStream);
 
-        public static Int64 GetFileSizeInKB(this string filePath)
-        {
-            //NOTE : Here system is storing file size of received pdf in KB
-            FileInfo fileInfo = new FileInfo(filePath);
-            return (fileInfo.Length / 1024);
+                // PdfStamper, which will create
+                var stamper = new PdfStamper(pdfReader, newFileStream);
+
+                var form = stamper.AcroFields;
+                foreach (var model in fieldData)
+                {
+                    form.SetField(model.Key, model.Value);
+                }
+
+                // "Flatten" the form so it wont be editable/usable anymore
+                stamper.FormFlattening = true;
+
+                // You can also specify fields to be flattened, which
+                // leaves the rest of the form still be editable/usable
+                // stamper.PartialFormFlattening("Address");
+
+                stamper.Close();
+                pdfReader.Close();
+            }
         }
     }
 }
