@@ -240,7 +240,7 @@ namespace AM.Console
 
                     var xmlByClient = mb.Serialize<MailBatch>();
 
-                    string xmlFilePath = Path.Combine(localCsvDirPath, "{0}_{1}.xml".Fill(client.AppCode, lastModifiedTime.ToString("MMddyyyyhhmmss")));
+                    string xmlFilePath = Path.Combine(localCsvDirPath,client.AppCode, "{0}_{1}.xml".Fill(client.AppCode, lastModifiedTime.ToString("MMddyyyyhhmmss")));
                     File.WriteAllText(xmlFilePath, xmlByClient);
 
                     mbList.Add(mailBatch);
@@ -360,24 +360,24 @@ namespace AM.Console
         }
 
         private CapOneData FromCsv(string csvLine)
-        {
+        {            
             List<string> values = csvLine.SplitCsv();
             CapOneData caponeValues = new CapOneData();
-            caponeValues.BorrowerLastName = values[2];
-            caponeValues.BorrowerFirstName = values[3];
-            caponeValues.BorrowerStreetAddress = values[4];
-            caponeValues.BorrowerCity = values[5];
-            caponeValues.BorrowerState = values[6];
-            caponeValues.BorrowerZip = values[7];
-            caponeValues.DocumentDate = Convert.ToDateTime(values[8]);
-            caponeValues.PropertyStreetAddress = values[9];
-            caponeValues.PropertyState = values[10];
-            caponeValues.PropertyCity = values[11];
-            caponeValues.PropertyZip = values[12];
-            caponeValues.CommunityName = values[13];
-            caponeValues.LoanNumber = values[15];
-            caponeValues.NoticeDate = Convert.ToDateTime(values[18]);
-            caponeValues.ClientCode = values[22];
+            caponeValues.BorrowerLastName = values[2].RemoveCSVStringFormat();
+            caponeValues.BorrowerFirstName = values[3].RemoveCSVStringFormat();
+            caponeValues.BorrowerStreetAddress = values[4].RemoveCSVStringFormat();
+            caponeValues.BorrowerCity = values[5].RemoveCSVStringFormat();
+            caponeValues.BorrowerState = values[6].RemoveCSVStringFormat();
+            caponeValues.BorrowerZip = values[7].RemoveCSVStringFormat();
+            caponeValues.DocumentDate = values[8].RemoveCSVStringFormat().AnyFormatToDateTime().Value;
+            caponeValues.PropertyStreetAddress = values[9].RemoveCSVStringFormat();
+            caponeValues.PropertyState = values[10].RemoveCSVStringFormat();
+            caponeValues.PropertyCity = values[11].RemoveCSVStringFormat();
+            caponeValues.PropertyZip = values[12].RemoveCSVStringFormat();
+            caponeValues.CommunityName = values[13].RemoveCSVStringFormat();
+            caponeValues.LoanNumber = values[15].RemoveCSVStringFormat();
+            caponeValues.NoticeDate = values[18].RemoveCSVStringFormat().AnyFormatToDateTime().Value;
+            caponeValues.ClientCode = values[22].RemoveCSVStringFormat();
             return caponeValues;
         }
 
@@ -457,7 +457,7 @@ namespace AM.Console
 
                     var templateFilePath = Path.Combine(Config.Monitor_CustomTemplateFolder, client.AppCode, customTemplate.CustomTemplatePath);
 
-                    var xmlFilePath = Directory.EnumerateDirectories(mbi.AMRequestPath, "*.xml").SingleOrDefault();
+                    var xmlFilePath = Directory.EnumerateFiles(mbi.AMRequestPath, "*.xml").SingleOrDefault();
 
                     if (string.IsNullOrWhiteSpace(xmlFilePath))
                     {
