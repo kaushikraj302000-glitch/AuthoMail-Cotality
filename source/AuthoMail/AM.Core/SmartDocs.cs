@@ -53,7 +53,7 @@ namespace AM.Core
 
             try
             {
-                PdfFormFiller(coverTemplatePDFPath, coverLetterPDFPath, mailPieceData);
+                PdfUtil.PdfFormFiller(coverTemplatePDFPath, coverLetterPDFPath, mailPieceData);
 
                 if (!File.Exists(coverLetterPDFPath))
                 {
@@ -74,35 +74,6 @@ namespace AM.Core
             return response;
 
             #endregion
-        }
-
-        private void PdfFormFiller(string templatePDFPath, string filledPDFPath, Dictionary<string, string> mailPieceData)
-        {
-            using (var existingFileStream = new FileStream(templatePDFPath, FileMode.Open))
-            using (var newFileStream = new FileStream(filledPDFPath, FileMode.Create))
-            {
-                // Open existing PDF
-                var pdfReader = new PdfReader(existingFileStream);
-
-                // PdfStamper, which will create
-                var stamper = new PdfStamper(pdfReader, newFileStream);
-
-                var form = stamper.AcroFields;
-                foreach (var model in mailPieceData)
-                {
-                    form.SetField(model.Key, model.Value);
-                }
-
-                // "Flatten" the form so it wont be editable/usable anymore
-                stamper.FormFlattening = true;
-
-                // You can also specify fields to be flattened, which
-                // leaves the rest of the form still be editable/usable
-                // stamper.PartialFormFlattening("Address");
-
-                stamper.Close();
-                pdfReader.Close();
-            }
         }
 
         public SmartDocResponse GenerateeVSPriorityExpressCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string rcptAddressTypes)
@@ -144,7 +115,7 @@ namespace AM.Core
                     //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
                     //if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
                     //{
-                        ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
+                    ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
                     //}
                     response.CoverLetterPath = coverLetterPDFPath;
                 }
@@ -231,7 +202,7 @@ namespace AM.Core
                     //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
                     //if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
                     //{
-                        ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
+                    ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
                     //}
 
                     response.CoverLetterPath = coverLetterPDFPath;
@@ -375,7 +346,7 @@ namespace AM.Core
             string endPagePDFPath = Path.Combine(outputDocumentPath, string.Format("EndPage_{0}.pdf", mailPieceData["MailPieceId"]));
             try
             {
-                PdfFormFiller(endPageTemplatePath, endPagePDFPath, mailPieceData);
+                PdfUtil.PdfFormFiller(endPageTemplatePath, endPagePDFPath, mailPieceData);
                 response.CoverLetterPath = endPagePDFPath;
             }
             catch (Exception ex)
@@ -401,7 +372,7 @@ namespace AM.Core
             #region Generate Cover Letter
             try
             {
-                PdfFormFiller(coverTemplatePDFPath, coverLetterPDFPath, mailPieceData);
+                PdfUtil.PdfFormFiller(coverTemplatePDFPath, coverLetterPDFPath, mailPieceData);
 
                 if (!File.Exists(coverLetterPDFPath))
                 {
