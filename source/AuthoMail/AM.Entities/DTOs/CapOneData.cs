@@ -23,11 +23,13 @@ namespace AM.Entities
         public string LoanNumber { get; set; }
         public DateTime NoticeDate { get; set; }
         public string ClientCode { get; set; }
+        public string CommunityCode { get; set; }
     }
 
     public class CustomTemplate
     {
         public int ClientId { get; set; }
         public string CustomTemplatePath { get; set; }
+        public string CommunityCode { get; set; }
     }
 }
