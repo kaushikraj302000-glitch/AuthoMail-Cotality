@@ -23,13 +23,13 @@
                 </div>
                 <div class="navbar-collapse collapse">
                     @{
-                        string[] ClientListWithName = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split('|');
+                        string[] ClientListWithName = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split(',');
                         List<AM.Scanner.Models.ClientDetails> clientdetailsList = new List<AM.Scanner.Models.ClientDetails>();
                         for (int i = 0; i < ClientListWithName.Length; i++)
                         {
                             AM.Scanner.Models.ClientDetails clientdetail = new AM.Scanner.Models.ClientDetails();
-                            clientdetail.ClientName = ClientListWithName[i].Split(',')[0].ToString();
-                            clientdetail.ClientCode = ClientListWithName[i].Split(',')[1].ToString();
+                            clientdetail.ClientName = ClientListWithName[i].ToString();
+                            clientdetail.ClientCode = ClientListWithName[i].ToString();
                             clientdetailsList.Add(clientdetail);
                         }
                     }
