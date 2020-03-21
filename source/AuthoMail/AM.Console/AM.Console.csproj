@@ -105,7 +105,7 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="CustomTemplates\CommercialCapitalOne.pdf">
+    <None Include="CustomTemplates\CAPONE\CommercialCapitalOne.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="log4net.config">

@@ -128,6 +128,23 @@ namespace AM.Lib
             //return !Regex.IsMatch(value, Global.FileNameRegex);
         }
 
+        public static DateTime? AnyFormatToDateTime(this string date)
+        {
+            string[] formats = {"M/d/yyyy h:mm:ss tt", "M/d/yyyy h:mm tt",
+"MM/dd/yyyy hh:mm:ss", "M/d/yyyy h:mm:ss","M/d/yyyy hh:mm tt", "M/d/yyyy hh tt","M/d/yyyy h:mm", "M/d/yyyy h:mm","MM/dd/yyyy hh:mm", "M/dd/yyyy hh:mm","dd-MMM-yyyy hh:mm:ss","MMMM     dd, yyyy","MMM-dd-yyyy hh:mm:ss","MMMM dd, yyyy","MMMM dd, yyyy hh:mm:ss"};
+
+            DateTime dateValue;
+            if (DateTime.TryParseExact(date, formats, new CultureInfo("en-US"), DateTimeStyles.None, out dateValue))
+                return dateValue;
+            else
+                return null;
+        }
+
+        public static string RemoveCSVStringFormat(this string str)
+        {
+            return str.Replace("\"", "");
+        }
+
         public static DateTime UtcToClientTimeZone(this DateTime dt, string clientTimeZone)
         {
             dt = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified);
