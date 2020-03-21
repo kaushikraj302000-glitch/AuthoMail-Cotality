@@ -169,17 +169,18 @@ namespace AM.Console
                     }
 
                     //NOTE : Path : {channelDownloadPath}/{localCsvFilePath}.FileNameWithOutExtention/{ClientCode}/{XML}
-
+                    string xmlName = "{0}_{1}".Fill(client.AppCode, lastModifiedTime.ToString("MMddyyyyhhmmss"));
+                    var batchUniqueId = Guid.NewGuid();
                     mailBatch = new MailBatchDTO
                     {
                         ClientId = client.Id,
-                        BatchName = batchName,
+                        BatchName = xmlName,
                         SFTChannelId = SFTChannel.Id,
                         ReceivedOn = lastModifiedTime,
                         PipelineStatus = BatchPipelineStatus.Received,
                         BatchStatus = BatchStatus.InProgress.ToString(),
                         //Parse AM mail batch request element
-                        UniqueId = Guid.NewGuid(),
+                        UniqueId = batchUniqueId,
                         Priority = Priority.Medium.ToString(),
                         ClientBatchId = batchName,
                         IsReturnInfoSpecified = false
@@ -187,7 +188,8 @@ namespace AM.Console
 
                     MailBatch mb = new MailBatch()
                     {
-                        ClientCode = clKey
+                        ClientCode = clKey,
+                        Id = batchUniqueId
                     };
 
                     int cnt = 0;
@@ -224,6 +226,7 @@ namespace AM.Console
                         mpCustInfo.Add(new Metadata() { DataType = DataType.DateTime, Key = "DocumentDate", Value = loanInfo.DocumentDate.ToString("MMMM dd, yyyy") });
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "NoticeDate", Value = loanInfo.NoticeDate.ToString("MM/dd/yyyy") });
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CommunityName", Value = loanInfo.CommunityName });
+                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CommunityCode", Value = loanInfo.CommunityCode });
 
                         mp.RecipientInfo = recipientInfo;
                         mp.CustomInfo = mpCustInfo;
@@ -240,7 +243,7 @@ namespace AM.Console
 
                     var xmlByClient = mb.Serialize<MailBatch>();
 
-                    string xmlFilePath = Path.Combine(localCsvDirPath,client.AppCode, "{0}_{1}.xml".Fill(client.AppCode, lastModifiedTime.ToString("MMddyyyyhhmmss")));
+                    string xmlFilePath = Path.Combine(localCsvDirPath, client.AppCode, "{0}.xml".Fill(xmlName));
                     File.WriteAllText(xmlFilePath, xmlByClient);
 
                     mbList.Add(mailBatch);
@@ -360,7 +363,7 @@ namespace AM.Console
         }
 
         private CapOneData FromCsv(string csvLine)
-        {            
+        {
             List<string> values = csvLine.SplitCsv();
             CapOneData caponeValues = new CapOneData();
             caponeValues.BorrowerLastName = values[2].RemoveCSVStringFormat();
@@ -375,6 +378,7 @@ namespace AM.Console
             caponeValues.PropertyCity = values[11].RemoveCSVStringFormat();
             caponeValues.PropertyZip = values[12].RemoveCSVStringFormat();
             caponeValues.CommunityName = values[13].RemoveCSVStringFormat();
+            caponeValues.CommunityCode = values[14].RemoveCSVStringFormat();
             caponeValues.LoanNumber = values[15].RemoveCSVStringFormat();
             caponeValues.NoticeDate = values[18].RemoveCSVStringFormat().AnyFormatToDateTime().Value;
             caponeValues.ClientCode = values[22].RemoveCSVStringFormat();
@@ -446,17 +450,6 @@ namespace AM.Console
 
                     MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
-                    CustomTemplate customTemplate = commonSvc.GetCustomTemplateByClientId(client.Id);
-
-                    if (customTemplate == null)
-                    {
-                        log.Error("No Tempalte found");
-                        //NOTE Report Invalid
-                        continue;
-                    }
-
-                    var templateFilePath = Path.Combine(Config.Monitor_CustomTemplateFolder, client.AppCode, customTemplate.CustomTemplatePath);
-
                     var xmlFilePath = Directory.EnumerateFiles(mbi.AMRequestPath, "*.xml").SingleOrDefault();
 
                     if (string.IsNullOrWhiteSpace(xmlFilePath))
@@ -483,7 +476,17 @@ namespace AM.Console
                             templateFieldData.Add("CommunityName", mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityName").Value);
                         }
 
+                        CustomTemplate customTemplate = commonSvc.GetCustomTemplateByClientId(client.Id, mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityCode").Value);
                         var printReadyTemplatePath = Path.Combine(mbi.AMRequestPath, mp.DocumentOrPackage.Name);
+
+                        if (customTemplate == null)
+                        {
+                            log.Error("No Template found");
+                            //NOTE Report Invalid
+                            continue;
+                        }
+
+                        var templateFilePath = Path.Combine(Config.Monitor_CustomTemplateFolder, client.AppCode, customTemplate.CustomTemplatePath);
 
                         PdfUtil.PdfFormFiller(templateFilePath, printReadyTemplatePath, templateFieldData);
                     }
