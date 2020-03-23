@@ -108,6 +108,9 @@
     <None Include="CustomTemplates\CAPONE\CommercialCapitalOne.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="CustomTemplates\CAPONE\CommercialCapitalOne_NS.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
