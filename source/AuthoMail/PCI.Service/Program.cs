@@ -17,9 +17,23 @@ namespace PCI.Service
         /// </summary>
         static void Main(string[] args)
         {
-
-            //Code Added to create argument wise log file
             var argString = String.Join(",", args);
+            
+            if (args.Length > 0 && args[0] == "PCIJob")
+            {
+                string jobName = args[0];
+                string pvCode = args[1];
+
+                if (pvCode == "PCI" || pvCode == "NORDIS")
+                {
+                    argString = "{0}_{1}_{2}".Fill(jobName, pvCode, Common.UtcToEst(Common.GetCurrentTime()).ToString("hhmm"));
+                }
+                else
+                {
+                    argString = "{0}_{1}".Fill(jobName, pvCode);
+                }
+            }
+            //Code Added to create argument wise log file
             log4net.LogicalThreadContext.Properties["args"] = argString;
             log4net.Config.XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo(ConfigurationManager.AppSettings["log4net.Config"]));
             var type = System.Reflection.MethodBase.GetCurrentMethod().DeclaringType;
