@@ -845,6 +845,7 @@ namespace AM.Console
 
                                     mailPieceCustomInfo.Add(customInfo);
                                 }
+                                mailPieceDTO.MailPieceCustomInfo = mailPieceCustomInfo;
                             }
                             //First System will check for schema validation
                             MailPieceValidationResult schemaValidationResult = ValidateMailPieceNode(mailPieceNode);
@@ -1160,6 +1161,29 @@ namespace AM.Console
 
             if (mailPiece.FileName.IsNullOrWhiteSpace() && mailPiece.FilePattern.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not provided in package." };
+
+            using (IClientService clientSvc = new ClientService())
+            {
+                Client client = clientSvc.GetClientById(mailPiece.ClientId);
+
+                if (client.AppCode == "CAPONE")
+                {
+                    if (mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value.IsNullOrWhiteSpace() || mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value.IsNullOrWhiteSpace() || mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value.IsNullOrWhiteSpace() || mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "PropertyZip").Value.IsNullOrWhiteSpace())
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Property_Address_Missing_Or_Invalid, ErrorMessage = "Property address details are missing or invalid in package." };
+
+                    if (Convert.ToDateTime(mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "DocumentDate").Value) == DateTime.MinValue)
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_DocumentDate, ErrorMessage = "Document date is not specified in package." };
+
+                    if (Convert.ToDateTime(mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "NoticeDate").Value) == DateTime.MinValue)
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_NoticeDate, ErrorMessage = "Notice date is not specified in package." };
+
+                    if (mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "CommunityName").Value.IsNullOrWhiteSpace())
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_CommunityName, ErrorMessage = "Community name is not specified in package." };
+
+                    //if (mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "CommunityCode").Value.IsNullOrWhiteSpace())
+                    //    yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_ShippingDetail, ErrorMessage = "Community code is not specified in package." };
+                }
+            }
 
             yield break;
         }
