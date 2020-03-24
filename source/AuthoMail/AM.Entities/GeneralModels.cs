@@ -92,6 +92,7 @@ namespace AM.Entities
         public const string Invalid_PDF_File = "Invalid_PDF_File";
         public const string Missing_PDF_File = "Missing_PDF_File";
         public const string Mailing_Address_Missing_Or_Invalid = "Mailing_Address_Missing_Or_Invalid";
+        public const string Property_Address_Missing_Or_Invalid = "Property_Address_Missing_Or_Invalid";
         public const string Recipient_Details_Missing_Or_Invalid = "Recipient_Details_Missing_Or_Invalid";
         public const string Unknown_Error = "Unknown_Error";
         public const string Invalid_PackageType = "Invalid_PackageType";
@@ -99,7 +100,10 @@ namespace AM.Entities
         public const string Invalid_DuplicateKey = "Invalid_DuplicateKey";
         public const string Issue_In_EDelivery = "Issue_In_EDelivery";
         public const string SigningRoomExpired = "SigningRoomExpired";
-        public const string ConsentDeclined = "ConsentDeclined";
+        public const string Missing_DocumentDate = "Missing_DocumentDate";
+        public const string Missing_NoticeDate = "Missing_NoticeDate";
+        public const string Missing_CommunityName = "Missing_CommunityName";
+        
         public static string GetAMCMappingCode(string amOutcomecode)
         {
             switch (amOutcomecode)

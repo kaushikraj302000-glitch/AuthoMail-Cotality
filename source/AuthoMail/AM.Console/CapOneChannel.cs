@@ -223,8 +223,8 @@ namespace AM.Console
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyCity", Value = loanInfo.PropertyCity });
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyState", Value = loanInfo.PropertyState });
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyZip", Value = loanInfo.PropertyZip });
-                        mpCustInfo.Add(new Metadata() { DataType = DataType.DateTime, Key = "DocumentDate", Value = loanInfo.DocumentDate.ToString("MMMM dd, yyyy") });
-                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "NoticeDate", Value = loanInfo.NoticeDate.ToString("MM/dd/yyyy") });
+                        mpCustInfo.Add(new Metadata() { DataType = DataType.DateTime, Key = "DocumentDate", Value = Convert.ToDateTime(loanInfo.DocumentDate).ToString("MMMM dd, yyyy") });
+                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "NoticeDate", Value = Convert.ToDateTime(loanInfo.NoticeDate).ToString("MM/dd/yyyy") });
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CommunityName", Value = loanInfo.CommunityName });
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CommunityCode", Value = loanInfo.CommunityCode });
 
@@ -372,7 +372,7 @@ namespace AM.Console
             caponeValues.BorrowerCity = values[5].RemoveCSVStringFormat();
             caponeValues.BorrowerState = values[6].RemoveCSVStringFormat();
             caponeValues.BorrowerZip = values[7].RemoveCSVStringFormat();
-            caponeValues.DocumentDate = values[8].RemoveCSVStringFormat().AnyFormatToDateTime().Value;
+            caponeValues.DocumentDate = values[8].RemoveCSVStringFormat().AnyFormatToDateTime();
             caponeValues.PropertyStreetAddress = values[9].RemoveCSVStringFormat();
             caponeValues.PropertyState = values[10].RemoveCSVStringFormat();
             caponeValues.PropertyCity = values[11].RemoveCSVStringFormat();
@@ -380,7 +380,7 @@ namespace AM.Console
             caponeValues.CommunityName = values[13].RemoveCSVStringFormat();
             caponeValues.CommunityCode = values[14].RemoveCSVStringFormat();
             caponeValues.LoanNumber = values[15].RemoveCSVStringFormat();
-            caponeValues.NoticeDate = values[18].RemoveCSVStringFormat().AnyFormatToDateTime().Value;
+            caponeValues.NoticeDate = values[18].RemoveCSVStringFormat().AnyFormatToDateTime();
             caponeValues.ClientCode = values[22].RemoveCSVStringFormat();
             return caponeValues;
         }
@@ -482,7 +482,8 @@ namespace AM.Console
                         if (customTemplate == null)
                         {
                             log.Error("No Template found");
-                            //NOTE Report Invalid
+                            //NOTE Report Invalid                           
+
                             continue;
                         }
 

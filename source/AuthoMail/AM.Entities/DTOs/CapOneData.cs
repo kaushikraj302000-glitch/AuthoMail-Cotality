@@ -14,14 +14,14 @@ namespace AM.Entities
         public string BorrowerCity { get; set; }
         public string BorrowerState { get; set; }
         public string BorrowerZip { get; set; }
-        public DateTime DocumentDate { get; set; }
+        public string DocumentDate { get; set; }
         public string PropertyStreetAddress { get; set; }
         public string PropertyCity { get; set; }
         public string PropertyState { get; set; }
         public string PropertyZip { get; set; }
         public string CommunityName { get; set; }
         public string LoanNumber { get; set; }
-        public DateTime NoticeDate { get; set; }
+        public string NoticeDate { get; set; }
         public string ClientCode { get; set; }
         public string CommunityCode { get; set; }
     }
