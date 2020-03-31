@@ -105,10 +105,16 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="CustomTemplates\CAPONE\CommercialCapitalOne.pdf">
+    <None Include="CustomTemplates\CAPONE\2844365_REP.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="CustomTemplates\CAPONE\CommercialCapitalOne_NS.pdf">
+    <None Include="CustomTemplates\CAPONE\2844365_NS.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CustomTemplates\CAPONE\2845768_NS.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CustomTemplates\CAPONE\2845768_REP.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="log4net.config">
@@ -193,6 +199,9 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CustomTemplates\MTBANK\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

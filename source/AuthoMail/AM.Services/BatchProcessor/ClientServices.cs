@@ -14,6 +14,7 @@ namespace AM.Services
     {
         Client GetClientById(int clientId);
         Task<Client> GetClientByAppCode(string appCode);
+        Task<Client> GetClientByName(string clientName);
         List<ClientSFTChannel> GetClientSFTChannelMapDetails(int clientId);
         Task<SFTChannel> GetSFTChannelDetailsBySFTChannelId(int sftChannelId);
         SFTChannel GetSFTChannelDetailsBySFTChannelCode(string sftChannelCode);
@@ -32,6 +33,13 @@ namespace AM.Services
         {
             string query = "SELECT * FROM [Common].[Clients] WHERE IsAMActive=1 and AppCode = @AppCode";
             var data = await db.QuerySingleOrDefaultAsync<Client>(query, new { AppCode = appCode });
+            return data;
+        }
+
+        public async Task<Client> GetClientByName(string clientName)
+        {
+            string query = "SELECT * FROM [Common].[Clients] WHERE IsAMActive=1 and Name = @Name";
+            var data = await db.QuerySingleOrDefaultAsync<Client>(query, new { Name = clientName });
             return data;
         }
 

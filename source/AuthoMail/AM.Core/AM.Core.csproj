@@ -164,6 +164,9 @@
     </None>
     <None Include="CoverTemplates\HSBC_FrontBarcode.pdf" />
     <None Include="CoverTemplates\HSBC_IMBWith_A_Barcode.pdf" />
+    <None Include="CoverTemplates\MTBANK\ALASKA_USPS_Generic_1.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CoverTemplates\PENFED\PENFED_USPS_#10_6X95.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

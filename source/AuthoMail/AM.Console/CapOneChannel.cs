@@ -151,7 +151,7 @@ namespace AM.Console
                         continue;
                     }
 
-                    client = clientSvc.GetClientByAppCode(clientCode).Result;
+                    client = clientSvc.GetClientByName(clientCode).Result;
 
                     if (client == null)
                     {
@@ -200,7 +200,7 @@ namespace AM.Console
                         {
                             BusinessFriendlyIdName = "LoanNumber",
                             BusinessFriendlyIdValue = loanInfo.LoanNumber,
-                            DocumentOrPackageType = "Generic",
+                            DocumentOrPackageType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId,loanInfo.ClientId.Trim(),0).DocTypeName,
                             Id = Guid.NewGuid()
                         };
 
@@ -227,6 +227,7 @@ namespace AM.Console
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "NoticeDate", Value = Convert.ToDateTime(loanInfo.NoticeDate).ToString("MM/dd/yyyy") });
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CommunityName", Value = loanInfo.CommunityName });
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CommunityCode", Value = loanInfo.CommunityCode });
+                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "ClientId", Value = loanInfo.ClientId });
 
                         mp.RecipientInfo = recipientInfo;
                         mp.CustomInfo = mpCustInfo;
@@ -374,14 +375,15 @@ namespace AM.Console
             caponeValues.BorrowerZip = values[7].RemoveCSVStringFormat();
             caponeValues.DocumentDate = values[8].RemoveCSVStringFormat().AnyFormatToDateTime();
             caponeValues.PropertyStreetAddress = values[9].RemoveCSVStringFormat();
-            caponeValues.PropertyState = values[10].RemoveCSVStringFormat();
-            caponeValues.PropertyCity = values[11].RemoveCSVStringFormat();
+            caponeValues.PropertyCity = values[10].RemoveCSVStringFormat();
+            caponeValues.PropertyState = values[11].RemoveCSVStringFormat();
             caponeValues.PropertyZip = values[12].RemoveCSVStringFormat();
             caponeValues.CommunityName = values[13].RemoveCSVStringFormat();
             caponeValues.CommunityCode = values[14].RemoveCSVStringFormat();
             caponeValues.LoanNumber = values[15].RemoveCSVStringFormat();
             caponeValues.NoticeDate = values[18].RemoveCSVStringFormat().AnyFormatToDateTime();
-            caponeValues.ClientCode = values[22].RemoveCSVStringFormat();
+            caponeValues.ClientId = values[22].RemoveCSVStringFormat();
+            caponeValues.ClientCode = values[23].RemoveCSVStringFormat();
             return caponeValues;
         }
 
@@ -469,14 +471,17 @@ namespace AM.Console
 
                         if (mp.CustomInfo != null)
                         {
+                            templateFieldData.Add("Subject", "Proposed loan to be made to {0} by Capital One Multifamily Finance, LLC, secured by real property known as {1}, {2}, {3} {4}".Fill(mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).Trim() : "" : "", mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyZip").Value));
+                            templateFieldData.Add("PropertyFullAddress", mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value);
                             templateFieldData.Add("PropertyAddress1", mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value);
                             templateFieldData.Add("PropertyAddress2", "{0}, {1} {2}".Fill(mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyZip").Value));
                             templateFieldData.Add("DocumentDate", mp.CustomInfo.SingleOrDefault(m => m.Key == "DocumentDate").Value);
                             templateFieldData.Add("NoticeDate", mp.CustomInfo.SingleOrDefault(m => m.Key == "NoticeDate").Value);
                             templateFieldData.Add("CommunityName", mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityName").Value);
                         }
+                        DocType docType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0);
 
-                        CustomTemplate customTemplate = commonSvc.GetCustomTemplateByClientId(client.Id, mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityCode").Value);
+                        CustomTemplate customTemplate = commonSvc.GetCustomTemplateByDocTypeId(docType.Id, mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityCode").Value);
                         var printReadyTemplatePath = Path.Combine(mbi.AMRequestPath, mp.DocumentOrPackage.Name);
 
                         if (customTemplate == null)

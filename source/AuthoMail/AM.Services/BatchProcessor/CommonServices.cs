@@ -44,7 +44,7 @@ namespace AM.Services
         int GetReportingSequence();
         bool CheckForDuplicateMailPieceUniqueId(Guid mpUniqueId);
         List<DallasNotificationMap> GetDallasNotificationMaps();
-        CustomTemplate GetCustomTemplateByClientId(int clientId, string communityCode);
+        CustomTemplate GetCustomTemplateByDocTypeId(int docTypeId, string communityCode);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -477,11 +477,11 @@ namespace AM.Services
             return db.Query<DallasNotificationMap>(query, null).ToList();
         }
 
-        public CustomTemplate GetCustomTemplateByClientId(int clientId, string communityCode)
+        public CustomTemplate GetCustomTemplateByDocTypeId(int docTypeId, string communityCode)
         {
-            string query = "SELECT * FROM [AM].[CustomTemplates] WHERE ClientId= @ClientId and CommunityCode = @CommunityCode";
+            string query = "SELECT * FROM [AM].[CustomTemplates] WHERE DocTypeId= @DocTypeId and CommunityCode = @CommunityCode";
 
-            return db.QuerySingleOrDefault<CustomTemplate>(query, new { ClientId = clientId, CommunityCode = communityCode });
+            return db.QuerySingleOrDefault<CustomTemplate>(query, new { DocTypeId = docTypeId, CommunityCode = communityCode });
         }
     }
 }
