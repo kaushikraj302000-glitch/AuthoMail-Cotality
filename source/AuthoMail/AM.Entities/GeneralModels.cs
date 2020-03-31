@@ -100,6 +100,7 @@ namespace AM.Entities
         public const string Invalid_DuplicateKey = "Invalid_DuplicateKey";
         public const string Issue_In_EDelivery = "Issue_In_EDelivery";
         public const string SigningRoomExpired = "SigningRoomExpired";
+        public const string ConsentDeclined = "ConsentDeclined";
         public const string Missing_DocumentDate = "Missing_DocumentDate";
         public const string Missing_NoticeDate = "Missing_NoticeDate";
         public const string Missing_CommunityName = "Missing_CommunityName";
