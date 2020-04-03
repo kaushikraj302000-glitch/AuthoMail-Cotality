@@ -46,6 +46,11 @@ namespace AM.Lib
             return String.Format(format, args);
         }
 
+        public static string FormattedName(this string name)
+        {
+            return name.Trim().TrimEnd(',');
+        }
+
         public static void CreateDirectoryIfNotExist(this string dirPath)
         {
             if (!Directory.Exists(dirPath))

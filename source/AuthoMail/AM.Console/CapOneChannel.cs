@@ -2,6 +2,7 @@
 using AM.Entities;
 using AM.Lib;
 using AM.Services;
+using Aspose.Words;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -464,21 +465,28 @@ namespace AM.Console
 
                     foreach (var mp in mbData.MailPieces)
                     {
-                        Dictionary<string, string> templateFieldData = new Dictionary<string, string>();
-                        templateFieldData.Add("LoanNumber", mp.BusinessFriendlyIdValue);
-                        templateFieldData.Add("BorrowerName", mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).Trim() : "" : "");
-                        templateFieldData.Add("BorrowerAddress", mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}\n{1}".Fill(mp.RecipientInfo.Address.Street, "{0}, {1} {2}".Fill(mp.RecipientInfo.Address.City, mp.RecipientInfo.Address.State, mp.RecipientInfo.Address.Zip)).Trim() : "" : "");
+                        #region Create Template with iTextSharp 
+                        //Dictionary<string, string> templateFieldData = new Dictionary<string, string>();
+                        //templateFieldData.Add("LoanNumber", mp.BusinessFriendlyIdValue);
+                        //templateFieldData.Add("BorrowerName", mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).Trim() : "" : "");
+                        //templateFieldData.Add("BorrowerAddress", mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}\n{1}".Fill(mp.RecipientInfo.Address.Street, "{0}, {1} {2}".Fill(mp.RecipientInfo.Address.City, mp.RecipientInfo.Address.State, mp.RecipientInfo.Address.Zip)).Trim() : "" : "");
 
-                        if (mp.CustomInfo != null)
-                        {
-                            templateFieldData.Add("Subject", "Proposed loan to be made to {0} by Capital One Multifamily Finance, LLC, secured by real property known as {1}, {2}, {3} {4}".Fill(mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).Trim() : "" : "", mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyZip").Value));
-                            templateFieldData.Add("PropertyFullAddress", mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value);
-                            templateFieldData.Add("PropertyAddress1", mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value);
-                            templateFieldData.Add("PropertyAddress2", "{0}, {1} {2}".Fill(mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyZip").Value));
-                            templateFieldData.Add("DocumentDate", mp.CustomInfo.SingleOrDefault(m => m.Key == "DocumentDate").Value);
-                            templateFieldData.Add("NoticeDate", mp.CustomInfo.SingleOrDefault(m => m.Key == "NoticeDate").Value);
-                            templateFieldData.Add("CommunityName", mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityName").Value);
-                        }
+                        //if (mp.CustomInfo != null)
+                        //{
+                        //    templateFieldData.Add("Subject", "Proposed loan to be made to {0} by Capital One Multifamily Finance, LLC, secured by real property known as {1}, {2}, {3} {4}".Fill(mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).Trim() : "" : "", mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyZip").Value));
+                        //    templateFieldData.Add("PropertyFullAddress", mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value);
+                        //    templateFieldData.Add("PropertyAddress1", mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value);
+                        //    templateFieldData.Add("PropertyAddress2", "{0}, {1} {2}".Fill(mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyZip").Value));
+                        //    templateFieldData.Add("DocumentDate", mp.CustomInfo.SingleOrDefault(m => m.Key == "DocumentDate").Value);
+                        //    templateFieldData.Add("NoticeDate", mp.CustomInfo.SingleOrDefault(m => m.Key == "NoticeDate").Value);
+                        //    templateFieldData.Add("CommunityName", mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityName").Value);
+                        //}
+
+                        //NOTE: move this line after selecting customTemplate
+                        //PdfUtil.PdfFormFiller(templateFilePath, printReadyTemplatePath, templateFieldData);
+                        #endregion
+
+
                         DocType docType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0);
 
                         CustomTemplate customTemplate = commonSvc.GetCustomTemplateByDocTypeId(docType.Id, mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityCode").Value);
@@ -494,7 +502,28 @@ namespace AM.Console
 
                         var templateFilePath = Path.Combine(Config.Monitor_CustomTemplateFolder, client.AppCode, customTemplate.CustomTemplatePath);
 
-                        PdfUtil.PdfFormFiller(templateFilePath, printReadyTemplatePath, templateFieldData);
+                        Document doc = new Document(templateFilePath);
+                        doc.Range.Replace(new Regex(@"\[LoanNumber\]"), mp.BusinessFriendlyIdValue);
+                        doc.Range.Replace(new Regex(@"\[BorrowerFullName\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.FirstName, mp.RecipientInfo.Recipient.LastName).Trim() : "" : "");
+                        doc.Range.Replace(new Regex(@"\[BorrowerFullNameReverse\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}, {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).FormattedName() : "" : "");
+                        doc.Range.Replace(new Regex(@"\[BorrFName\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}".Fill(mp.RecipientInfo.Recipient.FirstName).Trim() : "" : "");
+                        doc.Range.Replace(new Regex(@"\[BorrLName\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}".Fill(mp.RecipientInfo.Recipient.LastName).Trim() : "" : "");
+                        doc.Range.Replace(new Regex(@"\[BorrStreetAddress\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.Street).Trim() : "" : "");
+                        doc.Range.Replace(new Regex(@"\[BorrCity\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.City).Trim() : "" : "");
+                        doc.Range.Replace(new Regex(@"\[BorrState\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.State).Trim() : "" : "");
+                        doc.Range.Replace(new Regex(@"\[BorrZip\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.Zip).Trim() : "" : "");
+                        if (mp.CustomInfo != null)
+                        {
+                            doc.Range.Replace(new Regex(@"\[PropStreetAddress\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value);
+                            doc.Range.Replace(new Regex(@"\[PropCity\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value);
+                            doc.Range.Replace(new Regex(@"\[PropState\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value);
+                            doc.Range.Replace(new Regex(@"\[PropZip\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyZip").Value);
+                            doc.Range.Replace(new Regex(@"\[DocumentDate\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "DocumentDate").Value);
+                            doc.Range.Replace(new Regex(@"\[NoticeDate\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "NoticeDate").Value);
+                            doc.Range.Replace(new Regex(@"\[CommunityName\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityName").Value);
+                        }
+                        doc.Save(printReadyTemplatePath);
+                        
                     }
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now).Wait();
