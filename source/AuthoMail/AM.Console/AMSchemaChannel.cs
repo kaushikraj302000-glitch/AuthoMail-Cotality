@@ -1171,10 +1171,10 @@ namespace AM.Console
                     if (mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value.IsNullOrWhiteSpace() || mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value.IsNullOrWhiteSpace() || mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value.IsNullOrWhiteSpace() || mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "PropertyZip").Value.IsNullOrWhiteSpace())
                         yield return new MailPieceValidationResult() { Code = OutComeCodes.Property_Address_Missing_Or_Invalid, ErrorMessage = "Property address details are missing or invalid in package." };
 
-                    if (Convert.ToDateTime(mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "DocumentDate").Value) == DateTime.MinValue)
+                    if (mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "DocumentDate").Value.AnyFormatToDateTime() == DateTime.MinValue)
                         yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_DocumentDate, ErrorMessage = "Document date is not specified in package." };
 
-                    if (Convert.ToDateTime(mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "NoticeDate").Value) == DateTime.MinValue)
+                    if (mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "NoticeDate").Value.AnyFormatToDateTime() == DateTime.MinValue)
                         yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_NoticeDate, ErrorMessage = "Notice date is not specified in package." };
 
                     if (mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "CommunityName").Value.IsNullOrWhiteSpace())
