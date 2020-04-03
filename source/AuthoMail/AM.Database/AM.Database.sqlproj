@@ -215,6 +215,7 @@
     <Build Include="dbo\Functions\IsBusinessDay.sql" />
     <Build Include="dbo\Functions\GetNextWorkingDay.sql" />
     <Build Include="AM\Tables\CustomTemplates.sql" />
+    <Build Include="Common\Tables\DallasNotificationMapping.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AM.Database.refactorlog" />
