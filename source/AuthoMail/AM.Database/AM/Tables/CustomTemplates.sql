@@ -1,6 +1,8 @@
-﻿CREATE TABLE [AM].[CustomTemplates]
-(
-	[ClientId] INT NOT NULL PRIMARY KEY, 
-    [CustomTemplatePath] VARCHAR(1024) NULL, 
-    [CommunityCode] VARCHAR(50) NULL
-)
+﻿CREATE TABLE [AM].[CustomTemplates] (
+    [DocTypeId]          INT           NOT NULL,
+    [CustomTemplatePath] VARCHAR (846) NOT NULL,
+    [CommunityCode]      VARCHAR (50)  NOT NULL,
+    CONSTRAINT [PK_CustomTemplates] PRIMARY KEY CLUSTERED ([DocTypeId] ASC, [CustomTemplatePath] ASC, [CommunityCode] ASC)
+);
+
+
