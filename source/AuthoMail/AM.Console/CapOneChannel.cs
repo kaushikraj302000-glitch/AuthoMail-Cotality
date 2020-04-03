@@ -88,7 +88,7 @@ namespace AM.Console
                     if (!sftSite.IsFileAvailable(ftpCsvFilePath))
                     {
                         var msg = "'{0}.csv' file is missing on SFT site.".Fill(batchName);
-                        //ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), "");
+                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), localCsvFilePath);
                         continue;
                     }
 
@@ -148,7 +148,7 @@ namespace AM.Console
                     if (clientCode == "InvalidClientCode")
                     {
                         var msg = "Client code is required in provided csv.".Fill(clientCode);
-                        //ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOnDateTime, msg), xmlFilePath);
+                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), localCsvFilePath);
                         continue;
                     }
 
@@ -157,7 +157,7 @@ namespace AM.Console
                     if (client == null)
                     {
                         var msg = "Client code {0} is not valid from provided csv.".Fill(clientCode);
-                        //ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), "as");
+                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), localCsvFilePath);
                         continue;
                     }
 
@@ -189,7 +189,7 @@ namespace AM.Console
 
                     MailBatch mb = new MailBatch()
                     {
-                        ClientCode = clKey,
+                        ClientCode = client.AppCode,
                         Id = batchUniqueId
                     };
 
@@ -201,7 +201,7 @@ namespace AM.Console
                         {
                             BusinessFriendlyIdName = "LoanNumber",
                             BusinessFriendlyIdValue = loanInfo.LoanNumber,
-                            DocumentOrPackageType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId,loanInfo.ClientId.Trim(),0).DocTypeName,
+                            DocumentOrPackageType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, loanInfo.ClientId.Trim(), 0).DocTypeName,
                             Id = Guid.NewGuid()
                         };
 
@@ -300,7 +300,7 @@ namespace AM.Console
             return isAllSuccess;
         }
 
-        private void ReportInvalidBatch(MailBatchDTO mailBatch, string localXMLFilePath)
+        private void ReportInvalidBatch(MailBatchDTO mailBatch, string localCsvFilePath)
         {
             Client client = clientSvc.GetClientById(mailBatch.ClientId);
 
@@ -311,11 +311,11 @@ namespace AM.Console
             mbi.AMRequestPath.CreateDirectoryIfNotExist();
             mbi.AMResponsePath.CreateDirectoryIfNotExist();
 
-            if (!string.IsNullOrEmpty(localXMLFilePath))
-                File.Move(localXMLFilePath, Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".zip"));
+            if (!string.IsNullOrEmpty(localCsvFilePath))
+                File.Move(localCsvFilePath, Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".csv"));
 
             //For Invalid Batch, we will generate err file 
-            string invalidBatchFileName = "{0}_InvalidZipfile.err".Fill(mailBatch.BatchName);
+            string invalidBatchFileName = "{0}_InvalidCsvfile.err".Fill(mailBatch.BatchName);
 
             string invalidBatchPath = Path.Combine(mbi.AMResponsePath, invalidBatchFileName);
 
@@ -332,13 +332,11 @@ namespace AM.Console
 
             sftSite.UploadFile(invalidBatchPath, remoteFilePath);
 
-            if (sftSite.IsFileAvailable(Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".zip")))
-                //MoveBatchToBackupDir(sftSite, Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".zip"));
+            if (sftSite.IsFileAvailable(Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".csv")))
+                MoveBatchToBackupDir(sftSite, Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".csv"));
 
-                //MoveBatchToBackupDir(sftSite, Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".go"));
-
-                if (sftSite.IsConnected)
-                    sftSite.Disconnect();
+            if (sftSite.IsConnected)
+                sftSite.Disconnect();
 
             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
         }
@@ -374,7 +372,7 @@ namespace AM.Console
             caponeValues.BorrowerCity = values[5].RemoveCSVStringFormat();
             caponeValues.BorrowerState = values[6].RemoveCSVStringFormat();
             caponeValues.BorrowerZip = values[7].RemoveCSVStringFormat();
-            caponeValues.DocumentDate = values[8].RemoveCSVStringFormat().AnyFormatToDateTime();
+            caponeValues.DocumentDate = values[8].RemoveCSVStringFormat().AnyFormatToDateTimeString();
             caponeValues.PropertyStreetAddress = values[9].RemoveCSVStringFormat();
             caponeValues.PropertyCity = values[10].RemoveCSVStringFormat();
             caponeValues.PropertyState = values[11].RemoveCSVStringFormat();
@@ -382,7 +380,7 @@ namespace AM.Console
             caponeValues.CommunityName = values[13].RemoveCSVStringFormat();
             caponeValues.CommunityCode = values[14].RemoveCSVStringFormat();
             caponeValues.LoanNumber = values[15].RemoveCSVStringFormat();
-            caponeValues.NoticeDate = values[18].RemoveCSVStringFormat().AnyFormatToDateTime();
+            caponeValues.NoticeDate = values[18].RemoveCSVStringFormat().AnyFormatToDateTimeString();
             caponeValues.ClientId = values[22].RemoveCSVStringFormat();
             caponeValues.ClientCode = values[23].RemoveCSVStringFormat();
             return caponeValues;
@@ -411,7 +409,7 @@ namespace AM.Console
 
         private List<string> GetFilePaths(SFTUtil sftSite)
         {
-            var regex = new Regex(@"^(\S*).csv$", RegexOptions.IgnoreCase);
+            var regex = new Regex(@"^([\s\S]*).csv", RegexOptions.IgnoreCase);
 
             List<string> availableFilePaths = sftSite.ListDirectory(SFTChannel.ToADEDir)
                 .Select(f => regex.Match(Path.GetFileName(f)))
@@ -421,11 +419,11 @@ namespace AM.Console
 
             if (availableFilePaths != null && availableFilePaths.Count > 0)
             {
-                log.Debug(string.Format("{0} trigger file(s) found.", availableFilePaths.Count));
+                log.Debug(string.Format("{0} file(s) found.", availableFilePaths.Count));
             }
             else
             {
-                log.Error("No trigger files found hence no batches are available to download.");
+                log.Error("No files found hence no batches are available to download.");
             }
 
             return availableFilePaths;
@@ -458,7 +456,8 @@ namespace AM.Console
                     if (string.IsNullOrWhiteSpace(xmlFilePath))
                     {
                         log.Error("File does not exist");
-                        //Report Invalid
+                        MailUtility.SendUnexpectedExceptionEmail("No xml found for generating pdf for Batch Id {0} and client name : {1}".Fill(mbi.MailBatch.Id, client.AppCode));
+                        continue;
                     }
 
                     var mbData = File.ReadAllText(xmlFilePath).Deserialize<MailBatch>();
@@ -485,7 +484,6 @@ namespace AM.Console
                         //NOTE: move this line after selecting customTemplate
                         //PdfUtil.PdfFormFiller(templateFilePath, printReadyTemplatePath, templateFieldData);
                         #endregion
-
 
                         DocType docType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0);
 
@@ -523,7 +521,7 @@ namespace AM.Console
                             doc.Range.Replace(new Regex(@"\[CommunityName\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityName").Value);
                         }
                         doc.Save(printReadyTemplatePath);
-                        
+
                     }
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now).Wait();
