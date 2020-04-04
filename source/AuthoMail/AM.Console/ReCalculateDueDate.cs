@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AM.Lib;
 using System.IO;
 using System.Threading;
+using AM.USPSLib;
 
 namespace AM.Console
 {
@@ -147,6 +148,85 @@ namespace AM.Console
                 }
 
             }
+        }
+
+        public static void VerifyAddressesWithCity()
+        {
+            using (ICommonService commonSvc = new CommonService())
+            using (IReCalculateDueDateService rcsvc = new ReCalculateDueDateService())
+            {
+                var mpList = rcsvc.GetMailPiecesWithLast6Month();
+                List<MPAddress> regeneratedAddress = new List<MPAddress>();
+                #region Address Validation Logic
+                //Get validate Addresses for each records
+                List<AddressResponse> addressResponses = new List<AddressResponse>();
+                List<AddressRequest> addressRequestes = new List<AddressRequest>();
+                foreach (var mailPiece in mpList) // Here system will verify only those address which have fallbackrequested=true or Edeliveryrequested=false
+                {
+                    AddressRequest addressRequest = new AddressRequest() { Id = mailPiece.UniqueId.ToString(), StreetAddress = mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet, City = mailPiece.RcptAddressCity, State = mailPiece.RcptAddressState, Zip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4), Zip5 = mailPiece.RcptAddressZIP.SeparateZip4And5(5) };
+
+                    addressRequestes.Add(addressRequest);
+                }
+
+                int requestAddressCount = addressRequestes.Count;
+                int maxAddressVerification = 5;
+                int verifiedAddressCount = 0;
+                double loopCount = Math.Ceiling(requestAddressCount / (float)maxAddressVerification);
+
+                for (double i = 0; i < loopCount; i++)
+                {
+                    var takenAddressesList = addressRequestes.Skip(verifiedAddressCount).Take(maxAddressVerification).ToList();
+                    VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = takenAddressesList };
+                    verifiedAddressCount += maxAddressVerification;
+                    VerifierAddressResponse verifierAddResponse;
+
+                    using (IUSPSService uspsSvc = new USPSService())
+                    {
+                        verifierAddResponse = uspsSvc.VerifyAddressAsync(commonSvc.GetSystemUserId(), verifierAddRequest).Result;
+                    }
+
+                    foreach (var res in verifierAddResponse.AddressResponses)
+                    {
+                        var mp = mpList.Single(p => p.UniqueId.ToString() == res.Id);
+                        mp.ActualRcptAddressCity = res.City;
+                        mp.ActualRcptAddressState = res.State;
+                        mp.ActualRcptAddressZIP = res.Zip;
+
+                        regeneratedAddress.Add(mp);
+                    }
+                    //if (verifierAddResponse != null)
+                    //{
+                    //    if (verifierAddResponse.HasError)
+                    //    {
+                    //        throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
+                    //    }
+
+                    //    addressResponses.AddRange(verifierAddResponse.AddressResponses);
+                    //}
+                }
+                var addressInfo = GenerateAddressReport(regeneratedAddress);
+                File.WriteAllText(@"D:\AddressVerify.csv", addressInfo.ToString());
+                #endregion
+            }
+        }
+
+        public static StringBuilder GenerateAddressReport(List<MPAddress> mailPieces)
+        {
+            var columnName = String.Join(",", "ClientId", "UniqueId", "Street", "City", "State", "Zip", "Actual City", "Actual State", "Actual Zip");
+
+            StringBuilder deliveryReport = new StringBuilder(columnName);
+
+            deliveryReport.AppendLine();
+
+            // All the loans where outcome code is anything except no_error are processed invalid loans.
+            foreach (var mp in mailPieces)
+            {
+
+                var line = String.Join(",", mp.clientId, mp.UniqueId, mp.RcptAddressStreet.ToCsvString(), mp.RcptAddressCity.ToCsvString(), mp.RcptAddressState, mp.RcptAddressZIP, mp.ActualRcptAddressCity.ToCsvString(), mp.ActualRcptAddressState, mp.ActualRcptAddressZIP);
+
+                deliveryReport.AppendLine(line);
+            }
+            return deliveryReport;
         }
     }
 

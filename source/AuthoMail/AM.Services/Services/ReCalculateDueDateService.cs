@@ -29,6 +29,8 @@ namespace AM.Services
         List<UspsAPI> GetUSPSeVSRecordsToPurge();
         int UpdateUSPSRecords(int Id);
         int UpdateUSPSeVSRecords(int Id);
+
+        List<MPAddress> GetMailPiecesWithLast6Month();
     }
 
     public class PrintBatchReporting
@@ -164,6 +166,12 @@ namespace AM.Services
             string q = "UPDATE [API].[USPSeVS] SET USPSResponse = null, APIResponse = null WHERE Id = @Id";
             return db.Execute(q, new { Id = Id });
         }
+
+        public List<MPAddress> GetMailPiecesWithLast6Month()
+        {
+            string q = @"select RcptAddressStreet, RcptAddrOptionalLine1BelowStreet,RcptAddressCity,RcptAddressState,RcptAddressZIP,ClientId,UniqueId FROM AM.MailPieces WHERE ShippingStatus='Shipped' AND EffectiveReceivedOnEst >='2019-10-01' AND EffectiveReceivedOnEst <'2020-04-01'";
+            return db.Query<MPAddress>(q).ToList();
+        }
     }
     public class Recal
     {
@@ -189,6 +197,19 @@ namespace AM.Services
         public int? PrintBatchId { get; set; }
     }
 
+    public class MPAddress
+    {
+        public int clientId { get; set; }
+        public Guid UniqueId { get; set; }
+        public string RcptAddressStreet { get; set; }
+        public string RcptAddrOptionalLine1BelowStreet { get; set; }
+        public string RcptAddressCity { get; set; }
+        public string RcptAddressState { get; set; }
+        public string RcptAddressZIP { get; set; }
+        public string ActualRcptAddressCity { get; set; }
+        public string ActualRcptAddressState { get; set; }
+        public string ActualRcptAddressZIP { get; set; }
+    }
     public class DocTypeInfo
     {
         public int Id { get; set; }
