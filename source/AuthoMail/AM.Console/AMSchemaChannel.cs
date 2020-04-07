@@ -572,7 +572,7 @@ namespace AM.Console
 
         private List<string> GetTriggerFilePaths(SFTUtil sftSite)
         {
-            var regex = new Regex(@"^(\S*).go$", RegexOptions.IgnoreCase);
+            var regex = new Regex(@"^([\s\S]*).go$", RegexOptions.IgnoreCase);
 
             List<string> availableTriggerFilePaths = sftSite.ListDirectory(SFTChannel.ToADEDir)
                 .Select(f => regex.Match(Path.GetFileName(f)))
@@ -589,7 +589,7 @@ namespace AM.Console
                 log.Error("No trigger files found hence no batches are available to download.");
             }
 
-            if (SFTChannel.Code.Contains("PENFED") && availableTriggerFilePaths.Count > 0)
+            if ((SFTChannel.Code.Contains("PENFED") || SFTChannel.Code.Contains("BECU")) && availableTriggerFilePaths.Count > 0)
             {
                 if (SFTChannel.Host.Contains("FAGOSFTP"))
                 {
@@ -1257,6 +1257,7 @@ namespace AM.Console
             string errorReportFileName = "";
             string errorData;
             string errorReportPath;
+            string zipFileName, zipFilePath;
             var erroredMPs = mailPieces.Where(mp => mp.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
 
             if (erroredMPs.Count() > 0)
@@ -1307,8 +1308,24 @@ namespace AM.Console
                 {
                     case "PENFED":
                         //NOTE : Below zip file naming convention is EDG Naming convention.
-                        string zipFileName = "{0}FAGOS.ZYONT.N0010362.PenFedPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
-                        string zipFilePath = Path.Combine(mbi.AMResponsePath, zipFileName);
+                        zipFileName = "{0}FAGOS.ZYONT.N0010362.PenFedPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                        zipFilePath = Path.Combine(mbi.AMResponsePath, zipFileName);
+
+                        ftpUploadPath = Path.Combine(deliverable.UploadPath, zipFileName);
+
+                        using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                        {
+                            newFile.CreateEntryFromFile(errorReportPath, errorReportFileName);
+                        }
+                        sftSite.UploadFile(zipFilePath, ftpUploadPath);
+                        Thread.Sleep(1000);//This line is added to avoid any duplication of file name.
+
+                        File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
+                        break;
+                    case "BECU":
+                        //NOTE : Below zip file naming convention is EDG Naming convention.
+                        zipFileName = "{0}FAGOS.ZYONT.N0010362.BECUPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                        zipFilePath = Path.Combine(mbi.AMResponsePath, zipFileName);
 
                         ftpUploadPath = Path.Combine(deliverable.UploadPath, zipFileName);
 
