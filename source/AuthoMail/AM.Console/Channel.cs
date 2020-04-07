@@ -466,6 +466,8 @@ namespace AM.Console
             string errorUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Error).UploadPath;
             string ftpUploadPath = "";
             string sftChannelCode = sftChannelDetails.Code.Split('_')[0].ToUpper();
+            string zipFileName, zipFilePath;
+            List<string> resXmlList;
             switch (sftChannelCode)
             {
                 case "AMC":
@@ -517,10 +519,31 @@ namespace AM.Console
                 case "PENFED":
 
                     //NOTE : Below zip file naming convention is EDG Naming convention.
-                    string zipFileName = "{0}FAGOS.ZYONT.N0010362.PenFedPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
-                    string zipFilePath = Path.Combine(localReportPath, zipFileName);
+                    zipFileName = "{0}FAGOS.ZYONT.N0010362.PenFedPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                    zipFilePath = Path.Combine(localReportPath, zipFileName);
                     ftpUploadPath = Path.Combine(deliveryUploadPath, zipFileName);
-                    var resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();
+                    resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();
+                    using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                    {
+                        foreach (string filePath in resXmlList)
+                        {
+                            string fileName = Path.GetFileName(filePath);
+                            newFile.CreateEntryFromFile(filePath, fileName);
+                            //After upload change extention as a Complete
+                            File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
+                        }
+                    }
+                    sftSite.UploadFile(zipFilePath, ftpUploadPath);
+                    File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
+                    Thread.Sleep(1000);
+                    break;
+                case "BECU":
+
+                    //NOTE : Below zip file naming convention is EDG Naming convention.
+                    zipFileName = "{0}FAGOS.ZYONT.N0010362.BECUPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                    zipFilePath = Path.Combine(localReportPath, zipFileName);
+                    ftpUploadPath = Path.Combine(deliveryUploadPath, zipFileName);
+                    resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();
                     using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
                     {
                         foreach (string filePath in resXmlList)
@@ -950,7 +973,7 @@ namespace AM.Console
             }
 
             return pdfObgs;
-        } 
+        }
         #endregion
 
         protected override void DisposeManagedObjects()
