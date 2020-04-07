@@ -103,7 +103,23 @@ namespace AM.Console
 
                     //Generate List from CSV 
                     Dictionary<string, List<CapOneData>> caponeClientData = new Dictionary<string, List<CapOneData>>();
-                    List<CapOneData> data = File.ReadAllLines(localCsvFilePath).Skip(1).Select(v => FromCsv(v)).ToList();
+                    var lines = File.ReadAllLines(localCsvFilePath).ToList();
+                    if (lines.Count <= 1)
+                    {
+                        MailUtility.SendUnexpectedExceptionEmail("No records found for received file {0}.csv".Fill(batchName));
+                        if (File.Exists(localCsvFilePath))
+                        {
+                            if (Directory.Exists(Path.Combine(Config.Common_AuthoMailRootFolder, "Archive")))
+                            {
+                                string localArchivePath = Path.Combine(Config.Common_AuthoMailRootFolder, "Archive", "{0}.csv".Fill(batchName));
+                                File.Move(localCsvFilePath, localArchivePath);
+                            }
+                        }
+                        MoveBatchToBackupDir(sftSite, ftpCsvFilePath);
+                        return;
+                    }
+
+                    List<CapOneData> data = lines.Skip(1).Select(v => FromCsv(v)).ToList();
 
                     var clData = data.GroupBy(cl => cl.ClientCode);
                     foreach (var clInfo in clData)
