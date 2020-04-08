@@ -183,8 +183,8 @@ namespace AM.Core
 
                             #region Prepare dictionary of placeholders/tags to fill the PDF template.
                             Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
-                            mailPieceData.Add("FromAddress", fromAddress);
-                            mailPieceData.Add("ToAddress", toAddress);
+                            mailPieceData.Add("FromAddress", fromAddress.Trim());
+                            mailPieceData.Add("ToAddress", toAddress.Trim());
                             mailPieceData.Add("MailPieceId", mailPieceId.ToString());
                             mailPieceData.Add("Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy"));//USAA Specific
                             mailPieceData.Add("Free3OF9Barcode", "*" + mailPiece.Id.ToString() + "*");//Barcode for non-IMBarcode cover letter
