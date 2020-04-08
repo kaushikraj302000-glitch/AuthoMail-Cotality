@@ -100,7 +100,7 @@ namespace AM.Console
                     }
 
                     DownloadBatchCsvFile(sftSite, ftpCsvFilePath, localCsvFilePath);
-
+                    string localArchivePath = Path.Combine(Config.Common_AuthoMailRootFolder, "Archive", "{0}.csv".Fill(batchName));
                     //Generate List from CSV 
                     Dictionary<string, List<CapOneData>> caponeClientData = new Dictionary<string, List<CapOneData>>();
                     var lines = File.ReadAllLines(localCsvFilePath).ToList();
@@ -111,12 +111,15 @@ namespace AM.Console
                         {
                             if (Directory.Exists(Path.Combine(Config.Common_AuthoMailRootFolder, "Archive")))
                             {
-                                string localArchivePath = Path.Combine(Config.Common_AuthoMailRootFolder, "Archive", "{0}.csv".Fill(batchName));
+
+                                if (File.Exists(localArchivePath))
+                                    File.Delete(localArchivePath);
+
                                 File.Move(localCsvFilePath, localArchivePath);
                             }
                         }
                         MoveBatchToBackupDir(sftSite, ftpCsvFilePath);
-                        return;
+                        continue;
                     }
 
                     List<CapOneData> data = lines.Skip(1).Select(v => FromCsv(v)).ToList();
@@ -129,7 +132,12 @@ namespace AM.Console
 
                     bool isAllSuccess = SeparatePackages(caponeClientData, localCsvFilePath, batchName, localCsvDirPath, lastModifiedTime, sftSite);
                     #endregion
+                    //Here after moving all batches to particular client location , archive amc batch
 
+                    if (File.Exists(localArchivePath))
+                        File.Delete(localArchivePath);
+
+                    File.Move(localCsvFilePath, localArchivePath);
                     //Deleting Local Directory 
                     if (Directory.Exists(localCsvDirPath))
                         Directory.Delete(localCsvDirPath, true);
@@ -181,10 +189,18 @@ namespace AM.Console
 
                     if (!Directory.Exists(batchPathByClient))
                     {
+                        Thread.Sleep(1000);
                         log.Info("Directory path was not exist.So creating new directory based on client {0}".Fill(batchPathByClient));
                         Directory.CreateDirectory(batchPathByClient);
                     }
 
+                    if (!Directory.Exists(batchPathByClient))
+                    {
+                        Thread.Sleep(1000);
+                        log.Info("Directory path was not exist.So creating new directory based on client {0}".Fill(batchPathByClient));
+                        Directory.CreateDirectory(batchPathByClient);
+                    }
+                    log.Info("Local Folder is created");
                     //NOTE : Path : {channelDownloadPath}/{localCsvFilePath}.FileNameWithOutExtention/{ClientCode}/{XML}
                     string xmlName = "{0}_{1}".Fill(client.AppCode, lastModifiedTime.ToString("MMddyyyyhhmmss"));
                     var batchUniqueId = Guid.NewGuid();
@@ -263,7 +279,7 @@ namespace AM.Console
 
                     string xmlFilePath = Path.Combine(localCsvDirPath, client.AppCode, "{0}.xml".Fill(xmlName));
                     File.WriteAllText(xmlFilePath, xmlByClient);
-
+                    log.Info("Local XML File is created");
                     mbList.Add(mailBatch);
                 }
                 catch (Exception ex)
@@ -411,11 +427,11 @@ namespace AM.Console
 
         private void MoveBatchToBackupDir(SFTUtil sftSite, string ftpFilePath)
         {
-            string ftpBackUpFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(ftpFilePath));
             if (sftSite.IsFileAvailable(ftpFilePath))
             {
                 if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
                 {
+                    string ftpBackUpFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(ftpFilePath));
                     sftSite.MoveFile(ftpFilePath, ftpBackUpFilePath);
                 }
                 else
