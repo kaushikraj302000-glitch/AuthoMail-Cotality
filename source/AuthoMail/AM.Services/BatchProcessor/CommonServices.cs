@@ -45,6 +45,8 @@ namespace AM.Services
         bool CheckForDuplicateMailPieceUniqueId(Guid mpUniqueId);
         List<DallasNotificationMap> GetDallasNotificationMaps();
         CustomTemplate GetCustomTemplateByDocTypeId(int docTypeId, string communityCode);
+        ShipperInformation GetShipperInformation(int shipperId);
+        ShipperInformation GetShipperInformationByPrintLocation(string printLocation);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -238,9 +240,9 @@ namespace AM.Services
 
         public PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId, DateTime? effectiveReceivedOnEst = null)
         {
-            string query = "SELECT pv.*,CASE WHEN DATEPART(DW,@EffectiveReceivedOnEst)=7 AND pv.VendorCode='NORDIS' THEN 'Las Vegas' ELSE pt.PrintLocation END AS PrintLocation FROM [Common].[PrintTrails] AS pt INNER JOIN  [Common].[PrintVendors] AS pv ON pt.PrintVendorId = pv.Id WHERE pt.Id = @printTrailId";
+            string query = "SELECT pv.*,CASE WHEN DATEPART(DW,@EffectiveReceivedOnEst)=7 AND pv.VendorCode='NORDIS' THEN (SELECT Id FROM Common.ShipperInformation SI WHERE SI.PrintLocation='Las Vegas' AND PrintVendorId = (SELECT Id FROM Common.PrintVendors WHERE VendorCode='NORDIS')) ELSE pt.ShipperId END AS ShipperId FROM [Common].[PrintTrails] pt INNER JOIN  [Common].[PrintVendors] pv ON pt.PrintVendorId = pv.Id WHERE pt.Id = @PrintTrailId";
 
-            return db.QuerySingleOrDefault<PrintVendor>(query, new { printTrailId = printTrailId, EffectiveReceivedOnEst = effectiveReceivedOnEst });
+            return db.QuerySingleOrDefault<PrintVendor>(query, new { PrintTrailId = printTrailId, EffectiveReceivedOnEst = effectiveReceivedOnEst });
         }
 
         public DateTime GetMaximumSubmissionTime(DocType docType, DateTime effectiveReceivedOnEst)
@@ -452,7 +454,7 @@ namespace AM.Services
             //Set print location where mail piece will go for print and ship
             //mailPiece.PrintTrailId = GetPrintTrail(mailPiece.PnSConfigDetailId.Value, mailPiece.EffectiveReceivedOnEst.Value);
             var printVendorDetails = GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value, mailPiece.EffectiveReceivedOnEst);
-            mailPiece.PrintLocation = printVendorDetails.PrintLocation;
+            mailPiece.PrintLocation = GetShipperInformation(printVendorDetails.ShipperId).PrintLocation;
             mailPiece.StdSubmissionTime = GetStandardSubmissionTime(appCode, printVendorDetails.VendorCode, receivedOn, GetSweepTimings());
             mailPiece.MaxSubmissionTime = GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
 
@@ -482,6 +484,20 @@ namespace AM.Services
             string query = "SELECT * FROM [AM].[CustomTemplates] WHERE DocTypeId= @DocTypeId and CommunityCode = @CommunityCode";
 
             return db.QuerySingleOrDefault<CustomTemplate>(query, new { DocTypeId = docTypeId, CommunityCode = communityCode });
+        }
+
+        public ShipperInformation GetShipperInformation(int shipperId)
+        {
+            string query = "SELECT * FROM Common.ShipperInformation WHERE Id=@ShipperId";
+
+            return db.QuerySingleOrDefault<ShipperInformation>(query, new { ShipperId = shipperId });
+        }
+
+        public ShipperInformation GetShipperInformationByPrintLocation(string printLocation)
+        {
+            string query = "SELECT * FROM Common.ShipperInformation WHERE PrintLocation=@PrintLocation";
+
+            return db.QuerySingleOrDefault<ShipperInformation>(query, new { PrintLocation = printLocation });
         }
     }
 }

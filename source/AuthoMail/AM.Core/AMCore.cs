@@ -344,11 +344,11 @@ namespace AM.Core
                             else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                             {
                                 FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
-
+                                ShipperInformation shipperInfo = commonSvc.GetShipperInformationByPrintLocation(mailPiece.PrintLocation);
                                 CreateFedExLabel createFedExLabel = new CreateFedExLabel();
                                 while (attemptCount < Config.Core_NoofTime_AttemptFedexService)
                                 {
-                                    response = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi);
+                                    response = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi, shipperInfo);
                                     if (!response.HasError)
                                     {
                                         coverLetterPdfPaths.Add(response.CoverLetterPath);
@@ -1092,7 +1092,7 @@ namespace AM.Core
                         printBatch.DocTypeId = docType.Id;
                         printBatch.PnSConfigDetailId = docType.PnSConfigDetailId.Value;
                         printBatch.PrintTrailId = printTrailId.Value;
-                        printBatch.PrintLocation = commonSvc.GetPrintVendorDetailsByPrintTrailId(printTrailId.Value).PrintLocation;
+                        printBatch.PrintLocation = commonSvc.GetShipperInformation(commonSvc.GetPrintVendorDetailsByPrintTrailId(printTrailId.Value).ShipperId).PrintLocation;
                         printBatch.MailPieces = filteredMailPiecesDocTypeWise.Where(c => c.PrintTrailId == printTrailId).ToList();
 
                         printBatches.Add(printBatch);
