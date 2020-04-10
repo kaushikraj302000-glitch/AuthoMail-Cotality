@@ -100,7 +100,7 @@ namespace AM.Entities
         public int SFTChannelId { get; set; }
         public string BusinessCode { get; set; }
         public string VendorCode { get; set; }
-        public string PrintLocation { get; set; }
+        public int ShipperId { get; set; }
     }
 
     public class PrintTrail
@@ -110,6 +110,18 @@ namespace AM.Entities
         public bool SimulateTrail { get; set; }
         public int PrintVendorId { get; set; }
         public string PrintVendor { get; set; }
+    }
+
+    public class ShipperInformation
+    {
+        public int Id { get; set; }
+        public int PrintVendorId { get; set; }
+        public string PrintLocation { get; set; }
+        public string PrintVendorName { get; set; }
+        public string PrintVendorStreet { get; set; }
+        public string PrintVendorCity { get; set; }
+        public string PrintVendorState { get; set; }
+        public string PrintVendorZip { get; set; }
     }
 
     public class PnSConfigDetailPrintTrailMap

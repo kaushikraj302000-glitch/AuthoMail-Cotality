@@ -23,7 +23,7 @@ namespace AM.Core
 
         public string GeneratedFedExLabelPath { get; private set; }
 
-        public SmartDocResponse Create(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, MailBatchInfo mbi)
+        public SmartDocResponse Create(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, MailBatchInfo mbi, ShipperInformation shipperInfo)
         {
             SmartDocResponse response = new SmartDocResponse();
             //Here we are assigning No_Error because if we have any general failure or end point exception then we are trying again.
@@ -31,7 +31,7 @@ namespace AM.Core
             mailPiece.ErrorDesc = null;
             mailPiece.ShippingStatus = ShippingStatus.InProgress.ToString();
 
-            ProcessShipmentRequest request = CreateShipmentRequest(mailPiece, fedExAccInfo, docType);
+            ProcessShipmentRequest request = CreateShipmentRequest(mailPiece, fedExAccInfo, docType, shipperInfo);
             // Initialize the service
             ShipPortTypeClient service = new ShipPortTypeClient();
 
@@ -124,11 +124,11 @@ namespace AM.Core
             }
         }
 
-        private ProcessShipmentRequest CreateShipmentRequest(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType)
+        private ProcessShipmentRequest CreateShipmentRequest(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, ShipperInformation shipperInfo)
         {
             // Build the ShipmentRequest
             ProcessShipmentRequest shipRequest = new ProcessShipmentRequest();
-            SetShipmentDetails(shipRequest, mailPiece, fedExAccInfo, docType);
+            SetShipmentDetails(shipRequest, mailPiece, fedExAccInfo, docType, shipperInfo);
             SetPackageLineItems(shipRequest, mailPiece);
 
             if (!string.IsNullOrEmpty(docType.ShippingSpecialService))
@@ -138,7 +138,7 @@ namespace AM.Core
             return shipRequest;
         }
 
-        private void SetShipmentDetails(ProcessShipmentRequest request, MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType)
+        private void SetShipmentDetails(ProcessShipmentRequest request, MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, ShipperInformation shipperInfo)
         {
             request.WebAuthenticationDetail = new WebAuthenticationDetail();
             request.WebAuthenticationDetail.UserCredential = new WebAuthenticationCredential();
@@ -179,13 +179,13 @@ namespace AM.Core
             request.RequestedShipment.PackageDetail = RequestedPackageDetailType.INDIVIDUAL_PACKAGES;
             request.RequestedShipment.PackageDetailSpecified = true;
 
-            SetSender(request, mailPiece);
+            SetSender(request, shipperInfo);
             //
             SetRecipient(request, mailPiece, docType);
             //
             SetPayment(request, fedExAccInfo);
             //
-            SetLabelDetails(request);
+            SetLabelDetails(request, mailPiece);
         }
 
         private void SetPayment(ProcessShipmentRequest request, FedExAccountInfo fedExAccInfo)
@@ -197,7 +197,7 @@ namespace AM.Core
             request.RequestedShipment.ShippingChargesPayment.Payor.CountryCode = Config.Core_CountryCode;
         }
 
-        private void SetLabelDetails(ProcessShipmentRequest request)
+        private void SetLabelDetails(ProcessShipmentRequest request, MailPieceDTO mailPiece)
         {
             request.RequestedShipment.LabelSpecification = new LabelSpecification(); // Label specification
             request.RequestedShipment.LabelSpecification.ImageType = ShippingDocumentImageType.PNG;
@@ -207,6 +207,19 @@ namespace AM.Core
             request.RequestedShipment.LabelSpecification.LabelStockTypeSpecified = true;
             request.RequestedShipment.LabelSpecification.LabelPrintingOrientation = LabelPrintingOrientationType.BOTTOM_EDGE_OF_TEXT_FIRST;
             request.RequestedShipment.LabelSpecification.LabelPrintingOrientationSpecified = true;
+
+            request.RequestedShipment.LabelSpecification.PrintedLabelOrigin = new ContactAndAddress();
+            request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Contact = new Contact();
+            request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Contact.PersonName = string.Format("{0} {1}", mailPiece.RetRcptFirstName, mailPiece.RetRcptLastName);
+            request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Contact.CompanyName = mailPiece.RetRcptOrganization;
+            request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Contact.PhoneNumber = string.IsNullOrEmpty(mailPiece.RcptPhone) ? "0000000000" : mailPiece.RcptPhone;
+
+            request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Address = new ShipWebServiceRef.Address();
+            request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Address.StreetLines = new string[] { mailPiece.RetRcptAddressStreet, mailPiece.RetRcptAddrOptionalLine1BelowStreet, mailPiece.RetRcptAddrOptionalLine2BelowStreet };
+            request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Address.City = mailPiece.RetRcptAddressCity;
+            request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Address.StateOrProvinceCode = mailPiece.RetRcptAddressState;// This always has to be a 2 letter code.
+            request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Address.PostalCode = mailPiece.RetRcptAddressZIP;
+            request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Address.CountryCode = Config.Core_CountryCode;
 
         }
 
@@ -233,19 +246,19 @@ namespace AM.Core
 
         }
 
-        private void SetSender(ProcessShipmentRequest request, MailPieceDTO mailPiece)
+        private void SetSender(ProcessShipmentRequest request, ShipperInformation shipperInfo)
         {
             request.RequestedShipment.Shipper = new Party(); // Sender information
             request.RequestedShipment.Shipper.Contact = new Contact();
-            request.RequestedShipment.Shipper.Contact.PersonName = string.Format("{0} {1}", mailPiece.RetRcptFirstName, mailPiece.RetRcptLastName);
-            request.RequestedShipment.Shipper.Contact.CompanyName = mailPiece.RetRcptOrganization;
-            request.RequestedShipment.Shipper.Contact.PhoneNumber = string.IsNullOrEmpty(mailPiece.RcptPhone) ? "0000000000" : mailPiece.RcptPhone;
+            request.RequestedShipment.Shipper.Contact.PersonName = shipperInfo.PrintVendorName;
+            request.RequestedShipment.Shipper.Contact.CompanyName = shipperInfo.PrintVendorName;
+            request.RequestedShipment.Shipper.Contact.PhoneNumber = "0000000000";
             request.RequestedShipment.Shipper.Address = new ShipWebServiceRef.Address();
-            request.RequestedShipment.Shipper.Address.StreetLines = new string[] { mailPiece.RetRcptAddressStreet, mailPiece.RetRcptAddrOptionalLine1BelowStreet, mailPiece.RetRcptAddrOptionalLine2BelowStreet };
+            request.RequestedShipment.Shipper.Address.StreetLines = new string[] { shipperInfo.PrintVendorStreet };
 
-            request.RequestedShipment.Shipper.Address.City = mailPiece.RetRcptAddressCity;
-            request.RequestedShipment.Shipper.Address.StateOrProvinceCode = mailPiece.RetRcptAddressState;
-            request.RequestedShipment.Shipper.Address.PostalCode = mailPiece.RetRcptAddressZIP;
+            request.RequestedShipment.Shipper.Address.City = shipperInfo.PrintVendorCity;
+            request.RequestedShipment.Shipper.Address.StateOrProvinceCode = shipperInfo.PrintVendorState;
+            request.RequestedShipment.Shipper.Address.PostalCode = shipperInfo.PrintVendorZip;
             request.RequestedShipment.Shipper.Address.CountryCode = Config.Core_CountryCode;
         }
 
