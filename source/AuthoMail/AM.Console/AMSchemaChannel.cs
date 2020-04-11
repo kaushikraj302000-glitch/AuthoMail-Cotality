@@ -1156,8 +1156,8 @@ namespace AM.Console
             if (mailPiece.DocumentOrPackageType.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Document type is not specified in package." };
 
-            if (mailPiece.BusinessFriendlyIdName.IsNullOrWhiteSpace() || mailPiece.BusinessFriendlyIdValue.IsNullOrWhiteSpace())
-                yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_ShippingDetail, ErrorMessage = "Business friendly Id or value is not specified in package." };
+            if (mailPiece.BusinessFriendlyIdName.IsNullOrWhiteSpace())
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_ShippingDetail, ErrorMessage = "Business friendly Id is not specified in package." };
 
             if (mailPiece.FileName.IsNullOrWhiteSpace() && mailPiece.FilePattern.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not provided in package." };
@@ -1165,6 +1165,9 @@ namespace AM.Console
             using (IClientService clientSvc = new ClientService())
             {
                 Client client = clientSvc.GetClientById(mailPiece.ClientId);
+
+                if (mailPiece.BusinessFriendlyIdValue.IsNullOrWhiteSpace() && (client.AppCode != "CAPONE" && client.AppCode != "MTBANK"))
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_ShippingDetail, ErrorMessage = "Business friendly value is not specified in package." };
 
                 if (client.AppCode == "CAPONE" || client.AppCode == "MTBANK")
                 {
