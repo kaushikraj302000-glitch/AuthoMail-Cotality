@@ -29,6 +29,7 @@ namespace AM.Services
         List<FedExReport> GetFedExData(int[] isPickedUp = null);
         string GetAppcodeByClientid(int clientId);
         List<string> GetMonthlyReconDate(int clientId);
+        List<GOSMailPieceData> GetGOSDailyReconReport(DateTime currentDate);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -521,6 +522,12 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
                 dateList.Add(string.Format("{0}/{1}/{2} - {3}/25/{4}", dt.Month, startDate, dt.Year, dt.AddMonths(1).Month, dt.AddMonths(1).Year));
             }
             return dateList;
+        }
+
+        public List<GOSMailPieceData> GetGOSDailyReconReport(DateTime currentDate)
+        {
+            string query = @"SELECT C.AppCode,B.BatchName,dbo.ufn_UTCToEST(B.ReceivedOn)AS ReceivedOnEst,P.BusinessfriendlyIdValue AS LoanNumber,P.DocumentOrPackageType,P.FileName,P.TrackingNo,P.ShippingStatus,P.TotalPages ,dbo.ufn_UTCToEST(ShippedOn) AS ShippedOnEst, P.PrintLocation, P.ErrorDesc FROM AM.MailPieces P INNER JOIN AM.MailBatches B ON P.MailBatchId=B.Id INNER JOIN Common.Clients C ON P.ClientId=C.Id WHERE B.ClientId IN (SELECT Id FROM Common.Clients WHERE Alias='GOS') AND CAST(P.EffectiveReceivedOnEst AS DATE)=@EffectiveReceivedOn";
+            return db.Query<GOSMailPieceData>(query, new { EffectiveReceivedOn = currentDate }).ToList();
         }
     }
 }

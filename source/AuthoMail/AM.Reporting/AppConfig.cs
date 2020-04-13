@@ -38,6 +38,12 @@ namespace AM.Reporting
         public static string USAAWeeklyReportEMailSubject { get; private set; }
         public static string USAAWeeklyReportPath { get; private set; }
 
+        public static string GOSReconEMailTo { get; private set; }
+        public static string GOSReconEMailCc { get; private set; }
+        public static string GOSReconEMailSubject { get; private set; }
+        public static string GOSReceivedBatchEMailSubject { get; private set; }
+        public static string GOSReconReportPath { get; private set; }
+
         static AppConfig()
         {
             DallasEMailTo = ConfigurationManager.AppSettings["DallasEMailTo"].Trim();
@@ -69,6 +75,12 @@ namespace AM.Reporting
             USAAErrorReportPath = ConfigurationManager.AppSettings["USAAErrorReportPath"].Trim();
             USAAWeeklyReportEMailSubject = ConfigurationManager.AppSettings["USAAWeeklyReportEMailSubject"].Trim();
             USAAWeeklyReportPath = ConfigurationManager.AppSettings["USAAWeeklyReportPath"].Trim();
+
+            GOSReconEMailTo = ConfigurationManager.AppSettings["GOSReconEMailTo"].Trim();
+            GOSReconEMailCc = ConfigurationManager.AppSettings["GOSReconEMailCc"].Trim();
+            GOSReconEMailSubject = ConfigurationManager.AppSettings["GOSReconEMailSubject"].Trim();
+            GOSReceivedBatchEMailSubject = ConfigurationManager.AppSettings["GOSReceivedBatchEMailSubject"].Trim();
+            GOSReconReportPath = ConfigurationManager.AppSettings["GOSReconReportPath"].Trim();
         }
     }
 }

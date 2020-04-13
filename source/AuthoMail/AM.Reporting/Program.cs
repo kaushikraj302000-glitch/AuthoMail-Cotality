@@ -36,6 +36,19 @@ namespace AM.Reporting
                 case "DALLASRecon":
                     DALLASReconReport.GenerateDALLASReconReport();
                     break;
+                case "GOS":
+                    switch (args[1])
+                    {
+                        case "ReceivedBatch":
+                            GOSReports.GenerateGOSReceivedBatchReport();
+                            break;
+                        case "Recon":
+                            GOSReports.GenerateGOSReconReport();
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
                 case "USAAReport":
                     switch (args[1])
                     {

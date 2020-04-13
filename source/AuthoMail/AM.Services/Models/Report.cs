@@ -72,6 +72,22 @@ namespace AM.Services
         public string ShippingServiceType { get; set; }
         public bool IsBRE { get; set; }
     }
+
+    public class GOSMailPieceData
+    {
+        public string AppCode { get; set; }
+        public string BatchName { get; set; }
+        public DateTime ReceivedOnEst { get; set; }
+        public string LoanNumber { get; set; }
+        public string DocumentOrPackageType { get; set; }
+        public string FileName { get; set; }
+        public string TrackingNo { get; set; }
+        public int TotalPages { get; set; }
+        public string ShippingStatus { get; set; }
+        public DateTime ShippedOnEst { get; set; }
+        public string PrintLocation { get; set; }
+        public string ErrorDesc { get; set; }
+    }
     public class ReportWizard
     {
         public int MailPieceId { get; set; }
