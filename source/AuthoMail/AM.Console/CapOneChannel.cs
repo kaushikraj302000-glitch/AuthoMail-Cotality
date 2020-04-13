@@ -232,7 +232,7 @@ namespace AM.Console
                         MailPiece mp = new MailPiece()
                         {
                             BusinessFriendlyIdName = "LoanNumber",
-                            BusinessFriendlyIdValue = loanInfo.LoanNumber,
+                            BusinessFriendlyIdValue = loanInfo.LoanNumber.IsNullOrWhiteSpace() ? null : loanInfo.LoanNumber,
                             DocumentOrPackageType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, loanInfo.ClientId.Trim(), 0).DocTypeName,
                             Id = Guid.NewGuid()
                         };
@@ -533,7 +533,14 @@ namespace AM.Console
                         var templateFilePath = Path.Combine(Config.Monitor_CustomTemplateFolder, client.AppCode, customTemplate.CustomTemplatePath);
 
                         Document doc = new Document(templateFilePath);
-                        doc.Range.Replace(new Regex(@"\[LoanNumber\]"), mp.BusinessFriendlyIdValue);
+                        if (mp.BusinessFriendlyIdValue.IsNullOrWhiteSpace())
+                        {
+                            doc.Range.Replace(new Regex(@"\[LoanNumber\]"), "");
+                        }
+                        else
+                        {
+                            doc.Range.Replace(new Regex(@"\[LoanNumber\]"), mp.BusinessFriendlyIdValue);
+                        }
                         doc.Range.Replace(new Regex(@"\[BorrowerFullName\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.FirstName, mp.RecipientInfo.Recipient.LastName).Trim() : "" : "");
                         doc.Range.Replace(new Regex(@"\[BorrowerFullNameReverse\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}, {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).FormattedName() : "" : "");
                         doc.Range.Replace(new Regex(@"\[BorrFName\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}".Fill(mp.RecipientInfo.Recipient.FirstName).Trim() : "" : "");
