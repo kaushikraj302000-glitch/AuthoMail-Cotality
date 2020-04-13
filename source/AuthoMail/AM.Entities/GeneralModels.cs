@@ -103,7 +103,8 @@ namespace AM.Entities
         public const string Missing_DocumentDate = "Missing_DocumentDate";
         public const string Missing_NoticeDate = "Missing_NoticeDate";
         public const string Missing_CommunityName = "Missing_CommunityName";
-        
+        public const string ConsentDeclined = "ConsentDeclined";
+
         public static string GetAMCMappingCode(string amOutcomecode)
         {
             switch (amOutcomecode)
