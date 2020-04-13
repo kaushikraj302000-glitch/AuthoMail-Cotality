@@ -64,7 +64,7 @@ namespace AM.Reporting
                     List<DallasMailPieceData> dallasMailPieces;
                     using (IMailPieceService mailPieceSvc = new MailPieceService())
                     {
-                        dallasMailPieces = mailPieceSvc.GetDallasMailPiecesByTimingsAndClient(batch.Key).OrderByDescending(cl => cl.AppCode).ToList();
+                        dallasMailPieces = mailPieceSvc.GetDallasMailPiecesByTimingsAndClient(batch.Key).Where(mp => mp.MailPieceStatus != ShippingStatus.PulledBack.ToString() || mp.ShippingStatus != ShippingStatus.PulledBack.ToString()).OrderByDescending(cl => cl.AppCode).ToList();
                     }
 
                     if (dallasMailPieces != null)

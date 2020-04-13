@@ -65,6 +65,7 @@ namespace AM.Services
         public DateTime MRDFReqDate { get; set; }
         public string PDFFileName { get; set; }
         public Guid UniqueId { get; set; }
+        public string ShippingStatus { get; set; }
         public string MailPieceStatus { get; set; }
         public DateTime ProcessingTimeStamp { get; set; }
         public string ShippingCarrier { get; set; }
