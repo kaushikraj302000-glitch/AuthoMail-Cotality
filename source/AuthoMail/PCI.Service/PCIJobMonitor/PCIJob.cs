@@ -582,24 +582,34 @@ namespace PCI.Service
 
             foreach (string printVendorCode in vendorCodes)
             {
-                var printVendorDetail = DAL.GetPrintVendorDetailByVendorCode(printVendorCode);
-                List<SubmittedBatches> submittedPrintBatches;
-                submittedPrintBatches = DAL.GetSubmittedBatches(printVendorCode);
-                if (submittedPrintBatches.Count == 0)
+                try
                 {
-                    log.Debug("Print vendor - {0}'s job queue is empty.".Fill(printVendorCode));
+                    var printVendorDetail = DAL.GetPrintVendorDetailByVendorCode(printVendorCode);
+                    List<SubmittedBatches> submittedPrintBatches;
+                    submittedPrintBatches = DAL.GetSubmittedBatches(printVendorCode);
+                    if (submittedPrintBatches.Count == 0)
+                    {
+                        log.Debug("Print vendor - {0}'s job queue is empty.".Fill(printVendorCode));
+                        continue;
+                    }
+
+                    SFTUtil sftSite = new SFTUtil(printVendorDetail.Protocol.ParseEnum<SFT_ProtocolType>(), printVendorDetail.Host, printVendorDetail.UserName, printVendorDetail.Password, 60000);
+
+                    sftSite.Connect();
+
+                    CheckAndDownloadResponseFile(sftSite, submittedPrintBatches, printVendorDetail);
+
+                    sftSite.Disconnect();
+
+                    log.Debug("MRDF download job ended.");
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured while downloading report from Print Vendor {0}'s site".Fill(printVendorCode);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
                     continue;
                 }
-
-                SFTUtil sftSite = new SFTUtil(printVendorDetail.Protocol.ParseEnum<SFT_ProtocolType>(), printVendorDetail.Host, printVendorDetail.UserName, printVendorDetail.Password, 60000);
-
-                sftSite.Connect();
-
-                CheckAndDownloadResponseFile(sftSite, submittedPrintBatches, printVendorDetail);
-
-                sftSite.Disconnect();
-
-                log.Debug("MRDF download job ended.");
             }
         }
 
