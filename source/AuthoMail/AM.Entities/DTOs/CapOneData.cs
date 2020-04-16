@@ -8,6 +8,7 @@ namespace AM.Entities
 {
     public class CapOneData
     {
+        public string FloodCertNumber { get; set; }
         public string BorrowerFirstName { get; set; }
         public string BorrowerLastName { get; set; }
         public string BorrowerStreetAddress { get; set; }

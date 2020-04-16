@@ -231,8 +231,8 @@ namespace AM.Console
                         cnt++;
                         MailPiece mp = new MailPiece()
                         {
-                            BusinessFriendlyIdName = "LoanNumber",
-                            BusinessFriendlyIdValue = loanInfo.LoanNumber.IsNullOrWhiteSpace() ? null : loanInfo.LoanNumber,
+                            BusinessFriendlyIdName = "Flood Cert Number",
+                            BusinessFriendlyIdValue = loanInfo.FloodCertNumber.IsNullOrWhiteSpace() ? null : loanInfo.FloodCertNumber,
                             DocumentOrPackageType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, loanInfo.ClientId.Trim(), 0).DocTypeName,
                             Id = Guid.NewGuid()
                         };
@@ -252,6 +252,7 @@ namespace AM.Console
                         recipientInfo.Address = borrowerAddress;
 
                         List<AM.Entities.Metadata> mpCustInfo = new List<Metadata>();
+                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "LoanNumber", Value = loanInfo.LoanNumber });
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyStreetAddress", Value = loanInfo.PropertyStreetAddress });
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyCity", Value = loanInfo.PropertyCity });
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyState", Value = loanInfo.PropertyState });
@@ -266,7 +267,7 @@ namespace AM.Console
                         mp.CustomInfo = mpCustInfo;
 
                         DocumentOrPackage borrowerDocument = new DocumentOrPackage();
-                        borrowerDocument.Name = "{0}_{1}.pdf".Fill(loanInfo.LoanNumber.Trim(), cnt);
+                        borrowerDocument.Name = "{0}_{1}.pdf".Fill(loanInfo.FloodCertNumber.Trim(), cnt);
 
                         mp.DocumentOrPackage = borrowerDocument;
                         //NOTE : CODE FOR Generating PDFs for selected templates Naming Conventions = {LoanNumber+ +_+{cnt}.pdf                       
@@ -398,6 +399,7 @@ namespace AM.Console
         {
             List<string> values = csvLine.SplitCsv();
             CapOneData caponeValues = new CapOneData();
+            caponeValues.FloodCertNumber = values[0].RemoveCSVStringFormat();
             caponeValues.BorrowerLastName = values[2].RemoveCSVStringFormat();
             caponeValues.BorrowerFirstName = values[3].RemoveCSVStringFormat();
             caponeValues.BorrowerStreetAddress = values[4].RemoveCSVStringFormat();
@@ -533,14 +535,6 @@ namespace AM.Console
                         var templateFilePath = Path.Combine(Config.Monitor_CustomTemplateFolder, client.AppCode, customTemplate.CustomTemplatePath);
 
                         Document doc = new Document(templateFilePath);
-                        if (mp.BusinessFriendlyIdValue.IsNullOrWhiteSpace())
-                        {
-                            doc.Range.Replace(new Regex(@"\[LoanNumber\]"), "");
-                        }
-                        else
-                        {
-                            doc.Range.Replace(new Regex(@"\[LoanNumber\]"), mp.BusinessFriendlyIdValue);
-                        }
                         doc.Range.Replace(new Regex(@"\[BorrowerFullName\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.FirstName, mp.RecipientInfo.Recipient.LastName).Trim() : "" : "");
                         doc.Range.Replace(new Regex(@"\[BorrowerFullNameReverse\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}, {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).FormattedName() : "" : "");
                         doc.Range.Replace(new Regex(@"\[BorrFName\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}".Fill(mp.RecipientInfo.Recipient.FirstName).Trim() : "" : "");
@@ -551,6 +545,14 @@ namespace AM.Console
                         doc.Range.Replace(new Regex(@"\[BorrZip\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.Zip).Trim() : "" : "");
                         if (mp.CustomInfo != null)
                         {
+                            if (mp.CustomInfo.SingleOrDefault(m => m.Key == "LoanNumber").Value.IsNullOrWhiteSpace())
+                            {
+                                doc.Range.Replace(new Regex(@"\[LoanNumber\]"), "");
+                            }
+                            else
+                            {
+                                doc.Range.Replace(new Regex(@"\[LoanNumber\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "LoanNumber").Value);
+                            }
                             doc.Range.Replace(new Regex(@"\[PropStreetAddress\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value);
                             doc.Range.Replace(new Regex(@"\[PropCity\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value);
                             doc.Range.Replace(new Regex(@"\[PropState\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value);
