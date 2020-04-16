@@ -33,7 +33,6 @@ namespace PCI.Service
 
         public static void SubmitBatchToPrintVendor(string pvCode, bool isBundle, List<string> ptNames)
         {
-
             List<string> unprocessedPrintTrails = new List<string>();
 
             var pieceIdFormat = MRDFRequestSchema.Single(f => f.FieldName == "PieceId").DataFormat;
@@ -193,10 +192,6 @@ namespace PCI.Service
 
         private static void InsertStage(string ptName)
         {
-            //For divert primary key issue we are using starting number as 90001
-            int sequenceNo = 90001;
-            PrintTrailBatch ptBatchDetail;
-
             PrintTrailDetail ptDetail = DAL.GetPrintTrailDetailByPrintTrailName(ptName);
 
             if (ptDetail == null)
@@ -212,6 +207,27 @@ namespace PCI.Service
                 log.Debug("SubmitBatchToPrintVendor : Submit Batches job queue is empty for Print Trail {0}".Fill(ptName));
                 return;
             }
+
+            if (ptDetail.VendorCode == "NORDIS")
+            {
+                var mpByDueDate = mpDetails.GroupBy(mp => mp.MailPieceDueDate.Date).ToList();
+
+                foreach (var dueDate in mpByDueDate)
+                {
+                    InsertPrintTrailBatchDetails(dueDate.ToList(), ptDetail, dueDate.Key);
+                }
+            }
+            else
+            {
+                InsertPrintTrailBatchDetails(mpDetails, ptDetail, null);
+            }
+        }
+
+        private static void InsertPrintTrailBatchDetails(List<MailPieceDetail> mpDetails, PrintTrailDetail ptDetail, DateTime? dueDate)
+        {
+            //For divert primary key issue we are using starting number as 90001
+            int sequenceNo = 90001;
+            PrintTrailBatch ptBatchDetail;
 
             ptBatchDetail = new PrintTrailBatch()
             {
@@ -252,7 +268,21 @@ namespace PCI.Service
 
                 if (ptDetail.VendorCode == "NORDIS")
                 {
-                    ptBatchDetail.PrintBatchName = "{0}_{1}_{2}".Fill(ptDetail.BusinessCode, ptBatchDetail.Id, ptDetail.TrailName);
+                    if (ptDetail.TrailName.Contains("FIRSTCLASS"))
+                    {
+                        if (dueDate.Value.Date == Common.EstToday.Date)
+                        {
+                            ptBatchDetail.PrintBatchName = "{0}_{1}_{2}_{3}".Fill(ptDetail.BusinessCode, ptBatchDetail.Id, ptDetail.TrailName, "SAMEDAY");
+                        }
+                        else
+                        {
+                            ptBatchDetail.PrintBatchName = "{0}_{1}_{2}_{3}".Fill(ptDetail.BusinessCode, ptBatchDetail.Id, ptDetail.TrailName, "NEXTDAY");
+                        }
+                    }
+                    else
+                    {
+                        ptBatchDetail.PrintBatchName = "{0}_{1}_{2}".Fill(ptDetail.BusinessCode, ptBatchDetail.Id, ptDetail.TrailName);
+                    }
                 }
                 else
                 {
