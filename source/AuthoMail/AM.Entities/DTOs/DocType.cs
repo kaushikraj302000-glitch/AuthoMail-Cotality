@@ -81,9 +81,6 @@ namespace AM.Entities
         public TimeSpan? SunEndTime { get; set; }
         public int PrintTrailId { get; set; }
         public string PrintLocation { get; set; }
-        public string MaxBizdayCutOff { get; set; }
-        public string MaxSatCutOff { get; set; }
-        public string MaxSunCutOff { get; set; }
     }
 
     public class PnSConfigDetailCoverLetter

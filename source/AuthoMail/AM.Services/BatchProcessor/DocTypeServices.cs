@@ -99,7 +99,7 @@ namespace AM.Services
 
             if (dayOfWeek == DayOfWeek.Sunday)
             {
-                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.MaxSunCutOff).First().MaxSunCutOff;
+                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.SunCutOff).First().SunCutOff;
 
                 if (maxDocTypeCutOffTime.IsNullOrWhiteSpace())
                 {
@@ -109,7 +109,7 @@ namespace AM.Services
             }
             else if (dayOfWeek == DayOfWeek.Saturday)
             {
-                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.MaxSatCutOff).First().MaxSatCutOff;
+                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.SatCutOff).First().SatCutOff;
                 if (maxDocTypeCutOffTime.IsNullOrWhiteSpace())
                 {
                     estReceivedOn = estReceivedOn.Date.AddDays(1);
@@ -117,7 +117,7 @@ namespace AM.Services
                 }
             }
             else
-                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.MaxBizdayCutOff).First().MaxBizdayCutOff;
+                maxDocTypeCutOffTime = docTypeList.OrderByDescending(dt => dt.BizdayCutOff).First().BizdayCutOff;
 
             var maxCutOffDateTimeEst = estReceivedOnDate + TimeSpan.Parse(maxDocTypeCutOffTime);
 
