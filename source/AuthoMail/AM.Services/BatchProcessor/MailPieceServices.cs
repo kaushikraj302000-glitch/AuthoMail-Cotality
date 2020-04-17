@@ -30,6 +30,9 @@ namespace AM.Services
         BatchResponse GetMailPieceDetailsByMailPieceUniqueId(string uniqueId);
         List<MBInfo> GetReportedBackRecordsFromUATBridge();
         List<MBInfo> GetPnSReportedBackRecordsFromUATBridge();
+        List<MBInfo> GetReportedBackAMRecordsFromUATBridge();
+        List<MBInfo> GetReportedBackPnSRecordsFromUATBridge();
+        int DeletePrintBatchDetails(int printBatchId);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -230,6 +233,38 @@ where MP.UniqueId = @UniqueId
 
             var data = db.Query<MBInfo>(query).ToList();
             return data;
+        }
+
+        public List<MBInfo> GetReportedBackAMRecordsFromUATBridge()
+        {
+            string query = @"select B.Id AS MailBatchId,C.AppCode from AM.mailBatches B INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE B.PipelineStatus='ReportedBack' AND B.BatchName NOT LIKE 'UAT%' AND B.ReceivedOn >='2019-06-01'  AND B.ReceivedOn <'2019-12-01'";
+
+            var data = db.Query<MBInfo>(query).ToList();
+            return data;
+        }
+
+        public List<MBInfo> GetReportedBackPnSRecordsFromUATBridge()
+        {
+            string query = @"SELECT BS.PrintBatch AS MailBatchId,C.AppCode FROM PnS.BatchSummary BS INNER JOIN Common.Clients C ON BS.ClientId=C.Id WHERE BS.BatchIdentifier IN (SELECT UniqueId FROM AM.PrintBatches WHERE MailBatchId IN (select B.Id from AM.mailBatches B INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE B.PipelineStatus='ReportedBack' AND B.BatchName NOT LIKE 'UAT%' AND B.ReceivedOn >='2019-06-01'  AND B.ReceivedOn <'2019-12-01')) AND BS.IsReportedBack=1";
+
+            var data = db.Query<MBInfo>(query).ToList();
+            return data;
+        }
+
+        public int DeletePrintBatchDetails(int printBatchId)
+        {
+            string query = @"UPDATE AM.MailPieces SET PrintBatchId=NULL WHERE PrintBatchId=@PrintBatchId";
+
+            var retVal = db.Execute(query, new { PrintBatchId = printBatchId });
+
+            if (retVal == 1)
+            {
+                query = @"DELETE FROM AM.PrintBatches WHERE Id=@PrintBatchId";
+
+                retVal = db.Execute(query, new { PrintBatchId = printBatchId });
+            }
+
+            return retVal;
         }
     }
 }
