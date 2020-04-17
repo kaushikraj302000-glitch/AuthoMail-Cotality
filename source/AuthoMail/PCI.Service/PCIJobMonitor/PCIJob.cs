@@ -210,7 +210,7 @@ namespace PCI.Service
 
             if (ptDetail.VendorCode == "NORDIS")
             {
-                var mpByDueDate = mpDetails.GroupBy(mp => mp.MailPieceDueDate.Date).ToList();
+                var mpByDueDate = mpDetails.GroupBy(mp => Common.UtcToEst(mp.MailPieceDueDate).Date).ToList();
 
                 foreach (var dueDate in mpByDueDate)
                 {
