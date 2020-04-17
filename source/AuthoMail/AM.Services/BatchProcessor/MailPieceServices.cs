@@ -32,6 +32,7 @@ namespace AM.Services
         List<MBInfo> GetPnSReportedBackRecordsFromUATBridge();
         List<MBInfo> GetReportedBackAMRecordsFromUATBridge();
         List<MBInfo> GetReportedBackPnSRecordsFromUATBridge();
+        int DeletePrintBatchDetails(int printBatchId);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -248,6 +249,22 @@ where MP.UniqueId = @UniqueId
 
             var data = db.Query<MBInfo>(query).ToList();
             return data;
+        }
+
+        public int DeletePrintBatchDetails(int printBatchId)
+        {
+            string query = @"UPDATE AM.MailPieces SET PrintBatchId=NULL WHERE PrintBatchId=@PrintBatchId";
+
+            var retVal = db.Execute(query, new { PrintBatchId = printBatchId });
+
+            if (retVal == 1)
+            {
+                query = @"DELETE FROM AM.PrintBatches WHERE Id=@PrintBatchId";
+
+                retVal = db.Execute(query, new { PrintBatchId = printBatchId });
+            }
+
+            return retVal;
         }
     }
 }

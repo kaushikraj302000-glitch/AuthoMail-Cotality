@@ -1105,7 +1105,6 @@ namespace AM.Core
                 {
                     //Insert data into PrintBatches table and update PrintBatchId in MailPieces table
                     printBatchData.Id = mailBatchSvc.InsertPrintBatchDetails(printBatchData);
-
                     //Batch naming convention will be AppCode_PrintBatchId for Batch folder, XML and Go file
                     string batchName = "{0}_{1}".Fill(printBatchData.AppCode, printBatchData.Id);
                     string xmlFileName = batchName + ".xml";
@@ -1114,44 +1113,64 @@ namespace AM.Core
                     string remoteXMLPath = Path.Combine(pnsRootFolder, printBatchData.AppCode, xmlFileName);
                     string remoteGOPath = Path.Combine(pnsRootFolder, printBatchData.AppCode, goFileName);
                     string remoteBatchPath = Path.Combine(pnsRootFolder, printBatchData.AppCode, batchName);
-
-                    remoteBatchPath.CleanDirectory();
-
                     PnSRequest request = new PnSRequest();
-                    request.AppCode = printBatchData.AppCode;
-                    request.BatchIdentifier = printBatchData.UniqueId;
-                    request.BatchName = batchName;
-                    request.DocTypeId = printBatchData.DocTypeId;
-                    request.PnSConfigDetailId = printBatchData.PnSConfigDetailId;
-                    request.PrintTrailId = printBatchData.PrintTrailId;
-                    request.DueDate = printBatchData.MailPieces.OrderBy(x => x.DueDate).Select(x => x.DueDate).Distinct().First().Value.Date;
-                    request.PrintLocation = printBatchData.PrintLocation;
-                    request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
-
-                    List<MailPieceData> mailPackage = new List<MailPieceData>();
-                    foreach (var piece in printBatchData.MailPieces)
+                    try
                     {
-                        string batchPnSRequestPath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatchData.AppCode, piece.MailBatchId.ToString(), "PnSRequest");
-                        string fileName = "{0}_{1}".Fill(piece.Id, piece.FileName);
-                        string localFilePath = Path.Combine(batchPnSRequestPath, fileName);
-                        string remoteFilePath = Path.Combine(remoteBatchPath, fileName);
+                        remoteBatchPath.CleanDirectory();
+                        request.AppCode = printBatchData.AppCode;
+                        request.BatchIdentifier = printBatchData.UniqueId;
+                        request.BatchName = batchName;
+                        request.DocTypeId = printBatchData.DocTypeId;
+                        request.PnSConfigDetailId = printBatchData.PnSConfigDetailId;
+                        request.PrintTrailId = printBatchData.PrintTrailId;
+                        request.DueDate = printBatchData.MailPieces.OrderBy(x => x.DueDate).Select(x => x.DueDate).Distinct().First().Value.Date;
+                        request.PrintLocation = printBatchData.PrintLocation;
+                        request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
 
-                        File.Copy(localFilePath, remoteFilePath, true);
+                        List<MailPieceData> mailPackage = new List<MailPieceData>();
+                        foreach (var piece in printBatchData.MailPieces)
+                        {
+                            string batchPnSRequestPath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatchData.AppCode, piece.MailBatchId.ToString(), "PnSRequest");
+                            string fileName = "{0}_{1}".Fill(piece.Id, piece.FileName);
+                            string localFilePath = Path.Combine(batchPnSRequestPath, fileName);
+                            string remoteFilePath = Path.Combine(remoteBatchPath, fileName);
 
-                        MailPieceData mailPieceData = new MailPieceData();
-                        mailPieceData.UniqueId = piece.UniqueId;
-                        mailPieceData.TotalPages = piece.TotalPages;
-                        mailPieceData.PerformQC = piece.IsQCRequested;
-                        mailPieceData.PDFFileName = fileName;
-                        mailPackage.Add(mailPieceData);
+                            File.Copy(localFilePath, remoteFilePath, true);
+
+                            MailPieceData mailPieceData = new MailPieceData();
+                            mailPieceData.UniqueId = piece.UniqueId;
+                            mailPieceData.TotalPages = piece.TotalPages;
+                            mailPieceData.PerformQC = piece.IsQCRequested;
+                            mailPieceData.PDFFileName = fileName;
+                            mailPackage.Add(mailPieceData);
+                        }
+                        request.MailPackageData = mailPackage;
+                 
+                        File.WriteAllText(remoteXMLPath, request.ToXml());
+                        File.WriteAllText(remoteGOPath, "");
+
+                        commonSvc.UpdatePrintBatchStatus(printBatchData.Id, AM.Entities.BatchStatus.InProgress.ToString());
+                        commonSvc.UpdatePrintBatchPipeLineStatus(printBatchData.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
                     }
-                    request.MailPackageData = mailPackage;
+                    catch (Exception ex)
+                    {
+                        var msg = "Error occured while generating PnSService batch for MailBatchId {0} and PrintBatchId {1} <br/> Error Message <br/>{2}".Fill(mailBatchData.MailBatch.Id, printBatchData.Id, ex);
+                        log.Error(msg, ex);
 
-                    File.WriteAllText(remoteXMLPath, request.ToXml());
-                    File.WriteAllText(remoteGOPath, "");
+                        SendUnexpectedExceptionEmail(msg);
 
-                    commonSvc.UpdatePrintBatchStatus(printBatchData.Id, AM.Entities.BatchStatus.InProgress.ToString());
-                    commonSvc.UpdatePrintBatchPipeLineStatus(printBatchData.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
+                        if (Directory.Exists(remoteBatchPath))
+                            Directory.Delete(remoteBatchPath, true);
+
+                        if (File.Exists(remoteXMLPath))
+                            File.Delete(remoteXMLPath);
+
+                        if (File.Exists(remoteGOPath))
+                            File.Delete(remoteGOPath);
+
+                        mailPieceSvc.DeletePrintBatchDetails(printBatchData.Id);
+                        continue;
+                    }
                 }
             }
         }
