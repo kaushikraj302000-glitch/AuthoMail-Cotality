@@ -172,7 +172,7 @@ namespace PCI.Service
                 return;
             //NOTE : System will ignore all the RJ codes from the response file which starts from IV_ OR RJ_.
             var packageReports = printResponse.PackageReports.Except(printResponse.PackageReports.Where(mp => mp.PrintStatus == PrintStatus.Error && (mp.ErrorCode.Contains("IV_") || mp.ErrorCode.Contains("RJ_"))));
-            foreach (var res in printResponse.PackageReports)
+            foreach (var res in packageReports)
             {
                 int pieceId = GetRequestPieceId(printResponse.JobId, res.PieceId);
                 var sql = @"DELETE FROM [PnS].[MRDFResponse] Where JobId=@p1 and PieceId=@p2";
