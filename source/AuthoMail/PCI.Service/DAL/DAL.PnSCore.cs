@@ -351,6 +351,7 @@ namespace PCI.Service
                     BREEnvelopeName = row.Field<string>("BREEnvelopeName"),
                     BREDesc = row.Field<string>("BREDesc"),
                     BREPartNo = row.Field<string>("BREPartNo"),
+                    PackageCode = row.Field<string>("PackageCode"),
                     //Extra Properties to map for MRDF Request
                     InputWeight = row.Field<string>("InputWeight"),
                     Feeder3_Sel = row.Field<string>("Feeder3_Sel"),
