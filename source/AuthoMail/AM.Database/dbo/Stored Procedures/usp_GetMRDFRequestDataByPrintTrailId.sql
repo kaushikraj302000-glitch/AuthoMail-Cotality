@@ -17,7 +17,7 @@ BEGIN
  INNER JOIN Common.Clients C ON C.Id=BS.ClientId
  LEFT OUTER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id
  LEFT OUTER JOIN Common.Envelopes BE ON D.BREEnvelopeId=BE.Id
- WHERE BS.PipelineStatus='Prepped' AND  IsPrepped = 1 AND IsSubmitted = 0 
+ WHERE BS.PipelineStatus='Prepped' AND  IsPrepped = 1 AND IsSubmitted = 0 AND REQ.PrintTrailBatchId IS NULL
  AND BS.PrintTrailId=@printTrailId
 	
 END

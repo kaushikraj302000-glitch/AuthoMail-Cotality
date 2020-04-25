@@ -34,7 +34,7 @@ BEGIN
  BEGIN
    SELECT REQ.*,MP.Id AS MailPieceId,MP.EffectiveReceivedOnEst, BS.ClientId,BS.DocTypeId,PCD.ShippingCarrier,
   PCD.ShippingServiceType,C.AppCode,CASE WHEN C.Alias IS NULL OR C.Alias='' THEN C.AppCode ELSE C.Alias END AS Alias,MP.DueDate AS MailPieceDueDate,PCD.EnvelopeId,d.BREEnvelopeId,E.EnvelopeName,BE.EnvelopeName AS BREEnvelopeName
-  ,E.PartNumber AS EnvelopePartNo,BE.PartNumber AS BREPartNo,E.EnvelopeName AS EnvelopeDesc,BE.EnvelopeName AS BREDesc,PCD.PrintFormat,PCD.PrintSize
+  ,E.PartNumber AS EnvelopePartNo,BE.PartNumber AS BREPartNo,E.EnvelopeName AS EnvelopeDesc,BE.EnvelopeName AS BREDesc,PCD.PrintFormat,PCD.PrintSize,E.EnvelopeDesc AS PackageCode
   FROM PnS.MRDFRequest REQ
   INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
   LEFT OUTER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
