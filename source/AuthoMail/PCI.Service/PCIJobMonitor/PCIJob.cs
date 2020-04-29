@@ -464,7 +464,7 @@ namespace PCI.Service
                             PrintFormat = package.PrintFormat.ParseEnum<PrintFormat>(),
                             BREPartNo = package.BREPartNo,
                             BREDesc = package.BREDesc,
-                            PackageCode = package.PackageCode,
+                            EnvelopePartNumber = package.EnvelopePartNo,
                             QCReqd = package.DivertVS3 == 1 ? true : false,
                         });
 

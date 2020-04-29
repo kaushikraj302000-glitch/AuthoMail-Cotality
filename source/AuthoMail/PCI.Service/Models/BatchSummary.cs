@@ -132,7 +132,6 @@ namespace PCI.Service
         public string BREPartNo { get; set; }
         public string EnvelopeDesc { get; set; }
         public string BREDesc { get; set; }
-        public string PackageCode { get; set; }
         public string PrintSize { get; set; }
         public string PrintFormat { get; set; }
 
