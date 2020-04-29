@@ -540,7 +540,7 @@ namespace AM.Console
                 case "BECU":
 
                     //NOTE : Below zip file naming convention is EDG Naming convention.
-                    zipFileName = "{0}FAGOS.ZYONT.N0010362.BECUPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                    zipFileName = "{0}FAGOS.ZYONT.N0010376.BECUPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
                     zipFilePath = Path.Combine(localReportPath, zipFileName);
                     ftpUploadPath = Path.Combine(deliveryUploadPath, zipFileName);
                     resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();
