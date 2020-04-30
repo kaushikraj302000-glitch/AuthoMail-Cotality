@@ -1209,6 +1209,11 @@ namespace PCI.Service
             var req = reqMRDF.Single(row => row.Field<int>("PieceId") == pieceId);
             var res = resMRDF.Single(row => row.Field<int>("PieceId") == pieceId);
 
+            if (res == null)
+            {
+                return "";
+            }
+
             var errors = ValidatePrintVendorResponse(req, res, submittedOn).ToList();
 
             if (errors.Count > 0)
