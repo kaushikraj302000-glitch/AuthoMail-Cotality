@@ -1145,7 +1145,7 @@ namespace AM.Core
                             mailPackage.Add(mailPieceData);
                         }
                         request.MailPackageData = mailPackage;
-                 
+
                         File.WriteAllText(remoteXMLPath, request.ToXml());
                         File.WriteAllText(remoteGOPath, "");
 
@@ -1578,6 +1578,10 @@ namespace AM.Core
                             using (IGeneralService generalSvc = new GeneralService())
                             {
                                 var filteredMPs = mailPieces.Where(m => (m.ShippingStatus == ShippingStatus.PulledBack.ToString() && m.PrintBatchId == null) || (m.ShippingStatus == ShippingStatus.Error.ToString())).ToList();
+
+                                if (filteredMPs.Count == 0)
+                                    return true;
+
                                 string responseReport = generalSvc.GeneralXMLReport(filteredMPs, mbi.MailBatch, mbi.Client.AppCode);
 
                                 if (!string.IsNullOrWhiteSpace(responseReport))
