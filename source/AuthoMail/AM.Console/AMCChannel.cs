@@ -58,7 +58,7 @@ namespace AM.Console
                 try
                 {
                     string triggerFilePath = Path.Combine(SFTChannel.ToADEDir, triggerFile + "_Complete.go");
-
+                    log.Debug("Trigger File {0} Processing Started.".Fill(triggerFile));
                     //Download and Insert the batch in database first always.
                     string batchName = triggerFile;
 
@@ -121,6 +121,8 @@ namespace AM.Console
                     #endregion
 
                     SeparateAMCBatchClientWise(xmlFilePath, localZipFilePath, batchName, amcDownloadPath, lastModifiedTime, sftSite);
+
+                    log.Debug("Trigger File {0} Processing Completed.".Fill(triggerFile));
                 }
                 catch (Exception ex)
                 {
@@ -438,6 +440,7 @@ namespace AM.Console
             if (availableTriggerFilePaths != null && availableTriggerFilePaths.Count > 0)
             {
                 log.Debug(string.Format("{0} trigger file(s) found.", availableTriggerFilePaths.Count));
+                log.Debug(string.Format("{0} trigger file(s) found.", string.Join(",", availableTriggerFilePaths)));
             }
             else
             {
