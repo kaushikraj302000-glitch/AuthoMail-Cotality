@@ -31,6 +31,7 @@ namespace AM.Services
         int UpdateUSPSeVSRecords(int Id);
 
         List<MPAddress> GetMailPiecesWithLast6Month();
+        List<MPAddress> GetMailPiecesForReprocessCoverLetter(DateTime receivedDateEst);
     }
 
     public class PrintBatchReporting
@@ -172,6 +173,12 @@ namespace AM.Services
             string q = @"select RcptAddressStreet, RcptAddrOptionalLine1BelowStreet,RcptAddressCity,RcptAddressState,RcptAddressZIP,ClientId,UniqueId FROM AM.MailPieces WHERE ShippingStatus='Shipped' AND EffectiveReceivedOnEst >='2019-10-01' AND EffectiveReceivedOnEst <'2020-04-01'";
             return db.Query<MPAddress>(q).ToList();
         }
+
+        public List<MPAddress> GetMailPiecesForReprocessCoverLetter(DateTime receivedDateEst)
+        {
+            string q = @"SELECT P.clientId,P.Id,P.UniqueId,P.FileName,P.TrackingNo,P.RcptFirstName,P.RcptLastName, P.RcptAddressStreet, P.RcptAddrOptionalLine1BelowStreet,P.RcptAddressCity,P.RcptAddressState,P.RcptAddressZIP,REQ.JobId AS PnSJobId,REQ.PDFFileName FROM AM.MailPieces P INNER JOIN PnS.MRDFRequest REQ ON P.UniqueId=REQ.UniqueId WHERE ClientId=101 AND P.TotalSheets>=1 AND P.TotalSheets<=7 AND PrintLocation='Fort Mill, SC' AND EffectiveReceivedOnEst >=@EffectiveReceivedOnEst";
+            return db.Query<MPAddress>(q, new { EffectiveReceivedOnEst = receivedDateEst }).ToList();
+        }
     }
     public class Recal
     {
@@ -200,7 +207,13 @@ namespace AM.Services
     public class MPAddress
     {
         public int clientId { get; set; }
+        public int Id { get; set; }
+        public int PnSJobId { get; set; }
         public Guid UniqueId { get; set; }
+        public string PDFFileName { get; set; }
+        public string TrackingNo { get; set; }
+        public string RcptFirstName { get; set; }
+        public string RcptLastName { get; set; }
         public string RcptAddressStreet { get; set; }
         public string RcptAddrOptionalLine1BelowStreet { get; set; }
         public string RcptAddressCity { get; set; }
