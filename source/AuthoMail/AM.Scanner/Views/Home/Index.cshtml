@@ -2,8 +2,31 @@
     ViewBag.Title = "Home Page";
 }
 <link href="~/Content/module.admin.page.index.min.css" rel="stylesheet" />
-
+<link href="~/Content/dataTables.bootstrap.css" rel="stylesheet" />
 <style>
+
+    tr.hide-table-padding td {
+        padding: 0;
+    }
+
+    .expand-button {
+        position: relative;
+    }
+
+    .accordion-toggle .expand-button:after {
+        position: absolute;
+        left: .75rem;
+        top: 50%;
+        transform: translate(0, -50%);
+        -webkit-transition: all 0.5s ease-in-out;
+    }
+
+
+    .accordion-toggle:hover {
+        cursor: pointer;
+    }
+
+
     .clientCode {
         font-size: 12px;
     }
@@ -101,144 +124,51 @@
         }
 </style>
 
-<div class="row">
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>Production Status</th>
-                    <th>Client Name</th>
-                    <th>Package Counts</th>
-                    <th>View Report</th>
-                </tr>
-            </thead>
-            <tbody>
-                @{
-                    string[] ClientList = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split(',');
-
-                    foreach (var client in ClientList)
-                    {
+<section class="container" style="margin-top:3%;">
+    <div class="col-md-12">
+        <div class="panel">
+            <div class="panel-body ">
+                <table class="table table-bordered table-condensed" style="margin-bottom:5px;">
+                    <thead>
                         <tr>
-                            <td>Production</td>
-                            <td>@client</td>
-                            <td>Package</td>
-                            <td><a href="~/Reports/ScanedDocuments?clientCode=@(client)" class="btn btn-link">View Report</a></td>
+                            <th>Production Status</th>
+                            <th>Client Name</th>
+                            <th>Package Counts</th>
+                            <th>View Report</th>
                         </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
+                    </thead>
+                    <tbody>
+                        @{
+                            string[] ClientList = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split(',');
 
-</div>
-<div class="innerAll spacing-x2">
-    <div class="row">
-        @{
-            //string[] colorcode = { "primary", "info", "inverse", "warning" };
-            string[] colorcode = { "warning", "success", "info", "warning" };
-            string[] ClientListWithName = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split(',');
-            List<AM.Scanner.Models.ClientDetails> clientdetailsList = new List<AM.Scanner.Models.ClientDetails>();
-            for (int i = 0; i < ClientListWithName.Length; i++)
-            {
-                AM.Scanner.Models.ClientDetails clientdetail = new AM.Scanner.Models.ClientDetails();
-                clientdetail.ClientName = ClientListWithName[i].ToString();
-                clientdetail.ClientCode = ClientListWithName[i].ToString();
-                clientdetailsList.Add(clientdetail);
-            }
-            string[] clientCodeList = new string[ClientListWithName.Length];
-            int cnt = ClientListWithName.Length;
-            string usecls = "";
-            //string color = "";
-            if (cnt == 1)
-            {
-                usecls = "col-md-12";
-            }
-            if (cnt == 2)
-            {
-                usecls = "col-md-6";
-            }
-            if (cnt == 3)
-            {
-                usecls = "col-md-4";
-            }
-            if (cnt > 3)
-            {
-                usecls = "col-md-3";
-            }
-            int cntbox = 0, x = 0, c = 0;
-            // bool Iscodestartend = true;
-
-            foreach (var item in clientdetailsList)
-            {
-                clientCodeList[cntbox] = item.ClientCode.Trim();
-                cntbox++;
-
-                <div class="@usecls">
-                    <div id="ProductionStatusDiv@(item.ClientCode.Trim())"></div>
-                    <div class="panel-3d">
-
-                        <div class="front">
-
-                            <div class="widget text-center">
-                                <div class="widget-body padding-none">
-                                    <div>
-                                        @*<a href="~/Scan/Index?clientCode=@item.ClientCode">  </a>*@
-                                        <div class="innerAll bg-@colorcode[x]">
-                                            <p id="box@(cntbox)" class="lead strong margin-none">
-                                                @item.ClientName
-                                            </p>
-                                            <p><strong id="@(item.ClientCode.Trim())scanCount" class="text-large">0/0</strong></p>
-                                            <div class="text-center" id="displaycount@(item.ClientCode.Trim())">
-                                            </div>
+                            foreach (var client in ClientList)
+                            {
+                                <tr>
+                                    <td><div id="ProductionStatusDiv@(client.Trim())"><div class="label label-info text-center"><b>No Production</b></div></div></td>
+                                    <td>@client</td>
+                                    <td class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#accordion@(client)" href="#collapse@(client)">
+                                        <p><strong id="@(client.Trim())scanCount" class="">0/0</strong></p>
+                                    </td>
+                                    <td><a href="~/Reports/ScanedDocuments?clientCode=@(client)" class="btn-link">View Report</a></td>
+                                </tr>
+                                <tr class="hide-table-padding">
+                                    <td colspan="4" class="collapse" id="collapse@(client)">
+                                        <div class="text-center" id="displaycount@(client.Trim())">
                                         </div>
-
-                                        <div class="reportLink bg@colorcode[x] topbordernone">
-                                            <a href="~/Reports/ScanedDocuments?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">View Report</a>
-                                            @*<a href="~/Scan/Index?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">Start Scan</a>*@
-                                            @*<a href="~/Scan/USPSScan?clientCode=@(item.ClientCode)" class="btn btn-@colorcode[x]">USPS Scan</a>*@
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-
-                if (c < 3)
-                {
-                    x++;
-                    c++;
-                }
-                else
-                {
-                    if (c == 3)
-                    {
-                        x = 3;
-                        c++;
-                    }
-                    else
-                    {
-                        x--;
-                    }
-                    if (x == 0)
-                    {
-                        c = 0;
-                    }
-                }
-
-
-
-            }
-
-            <input type="hidden" name="ClientCodeList" id="ClientCodeList" value="@string.Join(" ,",clientCodeList)" />
-
-            <div class="clearfix"></div>
-        }
+                                    </td>
+                                </tr>
+                            }
+                            <tr>
+                                <td colspan="4" style="padding:0px;"></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-</div>
+</section>
+<input type="hidden" name="ClientCodeList" id="ClientCodeList" value="@string.Join(" ,",ClientList)" />
 <!-- Global -->
 <script src="~/Scripts/jquery-1.10.2.js"></script>
 <script src="~/Scripts/modernizr.js"></script>
@@ -358,23 +288,23 @@
                         //$("#displaycount" + clientCode).append("<pre data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[j].BatchName + "'  class='pull-right preclass'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
                     }
                 }
-                if (clientCode == 'USAA' || clientCode == 'AUTUSAA') {
-                    var btName = "USAA Adverse Action 07PM";
-                    $("#displaycount" + clientCode).append("<a href='Scan/SingleScan?clientCode=" + clientCode + "&batchName=07PM'><pre  class='pull-right preclass'><strong class='text-larger'>" + btName + "</></strong></pre></a>");
-                    btName = "USAA Adverse Action Backlog";
-                    $("#displaycount" + clientCode).append("<a href='Scan/SingleScan?clientCode=" + clientCode + "&batchName=Backlog'><pre  class='pull-right preclass' style='" + backlogbg + "'><strong class='text-larger'>" + btName + "</></strong></pre></a>");
-                }
+                //if (clientCode == 'USAA' || clientCode == 'AUTUSAA') {
+                //    var btName = "USAA Adverse Action 07PM";
+                //    $("#displaycount" + clientCode).append("<a href='Scan/SingleScan?clientCode=" + clientCode + "&batchName=07PM'><pre  class='pull-right preclass'><strong class='text-larger'>" + btName + "</></strong></pre></a>");
+                //    btName = "USAA Adverse Action Backlog";
+                //    $("#displaycount" + clientCode).append("<a href='Scan/SingleScan?clientCode=" + clientCode + "&batchName=Backlog'><pre  class='pull-right preclass' style='" + backlogbg + "'><strong class='text-larger'>" + btName + "</></strong></pre></a>");
+                //}
 
                 $("#displaycount" + clientCode).append("<div class='clearfix'></div>");
                 $('[data-toggle="tooltip"]').tooltip();
     }
 
     function isProductionIncomplete(isMsgShow, client) {
-        //console.log(isMsgShow + "|" + client);
+        console.log(isMsgShow + "|" + client);
         if (isMsgShow == 1) {
-            $('#ProductionStatusDiv' + client).html('<div class="alert alert-danger text-center"><b>Production Incomplete</b></div>');
+            $('#ProductionStatusDiv' + client).html('<div class="label label-danger text-center"><b>Production Incomplete</b></div>');
         } else {
-            $('#ProductionStatusDiv' + client).html('');
+            $('#ProductionStatusDiv' + client).html('<div class="label label-success text-center"><b>Production Completed</b></div>');
         }
     }
 
