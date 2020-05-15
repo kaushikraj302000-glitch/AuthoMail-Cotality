@@ -101,6 +101,36 @@
         }
 </style>
 
+<div class="row">
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Production Status</th>
+                    <th>Client Name</th>
+                    <th>Package Counts</th>
+                    <th>View Report</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    string[] ClientList = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split(',');
+
+                    foreach (var client in ClientList)
+                    {
+                        <tr>
+                            <td>Production</td>
+                            <td>@client</td>
+                            <td>Package</td>
+                            <td><a href="~/Reports/ScanedDocuments?clientCode=@(client)" class="btn btn-link">View Report</a></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>
 <div class="innerAll spacing-x2">
     <div class="row">
         @{
