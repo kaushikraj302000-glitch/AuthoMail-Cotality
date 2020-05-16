@@ -147,14 +147,15 @@ namespace AM.Scanner.Controllers
         private List<string> BuildOrder(List<string> batches)
         {
             var dict = new Dictionary<string, TimeSpan>();
+            var list = new List<string>() { "Backlog" };
+
             foreach (var batch in batches.Where(b => b != "Backlog"))
             {
                 DateTime dateTime = DateTime.ParseExact(batch,
                                     "hhtt", CultureInfo.InvariantCulture);
                 dict.Add(batch, dateTime.TimeOfDay);
             }
-            var list = dict.OrderBy(d => d.Value).Select(d => d.Key).ToList();
-            list.Add("Backlog");
+            list = dict.OrderBy(d => d.Value).Select(d => d.Key).ToList();
             return list;
 
         }
