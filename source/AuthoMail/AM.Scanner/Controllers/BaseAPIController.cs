@@ -79,7 +79,8 @@ namespace AM.Scanner.Controllers
                 headers.AddRange(batches);
 
                 var objList = new List<object>();
-                foreach (var appCode in model.GroupBy(s => s.AppCode))
+                string[] ClientList = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split(',');
+                foreach (var appCode in model.Where(m => ClientList.Contains(m.AppCode)).GroupBy(s => s.AppCode))
                 {
                     //var dataObject = new List<string>();
                     //dynamic myobject = new ExpandoObject();
@@ -155,7 +156,7 @@ namespace AM.Scanner.Controllers
                                     "hhtt", CultureInfo.InvariantCulture);
                 dict.Add(batch, dateTime.TimeOfDay);
             }
-            list = dict.OrderBy(d => d.Value).Select(d => d.Key).ToList();
+            list.AddRange(dict.OrderBy(d => d.Value).Select(d => d.Key).ToList());
             return list;
 
         }
