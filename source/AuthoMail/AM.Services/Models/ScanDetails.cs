@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,11 @@ namespace AM.Services
     {
         public string AppCode { get; set; }
         public List<GetAllBatchCountDetails> Batches { get; set; }
+    }
+    public class AppCodeBatchSummary
+    {
+        public string AppCode { get; set; }
+        public Dictionary<string, object> Batches { get; set; }
     }
 
     public class RegisterScanDetails

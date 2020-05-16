@@ -127,48 +127,48 @@
 <section class="container" style="margin-top:3%;">
     <div class="col-md-12">
         <div class="panel">
-            <div class="panel-body ">
-                <table class="table table-bordered table-condensed" style="margin-bottom:5px;">
-                    <thead>
-                        <tr>
-                            <th>Production Status</th>
-                            <th>Client Name</th>
-                            <th>Package Counts</th>
-                            <th>View Report</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @{
-                            string[] ClientList = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split(',');
+            <div class="panel-body" id="batchtable">
+                @*<table class="table table-bordered table-condensed" style="margin-bottom:5px;">
+                        <thead>
+                            <tr>
+                                <th>Production Status</th>
+                                <th>Client Name</th>
+                                <th>Package Counts</th>
+                                <th>View Report</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                string[] ClientList = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split(',');
 
-                            foreach (var client in ClientList)
-                            {
+                                foreach (var client in ClientList)
+                                {
+                                    <tr>
+                                        <td><div id="ProductionStatusDiv@(client.Trim())"><div class="label label-info text-center"><b>No Production</b></div></div></td>
+                                        <td><b>@client</b></td>
+                                        <td class="accordion-toggle collapsed" data-toggle="collapse" href="#collapse@(client)">
+                                            <p><strong id="@(client.Trim())scanCount" class="">0/0</strong></p>
+                                        </td>
+                                        <td><a href="~/Reports/ScanedDocuments?clientCode=@(client)" class="btn-link">View Report</a></td>
+                                    </tr>
+                                    <tr class="hide-table-padding">
+                                        <td colspan="4" class="collapse" id="collapse@(client)">
+                                            <div class="text-center" id="displaycount@(client.Trim())">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
                                 <tr>
-                                    <td><div id="ProductionStatusDiv@(client.Trim())"><div class="label label-info text-center"><b>No Production</b></div></div></td>
-                                    <td><b>@client</b></td>
-                                    <td class="accordion-toggle collapsed" data-toggle="collapse" href="#collapse@(client)">
-                                        <p><strong id="@(client.Trim())scanCount" class="">0/0</strong></p>
-                                    </td>
-                                    <td><a href="~/Reports/ScanedDocuments?clientCode=@(client)" class="btn-link">View Report</a></td>
-                                </tr>
-                                <tr class="hide-table-padding">
-                                    <td colspan="4" class="collapse" id="collapse@(client)">
-                                        <div class="text-center" id="displaycount@(client.Trim())">
-                                        </div>
-                                    </td>
+                                    <td colspan="4" style="padding:0px;"></td>
                                 </tr>
                             }
-                            <tr>
-                                <td colspan="4" style="padding:0px;"></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>*@
             </div>
         </div>
     </div>
 </section>
-<input type="hidden" name="ClientCodeList" id="ClientCodeList" value="@string.Join(" ,",ClientList)" />
+@*<input type="hidden" name="ClientCodeList" id="ClientCodeList" value="@string.Join(" ,",ClientList)" />*@
 <!-- Global -->
 <script src="~/Scripts/jquery-1.10.2.js"></script>
 <script src="~/Scripts/modernizr.js"></script>
@@ -230,7 +230,7 @@
         /*  End Ajax  */
     }
 
-    function GetAllBatchForScan(clientCode) {
+    function GetAllBatchForScan() {
         $.ajax({
             type: "GET",
             url: '@Url.Content("~/api/report/GetAllBatchForScan")',
@@ -239,10 +239,10 @@
             success: function (data) {
                 // alert(JSON.stringify(data[0].ReceivedOn) + JSON.stringify(data[0].TotalLoans));
                 //debugger;
-                
-                for (var j = 0; j < data.length; j++) {
-                    iterateBatchesScanCount(data[j].Batches,data[j].AppCode,j);
-                }
+                BuildTable(data);
+                //for (var j = 0; j < data.length; j++) {
+                //    iterateBatchesScanCount(data[j].Batches,data[j].AppCode,j);
+                //}
             },
             error: function (xhr, data) {
                 //console.log(xhr.status+" :"+xhr.responseText);
@@ -250,6 +250,56 @@
         });
 
         $(".tooltip.fade.top.in").remove();
+    }
+    function BuildTable(response) {
+        var table = "<table class='table table-bordered table-condensed' style='margin-bottom:5px;'>";
+
+        var thead = "<thead><tr>";
+        $.each(response.headers, function (i, v) {
+            thead += "<th>" + v + "</th>";
+        });
+            thead += "<th>Report</th>";
+        thead += "</thead>";
+        var tbody = "<tbody>";
+        $.each(response.data, function (i, v) {
+            tbody += "<tr>";
+            for (var j = 0; j < v.length; j++) {
+
+                switch (j) {
+                    case 0:
+                    case 2:
+                        tbody += "<td>" + v[j] + "</td>";
+                        break;
+                    case 1:
+                        var cls="label-primary";
+                        if (v[j] == 'Production Incomplete')
+                            cls="label-danger";
+                        if (v[j] == 'Production Complete')
+                            cls = "label-success";
+                        tbody += "<td><label class='label "+cls+"'>" + v[j] + "</label></td>";
+                        break;
+                    default:
+                        if (v[j] == '--') {
+                            tbody += "<td>" + v[j] + "</td>";
+                        }
+                        else {
+                            tbody += "<td><a href='Scan/Index?clientCode=" + v[0] + "&batchName=" + response.headers[j] + "'>" + v[j] + "</a></td>";
+                        }
+                        break;
+
+                }
+
+
+            }
+            tbody += "<td><a class='link' href='~/Reports/ScanedDocuments?clientCode="+v[0]+"'> View Report </a></td>";
+            tbody += "</tr>";
+        });
+        tbody += "</tbody>";
+        table+=thead;
+        table+=tbody;
+        table += '</table>';
+        console.log(table);
+        $('#batchtable').html(table);
     }
 
     function iterateBatchesScanCount(data,clientCode,i) {
@@ -294,7 +344,7 @@
                 //    btName = "USAA Adverse Action Backlog";
                 //    $("#displaycount" + clientCode).append("<a href='Scan/SingleScan?clientCode=" + clientCode + "&batchName=Backlog'><pre  class='pull-right preclass' style='" + backlogbg + "'><strong class='text-larger'>" + btName + "</></strong></pre></a>");
                 //}
-                    
+
                 $("#displaycount" + clientCode).append("<div class='clearfix'></div>");
                 $('[data-toggle="tooltip"]').tooltip();
     }
@@ -307,46 +357,46 @@
             $('#ProductionStatusDiv' + client).html('<div class="label label-success text-center"><b>Production Completed</b></div>');
         }
     }
-    
+
 
     $(document).ready(function () {
-       var res = GetScanCount();
-        var clientCodeList = $("#ClientCodeList").val().split(',');
-        var clientCode = "";
-        for (var i = 0; i < clientCodeList.length; i++) {
-            for (var j = 0; j < res.length; j++) {
-                var isInComplete = 0;
-                clientCode = clientCodeList[i].trim();
-                if (res[j].AppCode == clientCode) {
-                    isInComplete = res[j].ScanCount == res[j].TotalCount ? 0 : 1;
-            isProductionIncomplete(isInComplete, clientCode);
-                }
-            }
-           // GetAllBatchForScan(clientCode.trim(), i);
-        }
-        GetAllBatchForScan(clientCodeList);
+       //var res = GetScanCount();
+       // var clientCodeList = $("#ClientCodeList").val().split(',');
+       // var clientCode = "";
+       // for (var i = 0; i < clientCodeList.length; i++) {
+       //     for (var j = 0; j < res.length; j++) {
+       //         var isInComplete = 0;
+       //         clientCode = clientCodeList[i].trim();
+       //         if (res[j].AppCode == clientCode) {
+       //             isInComplete = res[j].ScanCount == res[j].TotalCount ? 0 : 1;
+       //     isProductionIncomplete(isInComplete, clientCode);
+       //         }
+       //     }
+       //    // GetAllBatchForScan(clientCode.trim(), i);
+       // }
+        GetAllBatchForScan();
         /*  Updating Batch Count on every 60 Second using Ajax */
         window.setInterval(function () {
-            var res = GetScanCount();
-            for (var i = 0; i < clientCodeList.length; i++) {
-                for (var j = 0; j < res.length; j++) {
-                var isInComplete = 0;
-                clientCode = clientCodeList[i].trim();
-                if (res[j].AppCode == clientCode) {
-                    isInComplete = res[j].ScanCount == res[j].TotalCount ? 0 : 1;
-                isProductionIncomplete(isInComplete, clientCode);
-                    }
-                }
-                //GetAllBatchForScan(clientCode.trim(), i);
-            }
-            GetAllBatchForScan(clientCodeList);
+            //var res = GetScanCount();
+            //for (var i = 0; i < clientCodeList.length; i++) {
+            //    for (var j = 0; j < res.length; j++) {
+            //    var isInComplete = 0;
+            //    clientCode = clientCodeList[i].trim();
+            //    if (res[j].AppCode == clientCode) {
+            //        isInComplete = res[j].ScanCount == res[j].TotalCount ? 0 : 1;
+            //    isProductionIncomplete(isInComplete, clientCode);
+            //        }
+            //    }
+            //    //GetAllBatchForScan(clientCode.trim(), i);
+            //}
+            GetAllBatchForScan();
         }, 60000);
 
-        $.each(clientCodeList, function (index, value) {
-            if ($("#displaycount" + value.trim()).html().trim() == "") {
-            $("#displaycount" + value.trim()).html("<div style='margin-bottom:0px;' class='alert alert-info'>No batch(es) found.</div>")
-            }
-        });
+        //$.each(clientCodeList, function (index, value) {
+        //    if ($("#displaycount" + value.trim()).html().trim() == "") {
+        //    $("#displaycount" + value.trim()).html("<div style='margin-bottom:0px;' class='alert alert-info'>No batch(es) found.</div>")
+        //    }
+        //});
 
 
 
