@@ -39,7 +39,7 @@
             <div class="box">
 
                 <div class="box-body table-responsive" id="ptable">
-                    <h3 style="text-align: center;">Scanning Reports</h3>
+                    <h3 style="text-align: center;"><span  id="cliencodeDisplay"> </span> Scanning Reports</h3>
                     <hr>
                     <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
                         <div class="panel panel-primary">
@@ -227,6 +227,7 @@
         });
         $(document).ready(function () {
             clientCode = getParameterByName('clientCode');
+            $("#cliencodeDisplay").text(clientCode.replace("AUT", ""));
             ReportDate("reportrange");
             ReportDate("reportrange1");
             var shippedOnDates = $("#shippedOn").text().split('-');

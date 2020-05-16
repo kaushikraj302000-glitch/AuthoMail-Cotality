@@ -122,6 +122,10 @@
             background: none !important;
             color: #2BBBAD !important;
         }
+    .aligncenter {
+        text-align: center;
+        vertical-align: middle;
+    }
 </style>
 
 <section class="container" style="margin-top:3%;">
@@ -253,36 +257,41 @@
     }
     function BuildTable(response) {
         var table = "<table class='table table-bordered table-condensed' style='margin-bottom:5px;'>";
-
-        var thead = "<thead><tr>";
+        var colorcode = ["info", "success", "warning" ];
+        var thead = "<thead><tr style='font-size: x-large;'>";
         $.each(response.headers, function (i, v) {
             thead += "<th>" + v + "</th>";
         });
             thead += "<th>Report</th>";
         thead += "</thead>";
         var tbody = "<tbody>";
+        var colorcnt = 0;
         $.each(response.data, function (i, v) {
-            tbody += "<tr>";
+
+            tbody += "<tr class='alert alert-" + colorcode[colorcnt] + " ' style='font-size: x-large;'>";
             for (var j = 0; j < v.length; j++) {
 
                 switch (j) {
                     case 0:
-                    case 2:
                         tbody += "<td>" + v[j] + "</td>";
                         break;
                     case 1:
-                        var cls="label-primary";
+                        var cls="label-info";
                         if (v[j] == 'Production Incomplete')
-                            cls="label-danger";
+                            cls ="label-danger";
                         if (v[j] == 'Production Complete')
                             cls = "label-success";
                         tbody += "<td><label class='label "+cls+"'>" + v[j] + "</label></td>";
+                        break;
+                    case 2:
+                        tbody += "<td class='aligncenter'>" + v[j] + "</td>";
                         break;
                     default:
                         if (v[j] == '--') {
                             tbody += "<td>" + v[j] + "</td>";
                         }
                         else {
+                            //var backlogbg = data[j].BatchName.toLowerCase() == 'backlog' && (parseInt(data[j].ScannedLoans) != parseInt(data[j].TotalLoans)) ? "background-color:#D20D0D;color:#fff;" : "";
                             tbody += "<td><a href='Scan/Index?clientCode=" + v[0] + "&batchName=" + response.headers[j] + "'>" + v[j] + "</a></td>";
                         }
                         break;
@@ -291,8 +300,12 @@
 
 
             }
-            tbody += "<td><a class='link' href='~/Reports/ScanedDocuments?clientCode="+v[0]+"'> View Report </a></td>";
+            tbody += "<td><a class='link' href='/Reports/ScanedDocuments?clientCode="+v[0]+"'> View Report </a></td>";
             tbody += "</tr>";
+            if (colorcnt == 2) {
+                colorcnt = -1;
+            }
+            colorcnt++;
         });
         tbody += "</tbody>";
         table+=thead;
