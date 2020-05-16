@@ -4,6 +4,7 @@ using AM.Services;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -73,7 +74,8 @@ namespace AM.Scanner.Controllers
 
                 var model = scannerSvc.GetRecentBatchesStats();
                 var scanCount = scannerSvc.GetScanStats();
-                var batches = model.Select(s => s.BatchName).Distinct().OrderBy(o => o).ToList();
+                var batches = model.Select(s => s.BatchName).Distinct().ToList();
+                batches = BuildOrder(batches);
                 headers.AddRange(batches);
 
                 var objList = new List<object>();
@@ -141,6 +143,20 @@ namespace AM.Scanner.Controllers
                     data = objList
                 };
             }
+        }
+        private List<string> BuildOrder(List<string> batches)
+        {
+            var dict = new Dictionary<string, TimeSpan>();
+            foreach (var batch in batches.Where(b => b != "Backlog"))
+            {
+                DateTime dateTime = DateTime.ParseExact(batch,
+                                    "hhtt", CultureInfo.InvariantCulture);
+                dict.Add(batch, dateTime.TimeOfDay);
+            }
+            var list = dict.OrderBy(d => d.Value).Select(d => d.Key).ToList();
+            list.Add("Backlog");
+            return list;
+
         }
         private static Dictionary<string, string> GetProperties(object obj)
         {
