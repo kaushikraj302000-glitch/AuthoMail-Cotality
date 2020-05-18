@@ -136,6 +136,7 @@
     .count0 {
         font-size: 18px;
         font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+        vertical-align: middle !important;
     }
 </style>
 
@@ -146,42 +147,6 @@
                 <div class="table-responsive " id="batchtable">
 
                 </div>
-                @*<table class="table table-bordered table-condensed" style="margin-bottom:5px;">
-                        <thead>
-                            <tr>
-                                <th>Production Status</th>
-                                <th>Client Name</th>
-                                <th>Package Counts</th>
-                                <th>View Report</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @{
-                                string[] ClientList = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split(',');
-
-                                foreach (var client in ClientList)
-                                {
-                                    <tr>
-                                        <td><div id="ProductionStatusDiv@(client.Trim())"><div class="label label-info text-center"><b>No Production</b></div></div></td>
-                                        <td><b>@client</b></td>
-                                        <td class="accordion-toggle collapsed" data-toggle="collapse" href="#collapse@(client)">
-                                            <p><strong id="@(client.Trim())scanCount" class="">0/0</strong></p>
-                                        </td>
-                                        <td><a href="~/Reports/ScanedDocuments?clientCode=@(client)" class="btn-link">View Report</a></td>
-                                    </tr>
-                                    <tr class="hide-table-padding">
-                                        <td colspan="4" class="collapse" id="collapse@(client)">
-                                            <div class="text-center" id="displaycount@(client.Trim())">
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                                <tr>
-                                    <td colspan="4" style="padding:0px;"></td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>*@
             </div>
         </div>
     </div>
@@ -208,45 +173,7 @@
         inverseColor = '#45484d';
 
     var themerPrimaryColor = primaryColor;
-    function GetScanCount() {
-        var result = 0;
-        $.ajax({
-            type: "GET",
-            url: '@Url.Content("~/Home/GetScanCount")',
-            data: { },
-            async: false,
-            success: function (response) {
-                //console.log(response.length);
-                //var groups = group( response, function( item ) { return [ item.AppCode ]; } );
-                ////console.log(groups);
-                ////console.log("#" + clientCode.trim() + "scanCount" + "test " + response.ScanCount + "/" + response.TotalCount);
-                ////var totalcount = response.split('$');
-                ////console.log(groups.count);
-                for (var i = 0; i < response.length; i++)
-                {
-                    var data = response[i];
-                    console.log("data:"+data);
-                    if (typeof data.ScanCount === "undefined" || typeof data.TotalCount === "undefined") {
-                    $("#" + data.AppCode.trim() + "scanCount").empty();
-                    $("#" + data.AppCode.trim() + "scanCount").text("--/--");
-                    window.location.reload();
-                    return;
-                    }
 
-                    $("#" + data.AppCode.trim() + "scanCount").empty();
-                    $("#" + data.AppCode.trim() + "scanCount").text(data.ScanCount + "/" + data.TotalCount);
-                }
-                    result = response;
-            },
-            error: function (xhr, data) {
-                console.log(xhr.status + " :" + xhr.responseText);
-                $("#" + clientCode.trim() + "scanCount").empty();
-                $("#" + clientCode.trim() + "scanCount").text("--/--");
-            }
-        });
-        return result;
-        /*  End Ajax  */
-    }
 
     function GetAllBatchForScan() {
         $.ajax({
@@ -255,19 +182,13 @@
             dataType: 'json',
             async: false,
             success: function (data) {
-                // alert(JSON.stringify(data[0].ReceivedOn) + JSON.stringify(data[0].TotalLoans));
-                //debugger;
                 BuildTable(data);
-                //for (var j = 0; j < data.length; j++) {
-                //    iterateBatchesScanCount(data[j].Batches,data[j].AppCode,j);
-                //}
             },
             error: function (xhr, data) {
-                //console.log(xhr.status+" :"+xhr.responseText);
+                console.log(xhr);
+                console.log(data);
             }
         });
-
-        $(".tooltip.fade.top.in").remove();
     }
     function BuildTable(response) {
         var table = "<table class='table table-bordered table-condensed table-striped' style='margin-bottom:5px;'>";
@@ -360,124 +281,12 @@
         $('#batchtable').html(table);
     }
 
-    function iterateBatchesScanCount(data,clientCode,i) {
-         $("#displaycount" + clientCode).empty();
-
-                for (var j = 0; j < data.length; j++) {
-
-                    // alert(JSON.stringify(data[j].ReceivedOn) + " " + JSON.stringify(data[j].ScannedLoans) + " " + JSON.stringify(data[j].TotalLoans));
-                    // alert(clientCode);
-                    var localTime = moment.utc(data[j].ReceivedOn).toDate();
-                    var localDate = moment.utc(data[j].ReceivedOn).toDate();
-                    localTime = moment(localTime).format('DD-MM hh:mm A');
-                    if (moment(localDate).format('DD-MM-yyyy') == moment().format('DD-MM-yyyy')) {
-                        localTime = moment(localDate).format('hh:mm A');
-                        // alert(localTime+"localtime");
-                    }
-                    var backlogbg = data[j].BatchName.toLowerCase() == 'backlog' && (parseInt(data[j].ScannedLoans) != parseInt(data[j].TotalLoans)) ? "background-color:#D20D0D;color:#fff;" : "";
-                    // alert(localTime);
-
-                    if (j <=2) {
-                        // $("#displaycount" + clientCode).append("<pre data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[j].BatchName + "' class='pull-left preclass'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
-                        if (parseInt(data[j].ScannedLoans) == parseInt(data[j].TotalLoans)) {
-                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre class='pull-left preclass' style='" + backlogbg + "'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
-                        } else {
-                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre class='pull-left preclass' style='" + backlogbg + "'><strong  id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
-                        }
-
-
-                    }
-                    else {
-                        if (parseInt(data[j].ScannedLoans) == parseInt(data[j].TotalLoans)) {
-                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre  class='pull-left preclass' style='" + backlogbg + "'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
-                        } else {
-                            $("#displaycount" + clientCode).append("<a href='Scan/Index?clientCode=" + clientCode + "&batchName=" + data[j].BatchName + "'><pre  class='pull-left preclass' style='" + backlogbg + "'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + data[j].BatchName + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre></a>");
-                        }
-                        //$("#displaycount" + clientCode).append("<pre data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[j].BatchName + "'  class='pull-right preclass'><strong id='dispaly" + clientCode + i + "' class='text-larger'>" + localTime + "  " + parseInt(data[j].ScannedLoans) + "/" + parseInt(data[j].TotalLoans) + "</></strong></pre>");
-                    }
-                }
-                //if (clientCode == 'USAA' || clientCode == 'AUTUSAA') {
-                //    var btName = "USAA Adverse Action 07PM";
-                //    $("#displaycount" + clientCode).append("<a href='Scan/SingleScan?clientCode=" + clientCode + "&batchName=07PM'><pre  class='pull-right preclass'><strong class='text-larger'>" + btName + "</></strong></pre></a>");
-                //    btName = "USAA Adverse Action Backlog";
-                //    $("#displaycount" + clientCode).append("<a href='Scan/SingleScan?clientCode=" + clientCode + "&batchName=Backlog'><pre  class='pull-right preclass' style='" + backlogbg + "'><strong class='text-larger'>" + btName + "</></strong></pre></a>");
-                //}
-
-                $("#displaycount" + clientCode).append("<div class='clearfix'></div>");
-                $('[data-toggle="tooltip"]').tooltip();
-    }
-
-    function isProductionIncomplete(isMsgShow, client) {
-        console.log(isMsgShow + "|" + client);
-        if (isMsgShow == 1) {
-            $('#ProductionStatusDiv' + client).html('<div class="label label-danger text-center"><b>Production Incomplete</b></div>');
-        } else {
-            $('#ProductionStatusDiv' + client).html('<div class="label label-success text-center"><b>Production Completed</b></div>');
-        }
-    }
-
-
     $(document).ready(function () {
-       //var res = GetScanCount();
-       // var clientCodeList = $("#ClientCodeList").val().split(',');
-       // var clientCode = "";
-       // for (var i = 0; i < clientCodeList.length; i++) {
-       //     for (var j = 0; j < res.length; j++) {
-       //         var isInComplete = 0;
-       //         clientCode = clientCodeList[i].trim();
-       //         if (res[j].AppCode == clientCode) {
-       //             isInComplete = res[j].ScanCount == res[j].TotalCount ? 0 : 1;
-       //     isProductionIncomplete(isInComplete, clientCode);
-       //         }
-       //     }
-       //    // GetAllBatchForScan(clientCode.trim(), i);
-       // }
         GetAllBatchForScan();
         /*  Updating Batch Count on every 60 Second using Ajax */
         window.setInterval(function () {
-            //var res = GetScanCount();
-            //for (var i = 0; i < clientCodeList.length; i++) {
-            //    for (var j = 0; j < res.length; j++) {
-            //    var isInComplete = 0;
-            //    clientCode = clientCodeList[i].trim();
-            //    if (res[j].AppCode == clientCode) {
-            //        isInComplete = res[j].ScanCount == res[j].TotalCount ? 0 : 1;
-            //    isProductionIncomplete(isInComplete, clientCode);
-            //        }
-            //    }
-            //    //GetAllBatchForScan(clientCode.trim(), i);
-            //}
-            GetAllBatchForScan();
+            //GetAllBatchForScan();
         }, 60000);
-
-        //$.each(clientCodeList, function (index, value) {
-        //    if ($("#displaycount" + value.trim()).html().trim() == "") {
-        //    $("#displaycount" + value.trim()).html("<div style='margin-bottom:0px;' class='alert alert-info'>No batch(es) found.</div>")
-        //    }
-        //});
-
-
-
-        //getScanCount('AMC');
-        //getScanCount('HTL');
-        var boxCount = $('.front .lead').length;
-        for (var i = 1; i <= boxCount; i++) {
-            var clientText = $('#box' + i).text().trim();
-
-            if (clientText.length < 10 && clientText.length > 0) {
-
-                $('#box' + i).css('font-size', '50px');
-            }
-            else {
-                var fontSize = parseInt((50 / clientText.length) * 10);
-                //alert(fontSize+"font");
-                //alert(clientText.length);
-                $('#box' + i).css('font-size', fontSize + 'px');
-            }
-        }
-        $('[data-toggle="collapse"]').click(function () {
-            $('.in').collapse('hide');
-        });
     });
 
 </script>

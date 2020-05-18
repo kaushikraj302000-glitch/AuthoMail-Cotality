@@ -72,69 +72,50 @@ namespace AM.Scanner.Controllers
             {
                 var headers = new List<string>() { "Client", "Status", "Day Total" };
 
-                var model = scannerSvc.GetRecentBatchesStats();
-                var scanCount = scannerSvc.GetScanStats();
-                var batches = model.Select(s => s.BatchName).Distinct().ToList();
+                var batchWistCounts = scannerSvc.GetRecentBatchesStats();
+                var dayWiseCounts = scannerSvc.GetScanStats();
+                var batches = batchWistCounts.Select(s => s.BatchName).Distinct().ToList();
                 batches = BuildOrder(batches);
                 headers.AddRange(batches);
 
                 var objList = new List<object>();
-                string[] ClientList = System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split(',');
-                foreach (var appCode in model.Where(m => ClientList.Contains(m.AppCode)).GroupBy(s => s.AppCode))
+                var clientList = new HashSet<string>(System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split(','));
+                var clientWiseBatches = batchWistCounts.Where(m => clientList.Contains(m.AppCode)).GroupBy(s => s.AppCode);
+                foreach (var appCode in clientWiseBatches)
                 {
-                    //var dataObject = new List<string>();
-                    //dynamic myobject = new ExpandoObject();
-                    //IDictionary<string, object> myUnderlyingObject = myobject;
                     var values = new List<string>();
-                    //myUnderlyingObject.Add("AppCode", appCode.Key);
                     values.Add(appCode.Key);
 
-                    var data = scanCount.SingleOrDefault(s => s.AppCode == appCode.Key);
-                    string dayTotal = "0/0";
-                    string status = "No Production";
+                    var daySummary = dayWiseCounts.ContainsKey(appCode.Key) ? dayWiseCounts[appCode.Key] : null;
 
-                    if (data != null)
+                    string dayTotal = null;
+                    string status = null;
+
+                    if (daySummary == null || daySummary.TotalCount == 0)
                     {
-                        dayTotal = $"{data.ScanCount}/{data.TotalCount}";
-                        if (data.ScanCount > 0 && data.TotalCount != data.ScanCount)
-                            status = "Production Incomplete";
-                        if (data.ScanCount == data.TotalCount)
-                            status = "Production Complete";
+                        dayTotal = "0/0";
+                        status = "No Production";
+                    }
+                    else if (daySummary.ScanCount != daySummary.TotalCount)
+                    {
+                        dayTotal = $"{daySummary.ScanCount}/{daySummary.TotalCount}";
+                        status = "Production Incomplete";
+                    }
+                    else
+                    {
+                        dayTotal = $"{daySummary.ScanCount}/{daySummary.TotalCount}";
+                        status = "Production Complete";
                     }
 
-                    //myUnderlyingObject.Add("Status", status);
-                    //myUnderlyingObject.Add("DayTotal", dayTotal);
                     values.Add(status);
                     values.Add(dayTotal);
-                    //dataObject.Add(appCode.Key);
-                    //dataObject.Add(status);
-                    //dataObject.Add(dayTotal);
+
                     foreach (var batch in batches)
                     {
                         var b = appCode.SingleOrDefault(a => a.BatchName == batch);
-                        if (b == null)
-                        {
-                            //myUnderlyingObject.Add(batch, "--");
-                            values.Add("--");
-                        }
-                        else
-                        {
-                            //myUnderlyingObject.Add(b.BatchName, $"{b.ScannedLoans}/{b.TotalLoans}");
-                            values.Add($"{b.ScannedLoans}/{b.TotalLoans}");
-                        }
-                        //dataObject.Add("--");
-                        //ReceivedOn , AppCode,ScannedLoans,TotalLoans,BatchName
+                        values.Add(b == null ? "--" : $"{b.ScannedLoans}/{b.TotalLoans}");
                     }
-                    //foreach (var item in appCode)
-                    //{
-                    //    myUnderlyingObject.Remove(item.BatchName);
-                    //    myUnderlyingObject.Add(item.BatchName, $"{item.ScannedLoans}/{item.TotalLoans}");
-                    //    //dataObject.Remove(item.BatchName);
-                    //    //dataObject.Add($"{item.ScannedLoans}/{item.TotalLoans}");
-                    //}
 
-                    //var props = GetProperties(myUnderlyingObject);
-                    //dataObject.AddRange(props.Select(p => p.Value));
                     objList.Add(values);
                 }
 
@@ -147,17 +128,28 @@ namespace AM.Scanner.Controllers
         }
         private List<string> BuildOrder(List<string> batches)
         {
-            var dict = new Dictionary<string, TimeSpan>();
-            var list = new List<string>() { "Backlog" };
+            //var dict = new Dictionary<string, TimeSpan>();
+            //var list = new List<string>() { "Backlog" };
 
-            foreach (var batch in batches.Where(b => b != "Backlog"))
-            {
-                DateTime dateTime = DateTime.ParseExact(batch,
-                                    "hhtt", CultureInfo.InvariantCulture);
-                dict.Add(batch, dateTime.TimeOfDay);
-            }
-            list.AddRange(dict.OrderBy(d => d.Value).Select(d => d.Key).ToList());
-            return list;
+            //foreach (var batch in batches.Where(b => b != "Backlog"))
+            //{
+            //    DateTime dateTime = DateTime.ParseExact(batch,
+            //                        "hhtt", CultureInfo.InvariantCulture);
+            //    dict.Add(batch, dateTime.TimeOfDay);
+            //}
+
+            batches = batches
+                .OrderBy(b =>
+                {
+                    if (b == "Backlog")
+                        return DateTime.Today;
+                    else
+                        return DateTime.ParseExact(b, "hhtt", CultureInfo.InvariantCulture);
+                }).ToList();
+            return batches;
+
+            //list.AddRange(dict.OrderBy(d => d.Value).Select(d => d.Key));
+            //return list;
 
         }
         private static Dictionary<string, string> GetProperties(object obj)
