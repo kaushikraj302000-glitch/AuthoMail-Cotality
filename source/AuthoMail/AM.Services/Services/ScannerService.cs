@@ -12,7 +12,7 @@ namespace AM.Services
     public interface IScannerService : IDisposable
     {
         ScanDetails RegisterScan(string barcode, string clientCode, string username, string machineName, string batchName);
-        List<ScanDetails> GetScanStats();
+        Dictionary<string, ScanDetails> GetScanStats();
         List<RegisterScanDetails> GetScannedMailPieces(string clientCode, string batchName);
         List<GetAllBatchCountDetails> GetRecentBatchesStats();
         List<GetAllBatchCountDetails> GetRecentBatchesStatsWithAppCode(string appCode);
@@ -50,7 +50,7 @@ namespace AM.Services
             }
         }
 
-        public List<ScanDetails> GetScanStats()
+        public Dictionary<string, ScanDetails> GetScanStats()
         {
             try
             {
@@ -59,7 +59,7 @@ namespace AM.Services
                 // EST Week
                 var startDate = (estToday + new TimeSpan(0, 0, 0)).EstToUtc();
                 var endDate = (estToday + new TimeSpan(23, 59, 59)).EstToUtc();
-                var scanCountData = db.Query<ScanDetails>(scanCountQuery, new { estDate = estToday, startDate = startDate, endDate = endDate }).ToList();
+                var scanCountData = db.Query<ScanDetails>(scanCountQuery, new { estDate = estToday, startDate = startDate, endDate = endDate }).ToDictionary(sd => sd.AppCode, sd => sd);
                 return scanCountData;
             }
             catch (Exception e)
