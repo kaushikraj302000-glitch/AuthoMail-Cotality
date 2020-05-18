@@ -53,7 +53,7 @@
         border-radius: 4px;
         min-width: 15%;
         max-height: 43%;
-        width: 100px;
+        width: 81px;
     }
 
         .preclass:hover {
@@ -131,6 +131,11 @@
     .aligncenter {
         text-align: center;
         vertical-align: middle;
+    }
+
+    .count0 {
+        font-size: 18px;
+        font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
     }
 </style>
 
@@ -285,7 +290,7 @@
             //"<tr class='alert alert-" + colorcode[colorcnt] + " ' style='font-size: x-large;'>";
             tbody += "<tr  style='font-size: x-large;'>";
             for (var j = 0; j < v.length; j++) {
-                var dayColor = '#466baf';
+
                 switch (j) {
                     case 0:
                         //"<td style='border-bottom-color: white !important;' class='bg-inverse'> <b>" + v[j] + "</b></td>";
@@ -305,6 +310,13 @@
                         tbody += "<td><label style='font-size: small;' class=' label "+cls+"'>" + v[j] + "</label></td>";
                         break;
                     case 2:
+                        var dayColor = '#466baf';
+                        if (v[1] == 'Production Incomplete') {
+                            dayColor = "#bd362f";
+                        }
+                        if (v[1] == 'Production Complete') {
+                            dayColor = "#72af46";
+                        }
                         tbody += "<td class='aligncenter' style='color:" + dayColor+"' title='" + response.headers[j] + " of " + v[0]  +"'>" + v[j] + "</td>";
                         break;
                     default:
@@ -315,12 +327,17 @@
                             var scannedLoans = parseInt(v[j].split('/')[0])||0;
                             var totalLoans = parseInt(v[j].split('/')[1])||0;
                             var backlogbg = "";
-                            
+
                             if (scannedLoans != 0 && scannedLoans == totalLoans) {
                                 backlogbg = "background-color:#72af46;color:#fff;"
                             }
 
-                            tbody += "<td class='aligncenter'><a title='" + v[0] + " : " + response.headers[j] + "' href='Scan/Index?clientCode=" + v[0] + "&batchName=" + response.headers[j] + "'><pre class='preclass' style='" + backlogbg + "' >" + v[j] + "</pre></a></td>";
+                            if (totalLoans == 0) {
+                                tbody += "<td class='aligncenter count0'>" + v[j] + "</td>";
+                            } else {
+                                tbody += "<td class='aligncenter'><a title='" + v[0] + " : " + response.headers[j] + "' href='Scan/Index?clientCode=" + v[0] + "&batchName=" + response.headers[j] + "'><pre class='preclass' style='" + backlogbg + "' >" + v[j] + "</pre></a></td>";
+                            }
+
                         }
                         break;
 
