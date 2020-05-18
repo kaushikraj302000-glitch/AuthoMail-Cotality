@@ -30,25 +30,28 @@
     .clientCode {
         font-size: 12px;
     }
-
+    .label-warning {
+        background-color: #f0ad4e !important;
+    }
     a:hover {
         color: none;
     }
 
     .preclass {
-        padding: 8.5px;
-        display: block;
-        margin: 0px 1px 0 10px;
-        font-size: 13px;
+        padding: 4.5px;
+        display: inline-block;
+        margin: 0px;
+        font-size: 18px;
         line-height: 1.428571429;
         color: #333333;
         word-break: break-all;
         word-wrap: break-word;
-        background-color: #e8e5e5;
+        background-color: #fffdfd;
         border: 1px solid #cccccc;
         border-radius: 4px;
         min-width: 15%;
         max-height: 43%;
+        width:100px;
     }
 
         .preclass:hover {
@@ -128,10 +131,13 @@
     }
 </style>
 
-<section class="container" style="margin-top:3%;">
+<section class="" style="margin-top:3%;">
     <div class="col-md-12">
         <div class="panel">
-            <div class="panel-body" id="batchtable">
+            <div class="panel-body" >
+                <div class="table-responsive" id="batchtable">
+
+                </div>
                 @*<table class="table table-bordered table-condensed" style="margin-bottom:5px;">
                         <thead>
                             <tr>
@@ -260,9 +266,12 @@
         var colorcode = ["info", "success", "warning" ];
         var thead = "<thead><tr style='font-size: x-large;'>";
         $.each(response.headers, function (i, v) {
-            thead += "<th>" + v + "</th>";
+            if(i==0 || i==1)
+                thead += "<th>" + v.replace(/(\d)([A-z])/gi, '$1 $2') + "</th>";
+            else
+                thead += "<th class='aligncenter'>" + v.replace(/(\d)([A-z])/gi, '$1 $2') + "</th>";
         });
-            thead += "<th>Report</th>";
+        thead += "<th class='aligncenter'>Report</th>";
         thead += "</thead>";
         var tbody = "<tbody>";
         var colorcnt = 0;
@@ -281,18 +290,34 @@
                             cls ="label-danger";
                         if (v[j] == 'Production Complete')
                             cls = "label-success";
-                        tbody += "<td><label class='label "+cls+"'>" + v[j] + "</label></td>";
+                        tbody += "<td><label style='font-size: small;' class=' label "+cls+"'>" + v[j] + "</label></td>";
                         break;
                     case 2:
-                        tbody += "<td class='aligncenter'>" + v[j] + "</td>";
+                        tbody += "<td class='aligncenter' title='" + response.headers[j] + " of " + v[0]  +"'>" + v[j] + "</td>";
                         break;
                     default:
                         if (v[j] == '--') {
-                            tbody += "<td>" + v[j] + "</td>";
+                            tbody += "<td class='aligncenter'>" + v[j] + "</td>";
                         }
                         else {
-                            //var backlogbg = data[j].BatchName.toLowerCase() == 'backlog' && (parseInt(data[j].ScannedLoans) != parseInt(data[j].TotalLoans)) ? "background-color:#D20D0D;color:#fff;" : "";
-                            tbody += "<td><a href='Scan/Index?clientCode=" + v[0] + "&batchName=" + response.headers[j] + "'>" + v[j] + "</a></td>";
+                            var scannedLoans = parseInt(v[j].split('/')[0])||0;
+                            var totalLoans = parseInt(v[j].split('/')[1])||0;
+                            var backlogbg = "";
+                            if (j == 4) {
+                                scannedLoans = totalLoans = 10;
+                            }
+                            //if (j == 3) {
+                            //    scannedLoans = 5;
+                            //        totalLoans = 10;
+                            //}
+                            //if (scannedLoans != totalLoans) {
+                            //    backlogbg = "background-color:#f0ad4e;color:#fff;"
+                            //}
+                            if (scannedLoans != 0 && scannedLoans == totalLoans) {
+                                backlogbg = "background-color:#72af46;color:#fff;"
+                            } 
+                            
+                            tbody += "<td class='aligncenter'><a title='" + v[0] + " : " + response.headers[j] + "' href='Scan/Index?clientCode=" + v[0] + "&batchName=" + response.headers[j] + "'><pre class='preclass' style='" + backlogbg + "' >" + v[j] + "</pre></a></td>";
                         }
                         break;
 
@@ -300,7 +325,7 @@
 
 
             }
-            tbody += "<td><a class='link' href='/Reports/ScanedDocuments?clientCode="+v[0]+"'> View Report </a></td>";
+            tbody += "<td class='aligncenter'><a title='" + v[0] + " Report' class='link' href='/Reports/ScanedDocuments?clientCode=" + v[0] +"'> <i class='glyphicon glyphicon-th-list'></i> </a></td>";
             tbody += "</tr>";
             if (colorcnt == 2) {
                 colorcnt = -1;
@@ -403,7 +428,7 @@
             //    //GetAllBatchForScan(clientCode.trim(), i);
             //}
             GetAllBatchForScan();
-        }, 60000);
+        }, 1160000);
 
         //$.each(clientCodeList, function (index, value) {
         //    if ($("#displaycount" + value.trim()).html().trim() == "") {
