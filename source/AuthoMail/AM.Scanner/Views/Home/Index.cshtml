@@ -30,9 +30,11 @@
     .clientCode {
         font-size: 12px;
     }
+
     .label-warning {
         background-color: #f0ad4e !important;
     }
+
     a:hover {
         color: none;
     }
@@ -51,7 +53,7 @@
         border-radius: 4px;
         min-width: 15%;
         max-height: 43%;
-        width:100px;
+        width: 100px;
     }
 
         .preclass:hover {
@@ -125,6 +127,7 @@
             background: none !important;
             color: #2BBBAD !important;
         }
+
     .aligncenter {
         text-align: center;
         vertical-align: middle;
@@ -134,8 +137,8 @@
 <section class="" style="margin-top:3%;">
     <div class="col-md-12">
         <div class="panel">
-            <div class="panel-body" >
-                <div class="table-responsive" id="batchtable">
+            <div class="panel-body">
+                <div class="table-responsive " id="batchtable">
 
                 </div>
                 @*<table class="table table-bordered table-condensed" style="margin-bottom:5px;">
@@ -262,9 +265,12 @@
         $(".tooltip.fade.top.in").remove();
     }
     function BuildTable(response) {
-        var table = "<table class='table table-bordered table-condensed' style='margin-bottom:5px;'>";
-        var colorcode = ["info", "success", "warning" ];
-        var thead = "<thead><tr style='font-size: x-large;'>";
+        var table = "<table class='table table-bordered table-condensed table-striped' style='margin-bottom:5px;'>";
+       // var colorcode = ["#17a2b8!important;", "#466baf!important;", "#ffc107!important;"];
+        var colorcode = ["#ffc107!important;","#17a2b8!important;"];
+       // var colorcode = ["#ffc107!important;", "#466baf!important;"];
+       // var colorcode = ["#2BBBAD !important;", "#72af46 !important;", "#466baf !important;"];
+        var thead = "<thead><tr style='font-size: x-large;background:#17a2b8;color:white;'>";
         $.each(response.headers, function (i, v) {
             if(i==0 || i==1)
                 thead += "<th>" + v.replace(/(\d)([A-z])/gi, '$1 $2') + "</th>";
@@ -276,24 +282,30 @@
         var tbody = "<tbody>";
         var colorcnt = 0;
         $.each(response.data, function (i, v) {
-
-            tbody += "<tr class='alert alert-" + colorcode[colorcnt] + " ' style='font-size: x-large;'>";
+            //"<tr class='alert alert-" + colorcode[colorcnt] + " ' style='font-size: x-large;'>";
+            tbody += "<tr  style='font-size: x-large;'>";
             for (var j = 0; j < v.length; j++) {
-
+                var dayColor = '#466baf';
                 switch (j) {
                     case 0:
-                        tbody += "<td>" + v[j] + "</td>";
+                        //"<td style='border-bottom-color: white !important;' class='bg-inverse'> <b>" + v[j] + "</b></td>";
+                        tbody += "<td style='color:" + colorcode[colorcnt] +"'> <b >" + v[j] + "</b></td>";
                         break;
                     case 1:
-                        var cls="label-info";
-                        if (v[j] == 'Production Incomplete')
-                            cls ="label-danger";
-                        if (v[j] == 'Production Complete')
+                        var cls = "label-info";
+
+                        if (v[j] == 'Production Incomplete') {
+                            cls = "label-danger";
+                            dayColor = "#bd362f";
+                        }
+                        if (v[j] == 'Production Complete') {
+                            dayColor = "#72af46";
                             cls = "label-success";
+                        }
                         tbody += "<td><label style='font-size: small;' class=' label "+cls+"'>" + v[j] + "</label></td>";
                         break;
                     case 2:
-                        tbody += "<td class='aligncenter' title='" + response.headers[j] + " of " + v[0]  +"'>" + v[j] + "</td>";
+                        tbody += "<td class='aligncenter' style='color:" + dayColor+"' title='" + response.headers[j] + " of " + v[0]  +"'>" + v[j] + "</td>";
                         break;
                     default:
                         if (v[j] == '--') {
@@ -303,20 +315,11 @@
                             var scannedLoans = parseInt(v[j].split('/')[0])||0;
                             var totalLoans = parseInt(v[j].split('/')[1])||0;
                             var backlogbg = "";
-                            if (j == 4) {
-                                scannedLoans = totalLoans = 10;
-                            }
-                            //if (j == 3) {
-                            //    scannedLoans = 5;
-                            //        totalLoans = 10;
-                            //}
-                            //if (scannedLoans != totalLoans) {
-                            //    backlogbg = "background-color:#f0ad4e;color:#fff;"
-                            //}
+                            
                             if (scannedLoans != 0 && scannedLoans == totalLoans) {
                                 backlogbg = "background-color:#72af46;color:#fff;"
-                            } 
-                            
+                            }
+
                             tbody += "<td class='aligncenter'><a title='" + v[0] + " : " + response.headers[j] + "' href='Scan/Index?clientCode=" + v[0] + "&batchName=" + response.headers[j] + "'><pre class='preclass' style='" + backlogbg + "' >" + v[j] + "</pre></a></td>";
                         }
                         break;
@@ -327,7 +330,7 @@
             }
             tbody += "<td class='aligncenter'><a title='" + v[0] + " Report' class='link' href='/Reports/ScanedDocuments?clientCode=" + v[0] +"'> <i class='glyphicon glyphicon-th-list'></i> </a></td>";
             tbody += "</tr>";
-            if (colorcnt == 2) {
+            if (colorcnt == 1) {
                 colorcnt = -1;
             }
             colorcnt++;
@@ -428,7 +431,7 @@
             //    //GetAllBatchForScan(clientCode.trim(), i);
             //}
             GetAllBatchForScan();
-        }, 1160000);
+        }, 60000);
 
         //$.each(clientCodeList, function (index, value) {
         //    if ($("#displaycount" + value.trim()).html().trim() == "") {
