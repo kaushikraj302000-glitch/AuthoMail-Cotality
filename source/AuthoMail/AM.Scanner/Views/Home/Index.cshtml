@@ -138,6 +138,23 @@
         font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
         vertical-align: middle !important;
     }
+
+    .dataTables_scrollBody::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .dataTables_scrollBody::-webkit-scrollbar-thumb {
+        background: #666;
+        border-radius: 20px;
+    }
+
+    .dataTables_scrollBody::-webkit-scrollbar-track {
+        background: #ddd;
+        border-radius: 20px;
+    }
+    table{
+        table-layout:fixed;
+    }
 </style>
 
 <section class="" style="margin-top:3%;">
@@ -190,12 +207,16 @@
             }
         });
     }
+    function calcDataTableHeight(decreaseTableHeight) {
+        return ($(window).innerHeight() - 240) - decreaseTableHeight;
+    };
     function BuildTable(response) {
         var table = "<table class='table table-bordered table-condensed table-striped' style='margin-bottom:5px;'>";
        // var colorcode = ["#17a2b8!important;", "#466baf!important;", "#ffc107!important;"];
         var colorcode = ["#ffc107!important;","#17a2b8!important;"];
        // var colorcode = ["#ffc107!important;", "#466baf!important;"];
        // var colorcode = ["#2BBBAD !important;", "#72af46 !important;", "#466baf !important;"];
+        var headerTable = "";
         var thead = "<thead><tr style='font-size: x-large;background:#17a2b8;color:white;'>";
         $.each(response.headers, function (i, v) {
             if(i==0 || i==1)
@@ -204,8 +225,8 @@
                 thead += "<th class='aligncenter'>" + v.replace(/(\d)([A-z])/gi, '$1 $2') + "</th>";
         });
         thead += "<th class='aligncenter'>Report</th>";
-        thead += "</thead>";
-        var tbody = "<tbody>";
+        thead += "</thead></table>";
+        var tbody = "<div class='dataTables_scrollBody' style='margin-top:-1%;'><table id='dashboradTable' class='table table-bordered table-condensed table-striped'><tbody id='datatbody'>";
         var colorcnt = 0;
         $.each(response.data, function (i, v) {
             //"<tr class='alert alert-" + colorcode[colorcnt] + " ' style='font-size: x-large;'>";
@@ -276,9 +297,14 @@
         tbody += "</tbody>";
         table+=thead;
         table+=tbody;
-        table += '</table>';
+        table += '</table></div>';
         console.log(table);
         $('#batchtable').html(table);
+        if ($("#dashboradTable").find('tr').length>8) {
+            $(".dataTables_scrollBody").css({
+                height: calcDataTableHeight(12), 'overflow-y': 'auto', 'width': '100.39%'
+            });
+        }
     }
 
     $(document).ready(function () {
