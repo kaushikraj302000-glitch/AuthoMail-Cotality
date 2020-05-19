@@ -3,6 +3,8 @@
 }
 <link href="~/Content/module.admin.page.index.min.css" rel="stylesheet" />
 <link href="~/Content/dataTables.bootstrap.css" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/fixedheader/3.1.7/css/fixedHeader.dataTables.css" />
+
 <style>
 
     tr.hide-table-padding td {
@@ -155,13 +157,17 @@
     table{
         table-layout:fixed;
     }
+
+    .redbg {
+        background-color: #f8d7da !important;
+    }
 </style>
 
-<section class="" style="margin-top:3%;">
+<section class="">
     <div class="col-md-12">
         <div class="panel">
             <div class="panel-body">
-                <div class="table-responsive " id="batchtable">
+                <div class="table-responsive" id="batchtable">
 
                 </div>
             </div>
@@ -170,12 +176,17 @@
 </section>
 @*<input type="hidden" name="ClientCodeList" id="ClientCodeList" value="@string.Join(" ,",ClientList)" />*@
 <!-- Global -->
-<script src="~/Scripts/jquery-1.10.2.js"></script>
-<script src="~/Scripts/modernizr.js"></script>
-<script src="~/Scripts/animations.init.js"></script>
-<script src="~/Scripts/moment.js"></script>
-<script src="~/Scripts/tooltip.js"></script>
-<script>
+@section Scripts{
+
+    @Styles.Render("~/bundles/datatablescss")
+    @Scripts.Render("~/bundles/datatables")
+    <script type="text/javascript" src="https://cdn.datatables.net/fixedheader/3.1.7/js/dataTables.fixedHeader.js"></script>
+    <script src="~/Scripts/modernizr.js"></script>
+    <script src="~/Scripts/animations.init.js"></script>
+    <script src="~/Scripts/moment.js"></script>
+    <script src="~/Scripts/tooltip.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function () {
     var basePath = '',
         commonPath = '../assets/',
         rootPath = '../',
@@ -233,72 +244,78 @@
             tbody += "<tr  style='font-size: x-large;'>";
             for (var j = 0; j < v.length; j++) {
 
-                switch (j) {
-                    case 0:
-                        //"<td style='border-bottom-color: white !important;' class='bg-inverse'> <b>" + v[j] + "</b></td>";
-                        tbody += "<td style='color:" + colorcode[colorcnt] +"'> <b >" + v[j] + "</b></td>";
-                        break;
-                    case 1:
-                        var cls = "label-info";
+                    switch (j) {
+                        case 0:
+                            //"<td style='border-bottom-color: white !important;' class='bg-inverse'> <b>" + v[j] + "</b></td>";
+                            tbody += "<td style='color:" + colorcode[colorcnt] + "'> <b >" + v[j] + "</b></td>";
+                            break;
+                        case 1:
+                            var cls = "label-info";
 
-                        if (v[j] == 'Production Incomplete') {
-                            cls = "label-danger";
-                            dayColor = "#bd362f";
-                        }
-                        if (v[j] == 'Production Complete') {
-                            dayColor = "#72af46";
-                            cls = "label-success";
-                        }
-                        tbody += "<td><label style='font-size: small;' class=' label "+cls+"'>" + v[j] + "</label></td>";
-                        break;
-                    case 2:
-                        var dayColor = '#466baf';
-                        if (v[1] == 'Production Incomplete') {
-                            dayColor = "#bd362f";
-                        }
-                        if (v[1] == 'Production Complete') {
-                            dayColor = "#72af46";
-                        }
-                        tbody += "<td class='aligncenter' style='color:" + dayColor+"' title='" + response.headers[j] + " of " + v[0]  +"'>" + v[j] + "</td>";
-                        break;
-                    default:
-                        if (v[j] == '--') {
-                            tbody += "<td class='aligncenter'>" + v[j] + "</td>";
-                        }
-                        else {
-                            var scannedLoans = parseInt(v[j].split('/')[0])||0;
-                            var totalLoans = parseInt(v[j].split('/')[1])||0;
-                            var backlogbg = "";
-
-                            if (scannedLoans != 0 && scannedLoans == totalLoans) {
-                                backlogbg = "background-color:#72af46;color:#fff;"
+                            if (v[j] == 'Production Incomplete') {
+                                cls = "label-danger";
+                                dayColor = "#bd362f";
                             }
-
-                            if (totalLoans == 0) {
-                                tbody += "<td class='aligncenter count0'>" + v[j] + "</td>";
-                            } else {
-                                tbody += "<td class='aligncenter'><a title='" + v[0] + " : " + response.headers[j] + "' href='Scan/Index?clientCode=" + v[0] + "&batchName=" + response.headers[j] + "'><pre class='preclass' style='" + backlogbg + "' >" + v[j] + "</pre></a></td>";
+                            if (v[j] == 'Production Complete') {
+                                dayColor = "#72af46";
+                                cls = "label-success";
                             }
+                            tbody += "<td><label style='font-size: small;' class=' label " + cls + "'>" + v[j] + "</label></td>";
+                            break;
+                        case 2:
+                            var dayColor = '#466baf';
+                            if (v[1] == 'Production Incomplete') {
+                                dayColor = "#bd362f";
+                            }
+                            if (v[1] == 'Production Complete') {
+                                dayColor = "#72af46";
+                            }
+                            tbody += "<td class='aligncenter' style='color:" + dayColor + ";' title='" + response.headers[j] + " of " + v[0] + "'>" + v[j] + "</td>";
+                            break;
+                        default:
+                            if (v[j] == '--') {
+                                tbody += "<td class='aligncenter'>" + v[j] + "</td>";
+                            }
+                            else {
+                                var scannedLoans = parseInt(v[j].split('/')[0]) || 0;
+                                var totalLoans = parseInt(v[j].split('/')[1]) || 0;
+                                var backlogbg = "";
 
-                        }
-                        break;
+                                if (scannedLoans != 0 && scannedLoans == totalLoans) {
+                                    backlogbg = "background-color:#72af46;color:#fff;"
+                                }
+
+                                if (totalLoans == 0) {
+                                    tbody += "<td class='aligncenter count0'>" + v[j] + "</td>";
+                                } else {
+
+                                    var cellBGColor = "";
+                                    if (v[1] == 'Production Incomplete') {
+                                        cellBGColor = "redbg";
+                                    }
+
+                                    tbody += "<td class='aligncenter'><a title='" + v[0] + " : " + response.headers[j] + "' href='Scan/Index?clientCode=" + v[0] + "&batchName=" + response.headers[j] + "'><pre class='preclass " + cellBGColor + "' style='" + backlogbg + "' >" + v[j] + "</pre></a></td>";
+                                }
+
+                            }
+                            break;
+
+                    }
+
 
                 }
-
-
-            }
-            tbody += "<td class='aligncenter'><a title='" + v[0] + " Report' class='link' href='/Reports/ScanedDocuments?clientCode=" + v[0] +"'> <i class='glyphicon glyphicon-th-list'></i> </a></td>";
-            tbody += "</tr>";
-            if (colorcnt == 1) {
-                colorcnt = -1;
-            }
-            colorcnt++;
-        });
+                tbody += "<td class='aligncenter'><a title='" + v[0] + " Report' class='link' href='/Reports/ScanedDocuments?clientCode=" + v[0] + "'> <i class='glyphicon glyphicon-th-list'></i> </a></td>";
+                tbody += "</tr>";
+                if (colorcnt == 1) {
+                    colorcnt = -1;
+                }
+                colorcnt++;
+            });
+        }
         tbody += "</tbody>";
         table+=thead;
         table+=tbody;
-        table += '</table></div>';
-        console.log(table);
+        table += '</table>';
         $('#batchtable').html(table);
         if ($("#dashboradTable").find('tr').length>8) {
             $(".dataTables_scrollBody").css({
@@ -307,12 +324,14 @@
         }
     }
 
-    $(document).ready(function () {
+
         GetAllBatchForScan();
+
         /*  Updating Batch Count on every 60 Second using Ajax */
         window.setInterval(function () {
             GetAllBatchForScan();
         }, 60000);
     });
 
-</script>
+    </script>
+}
