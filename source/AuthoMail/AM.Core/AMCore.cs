@@ -775,7 +775,7 @@ namespace AM.Core
             eVSReq.FromState = mailPiece.RetRcptAddressState;
             eVSReq.FromZip4 = mailPiece.RetRcptAddressZIP.SeparateZip4And5(4);
             eVSReq.FromZip5 = mailPiece.RetRcptAddressZIP.SeparateZip4And5(5);
-            eVSReq.FromPhone = string.IsNullOrWhiteSpace(mailPiece.RetRcptPhone) ? new string('0', 10) : mailPiece.RcptPhone.RemoveFormatting();
+            eVSReq.FromPhone = string.IsNullOrWhiteSpace(mailPiece.RetRcptPhone) ? new string('0', 10) : mailPiece.RetRcptPhone.RemoveFormatting();
 
             // To Address
             eVSReq.ToFirm = string.IsNullOrEmpty(mailPiece.RcptOrganization) ? string.Empty : mailPiece.RcptOrganization;
