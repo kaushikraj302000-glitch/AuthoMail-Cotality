@@ -200,6 +200,7 @@
     <None Include="CoverTemplates\UNIFYFCU\UNIFYFCU_USPS_9X12_Tyvek.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="CoverTemplates\USAA\USAA_USPS_Generic_1.pdf" />
     <None Include="CoverTemplates\USAA\USAA_USPS_95X12_Tyvek.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -215,7 +216,7 @@
     <None Include="CoverTemplates\USAA\USAA_USPSExpressMailing_Generic_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="CoverTemplates\USAA\USAA_USPS_Generic_1.pdf">
+    <None Include="CoverTemplates\USAA\USAA_USPS_Generic_1_PCIOLD.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="CoverTemplates\USAA\USAA_USPS_EndPage_1.pdf">
