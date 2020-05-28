@@ -35,16 +35,17 @@ namespace AM.Web
             var userManager = new UserManager<ProfileUser>(new AMUserStore());
 
             ProfileUser user = await userManager.FindAsync(context.UserName, context.Password);
-            if (user.Status != AMUserStatus.Approved)
-            {
-                context.SetError("invalid_grant", "User's account inactive.");
-                return;
-            }
             if (user == null)
             {
                 context.SetError("invalid_grant", "The user name or password is incorrect.");
                 return;
             }
+            if (user.Status != AMUserStatus.Approved)
+            {
+                context.SetError("invalid_grant", "User's account inactive.");
+                return;
+            }
+
 
             ClaimsIdentity oAuthIdentity = await user.GenerateUserIdentityAsync(userManager);
             ClaimsIdentity cookiesIdentity = await user.GenerateUserIdentityAsync(userManager);
