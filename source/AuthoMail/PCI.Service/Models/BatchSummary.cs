@@ -161,6 +161,8 @@ namespace PCI.Service
         public string CheckAmount { get; set; }
         public string PassThru { get; set; }
         public string EndofRecord { get; set; }
+        public string CustomerId { get; set; }
+        public bool IsForeignAddress { get; set; }
     }
 
     public class DallasBatch

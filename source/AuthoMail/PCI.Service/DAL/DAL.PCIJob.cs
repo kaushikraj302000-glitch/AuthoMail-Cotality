@@ -82,6 +82,8 @@ namespace PCI.Service
                     MailPieceDueDate = row.Field<DateTime>("MailPieceDueDate"),
                     EnvelopeId = row.Field<int?>("EnvelopeId"),
                     BREEnvelopeId = row.Field<int?>("BREEnvelopeId"),
+                    CustomerId = row.Field<string>("CustomerId"),
+                    IsForeignAddress = row.Field<bool>("IsForeignAddress"),
                     //Extra Properties to map for MRDF Request
                     InputWeight = row.Field<string>("InputWeight"),
                     Feeder3_Sel = row.Field<string>("Feeder3_Sel"),
