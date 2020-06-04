@@ -50,17 +50,24 @@ namespace AM.Core
                 response.ExceptionDetail = "Error occured while generating IMBarcode :" + IMBarcode.ErrorMessage;
                 return response;
             }
-
             try
             {
-                PdfUtil.PdfFormFiller(coverTemplatePDFPath, coverLetterPDFPath, mailPieceData);
-
-                if (!File.Exists(coverLetterPDFPath))
+                if (Path.GetExtension(coverTemplatePDFPath) == "docx")
                 {
-                    response.HasError = true;
-                    response.ExceptionDetail = "Unable to generate cover letter.";
-                    return response;
+                    //Call ASPOSE API For Generating Cover Letter
                 }
+                else
+                {
+                    PdfUtil.PdfFormFiller(coverTemplatePDFPath, coverLetterPDFPath, mailPieceData);
+
+                    if (!File.Exists(coverLetterPDFPath))
+                    {
+                        response.HasError = true;
+                        response.ExceptionDetail = "Unable to generate cover letter.";
+                        return response;
+                    }
+                }
+                
                 response.CoverLetterPath = coverLetterPDFPath;
             }
             catch (Exception ex)
