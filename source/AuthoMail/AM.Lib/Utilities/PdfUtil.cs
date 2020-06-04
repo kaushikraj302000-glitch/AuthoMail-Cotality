@@ -1,9 +1,13 @@
 ﻿using iTextSharp.text;
 using iTextSharp.text.pdf;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -199,6 +203,34 @@ namespace AM.Lib
 
                 stamper.Close();
                 pdfReader.Close();
+            }
+        }
+
+        public static void GenerateCoverSheet(string apiUrl, string templatePath, string base64Path, string coversheetPath, dynamic coversheetData)
+        {
+            foreach (var p in coversheetData.GetType().GetProperties())
+            {
+                if (p.Name.StartsWith("Base64"))
+                {
+                    var filePath = Path.Combine(base64Path, p.GetValue(coversheetData).ToString());
+                    p.SetValue(coversheetData, Convert.ToBase64String(File.ReadAllBytes(filePath)));
+                }
+            }
+
+            dynamic mergeRequest = new ExpandoObject();
+            mergeRequest.Settings = new { OutputDocType = "pdf", Template = Convert.ToBase64String(File.ReadAllBytes(templatePath)) };
+            mergeRequest.Data = coversheetData;
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(apiUrl);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                var stringContent = new StringContent(JsonConvert.SerializeObject(mergeRequest), Encoding.UTF8, "application/json");
+                HttpResponseMessage httpResponse = client.PostAsync(client.BaseAddress, stringContent).Result;
+                var responseString = httpResponse.Content.ReadAsStringAsync().Result;
+                var resObj = JsonConvert.DeserializeObject<dynamic>(responseString);
+                File.WriteAllBytes(coversheetPath, Convert.FromBase64String(resObj.DocumentData));
             }
         }
     }

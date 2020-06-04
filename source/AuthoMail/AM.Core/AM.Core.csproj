@@ -320,7 +320,7 @@
     <WCFMetadataStorage Include="Service References\USPSIMService\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="ImageKey\" />
+    <Folder Include="Base64\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

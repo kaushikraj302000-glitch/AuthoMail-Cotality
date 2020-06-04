@@ -33,6 +33,7 @@ namespace AM.Services
         List<MBInfo> GetReportedBackAMRecordsFromUATBridge();
         List<MBInfo> GetReportedBackPnSRecordsFromUATBridge();
         int DeletePrintBatchDetails(int printBatchId);
+        dynamic GetCoversheetData(int mailPieceId);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -265,6 +266,11 @@ where MP.UniqueId = @UniqueId
             }
 
             return retVal;
+        }
+
+        public dynamic GetCoversheetData(int mailPieceId)
+        {
+            return db.QuerySingle<dynamic>("usp_GetCoversheetData", new { MailPieceId = mailPieceId }, commandType: System.Data.CommandType.StoredProcedure);
         }
     }
 }

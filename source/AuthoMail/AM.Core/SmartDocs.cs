@@ -52,27 +52,67 @@ namespace AM.Core
             }
             try
             {
-                if (Path.GetExtension(coverTemplatePDFPath) == "docx")
-                {
-                    //Call ASPOSE API For Generating Cover Letter
-                }
-                else
-                {
-                    PdfUtil.PdfFormFiller(coverTemplatePDFPath, coverLetterPDFPath, mailPieceData);
+                PdfUtil.PdfFormFiller(coverTemplatePDFPath, coverLetterPDFPath, mailPieceData);
 
-                    if (!File.Exists(coverLetterPDFPath))
-                    {
-                        response.HasError = true;
-                        response.ExceptionDetail = "Unable to generate cover letter.";
-                        return response;
-                    }
+                if (!File.Exists(coverLetterPDFPath))
+                {
+                    response.HasError = true;
+                    response.ExceptionDetail = "Unable to generate cover letter.";
+                    return response;
                 }
-                
+
                 response.CoverLetterPath = coverLetterPDFPath;
             }
             catch (Exception ex)
             {
                 var msg = "Error occured while generating cover letter for MailPiece-Id : {0}".Fill(mailPieceData["MailPieceId"]);
+                log.Error(msg, ex);
+                response.HasError = true;
+                response.ExceptionDetail = msg;
+                return response;
+            }
+            return response;
+
+            #endregion
+        }
+
+        public SmartDocResponse GenerateUSPSIMBCoverLetterDocx(string appCode, string coverTemplatePDFPath, string outputDir, dynamic coversheetData)
+        {
+            appCode = Config.Common_Environment == Env.Prod ? appCode : "TEST";
+
+            SmartDocResponse response = new SmartDocResponse();
+
+            string coverLetterPDFPath = Path.Combine(outputDir, string.Format("CoverLetter_{0}.pdf", coversheetData.MailPieceId));
+
+            #region Generate Cover Letter
+            if (coversheetData.IsForeignAddress == 0)
+            {
+                USPSIMClient client = new USPSIMClient();
+                IMBarcodeInfo IMBarcode = client.GenerateIMBarcode(appCode, coversheetData.MailPieceId, coversheetData.ToZip);
+
+                if (IMBarcode.Status == true)
+                {
+                    coversheetData.USPSIMB = IMBarcode.BarcodeString;
+                    response.TrackingCode = IMBarcode.TrackingCode;
+                }
+                else
+                {
+                    response.HasError = true;
+                    response.ExceptionDetail = "Error occured while generating IMBarcode :" + IMBarcode.ErrorMessage;
+                    return response;
+                }
+            }
+
+            try
+            {
+                string base64Path = Path.Combine(Config.Core_Base64Folder);
+                PdfUtil.GenerateCoverSheet(Config.Core_CoversheetAPI, coverTemplatePDFPath, base64Path, coverLetterPDFPath, coversheetData);
+
+                response.CoverLetterPath = coverLetterPDFPath;
+            }
+            catch (Exception ex)
+            {
+                var msg = $"Error occured while generating cover letter for MailPiece-Id : {coversheetData.MailPieceId}";
                 log.Error(msg, ex);
                 response.HasError = true;
                 response.ExceptionDetail = msg;
