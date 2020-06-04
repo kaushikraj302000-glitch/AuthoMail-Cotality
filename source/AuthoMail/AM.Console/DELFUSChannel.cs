@@ -141,6 +141,7 @@ namespace AM.Console
                                     mailPieceDTO.RcptAddressCity = mp.RecipientInfo.Address.City.TrimIfNotNull();
                                     mailPieceDTO.RcptAddressState = mp.RecipientInfo.Address.State.TrimIfNotNull();
                                     mailPieceDTO.RcptAddressZIP = mp.RecipientInfo.Address.Zip.TrimIfNotNull();
+                                    mailPieceDTO.RcptAddressCountry = mp.RecipientInfo.Address.Country.TrimIfNotNull();
                                 }
                             }
                             else
@@ -256,8 +257,8 @@ namespace AM.Console
                         var validMailPieces = mailPieceList.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
 
                         //Here System will validate Addresses for valid mail pieces
-                        if (validMailPieces.Count > 0)
-                            Channel.ValidateAddressType(mailBatch, validMailPieces);
+                        //if (validMailPieces.Count > 0)
+                        //    Channel.ValidateAddressType(mailBatch, validMailPieces);
 
                         if (validMailPieces.Count == 0)
                         {
