@@ -88,7 +88,7 @@ namespace AM.Core
             if (coversheetData.IsForeignAddress == 0)
             {
                 USPSIMClient client = new USPSIMClient();
-                IMBarcodeInfo IMBarcode = client.GenerateIMBarcode(appCode, coversheetData.MailPieceId, coversheetData.ToZip);
+                IMBarcodeInfo IMBarcode = client.GenerateIMBarcode(appCode, coversheetData.MailPieceId.ToString(), coversheetData.ToZip);
 
                 if (IMBarcode.Status == true)
                 {

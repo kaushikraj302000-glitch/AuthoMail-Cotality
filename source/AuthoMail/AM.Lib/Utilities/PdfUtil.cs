@@ -208,12 +208,15 @@ namespace AM.Lib
 
         public static void GenerateCoverSheet(string apiUrl, string templatePath, string base64Path, string coversheetPath, dynamic coversheetData)
         {
-            foreach (var p in coversheetData.GetType().GetProperties())
+            var data = coversheetData as IDictionary<string, object>;
+
+            foreach (var prop in data.Keys)
             {
-                if (p.Name.StartsWith("Base64"))
+                string customValue = data[prop] == null ? null : data[prop].ToString();
+                if (prop.StartsWith("Base64") && !customValue.IsNullOrWhiteSpace())
                 {
-                    var filePath = Path.Combine(base64Path, p.GetValue(coversheetData).ToString());
-                    p.SetValue(coversheetData, Convert.ToBase64String(File.ReadAllBytes(filePath)));
+                    var filePath = Path.Combine(base64Path, customValue);
+                    data[prop] = Convert.ToBase64String(File.ReadAllBytes(filePath));
                 }
             }
 
@@ -222,15 +225,11 @@ namespace AM.Lib
             mergeRequest.Data = coversheetData;
             using (var client = new HttpClient())
             {
-                client.BaseAddress = new Uri(apiUrl);
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
                 var stringContent = new StringContent(JsonConvert.SerializeObject(mergeRequest), Encoding.UTF8, "application/json");
-                HttpResponseMessage httpResponse = client.PostAsync(client.BaseAddress, stringContent).Result;
+                HttpResponseMessage httpResponse = client.PostAsync(apiUrl, stringContent).Result;
                 var responseString = httpResponse.Content.ReadAsStringAsync().Result;
                 var resObj = JsonConvert.DeserializeObject<dynamic>(responseString);
-                File.WriteAllBytes(coversheetPath, Convert.FromBase64String(resObj.DocumentData));
+                File.WriteAllBytes(coversheetPath, Convert.FromBase64String(resObj.documentData.Value));
             }
         }
     }

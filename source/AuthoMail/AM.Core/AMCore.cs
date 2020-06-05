@@ -318,7 +318,7 @@ namespace AM.Core
                                 }
                                 else if (docType.ShippingServiceType == ShippingServiceType.IMB.ToString())
                                 {
-                                    if (Path.GetExtension(coverLetterTemplatePath) == "docx")
+                                    if (Path.GetExtension(coverLetterTemplatePath) == ".docx")
                                     {
                                         var coversheetData = mailPieceSvc.GetCoversheetData(mailPieceId);
                                         //Call ASPOSE API For Generating IMB Cover Letter
