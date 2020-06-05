@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -24,19 +25,315 @@ namespace AM.Console
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private string channelType;
-
-        private static XmlSchemaSet schemas;
-
-        static DELFUSChannel()
-        {
-            schemas = new XmlSchemaSet();
-            schemas.Add("http://schemas.corelogic.com/ade/authomail/v1.18.0", XmlReader.Create(new StringReader(Resources.AMMailPieceSchema)));
-        }
         public DELFUSChannel(string channelCode, string channelType)
             : base(channelCode, channelType)
         {
             generalSvc = GetService<GeneralService>();
             this.channelType = channelType;
+        }
+
+        protected override void EnumerateBatches()
+        {
+            log.Debug("Enumerate Batches job queue for " + SFTChannel.Code + " is started.");
+
+            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+            sftSite.Connect();
+
+            List<string> triggerFilePaths = GetTriggerFilePaths(sftSite);
+
+            foreach (string triggerFile in triggerFilePaths)
+            {
+                try
+                {
+                    string triggerFilePath = Path.Combine(SFTChannel.ToADEDir, triggerFile + ".go");
+
+                    //Download and Insert the batch in database first always.
+                    string batchName = triggerFile;
+
+                    DateTime lastModifiedTime = Common.Now;
+                    if (channelType == ChannelType.Trigger)
+                    {
+                        //TODO : Implement check for zip exist or not
+                        lastModifiedTime = sftSite.LastModifiedTimeOfFile(triggerFilePath);
+                    }
+
+                    #region Create General Channel Directory.
+                    //Here first we are cleaning AMC folder
+                    string channelDownloadPath = Path.Combine(Config.Common_AuthoMailRootFolder, "GENERAL", SFTChannel.Code.Split('_')[0]);
+
+                    if (Directory.Exists(channelDownloadPath))
+                    {
+                        Directory.Delete(channelDownloadPath, true);
+                    }
+
+                    //To ensure that folder gets created.
+                    Thread.Sleep(1000);
+                    Directory.CreateDirectory(channelDownloadPath);
+
+                    #endregion
+
+                    #region Download Zip
+                    string zipFileName = "{0}.zip".Fill(batchName);
+                    string localZipFilePath = Path.Combine(channelDownloadPath, zipFileName);
+                    string xmlFilePath = Path.Combine(channelDownloadPath, batchName, batchName + ".xml");
+                    string ftpZipFilePath = Path.Combine(SFTChannel.ToADEDir, zipFileName);
+                    string ftpTriggerFilePath = Path.Combine(SFTChannel.ToADEDir, "{0}.go".Fill(batchName));
+
+                    if (!sftSite.IsFileAvailable(ftpZipFilePath))
+                    {
+                        var msg = "'{0}.zip' file is missing on SFT site.".Fill(batchName);
+                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), "");
+                        continue;
+                    }
+
+                    //Some time it is not creating AMC folder in flow so here we are again checking this if not created then below code will create
+                    if (!Directory.Exists(channelDownloadPath))
+                    {
+                        log.Error("General Channel Folder was not created as expected.");
+                        Directory.CreateDirectory(channelDownloadPath);
+                    }
+
+                    DownloadBatchZipFile(sftSite, ftpZipFilePath, localZipFilePath);
+
+                    string extractedDir = Path.Combine(Path.GetDirectoryName(localZipFilePath), Path.GetFileNameWithoutExtension(localZipFilePath));
+                    try
+                    {
+                        if (!Directory.Exists(extractedDir))
+                        {
+                            Directory.CreateDirectory(extractedDir);
+                        }
+
+                        ZipFile.ExtractToDirectory(localZipFilePath, extractedDir);
+                    }
+                    catch (Exception ex)
+                    {
+                        var msg = "Unable to extract '{0}.zip' file.".Fill(batchName);
+                        log.Error(msg, ex);
+                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), localZipFilePath);
+                        continue;
+                    }
+                    #endregion
+
+                    ProcessXML(xmlFilePath, extractedDir, localZipFilePath, batchName, channelDownloadPath, lastModifiedTime, sftSite);
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured in EnumerateBatches Method For BatchName: {0} with Error : {1}".Fill(triggerFile, ex.Message);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    continue;
+                }
+            }
+        }
+
+        private void ProcessXML(string xmlFilePath, string extractedDirPath, string localZipFilePath, string batchName, string channelDownloadPath, DateTime receivedOnDateTime, SFTUtil sftSite)
+        {
+            MailBatch mbRequest;
+            try
+            {
+                mbRequest = XmlUtil.Deserialize<MailBatch>(File.ReadAllText(xmlFilePath));
+            }
+            catch (Exception ex)
+            {
+                var msg = "'{0}.xml' is not a valid XML document.".Fill(batchName);
+                log.Error(msg, ex);
+                ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOnDateTime, msg), localZipFilePath);
+                return;
+            }
+
+            Client client;
+            MailBatchDTO mailBatch;
+            List<MailBatchCustomInfo> mailBatchCustomInfoList = new List<MailBatchCustomInfo>();
+            try
+            {
+                var clientCode = mbRequest.ClientCode == null ? "InvalidClientCode" : mbRequest.ClientCode;
+
+                if (clientCode == "InvalidClientCode")
+                {
+                    var msg = "Client code is required in provided XML.".Fill(clientCode);
+                    ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOnDateTime, msg), xmlFilePath);
+                    return;
+                }
+
+                client = clientSvc.GetClientByAppCode(clientCode).Result;
+
+                if (client == null)
+                {
+                    var msg = "Client code {0} is not valid from provided XML.".Fill(clientCode);
+                    ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOnDateTime, msg), xmlFilePath);
+                    return;
+                }
+
+                mailBatch = new MailBatchDTO
+                {
+                    ClientId = client.Id,
+                    BatchName = batchName,
+                    SFTChannelId = SFTChannel.Id,
+                    ReceivedOn = receivedOnDateTime,
+                    PipelineStatus = BatchPipelineStatus.Received,
+                    BatchStatus = BatchStatus.InProgress.ToString(),
+                    UniqueId = mbRequest.Id == null ? Guid.NewGuid() : mbRequest.Id,
+                    Priority = mbRequest.Priority.ToString(),
+                    DocumentOrPackageType = mbRequest.DocumentOrPackageType.IsNullOrWhiteSpace() ? null : mbRequest.DocumentOrPackageType,
+                    ClientBatchId = mbRequest.ClientBatchId == null ? batchName : mbRequest.ClientBatchId
+                };
+
+                //AM Mail Batch Custom Info
+                MailBatchCustomInfo mailBatchCustomInfo;
+                var customeInfoElement = mbRequest.CustomInfo;
+                if (customeInfoElement != null)
+                {
+                    foreach (var element in customeInfoElement)
+                    {
+                        mailBatchCustomInfo = new MailBatchCustomInfo() { Key = element.Key, Value = element.Value, DataType = element.DataType.ToString() };
+                        mailBatchCustomInfoList.Add(mailBatchCustomInfo);
+                    }
+                }
+
+                //AM Mail Batch Return Info
+                var returnInfoElement = mbRequest.ReturnInfo;
+                if (returnInfoElement != null)
+                {
+                    var returnRcptInfoElement = returnInfoElement.Recipient;
+                    if (returnRcptInfoElement != null)
+                    {
+                        mailBatch.IsReturnInfoSpecified = true;
+
+                        mailBatch.RetRcptFirstName = returnRcptInfoElement.FirstName;
+                        mailBatch.RetRcptLastName = returnRcptInfoElement.LastName;
+                        mailBatch.RetRcptMiddleName = returnRcptInfoElement.MiddleName;
+                        mailBatch.RetRcptOrganization = returnRcptInfoElement.Organization;
+                        mailBatch.RetRcptPhone = returnRcptInfoElement.Phone;
+                        mailBatch.RetRcptPrefix = returnRcptInfoElement.Prefix;
+                        mailBatch.RetRcptSuffix = returnRcptInfoElement.Suffix;
+                    }
+
+                    var returnAddressElement = returnInfoElement.Address;
+                    if (returnAddressElement != null)
+                    {
+                        mailBatch.IsReturnInfoSpecified = true;
+
+                        mailBatch.RetRcptAddrOptionalLine1AboveStreet = returnAddressElement.OptionalLine1AboveStreet;
+                        mailBatch.RetRcptAddrOptionalLine2AboveStreet = returnAddressElement.OptionalLine2AboveStreet;
+                        mailBatch.RetRcptAddressStreet = returnAddressElement.Street;
+                        mailBatch.RetRcptAddressAptOrSuiteOrOther = returnAddressElement.AptOrSuiteOrOther;
+                        mailBatch.RetRcptAddrOptionalLine1BelowStreet = returnAddressElement.OptionalLine1BelowStreet;
+                        mailBatch.RetRcptAddrOptionalLine2BelowStreet = returnAddressElement.OptionalLine2BelowStreet;
+                        mailBatch.RetRcptAddressCity = returnAddressElement.City;
+                        mailBatch.RetRcptAddressState = returnAddressElement.State;
+                        mailBatch.RetRcptAddressZIP = returnAddressElement.Zip;
+                    }
+                }
+                else
+                    mailBatch.IsReturnInfoSpecified = false;
+            }
+            catch (Exception ex)
+            {
+                var msg = "Error occured while processing batch from Batch '{0}.xml'".Fill(batchName);
+                log.Error(msg, ex);
+                MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
+                return;
+            }
+
+            using (TransactionScope scope = new TransactionScope())
+            {
+                try
+                {
+                    mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch, mailBatchCustomInfoList);
+
+                    MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
+
+                    //Here we create folder structure
+                    mbi.AMResponsePath.CreateDirectoryIfNotExist();
+                    mbi.PnSRequestPath.CreateDirectoryIfNotExist();
+                    mbi.PnSResponsePath.CreateDirectoryIfNotExist();
+                    //Here we are moving whole directory so no need to create AMRequestPath directly.
+                    Directory.Move(extractedDirPath, mbi.AMRequestPath);
+
+                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now).Wait();
+
+                    scope.Complete();
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured while inserting General Channel batches details for Batch '{0}.xml'".Fill(batchName);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
+                }
+            }
+
+            //Here after moving all batches to particular client location , archive amc batch
+            string archiveZipPath = Path.Combine(Config.Common_AuthoMailRootFolder, "Archive", batchName + ".zip");
+
+            if (File.Exists(archiveZipPath))
+                File.Delete(archiveZipPath);
+
+            File.Move(localZipFilePath, archiveZipPath);
+
+            //Now delete/archive trigger and zip from SFTP
+            MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, batchName + ".zip"));
+            MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, batchName + ".go"));
+
+            //After complete process clean AMC folder
+            channelDownloadPath.CleanDirectory();
+        }
+
+        private string DownloadBatchZipFile(SFTUtil sftSite, string ftpZipFilePath, string localZipFilePath)
+        {
+            sftSite.DownloadFile(ftpZipFilePath, localZipFilePath);
+
+            return localZipFilePath;
+        }
+
+        private MailBatchDTO InsertInvalidBatchInfo(string batchName, DateTime receivedOn, string errorMessage)
+        {
+            MailBatchDTO mailBatch = new MailBatchDTO();
+            mailBatch.UniqueId = Guid.NewGuid();
+            mailBatch.ClientId = GetInvalidClient(SFTChannel.Code.Split('_')[0]).Id;
+            mailBatch.SFTChannelId = SFTChannel.Id;
+            mailBatch.BatchName = batchName;
+            mailBatch.ClientBatchId = batchName;
+            mailBatch.Priority = Priority.Low.ToString();
+            mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
+            commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, receivedOn).Wait();
+            mailBatchSvc.MarkMailBatchAsInvalid(mailBatch.Id, errorMessage).Wait();
+            commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.Failed.ToString()).Wait();
+            return mailBatch;
+        }
+
+        private Client GetInvalidClient(string sftChannelCode)
+        {
+            return clientSvc.GetClientByAppCode(sftChannelCode + "_Invalid").Result;
+        }
+
+        private List<string> GetTriggerFilePaths(SFTUtil sftSite)
+        {
+            var regex = new Regex(@"^([\s\S]*).go$", RegexOptions.IgnoreCase);
+
+            List<string> availableTriggerFilePaths = sftSite.ListDirectory(SFTChannel.ToADEDir)
+                .Select(f => regex.Match(Path.GetFileName(f)))
+                .Where(m => m.Success)
+                .Select(m => m.Groups[1].Value)
+                .ToList();
+
+            if (availableTriggerFilePaths != null && availableTriggerFilePaths.Count > 0)
+            {
+                log.Debug(string.Format("{0} trigger file(s) found.", availableTriggerFilePaths.Count));
+            }
+            else
+            {
+                log.Error("No trigger files found hence no batches are available to download.");
+            }
+
+            if ((SFTChannel.Code.Contains("PENFED") || SFTChannel.Code.Contains("BECU")) && availableTriggerFilePaths.Count > 0)
+            {
+                if (SFTChannel.Host.Contains("FAGOSFTP"))
+                {
+                    availableTriggerFilePaths = availableTriggerFilePaths.Where(path => Path.GetFileNameWithoutExtension(path).StartsWith(Config.Common_EnvironmentInitial)).ToList();
+                }
+            }
+
+            return availableTriggerFilePaths;
         }
 
         protected override void ValidateBatches()
@@ -437,7 +734,6 @@ namespace AM.Console
                     mailPieceDTO.RetRcptAddressZIP = docType.RetRcptAddressZIP;
                 }
             }
-
             return new MailPieceValidationResult() { Code = OutComeCodes.No_Error };
         }
     }
