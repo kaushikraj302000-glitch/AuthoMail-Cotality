@@ -21,6 +21,8 @@ using System.Collections.Specialized;
 using System.Net.Http;
 using System.Configuration;
 using System.Net.Http.Headers;
+using AM.Services.Services;
+
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager)]
@@ -32,7 +34,8 @@ namespace AM.Web.Controllers
         IConfigService confSvc;
         IInventoryService inventorySvc;
         IProjectRequestService projectRequestSvc;
-        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc, IProjectRequestService projectRequestSvc)
+        IDelfusTemplateService delfusTemplateSvc;
+        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc, IProjectRequestService projectRequestSvc, IDelfusTemplateService delfusTemplateSvc)
         {
             UserManager = userManager;
             this.supportSvc = supportSvc;
@@ -40,6 +43,7 @@ namespace AM.Web.Controllers
             this.confSvc = confSvc;
             this.inventorySvc = inventorySvc;
             this.projectRequestSvc = projectRequestSvc;
+            this.delfusTemplateSvc = delfusTemplateSvc;
         }
         // GET: Admin
         #region SignUp Request
@@ -1175,12 +1179,106 @@ namespace AM.Web.Controllers
 
         #endregion
 
-        #region TemplateManager
+        #region Delfus TemplateManager
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult Templates()
         {
             return View();
         }
-        #endregion TemplateManager
+        [HttpPost]
+        public async Task<ActionResult> SaveDelfusTemplates(HttpPostedFileBase[] files)
+        {
+            DateTime now = DateTime.UtcNow;
+            List<KeyValuePair<bool, string>> results = new List<KeyValuePair<bool, string>>();
+            foreach (var file in files)
+            {
+                //file validation
+                string uploadURL = ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
+                string filePath = $"{file.FileName}{DateTime.Now.ToString("yyMMddHHmmss")}";
+                var uploadResult = UploadFileToServer(filePath, file.InputStream, uploadURL);
+
+                if (uploadResult.Key)
+                {
+                    var result = await delfusTemplateSvc.SaveTemplate(
+                         new DelfusTemplate
+                         {
+                             FileName = Path.GetFileNameWithoutExtension(file.FileName),
+                             FilePath = filePath,
+                             UploadedOn = now,
+                             UploadedById = User.Identity.GetUserId()
+                         }
+                         );
+                    results.Add(result);
+                }
+                else
+                {
+                    results.Add(uploadResult);
+                }
+            }
+            return Json(JsonResponseFactory.SuccessResponse(results));
+        }
+        [HttpGet]
+        public async Task<ActionResult> DownloadDelfusTemplate(int id)
+        {
+            try
+            {
+                var delfusTemplate = await delfusTemplateSvc.DelfusTemplateById(id);
+                return Json(JsonResponseFactory.SuccessResponse(delfusTemplate.FilePath));
+
+            }
+            catch (Exception ex)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(ex.Message));
+            }
+        }
+        [HttpGet]
+        public async Task<object> DelfusTemplatesList()
+        {
+            var data = await delfusTemplateSvc.DelfusTemplates();
+            return Json(new { data = data.ToList() },JsonRequestBehavior.AllowGet);
+        }
+        [HttpPost]
+        public async Task<ActionResult> RemoveDelfusTemplate(int id)
+        {
+            try
+            {
+                await delfusTemplateSvc.RemoveDelfusTemplateById(id, User.Identity.GetUserId());
+                return Json(JsonResponseFactory.SuccessResponse());
+            }
+            catch (Exception ex)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(ex.Message));
+            }
+        }
+        #endregion Delfus TemplateManager
+
+        #region UploadDownloadConfiguration
+        public KeyValuePair<bool, string> UploadFileToServer(string fileName, Stream stream, string uploadURL)
+        {
+
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
+            client.DefaultRequestHeaders.Add("FileName", fileName);
+            MultipartFormDataContent form = new MultipartFormDataContent();
+            HttpContent content = new StringContent("file");
+            content = new StreamContent(stream);
+            content.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+            {
+                Name = "file",
+                FileName = fileName
+            };
+            form.Add(content, "file", fileName);
+            HttpResponseMessage response = client.PostAsync(uploadURL, form).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                return new KeyValuePair<bool, string>(true, "");
+            }
+            else
+            {
+                return new KeyValuePair<bool, string>(false, "File not uploaded, Please try again.");
+            }
+
+        }
+        #endregion UploadDownloadConfiguration
     }
 }

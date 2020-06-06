@@ -79,5 +79,31 @@ namespace AM.Scanner.Controllers
                 return Json(e.Message, JsonRequestBehavior.AllowGet);
             }
         }
+        [AllowAnonymous, HttpPost]
+        public ActionResult SaveDelfusTemplate()
+        {
+            try
+            {
+
+                if (Request.Headers["Id"].Trim() == "5b189031-eecc-42d7-8b6d-b531caf1036e")
+                {
+                    string path = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "DelfusTemplates");
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    Request.Files[0].SaveAs(Path.Combine(path, Request.Headers["FileName"].Trim()));
+                    return Json("File save successfully.", JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    return Json("Url is not valid.", JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception e)
+            {
+                return Json(e.Message, JsonRequestBehavior.AllowGet);
+            }
+        }
     }
 }

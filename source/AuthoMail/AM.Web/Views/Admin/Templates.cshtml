@@ -2,6 +2,13 @@
 @{
     ViewBag.Title = "Templates";
 }
+<link href="~/Content/dropzone/dropzone.css" rel="stylesheet" />
+<div class="panel panel-default">
+
+    <div class="panel-body" id="uploadtemplatediv">
+       <div class="upload-container"></div>
+    </div>
+</div>
 
 <div class="panel panel-default">
     <div class="panel-heading">
@@ -9,12 +16,28 @@
             <h3>Templates</h3>
         </div>
     </div>
-    <div class="panel-body" id="templatelistdiv">
-
+    <div class="panel-body">
+        <table class="table table-striped" id="templatelisttable">
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Name</th>
+                    <th>Uploaded By</th>
+                    <th>Uploaded On</th>
+                    <th>Status</th>
+                    <th>Removed By</th>
+                    <th>Removed On</th>
+                </tr>
+            </thead>
+        </table>
     </div>
 </div>
+
+
+
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
+    <script src="~/Content/dropzone/dropzone.js"></script>
     <script src="~/Scripts/PageScript_Templates.js"></script>
 }

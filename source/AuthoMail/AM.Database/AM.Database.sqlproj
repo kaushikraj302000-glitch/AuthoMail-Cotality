@@ -77,6 +77,8 @@
     <Folder Include="dbo\User Defined Types\" />
     <Folder Include="Security\" />
     <Folder Include="dbo\Sequences\" />
+    <Folder Include="Delfus" />
+    <Folder Include="Delfus\Tables" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Snapshots\AMProduction_12_16_2019.dacpac" />
@@ -218,6 +220,8 @@
     <Build Include="Common\Tables\DallasNotificationMapping.sql" />
     <Build Include="Common\Tables\ShipperInformation.sql" />
     <Build Include="dbo\Stored Procedures\usp_GetCoversheetData.sql" />
+    <Build Include="Security\Delfus.sql" />
+    <Build Include="Delfus\Tables\Templates.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AM.Database.refactorlog" />
