@@ -1174,5 +1174,13 @@ namespace AM.Web.Controllers
         }
 
         #endregion
+
+        #region TemplateManager
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult Templates()
+        {
+            return View();
+        }
+        #endregion TemplateManager
     }
 }

@@ -446,6 +446,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Scripts\notify.js" />
+    <Content Include="Scripts\PageScript_Templates.js" />
     <Content Include="Scripts\respond.js" />
     <Content Include="Scripts\respond.min.js" />
     <Content Include="Scripts\_references.js" />
@@ -579,6 +580,7 @@
     <Content Include="Views\Admin\_DocTypePageRange.cshtml" />
     <Content Include="Views\Admin\CreateOrEditDocType.cshtml" />
     <Content Include="Template\PullBackForm_NORDIS.pdf" />
+    <Content Include="Views\Admin\Templates.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -1,0 +1,20 @@
+﻿
+@{
+    ViewBag.Title = "Templates";
+}
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="panel-title">
+            <h3>Templates</h3>
+        </div>
+    </div>
+    <div class="panel-body" id="templatelistdiv">
+
+    </div>
+</div>
+@section Scripts{
+    @Styles.Render("~/bundles/datatablescss")
+    @Scripts.Render("~/bundles/datatables")
+    <script src="~/Scripts/PageScript_Templates.js"></script>
+}
