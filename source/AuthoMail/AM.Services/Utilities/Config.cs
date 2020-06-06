@@ -52,6 +52,8 @@ namespace AM.Services
         //Core
         public static string Core_PnS_SFT_RootDir { get; private set; }
         public static string Core_CoverTemplateFolder { get; private set; }
+        public static string Core_Base64Folder { get; private set; }
+        public static string Core_CoversheetAPI { get; private set; }
         public static string Core_CountryCode { get; private set; }
         public static int Core_NoofTime_AttemptFedexService { get; private set; }
         public static int Core_FedexServiceAttemptInterval { get; private set; }

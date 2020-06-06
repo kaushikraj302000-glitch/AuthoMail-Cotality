@@ -318,8 +318,18 @@ namespace AM.Core
                                 }
                                 else if (docType.ShippingServiceType == ShippingServiceType.IMB.ToString())
                                 {
-                                    //Create Cover letter with IMBarcode - USPS First Class
-                                    response = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                    if (Path.GetExtension(coverLetterTemplatePath) == ".docx")
+                                    {
+                                        var coversheetData = mailPieceSvc.GetCoversheetData(mailPieceId);
+                                        //Call ASPOSE API For Generating IMB Cover Letter
+                                        response = doc.GenerateUSPSIMBCoverLetterDocx(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, coversheetData);
+                                    }
+                                    else
+                                    {
+                                        //Create Cover letter with IMBarcode - USPS First Class
+                                        response = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                    }
+                                    
 
                                     if (response.HasError)
                                     {

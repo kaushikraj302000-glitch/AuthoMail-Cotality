@@ -1,9 +1,13 @@
 ﻿using iTextSharp.text;
 using iTextSharp.text.pdf;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -199,6 +203,33 @@ namespace AM.Lib
 
                 stamper.Close();
                 pdfReader.Close();
+            }
+        }
+
+        public static void GenerateCoverSheet(string apiUrl, string templatePath, string base64Path, string coversheetPath, dynamic coversheetData)
+        {
+            var data = coversheetData as IDictionary<string, object>;
+
+            foreach (var prop in data.Keys)
+            {
+                string customValue = data[prop] == null ? null : data[prop].ToString();
+                if (prop.StartsWith("Base64") && !customValue.IsNullOrWhiteSpace())
+                {
+                    var filePath = Path.Combine(base64Path, customValue);
+                    data[prop] = Convert.ToBase64String(File.ReadAllBytes(filePath));
+                }
+            }
+
+            dynamic mergeRequest = new ExpandoObject();
+            mergeRequest.Settings = new { OutputDocType = "pdf", Template = Convert.ToBase64String(File.ReadAllBytes(templatePath)) };
+            mergeRequest.Data = coversheetData;
+            using (var client = new HttpClient())
+            {
+                var stringContent = new StringContent(JsonConvert.SerializeObject(mergeRequest), Encoding.UTF8, "application/json");
+                HttpResponseMessage httpResponse = client.PostAsync(apiUrl, stringContent).Result;
+                var responseString = httpResponse.Content.ReadAsStringAsync().Result;
+                var resObj = JsonConvert.DeserializeObject<dynamic>(responseString);
+                File.WriteAllBytes(coversheetPath, Convert.FromBase64String(resObj.documentData.Value));
             }
         }
     }

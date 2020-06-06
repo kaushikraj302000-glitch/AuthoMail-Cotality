@@ -217,6 +217,7 @@
     <Build Include="AM\Tables\CustomTemplates.sql" />
     <Build Include="Common\Tables\DallasNotificationMapping.sql" />
     <Build Include="Common\Tables\ShipperInformation.sql" />
+    <Build Include="dbo\Stored Procedures\usp_GetCoversheetData.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AM.Database.refactorlog" />
