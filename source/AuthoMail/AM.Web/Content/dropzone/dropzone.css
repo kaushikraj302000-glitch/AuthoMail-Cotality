@@ -378,8 +378,8 @@
       border-radius: 8px;
       font-size: 13px;
       top: 130px;
-      left: -10px;
-      width: 140px;
+      left: -100px;
+      width: 300px;
       background: #be2626;
       background: linear-gradient(to bottom, #be2626, #a92222);
       padding: 0.5em 1.2em;
@@ -388,9 +388,21 @@
         content: '';
         position: absolute;
         top: -6px;
-        left: 64px;
+        left: 150px;
         width: 0;
         height: 0;
         border-left: 6px solid transparent;
         border-right: 6px solid transparent;
         border-bottom: 6px solid #be2626; }
+
+.dz-error-message ul{
+    padding:0px;
+}
+.dz-error{
+    border:1px solid red !important;
+    border-radius:20px;
+}
+.dz-success {
+    border: 1px solid green;
+    border-radius: 20px;
+}

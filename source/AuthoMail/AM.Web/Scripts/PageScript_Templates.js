@@ -153,12 +153,76 @@
     }
 
     function DropZoneInit() {
-        url = baseUrl + "Admin/SaveDelfusTemplates";
-        $("#uploadtemplatediv").dropzone(
-            {
-                url: url,
-                clickable: true
-            });
+        //url = baseUrl + "Admin/SaveDelfusTemplates";
+
+
+        Dropzone.options.uploadtemplatediv = {
+            paramName: "template", // The name that will be used to transfer the file
+            //maxFilesize: 2, // MB
+            timeout: 60000,
+            dictDefaultMessage: '<b>Click or Drag here to upload template(s).</b>',
+            acceptedFiles: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            //accept: function (file, done) {
+            //    //console.log('file:', file);
+            //    done();
+            //},
+            autoQueue: true,
+            autoDiscover: false,
+            //uploadprogress: function (file, progress, bytesSent) {
+            //    console.log('uploadprogress: ', file);
+            //    console.log('uploadprogress: ', progress);
+            //    console.log('uploadprogress: ', bytesSent);
+            //},
+            //processing: function (response) {
+            //    console.log('processing: ', response);
+            //},
+
+            //sending: function (response) {
+            //    console.log('sending: ', response.name);
+            //},
+            ////success: function (file,response) {
+            ////    console.log('success : ', file.name);
+            ////    console.log('success : ', response.Object);
+            ////},
+            //complete: function (response) {
+            //    console.log('complete: ', response.name);
+            //},
+            totaluploadprogress: function (response) {
+                console.log('totaluploadprogress:', response);
+                //alertMessage("green", 'All templates uploaded successfully.');
+            },
+            queuecomplete: function (response) {
+                alertMessage("green", 'Template uploading completed.');
+            },
+            //error: function (err) {
+            //    console.log('error: ', err);
+            //},
+
+            init: function () {
+                //this.on("addedfile", function (file) {
+                //    console.log('addedfile: ', file);
+                //});
+                this.on("success", function (file, response) {
+                    if (!response.Success) {
+                        var messages = '<ul>';
+                        for (var i = 0; i < response.Object.length; i++) {
+                            messages += '<li>' + response.Object[i] + '</li>';
+                        }
+                        $(file.previewElement).addClass("dz-error").find('.dz-error-message').html(messages);
+                    }
+                });
+                //this.on("error", function (file, errorMessage) {
+                //    console.log('err: ', file);
+                //    console.log('err: ', errorMessage);
+                //    if (file.accepted) {
+                //        var mypreview = document.getElementsByClassName('dz-error');
+                //        mypreview = mypreview[mypreview.length - 1];
+                //        mypreview.classList.toggle('dz-error');
+                //        mypreview.classList.toggle('dz-success');
+                //    }
+                //});
+            }
+        };
     }
 
     function TemplateList() {
@@ -173,11 +237,12 @@
                 "url": baseUrl + "Admin/DelfusTemplatesList",
                 "type": "GET"
             },
-            "columnDefs": [
+            paging: false,
+            "columns": [
                 {
                     "data": "Id",
                     "render": function (data, type, row, meta) {
-                        return '<button class="btn btn-primary btn-sm downloadtemplate" data-id="' + data + '"><i class="fa fa-download"></button>< button class="btn btn-primary btn-sm removetemplate" data-id="' + data + '" > <i class="fa fa-trash"></button>';
+                        return '<button class="btn btn-success btn-sm downloadtemplate" data-id="' + data + '"><i class="fa fa-download"></i></button> <button class="btn btn-danger btn-sm removetemplate" data-id="' + data + '" > <i class="fa fa-trash"></i></button>';
                     }
                 },
                 { "data": "FileName" },
@@ -188,11 +253,22 @@
                         return moment(data).format("MM/DD/YY HH:mm:ss");
                     }
                 },
-                { "data": "IsRemoved" },
+                {
+                    "data": "IsRemoved",
+                    "render": function (data) {
+                        if (data == true) {
+                            return '<span class="label label-danger"> Yes </span>';
+                        }
+                        else {
+                            return '<span class="label label-success"> No </span>';
+                        }
+                    }
+                },
                 { "data": "RemovedBy" },
                 {
                     "data": "RemovedOn",
                     "render": function (data, type, row, meta) {
+                        if (data == null) return null;
                         return moment(data).format("MM/DD/YY HH:mm:ss");
                     }
                 }
@@ -219,8 +295,8 @@
     }
     return {
         init: function () {
-            TemplateList();
             DropZoneInit();
+            TemplateList();
             //UploadTemplates()
         }
     };

@@ -391,7 +391,6 @@
     <Content Include="Content\datatables\table-datatables-managed.js" />
     <Content Include="Content\dropzone\dropzone.css" />
     <Content Include="Content\dropzone\dropzone.js" />
-    <Content Include="Content\dropzone\dropzone.min.css" />
     <Content Include="Content\dropzone\uploadfile.css" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />

@@ -93,16 +93,16 @@ namespace AM.Scanner.Controllers
                         Directory.CreateDirectory(path);
                     }
                     Request.Files[0].SaveAs(Path.Combine(path, Request.Headers["FileName"].Trim()));
-                    return Json("File save successfully.", JsonRequestBehavior.AllowGet);
+                    return Json(JsonResponseFactory.SuccessResponse("File save successfully."), JsonRequestBehavior.AllowGet);
                 }
                 else
                 {
-                    return Json("Url is not valid.", JsonRequestBehavior.AllowGet);
+                    return Json(JsonResponseFactory.ErrorResponse("Url is not valid."), JsonRequestBehavior.AllowGet);
                 }
             }
             catch (Exception e)
             {
-                return Json(e.Message, JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
             }
         }
     }

@@ -14,9 +14,15 @@ namespace AM.Services
         public string UploadedById { get; set; }
         public string UploadedBy { get; set; }
         public DateTime UploadedOn { get; set; }
-        public string IsRemoved { get; set; }
+        public bool IsRemoved { get; set; }
         public string RemovedById { get; set; }
         public string RemovedBy { get; set; }
-        public DateTime RemovedOn { get; set; }
+        public DateTime? RemovedOn { get; set; }
+    }
+    public class DelfusResult
+    {
+        public bool Success { get; set; }
+        public object Object { get; set; }
+        public string ErrorMessage { get; set; }
     }
 }

@@ -22,6 +22,8 @@ using System.Net.Http;
 using System.Configuration;
 using System.Net.Http.Headers;
 using AM.Services.Services;
+using Newtonsoft.Json;
+using System.Threading;
 
 namespace AM.Web.Controllers
 {
@@ -1186,36 +1188,34 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public async Task<ActionResult> SaveDelfusTemplates(HttpPostedFileBase[] files)
+        public async Task<ActionResult> SaveDelfusTemplates(HttpPostedFileBase template)
         {
             DateTime now = DateTime.UtcNow;
-            List<KeyValuePair<bool, string>> results = new List<KeyValuePair<bool, string>>();
-            foreach (var file in files)
-            {
-                //file validation
-                string uploadURL = ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
-                string filePath = $"{file.FileName}{DateTime.Now.ToString("yyMMddHHmmss")}";
-                var uploadResult = UploadFileToServer(filePath, file.InputStream, uploadURL);
+            Thread.Sleep(4000);
+            List<string> errors = new List<string>();
 
-                if (uploadResult.Key)
-                {
-                    var result = await delfusTemplateSvc.SaveTemplate(
-                         new DelfusTemplate
-                         {
-                             FileName = Path.GetFileNameWithoutExtension(file.FileName),
-                             FilePath = filePath,
-                             UploadedOn = now,
-                             UploadedById = User.Identity.GetUserId()
-                         }
-                         );
-                    results.Add(result);
-                }
-                else
-                {
-                    results.Add(uploadResult);
-                }
+            string uploadURL = ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
+            string filePath = $"{Path.GetFileNameWithoutExtension(template.FileName)}_{DateTime.Now.ToString("yyMMddHHmmss")}.{Path.GetExtension(template.FileName)}";
+            var uploadResult = await UploadFileToServer(filePath, template.InputStream, uploadURL);
+
+            if (uploadResult.Key)
+            {
+                var result = await delfusTemplateSvc.SaveTemplate(
+                     new DelfusTemplate
+                     {
+                         FileName = Path.GetFileNameWithoutExtension(template.FileName),
+                         FilePath = filePath,
+                         UploadedOn = now,
+                         UploadedById = User.Identity.GetUserId()
+                     }
+                     );
+                return Json(JsonResponseFactory.SuccessResponse("Template uploaded successfully."));
             }
-            return Json(JsonResponseFactory.SuccessResponse(results));
+            else
+            {
+                errors.Add(uploadResult.Value);
+            }
+            return Json(JsonResponseFactory.ErrorResponse(errors));
         }
         [HttpGet]
         public async Task<ActionResult> DownloadDelfusTemplate(int id)
@@ -1235,7 +1235,7 @@ namespace AM.Web.Controllers
         public async Task<object> DelfusTemplatesList()
         {
             var data = await delfusTemplateSvc.DelfusTemplates();
-            return Json(new { data = data.ToList() },JsonRequestBehavior.AllowGet);
+            return Json(new { data = data.ToList() }, JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
         public async Task<ActionResult> RemoveDelfusTemplate(int id)
@@ -1253,7 +1253,7 @@ namespace AM.Web.Controllers
         #endregion Delfus TemplateManager
 
         #region UploadDownloadConfiguration
-        public KeyValuePair<bool, string> UploadFileToServer(string fileName, Stream stream, string uploadURL)
+        public async Task<KeyValuePair<bool, string>> UploadFileToServer(string fileName, Stream stream, string uploadURL)
         {
 
             HttpClient client = new HttpClient();
@@ -1268,10 +1268,13 @@ namespace AM.Web.Controllers
                 FileName = fileName
             };
             form.Add(content, "file", fileName);
-            HttpResponseMessage response = client.PostAsync(uploadURL, form).Result;
+            HttpResponseMessage response = await client.PostAsync(uploadURL, form);
             if (response.IsSuccessStatusCode)
             {
-                return new KeyValuePair<bool, string>(true, "");
+                var result = await response.Content.ReadAsAsync<DelfusResult>();
+                if (result.Success)
+                    return new KeyValuePair<bool, string>(true, "");
+                return new KeyValuePair<bool, string>(result.Success, result.ErrorMessage);
             }
             else
             {
