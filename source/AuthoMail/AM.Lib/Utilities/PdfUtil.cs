@@ -221,7 +221,7 @@ namespace AM.Lib
             }
 
             dynamic mergeRequest = new ExpandoObject();
-            mergeRequest.Settings = new { OutputDocType = "pdf", Template = Convert.ToBase64String(File.ReadAllBytes(templatePath)) };
+            mergeRequest.Settings = new { MailMergeOptions = "RemoveEmptyParagraphs", OutputDocType = "pdf", Template = Convert.ToBase64String(File.ReadAllBytes(templatePath)) };
             mergeRequest.Data = coversheetData;
             using (var client = new HttpClient())
             {
