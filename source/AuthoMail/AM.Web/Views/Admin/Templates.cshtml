@@ -18,23 +18,26 @@
             <h3>Templates</h3>
         </div>
     </div>
-    <div class="panel-body">
-        <table class="table table-striped" id="templatelisttable">
-            <thead>
-                <tr>
-                    <th>Action</th>
-                    <th>Name</th>
-                    <th>Uploaded By</th>
-                    <th>Uploaded On</th>
-                    <th>Is Removed</th>
-                    <th>Removed By</th>
-                    <th>Removed On</th>
-                </tr>
-            </thead>
-        </table>
+    <div class="panel-body" id="templatestablebody">
+
     </div>
 </div>
 
+<div id="templatebody" style="display:none;">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Action</th>
+                <th>Name</th>
+                <th>Uploaded By</th>
+                <th>Uploaded On</th>
+                <th>Is Removed</th>
+                <th>Removed By</th>
+                <th>Removed On</th>
+            </tr>
+        </thead>
+    </table>
+</div>
 
 
 @section Scripts{

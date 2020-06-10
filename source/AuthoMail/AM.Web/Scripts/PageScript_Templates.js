@@ -1,160 +1,6 @@
 ﻿var DolfusTemplates = function () {
 
-
-    function UploadTemplates() {
-        $('.upload-container').each(function () {
-            var $upload = $(this).find('.upload-components'),
-                droppedFiles = false,
-                self = $(this);
-
-            // Hook up the "Upload File" button to the hidden file input.
-            $upload.find('.btn').on('click', function () {
-                //if ($('#Client').val() == null || $('#Client').val() == "" || $('#Client').val() == undefined) {
-                //    toastr.error("Please select client.");
-                //    return false;
-                //}
-                self.find('.upload-input').click();
-                $(self).unbind('change');
-                $(self).bind('change', function (e) {
-
-                    droppedFiles = e.target.files || e.dataTransfer.files;
-                    var files = null;
-                    for (var i = 0; i < droppedFiles.length; i++) {
-                        var fileExtension = droppedFiles[i].name.split('.').pop().toLowerCase();
-                        if (fileExtension == "docx") {
-                            $(this).addClass('uploading');
-                            $(this).find('.filename').html(droppedFiles[0].name);
-                            uploadFile($(this), droppedFiles[i]);
-                        }
-                        else {
-                            toastr.error("Acceptable file type is .docx");
-                            $('#fileuploadresult').html("Please upload file...");
-                        }
-                    }
-
-                });
-            });
-
-
-            // This counter takes care of child events so they don't trigger dragleave/dragenter events and a lot of flickering.
-            var counter = 0;
-
-            /**
-             * prop e.dataTransfer
-             */
-            $(this).on('drag dragstart dragend dragover dragenter dragleave drop', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }).on('dragover', function () {
-                $(this).addClass('dragover');
-            }).on('dragenter', function () {
-                counter++;
-                $(this).addClass('dragover');
-            }).on('dragleave', function () {
-                counter--;
-                if (counter === 0) {
-                    $(this).removeClass('dragover');
-                }
-            }).on('dragend drop', function () {
-                $(this).removeClass('dragover');
-            }).on('drop', function (e) {
-                droppedFiles = e.originalEvent.files || e.originalEvent.dataTransfer.files;
-                if (droppedFiles.length == 1) {
-                    var fileExtension = droppedFiles[0].name.split('.').pop().toLowerCase();
-                    if (fileExtension == "docx") {
-                        $(this).addClass('uploading');
-                        $(this).find('.filename').html(droppedFiles[0].name);
-                        uploadFile($(this), droppedFiles[0]);
-                    }
-                    else {
-                        toastr.error("Acceptable file type is .docx");
-                    }
-                } else {
-                    toastr.error("You can not upload more than one file.");
-                }
-
-            });
-        });
-    }
-    function uploadFile(obj, file) {
-        var formData = new FormData($('#uploadfileform')[0]);
-        formData.append("file", file);
-        $.ajax({
-            xhr: function () {
-                var xhr = new window.XMLHttpRequest();
-                xhr.upload.addEventListener("progress", function (evt) {
-                    if (evt.lengthComputable) {
-                        var percentComplete = evt.loaded / evt.total;
-                        percentComplete = parseInt(percentComplete * 100);
-                        //console.log(percentComplete);
-                        obj.find('.progress-bar').css('width', percentComplete + '%');
-                        if (percentComplete === 100) {
-                            $('#fileuploadresult').html("Please wait while file is processed.");
-                        }
-                    }
-                }, false);
-
-                return xhr;
-            },
-            url: baseUrl + "Admin/SaveTemplates",
-            type: "POST",
-            processData: false,
-            contentType: false,
-            data: formData,
-            // dataType: "json",
-            success: function (response) {
-                console.log(response);
-                if (response.success) {
-                    //toastr.success(response.Object);
-                    //swal("", "File processed successfully.", "success");
-                    $('#exceluploadmodalresulttitle').html('File processed successfully.');
-
-                    var err = "<ul style='color:green;'>";
-                    $.each(response.object, function (i, v) {
-                        if (i != 0)
-                            err = err + "<li>" + v + "</li>";
-                    });
-                    err = err + "</ul>";
-                    $('#exceluploadmodalresultcontent').html(err);
-                    $('#exceluploadmodalresult').modal("show");
-                    $(".filename").empty();
-                    $(".upload-container").removeClass("uploading");
-                    $(".upload-input").val("");
-                    $('#fileuploadresult').html("File processed successfully.");
-                    //setTimeout(function () { window.location.reload(); }, 1000);
-                    ApplyTable();
-                }
-                else {
-                    $('#exceluploadmodalresulttitle').html('Please review following error(s).');
-                    var err = "<ul style='color:red;'>";
-                    $.each(response.object, function (i, v) {
-                        err = err + "<li>" + v + "</li>";
-                    });
-                    err = err + "</ul>";
-                    $('#exceluploadmodalresultcontent').html(err);
-                    $('#exceluploadmodalresult').modal("show");
-                    $('#fileuploadresult').html("Please upload file...");
-                    $(".filename").empty();
-                    $(".upload-container").removeClass("uploading");
-                    $(".upload-input").val("");
-                }
-            },
-            error: function (xhr, ajaxOptions, thrownError) {
-                console.log(thrownError);
-                $(".filename").empty();
-                $(".upload-container").removeClass("uploading");
-                //$("#uploadfilesrecord").html(response.Object);
-                $(".upload-input").val("");
-                //progress();
-                return false;
-            }
-        });
-
-    }
-
     function DropZoneInit() {
-        //url = baseUrl + "Admin/SaveDelfusTemplates";
-
 
         Dropzone.options.uploadtemplatediv = {
             paramName: "template", // The name that will be used to transfer the file
@@ -193,6 +39,7 @@
             },
             queuecomplete: function (response) {
                 alertMessage("green", 'Template uploading completed.');
+                TemplateList();
             },
             //error: function (err) {
             //    console.log('error: ', err);
@@ -226,8 +73,16 @@
     }
 
     function TemplateList() {
-        //$('#templatelistdiv').html('<div class="alert alert-info text-center">Please wait..</div>');
-        $('#templatelisttable').DataTable({
+        var id = 'templatelisttable';
+        if ($.fn.DataTable.isDataTable('#' + id)) {
+            $('#' + id).remove();
+            $('#' + id + '_wrapper').remove();
+            $('#templatestablebody').empty();
+        }
+        var tableBody = $('#templatebody').html();
+        tableBody = $(tableBody).attr('id', id);
+        $('#templatestablebody').html(tableBody);
+        var table = $('#templatelisttable').DataTable({
             "language": {
                 "emptyTable": "No rows to display."
             },
@@ -237,12 +92,17 @@
                 "url": baseUrl + "Admin/DelfusTemplatesList",
                 "type": "GET"
             },
+            destroy: true,
             paging: false,
             "columns": [
                 {
                     "data": "Id",
                     "render": function (data, type, row, meta) {
-                        return '<button class="btn btn-success btn-sm downloadtemplate" data-id="' + data + '"><i class="fa fa-download"></i></button> <button class="btn btn-danger btn-sm removetemplate" data-id="' + data + '" > <i class="fa fa-trash"></i></button>';
+                        var buttons = '<button class="btn btn-success btn-sm downloadtemplate" data-id="' + data + '"><i class="fa fa-download"></i></button>';
+                        if (!row.IsRemoved) {
+                            buttons += ' <button class="btn btn-danger btn-sm removetemplate" data-id="' + data + '"><i class="fa fa-trash"></i></button>';
+                        }
+                        return buttons;
                     }
                 },
                 { "data": "FileName" },
@@ -274,24 +134,93 @@
                 }
             ]
         });
-        //$.ajax({
-        //    type: "POST",
-        //    url: baseUrl + "Admin/DelfusTemplatesList",
-        //    dataType: "json",
-        //    success: function (response) {
-        //        console.log(response);
-        //        if (response.length == 0) {
-        //            $('#templatelistdiv').html('<div class="alert alert-warning text-center">No rows found.</div>');
-        //        }
-        //        else {
+        RemoveTemplate(table);
+        DownloadTemplate();
+    }
+    function RemoveTemplate(table) {
+        $('#templatelisttable tbody').on('click', '.removetemplate', function () {
+            var data = table.row($(this).parents('tr')).data();
+            var isConfirm = confirm('Are you sure to remove "' + data.FileName + '" template?');
+            if (isConfirm) {
+                var context = $(this);
+                $(this).attr('disabled', 'disabled');
+                var id = $(this).data('id');
+                $.ajax({
+                    type: "POST",
+                    url: baseUrl + "admin/RemoveDelfusTemplate",
+                    data: { id: id },
+                    dataType: "json",
+                    success: function (response) {
+                        if (response.Success) {
+                            alertMessage("green", 'Template has been removed.');
+                        }
+                        else {
+                            alertMessage("red", response.ErrorMessage);
+                        }
+                        $(context).removeAttr('disabled');
+                        TemplateList();
+                    },
+                    error: function (err) {
+                        console.log(err);
+                        $(context).removeAttr('disabled');
+                    }
+                });
+            }
+        });
+    }
+    function DownloadTemplate() {
+        $('#templatelisttable tbody').on('click', '.downloadtemplate', function () {
+            var context = $(this);
+            $(this).attr('disabled', 'disabled');
+            $(this).find('i').removeClass('fa-download');
+            $(this).find('i').addClass('fa-spining fa-spinner fa-spin');
+            var id = $(this).data('id');
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Admin/DownloadDelfusTemplate",
+                data: { id: id },
+                dataType: "json",
+                success: function (response) {
+                    console.log(response);
+                    if (response.Success) {
+                        var stream = response.Object.stream;
+                        var sampleArr = base64ToArrayBuffer(stream);
+                        saveByteArray(response.Object.fileName, sampleArr);
+                    }
+                    else {
+                        alertMessage("red", response.ErrorMessage);
+                    }
+                    $(context).removeAttr('disabled');
+                    $(context).find('i').removeClass('fa-spining fa-spinner fa-spin');
+                    $(context).find('i').addClass('fa-download');
+                },
+                error: function (err) {
+                    console.log(err);
+                    $(context).removeAttr('disabled');
+                    $(context).find('i').removeClass('fa-spining fa-spinner fa-spin');
+                    $(context).find('i').addClass('fa-download');
+                }
+            });
+        });
+    }
+    function base64ToArrayBuffer(base64) {
+        var binaryString = window.atob(base64);
+        var binaryLen = binaryString.length;
+        var bytes = new Uint8Array(binaryLen);
+        for (var i = 0; i < binaryLen; i++) {
+            var ascii = binaryString.charCodeAt(i);
+            bytes[i] = ascii;
+        }
+        return bytes;
+    }
 
-        //        }
-        //    },
-        //    error: function (err) {
-        //        $('#templatelistdiv').html('<div class="alert alert-info text-center">Oop! An error is occured.</div>');
-        //        console.log(err);
-        //    }
-        //});
+    //save Byte[] array and download
+    function saveByteArray(fileName, byte) {
+        var blob = new Blob([byte]);
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = fileName + '.docx';
+        link.click();
     }
     return {
         init: function () {

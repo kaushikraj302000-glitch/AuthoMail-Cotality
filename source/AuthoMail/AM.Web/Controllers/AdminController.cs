@@ -1195,7 +1195,7 @@ namespace AM.Web.Controllers
             List<string> errors = new List<string>();
 
             string uploadURL = ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
-            string filePath = $"{Path.GetFileNameWithoutExtension(template.FileName)}_{DateTime.Now.ToString("yyMMddHHmmss")}.{Path.GetExtension(template.FileName)}";
+            string filePath = $"{Path.GetFileNameWithoutExtension(template.FileName)}_{DateTime.Now.ToString("yyMMddHHmmss")}{Path.GetExtension(template.FileName)}";
             var uploadResult = await UploadFileToServer(filePath, template.InputStream, uploadURL);
 
             if (uploadResult.Key)
@@ -1217,13 +1217,24 @@ namespace AM.Web.Controllers
             }
             return Json(JsonResponseFactory.ErrorResponse(errors));
         }
-        [HttpGet]
+        [HttpPost]
         public async Task<ActionResult> DownloadDelfusTemplate(int id)
         {
             try
             {
                 var delfusTemplate = await delfusTemplateSvc.DelfusTemplateById(id);
-                return Json(JsonResponseFactory.SuccessResponse(delfusTemplate.FilePath));
+                var stream = await DownloadTemplate(delfusTemplate.FilePath, ConfigurationManager.AppSettings["DelfusTemplateDownloadUrl"].ToString());
+                if (stream == null)
+                {
+                    return Json(JsonResponseFactory.ErrorResponse("Template not found."));
+                }
+                return Json(JsonResponseFactory.SuccessResponse(
+                    new
+                    {
+                        fileName = delfusTemplate.FileName,
+                        stream = Convert.ToBase64String(stream)
+                    }
+                    ));
 
             }
             catch (Exception ex)
@@ -1281,6 +1292,19 @@ namespace AM.Web.Controllers
                 return new KeyValuePair<bool, string>(false, "File not uploaded, Please try again.");
             }
 
+        }
+        public async Task<Byte[]> DownloadTemplate(string fileName, string downloadURL)
+        {
+            HttpClient client = new HttpClient();
+            HttpResponseMessage response = new HttpResponseMessage();
+            string url = $"{downloadURL}?fileName={fileName}";
+            response = await client.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                string fileGuid = Guid.NewGuid().ToString();
+                return await response.Content.ReadAsByteArrayAsync();
+            }
+            return null;
         }
         #endregion UploadDownloadConfiguration
     }
