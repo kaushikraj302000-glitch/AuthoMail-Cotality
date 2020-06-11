@@ -776,7 +776,7 @@ namespace AM.Console
                     //Get validate Addresses for each records
                     List<AddressResponse> addressResponses = new List<AddressResponse>();
                     List<AddressRequest> addressRequestes = new List<AddressRequest>();
-                    foreach (var mailPiece in validMailPieces.Where(mp => (mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested)) // Here system will verify only those address which have fallbackrequested=true or Edeliveryrequested=false
+                    foreach (var mailPiece in validMailPieces.Where(mp => ((mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested) || (!mp.RcptAddressCountry.IsNullOrWhiteSpace() && (mp.RcptAddressCountry.Contains("USA") || mp.RcptAddressCountry.Contains("US") || mp.RcptAddressCountry.Contains("The United States of America") || mp.RcptAddressCountry.Contains("United States of America") || mp.RcptAddressCountry.Contains("United States"))))) // Here system will verify only those address which have fallbackrequested=true or Edeliveryrequested=false and if country exist than it will check for country name must be from above metioned one
                     {
                         AddressRequest addressRequest = new AddressRequest() { Id = mailPiece.UniqueId.ToString(), StreetAddress = mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet, City = mailPiece.RcptAddressCity, State = mailPiece.RcptAddressState, Zip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4), Zip5 = mailPiece.RcptAddressZIP.SeparateZip4And5(5) };
 
@@ -823,6 +823,7 @@ namespace AM.Console
 
                         mailPiece.RcptAddressTypes = string.Join(",", addressResponse.AddressTypes);
 
+
                         if (addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
                         {
                             mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
@@ -830,6 +831,11 @@ namespace AM.Console
                             mailPiece.ErrorDesc = !string.IsNullOrEmpty(addressResponse.VerifierDesc) ? addressResponse.VerifierDesc : addressResponse.Error.Description;
                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                             continue;
+                        }
+
+                        if (!mailPiece.RcptAddressCountry.IsNullOrWhiteSpace() && (!mailPiece.RcptAddressCountry.Contains("USA") || !mailPiece.RcptAddressCountry.Contains("US") || !mailPiece.RcptAddressCountry.Contains("The United States of America") || !mailPiece.RcptAddressCountry.Contains("United States of America") || !mailPiece.RcptAddressCountry.Contains("United States")))
+                        {
+                            mailPiece.RcptAddressTypes = AddressType.FOREIGN.ToString();
                         }
 
                         if (docType.ShippingCarrier == Carrier.FedEx.ToString())
