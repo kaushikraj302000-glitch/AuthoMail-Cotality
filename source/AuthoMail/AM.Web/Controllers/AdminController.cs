@@ -1191,7 +1191,6 @@ namespace AM.Web.Controllers
         public async Task<ActionResult> SaveDelfusTemplates(HttpPostedFileBase template)
         {
             DateTime now = DateTime.UtcNow;
-            Thread.Sleep(4000);
             List<string> errors = new List<string>();
 
             string uploadURL = ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
