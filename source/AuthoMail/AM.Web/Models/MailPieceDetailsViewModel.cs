@@ -7,6 +7,8 @@ namespace AM.Web.Models
 {
     public class MailPieceDetailsViewModel
     {
+        public int MailPieceId { get; set; }
+        public int MailBatchId { get; set; }
         public string BatchName { get; set; }
         public Guid UniqueId { get; set; }
         public string AppCode { get; set; }
