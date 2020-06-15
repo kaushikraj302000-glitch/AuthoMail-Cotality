@@ -240,7 +240,7 @@ namespace AM.Services
 
         public PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId, DateTime? effectiveReceivedOnEst = null)
         {
-            string query = "SELECT pv.*,CASE WHEN DATEPART(DW,@EffectiveReceivedOnEst)=7 AND pv.VendorCode='NORDIS' THEN (SELECT Id FROM Common.ShipperInformation SI WHERE SI.PrintLocation='Las Vegas' AND PrintVendorId = (SELECT Id FROM Common.PrintVendors WHERE VendorCode='NORDIS')) ELSE pt.ShipperId END AS ShipperId FROM [Common].[PrintTrails] pt INNER JOIN  [Common].[PrintVendors] pv ON pt.PrintVendorId = pv.Id WHERE pt.Id = @PrintTrailId";
+            string query = "SELECT pv.*,CASE WHEN DATEPART(DW,@EffectiveReceivedOnEst)=7 AND pv.VendorCode='NORDIS' THEN (SELECT Id FROM Common.ShipperInformation SI WHERE SI.PrintLocation='Las Vegas' AND SI.PrintVendorCode=pt.PrintVendorCode AND PrintVendorId = (SELECT Id FROM Common.PrintVendors WHERE VendorCode='NORDIS')) ELSE pt.ShipperId END AS ShipperId FROM [Common].[PrintTrails] pt INNER JOIN  [Common].[PrintVendors] pv ON pt.PrintVendorId = pv.Id WHERE pt.Id = @PrintTrailId";
 
             return db.QuerySingleOrDefault<PrintVendor>(query, new { PrintTrailId = printTrailId, EffectiveReceivedOnEst = effectiveReceivedOnEst });
         }
