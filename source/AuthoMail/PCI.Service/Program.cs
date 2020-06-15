@@ -18,13 +18,13 @@ namespace PCI.Service
         static void Main(string[] args)
         {
             var argString = String.Join(",", args);
-            
+
             if (args.Length > 0 && args[0] == "PCIJob")
             {
                 string jobName = args[0];
                 string pvCode = args[1];
 
-                if (pvCode == "PCI" || pvCode == "NORDIS")
+                if (pvCode == "PCI" || pvCode.Contains("NORDIS"))
                 {
                     argString = "{0}_{1}_{2}".Fill(jobName, pvCode, Common.UtcToEst(Common.GetCurrentTime()).ToString("hhmm"));
                 }

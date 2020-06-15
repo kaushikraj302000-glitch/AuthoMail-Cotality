@@ -192,6 +192,7 @@ namespace PCI.Service
         public int SFTChannelId { get; set; }
         public string PrintVendorName { get; set; }
         public string BusinessCode { get; set; }
+        public string PrintVendorCode { get; set; }
         public string VendorCode { get; set; }
         public string TrailName { get; set; }
         public bool SimulateTrail { get; set; }

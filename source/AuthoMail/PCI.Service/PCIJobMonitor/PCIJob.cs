@@ -78,7 +78,7 @@ namespace PCI.Service
                 try
                 {
                     log.Info("Inserting Process Started For Print Trail {0}".Fill(ptName));
-                    InsertStage(ptName);
+                    InsertStage(ptName, pvCode);
                     log.Info("Inserting Process Completed For Print Trail {0}".Fill(ptName));
                 }
                 catch (Exception ex)
@@ -190,9 +190,9 @@ namespace PCI.Service
             }
         }
 
-        private static void InsertStage(string ptName)
+        private static void InsertStage(string ptName, string pvCode)
         {
-            PrintTrailDetail ptDetail = DAL.GetPrintTrailDetailByPrintTrailName(ptName);
+            PrintTrailDetail ptDetail = DAL.GetPrintTrailDetailByPrintTrailName(ptName, pvCode);
 
             if (ptDetail == null)
             {
