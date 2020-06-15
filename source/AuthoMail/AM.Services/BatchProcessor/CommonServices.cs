@@ -46,7 +46,7 @@ namespace AM.Services
         List<DallasNotificationMap> GetDallasNotificationMaps();
         CustomTemplate GetCustomTemplateByDocTypeId(int docTypeId, string communityCode);
         ShipperInformation GetShipperInformation(int shipperId);
-        ShipperInformation GetShipperInformationByPrintLocation(string printLocation);
+        ShipperInformation GetShipperInformationByPrintLocation(string printLocation, int printTrailId);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -493,11 +493,11 @@ namespace AM.Services
             return db.QuerySingleOrDefault<ShipperInformation>(query, new { ShipperId = shipperId });
         }
 
-        public ShipperInformation GetShipperInformationByPrintLocation(string printLocation)
+        public ShipperInformation GetShipperInformationByPrintLocation(string printLocation, int printTrailId)
         {
-            string query = "SELECT * FROM Common.ShipperInformation WHERE PrintLocation=@PrintLocation";
+            string query = "SELECT * FROM Common.ShipperInformation WHERE PrintVendorCode = (SELECT PrintVendorCode FROM Common.PrintTrails WHERE Id=@PrintTrailId) AND PrintLocation=@PrintLocation";
 
-            return db.QuerySingleOrDefault<ShipperInformation>(query, new { PrintLocation = printLocation });
+            return db.QuerySingleOrDefault<ShipperInformation>(query, new { PrintLocation = printLocation, PrintTrailId = printTrailId });
         }
     }
 }

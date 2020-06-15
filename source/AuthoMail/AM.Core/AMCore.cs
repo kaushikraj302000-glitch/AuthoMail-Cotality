@@ -329,7 +329,7 @@ namespace AM.Core
                                         //Create Cover letter with IMBarcode - USPS First Class
                                         response = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
                                     }
-                                    
+
 
                                     if (response.HasError)
                                     {
@@ -354,7 +354,7 @@ namespace AM.Core
                             else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                             {
                                 FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
-                                ShipperInformation shipperInfo = commonSvc.GetShipperInformationByPrintLocation(mailPiece.PrintLocation);
+                                ShipperInformation shipperInfo = commonSvc.GetShipperInformationByPrintLocation(mailPiece.PrintLocation, mailPiece.PrintTrailId.Value);
                                 CreateFedExLabel createFedExLabel = new CreateFedExLabel();
                                 while (attemptCount < Config.Core_NoofTime_AttemptFedexService)
                                 {
