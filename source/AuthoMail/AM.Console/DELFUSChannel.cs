@@ -2,6 +2,7 @@
 using AM.Entities;
 using AM.Lib;
 using AM.Services;
+using AM.USPSLib;
 using Aspose.Words;
 using System;
 using System.Collections.Generic;
@@ -504,6 +505,14 @@ namespace AM.Console
                             {
                                 mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
                                 mailPieceDTO.ErrorDesc = "";
+                                if (!mailPieceDTO.RcptAddressCountry.IsNullOrWhiteSpace() && (!mailPieceDTO.RcptAddressCountry.Contains("USA") || !mailPieceDTO.RcptAddressCountry.Contains("US") || !mailPieceDTO.RcptAddressCountry.Contains("The United States of America") || !mailPieceDTO.RcptAddressCountry.Contains("United States of America") || !mailPieceDTO.RcptAddressCountry.Contains("United States")))
+                                {
+                                    mailPieceDTO.RcptAddressTypes = AddressType.FOREIGN.ToString();
+                                }
+                                else
+                                {
+                                    mailPieceDTO.RcptAddressTypes = AddressType.DHAM.ToString();
+                                }
                             }
                             else
                             {
@@ -554,8 +563,8 @@ namespace AM.Console
                         var validMailPieces = mailPieceList.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
 
                         //Here System will validate Addresses for valid mail pieces
-                        if (validMailPieces.Count > 0)
-                                Channel.ValidateAddressType(mailBatch, validMailPieces);
+                        //if (validMailPieces.Count > 0)
+                        //        Channel.ValidateAddressType(mailBatch, validMailPieces);
 
                         if (validMailPieces.Count == 0)
                         {
