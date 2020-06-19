@@ -7,6 +7,9 @@ using AM.USPSLib;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
+using System.IO;
+using AM.Lib;
+using AM.Entities;
 
 namespace AM.UnitTests
 {
@@ -67,6 +70,14 @@ namespace AM.UnitTests
             }
 
             return res;
+        }
+
+        [TestMethod]
+        public void DeserializeXml()
+        {
+            var xmlString = File.ReadAllText(@"C:\Users\sagar.g\Desktop\26_FASFA.ZY2OT.LAP.LTR.REQUEST.VEN.D200619.T031833.xml");
+
+            var output = XmlUtil.Deserialize<MailBatch>(xmlString);
         }
     }
 }
