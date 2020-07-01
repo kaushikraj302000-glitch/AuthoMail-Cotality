@@ -127,7 +127,7 @@ namespace AM.Web.Controllers
                     {
                         ModelState.AddModelError("", string.Format(Config.Web_Msg_Login_IPRestricted, clientIP));
                         return View(model);
-                    }                
+                    }
                 }
 
                 if (!ModelState.IsValid)
@@ -193,7 +193,7 @@ namespace AM.Web.Controllers
                         }
                         if (!isCoreLogicUser && Config.Web_Login_PasswordExpirationIsEnable && user.PasswordExpirationDays > Config.Web_Login_PasswordExpirationDays)
                         {
-                            AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                            //AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                             return RedirectToAction("ChangePassword", new { unm = user.UserName });
                         }
                         UpdateLoginTime(user.Id);
@@ -880,7 +880,7 @@ namespace AM.Web.Controllers
 
         [HttpPost]
         //Change user's status
-        [Authorize(Roles =AMRoles.Admin)]
+        [Authorize(Roles = AMRoles.Admin)]
         public ActionResult ChangeUserStatus(string userName, string status)
         {
             if (!(AMUserStatus.Approved == status || AMUserStatus.InActive == status || AMUserStatus.Open == status || AMUserStatus.Rejected == status))
