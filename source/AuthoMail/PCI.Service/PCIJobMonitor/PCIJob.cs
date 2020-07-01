@@ -402,7 +402,7 @@ namespace PCI.Service
                     if (sftSite.IsFileAvailable(serverFilePath))
                         sftSite.RenameFile(serverFilePath, "{0}/{1}.zip".Fill(ptDetails.FromADEDir, ptBatchDetails.PrintBatchName));
 
-                    MailUtility.SendBatchSubmittedNotificationEmail(ptDetails.VendorCode, "{0}.zip".Fill(ptBatchDetails.PrintBatchName), mpList.Count, mpList.Sum(c => c.TotalPages));
+                    MailUtility.SendBatchSubmittedNotificationEmail(ptDetails.VendorCode, ptDetails.PrintVendorCode, "{0}.zip".Fill(ptBatchDetails.PrintBatchName), mpList.Count, mpList.Sum(c => c.TotalPages));
                 }
 
                 scope.Complete();

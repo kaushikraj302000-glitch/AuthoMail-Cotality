@@ -12,7 +12,7 @@ namespace PCI.Service
     public class MailUtility
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(PnSCoreService));
-        public static bool SendBatchSubmittedNotificationEmail(string printVendorCode, string fileName, int mailPiecesCount, int totalPages)
+        public static bool SendBatchSubmittedNotificationEmail(string vendorCode, string printVendorCode, string fileName, int mailPiecesCount, int totalPages)
         {
             bool isEmailSent = false;
 
@@ -22,12 +22,15 @@ namespace PCI.Service
                 {
                     StringBuilder sb;
                     msg.IsBodyHtml = true;
-                    if (printVendorCode == "NORDIS")
+                    if (vendorCode == "NORDIS")
                     {
                         msg.To.Add(Common.Email_ToNordis);
                         msg.CC.Add(Common.Email_CcNordis);
+
+                        string pvClientCode = printVendorCode == "DEL_NORDIS" ? "TAXDELFUS" : "ADE";
+
                         //Here subject string contains "Batch Submitted To {Location} : {FileName} at {Time} Total Files : {FileCount} Total Page Count : {PageCount}"
-                        msg.Subject = Common.ApplicationEnvironment + " : " + Common.SubmitNordisBatchEmailSubject.Fill(printVendorCode, Path.GetFileName(fileName), Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy hh:mm tt") + " EST", mailPiecesCount, totalPages);
+                        msg.Subject = Common.ApplicationEnvironment + " : " + Common.SubmitNordisBatchEmailSubject.Fill(pvClientCode, Path.GetFileName(fileName), Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy hh:mm tt") + " EST", mailPiecesCount, totalPages);
                         sb = new StringBuilder(File.ReadAllText(Common.SubmitNordisBatchEmailTemplate));
                     }
                     else
@@ -35,12 +38,12 @@ namespace PCI.Service
                         msg.To.Add(Common.Email_ToPCI);
                         msg.CC.Add(Common.Email_CcPCI);
                         //Here subject string contains "Batch Submitted To {Location} : {FileName} at {Time} Total Files : {FileCount} Total Page Count : {PageCount}"
-                        msg.Subject = Common.ApplicationEnvironment + " : " + Common.SubmitPCIBatchEmailSubject.Fill(printVendorCode, Path.GetFileName(fileName), Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy hh:mm tt") + " EST", mailPiecesCount, totalPages);
+                        msg.Subject = Common.ApplicationEnvironment + " : " + Common.SubmitPCIBatchEmailSubject.Fill(vendorCode, Path.GetFileName(fileName), Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy hh:mm tt") + " EST", mailPiecesCount, totalPages);
                         sb = new StringBuilder(File.ReadAllText(Common.SubmitPCIBatchEmailTemplate));
                     }
                     msg.Priority = MailPriority.Normal;
                     sb = sb.Replace("<%FileName%>", Path.GetFileName(fileName));
-                    sb = sb.Replace("<%PrintLocation%>", printVendorCode);
+                    sb = sb.Replace("<%PrintLocation%>", vendorCode);
                     sb = sb.Replace("<%yyyymmdd%>", Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy"));
                     sb = sb.Replace("<%hhmm%>", Common.UtcToEst(Common.GetCurrentTime()).ToString("hh:mm tt") + " EST");
                     sb = sb.Replace("<%TotalMailPieces%>", mailPiecesCount.ToString());
