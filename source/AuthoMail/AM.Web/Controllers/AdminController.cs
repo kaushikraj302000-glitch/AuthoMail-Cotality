@@ -1192,10 +1192,15 @@ namespace AM.Web.Controllers
         {
             DateTime now = DateTime.UtcNow;
             List<string> errors = new List<string>();
-
-            string uploadURL = ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
-            string filePath = $"{Path.GetFileNameWithoutExtension(template.FileName)}_{DateTime.Now.ToString("yyMMddHHmmss")}{Path.GetExtension(template.FileName)}";
-            var uploadResult = await UploadFileToServer(filePath, template.InputStream, uploadURL);
+            string[] fileType = { ".doc", ".docx" };
+            if (!fileType.Contains(Path.GetExtension(template.FileName)))
+            {
+                errors.Add("File type not supported.");
+                return Json(JsonResponseFactory.ErrorResponse(errors));
+            }
+            string uploadURL = $@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\SaveTemplate";// ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
+            var uploadResult = await UploadFileToServer(template.FileName, template.InputStream, uploadURL);
+            
 
             if (uploadResult.Key)
             {
@@ -1203,9 +1208,10 @@ namespace AM.Web.Controllers
                      new DelfusTemplate
                      {
                          FileName = Path.GetFileNameWithoutExtension(template.FileName),
-                         FilePath = filePath,
-                         UploadedOn = now,
-                         UploadedById = User.Identity.GetUserId()
+                         FilePath = template.FileName,
+                         ModifiedOn = DateTime.UtcNow,
+                         ModifiedById = User.Identity.GetUserId(),
+                         Status = "Uploaded"
                      }
                      );
                 return Json(JsonResponseFactory.SuccessResponse("Template uploaded successfully."));
@@ -1217,24 +1223,28 @@ namespace AM.Web.Controllers
             return Json(JsonResponseFactory.ErrorResponse(errors));
         }
         [HttpPost]
-        public async Task<ActionResult> DownloadDelfusTemplate(int id)
+        public async Task<ActionResult> DownloadDelfusTemplate(string fileName)
         {
             try
             {
-                var delfusTemplate = await delfusTemplateSvc.DelfusTemplateById(id);
-                var stream = await DownloadTemplate(delfusTemplate.FilePath, ConfigurationManager.AppSettings["DelfusTemplateDownloadUrl"].ToString());
-                if (stream == null)
+                HttpClient client = new HttpClient();
+                HttpResponseMessage response = new HttpResponseMessage();
+                response = await client.GetAsync($@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\DownloadTemplate?fileName={fileName}");
+                if (response.IsSuccessStatusCode)
                 {
-                    return Json(JsonResponseFactory.ErrorResponse("Template not found."));
-                }
-                return Json(JsonResponseFactory.SuccessResponse(
+                    var stream = await response.Content.ReadAsByteArrayAsync();
+                    return Json(JsonResponseFactory.SuccessResponse(
                     new
                     {
-                        fileName = delfusTemplate.FileName,
+                        fileName = Path.GetFileNameWithoutExtension(fileName),
                         stream = Convert.ToBase64String(stream)
                     }
                     ));
-
+                }
+                else
+                {
+                    return Json(JsonResponseFactory.ErrorResponse("Template not found."));
+                }
             }
             catch (Exception ex)
             {
@@ -1244,16 +1254,52 @@ namespace AM.Web.Controllers
         [HttpGet]
         public async Task<object> DelfusTemplatesList()
         {
-            var data = await delfusTemplateSvc.DelfusTemplates();
-            return Json(new { data = data.ToList() }, JsonRequestBehavior.AllowGet);
+            HttpClient client = new HttpClient();
+            HttpResponseMessage response = new HttpResponseMessage();
+            response = await client.GetAsync($@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\GetTemplates");
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(new { data = await response.Content.ReadAsAsync<List<FileDetails>>() }, JsonRequestBehavior.AllowGet);
+            }
+            
+            return Json(null, JsonRequestBehavior.AllowGet);
+            
+           
         }
+        [HttpGet]
+        public async Task<object> DelfusTemplatesHistory(string fileName)
+        {
+            var data = await delfusTemplateSvc.DelfusTemplatesByFileName(fileName);
+            return Json(new { data = data.ToList() }, JsonRequestBehavior.AllowGet);
+
+
+        }
+
         [HttpPost]
-        public async Task<ActionResult> RemoveDelfusTemplate(int id)
+        public async Task<ActionResult> RemoveDelfusTemplate(string  fileName)
         {
             try
             {
-                await delfusTemplateSvc.RemoveDelfusTemplateById(id, User.Identity.GetUserId());
-                return Json(JsonResponseFactory.SuccessResponse());
+                HttpClient client = new HttpClient();
+                HttpResponseMessage response = new HttpResponseMessage();
+                response = await client.DeleteAsync($@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\DeleteTemplate?fileName={fileName}");
+                if (response.IsSuccessStatusCode)
+                {
+                    await delfusTemplateSvc.SaveTemplate(
+                     new DelfusTemplate
+                     {
+                         FileName = Path.GetFileNameWithoutExtension(fileName),
+                         FilePath = fileName,
+                         ModifiedOn = DateTime.UtcNow,
+                         ModifiedById = User.Identity.GetUserId(),
+                         Status="Deleted"
+                     }
+                     );
+                    return Json(JsonResponseFactory.SuccessResponse(), JsonRequestBehavior.AllowGet);
+                }
+
+                return Json(null, JsonRequestBehavior.AllowGet);
+                
             }
             catch (Exception ex)
             {
@@ -1281,29 +1327,14 @@ namespace AM.Web.Controllers
             HttpResponseMessage response = await client.PostAsync(uploadURL, form);
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsAsync<DelfusResult>();
-                if (result.Success)
-                    return new KeyValuePair<bool, string>(true, "");
-                return new KeyValuePair<bool, string>(result.Success, result.ErrorMessage);
+                var result = await response.Content.ReadAsAsync<string>();
+                return new KeyValuePair<bool, string>(true, result);
             }
             else
             {
                 return new KeyValuePair<bool, string>(false, "File not uploaded, Please try again.");
             }
 
-        }
-        public async Task<Byte[]> DownloadTemplate(string fileName, string downloadURL)
-        {
-            HttpClient client = new HttpClient();
-            HttpResponseMessage response = new HttpResponseMessage();
-            string url = $"{downloadURL}?fileName={fileName}";
-            response = await client.GetAsync(url);
-            if (response.IsSuccessStatusCode)
-            {
-                string fileGuid = Guid.NewGuid().ToString();
-                return await response.Content.ReadAsByteArrayAsync();
-            }
-            return null;
         }
         #endregion UploadDownloadConfiguration
     }

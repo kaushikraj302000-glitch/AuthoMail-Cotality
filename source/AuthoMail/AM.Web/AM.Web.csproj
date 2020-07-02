@@ -264,6 +264,7 @@
     <Compile Include="Models\ErrorReportViewModel.cs" />
     <Compile Include="Models\ErrorSLAReportViewModel.cs" />
     <Compile Include="Models\ExcelHelper.cs" />
+    <Compile Include="Models\FileDetails.cs" />
     <Compile Include="Models\LookupViewModel.cs" />
     <Compile Include="Models\MailPieceCommonViewModel.cs" />
     <Compile Include="Models\MailPieceDetailsViewModel.cs" />

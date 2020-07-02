@@ -14,4 +14,18 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="ClientId" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="9b298b72-4bbf-4e0b-9c7b-58896c069fcf" ChangeDateTime="07/02/2020 08:44:50">
+    <Property Name="ElementName" Value="[Delfus].[Templates].[UploadedById]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Delfus].[Templates]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ModifiedById" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="7cf6f58e-2c00-4bbe-b3aa-b3210d7c1eac" ChangeDateTime="07/02/2020 08:44:59">
+    <Property Name="ElementName" Value="[Delfus].[Templates].[UploadedOn]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Delfus].[Templates]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ModifiedOn" />
+  </Operation>
 </Operations>
