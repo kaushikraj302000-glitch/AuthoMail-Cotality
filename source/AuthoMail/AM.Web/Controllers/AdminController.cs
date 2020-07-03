@@ -1195,12 +1195,12 @@ namespace AM.Web.Controllers
             string[] fileType = { ".doc", ".docx" };
             if (!fileType.Contains(Path.GetExtension(template.FileName)))
             {
-                errors.Add("File type not supported.");
-                return Json(JsonResponseFactory.ErrorResponse(errors));
+                return Json(JsonResponseFactory.ErrorResponse("File type not supported."));
             }
             string uploadURL = $@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\SaveTemplate";// ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
+            bool isTemplateExists = await IsTemplateExists(template.FileName);
             var uploadResult = await UploadFileToServer(template.FileName, template.InputStream, uploadURL);
-            
+
 
             if (uploadResult.Key)
             {
@@ -1211,7 +1211,7 @@ namespace AM.Web.Controllers
                          FilePath = template.FileName,
                          ModifiedOn = DateTime.UtcNow,
                          ModifiedById = User.Identity.GetUserId(),
-                         Status = "Uploaded"
+                         Status = isTemplateExists ? "Modified" : "Added"
                      }
                      );
                 return Json(JsonResponseFactory.SuccessResponse("Template uploaded successfully."));
@@ -1261,10 +1261,10 @@ namespace AM.Web.Controllers
             {
                 return Json(new { data = await response.Content.ReadAsAsync<List<FileDetails>>() }, JsonRequestBehavior.AllowGet);
             }
-            
+
             return Json(null, JsonRequestBehavior.AllowGet);
-            
-           
+
+
         }
         [HttpGet]
         public async Task<object> DelfusTemplatesHistory(string fileName)
@@ -1276,7 +1276,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> RemoveDelfusTemplate(string  fileName)
+        public async Task<ActionResult> RemoveDelfusTemplate(string fileName)
         {
             try
             {
@@ -1292,19 +1292,32 @@ namespace AM.Web.Controllers
                          FilePath = fileName,
                          ModifiedOn = DateTime.UtcNow,
                          ModifiedById = User.Identity.GetUserId(),
-                         Status="Deleted"
+                         Status = "Deleted"
                      }
                      );
                     return Json(JsonResponseFactory.SuccessResponse(), JsonRequestBehavior.AllowGet);
                 }
 
                 return Json(null, JsonRequestBehavior.AllowGet);
-                
+
             }
             catch (Exception ex)
             {
                 return Json(JsonResponseFactory.ErrorResponse(ex.Message));
             }
+        }
+
+        public async Task<bool> IsTemplateExists(string fileName)
+        {
+            HttpClient client = new HttpClient();
+            HttpResponseMessage response = new HttpResponseMessage();
+            response = await client.GetAsync($@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\IsTemplateExists?fileName={fileName}");
+            if (response.IsSuccessStatusCode)
+            {
+                return true;
+            }
+
+            return false;
         }
         #endregion Delfus TemplateManager
 

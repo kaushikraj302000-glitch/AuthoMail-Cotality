@@ -120,5 +120,24 @@ namespace AM.Scanner.Controllers
                 return BadRequest(e.Message);
             }
         }
+
+        [HttpGet]
+        [Route("IsTemplateExists")]
+        public IHttpActionResult IsTemplateExists(string fileName)
+        {
+            string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "DelfusTemplates", fileName);
+
+            //Check whether File exists.
+            if (File.Exists(filePath))
+            {
+                return Ok();
+
+            }
+            else
+            {
+                //Throw 404 (Not Found) exception if File not found.
+                return NotFound();
+            }
+        }
     }
 }

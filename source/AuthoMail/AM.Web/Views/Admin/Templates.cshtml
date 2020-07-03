@@ -18,7 +18,8 @@
             <h3>Templates</h3>
         </div>
     </div>
-    <div class="panel-body" >
+    <div class="panel-body">
+        <progress id="progressBar" value="0" max="100" style="width:100%;display:none;"></progress>
         <div class="upload-container" style="padding:0px;">
 
             <form action="SaveDelfusTemplates" id="uploadtemplatediv" enctype="multipart/form-data" method="post" class="dropzone" style="border:none;">
@@ -57,7 +58,7 @@
             <tr>
                 <th>Modified By</th>
                 <th>Modified On</th>
-                <th>Status</th>
+                <th>Action</th>
             </tr>
         </thead>
     </table>

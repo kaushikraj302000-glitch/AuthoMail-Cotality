@@ -14,11 +14,10 @@
             //},
             autoQueue: true,
             autoDiscover: false,
-            //uploadprogress: function (file, progress, bytesSent) {
-            //    console.log('uploadprogress: ', file);
-            //    console.log('uploadprogress: ', progress);
-            //    console.log('uploadprogress: ', bytesSent);
-            //},
+            uploadprogress: function (file, progress, bytesSent) {
+                $("#progressBar").show();
+                $("#progressBar").val(Math.round(progress));
+            },
             //processing: function (response) {
             //    console.log('processing: ', response);
             //},
@@ -30,20 +29,20 @@
             //    console.log('success : ', file.name);
             //    console.log('success : ', response);
             //},
-            //complete: function (response) {
-            //    console.log('complete: ', response);
-            //},
+            complete: function (response) {
+                $("#progressBar").hide();
+            },
             totaluploadprogress: function (response) {
-                console.log('totaluploadprogress:', response);
+                //console.log('totaluploadprogress:', response);
                 //alertMessage("green", 'All templates uploaded successfully.');
             },
             queuecomplete: function (response) {
-                console.log(response);
+                //console.log(response);
                 
                 //TemplateList();
             },
             error: function (err) {
-                console.log('error: ', err);
+                //console.log('error: ', err);
             },
 
             init: function () {
@@ -51,8 +50,30 @@
                 //    console.log('addedfile: ', file);
                 //});
                 this.on("success", function (file, response) {
-                    console.log(response,"success")
+                    var table = $('#templatelisttable').DataTable();
                     if (response.Success) {
+                        var isFound = false;
+                        table.rows(function (idx, data, node) {
+                            if (data.FileName === file.name) {
+                                table.row(idx).data({
+                                    "FileName": file.name,
+                                    "FileSize": parseInt(file.size / 1024) + 'KB',
+                                    "Status": true,
+                                    "FileName": file.name
+                                }).draw();
+                                isFound = true;
+                            }
+
+                        });
+                        if (isFound==false) {
+                            table.row.add({
+                                "FileName": file.name,
+                                "FileSize": parseInt(file.size / 1024) + 'KB',
+                                "Status": true,
+                                "FileName": file.name
+                            }).draw();
+                        }
+                        
                         alertMessage("green", 'Template uploading completed.');
                         //var messages = '<ul>';
                         //for (var i = 0; i < response.Object.length; i++) {
@@ -61,15 +82,13 @@
                         //$(file.previewElement).addClass("dz-error").find('.dz-error-message').html(messages);
                     }
                     else {
-                        var table = $('#templatelisttable').DataTable();
                         table.row.add({
                             "FileName": file.name,
                             "FileSize": parseInt(file.size / 1024) + 'KB',
-                            "Status": "File type not supported.",
+                            "Status": response.ErrorMessage,
                             "FileName": file.name
                         }).draw();
-                        console.log(file.name,
-                            parseInt(file.size / 1024) + 'KB',file)
+                        
                     }
                 });
                 //this.on("error", function (file, errorMessage) {
@@ -196,7 +215,8 @@
         $('#templatelisttable tbody').on('click', '.historytemplate', function () {
             var fileName = $(this).data('id');
             $("#historyLabel").text('History of ' + fileName);
-            console.log(fileName)
+            var url = baseUrl + "Admin/DelfusTemplatesHistory?fileName=" + fileName;
+            console.log(fileName,url)
             var id = 'historytable';
             if ($.fn.DataTable.isDataTable('#' + id)) {
                 $('#' + id).remove();
@@ -213,7 +233,7 @@
                 //"processing": true,
                 //"serverSide": true,
                 "ajax": {
-                    "url": baseUrl + "Admin/DelfusTemplatesHistory?fileName=" + fileName,
+                    "url": url,
                     "type": "GET"
                 },
                 destroy: true,
@@ -231,11 +251,14 @@
                     {
                         "data": "Status",
                         "render": function (data) {
-                            if (data == "Uploaded") {
-                                return '<span class="label label-success"> Uploaded </span>';
+                            if (data == "Modified") {
+                                return '<span class="label label-success"> Modified </span>';
                             }
                             else if (data == "Deleted") {
                                 return '<span class="label label-danger"> Deleted </span>';
+                            }
+                            else if (data == "Added") {
+                                return '<span class="label label-info"> Added </span>';
                             }
                             else {
                                 return '--';
