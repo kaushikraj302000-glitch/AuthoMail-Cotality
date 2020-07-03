@@ -224,7 +224,7 @@ namespace AM.Core
                                         response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
 
 
-                                        if (response.HasError && (uspsExceptionCodes.Any(code => response.ExceptionCode.Contains(code)) || uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
+                                        if (response.HasError && (uspsExceptionCodes.Any(code => response.ExceptionCode.Contains(code)) && uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
                                         {
                                             //NOTE: Here system is check for unusal error like connection issue or timeout issue if occure then system will retry to generate label
                                             log.Error("Priority Express had some unexpected error {0}".Fill(response.ExceptionDetail));
@@ -247,7 +247,7 @@ namespace AM.Core
                                             //NOTE :Need to update Document Type level details like DueDate, PrintLocation, PrintTrailId because system is changing document type and if may have vary configurations.
                                             docType = fbPriority;
 
-                                            commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client.AppCode);
+                                            commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
                                             eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
@@ -393,7 +393,7 @@ namespace AM.Core
 
                                                 mailPiece.DocTypeId = docType.Id;
                                                 //Update Due Date and its other calculation based on updated document type.
-                                                commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client.AppCode);
+                                                commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
                                                 eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>());
 
@@ -416,7 +416,7 @@ namespace AM.Core
                                                     mailPiece.DocTypeId = docType.Id;
 
                                                     //Update Due Date and its other calculation based on updated document type.
-                                                    commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client.AppCode);
+                                                    commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
                                                     eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
@@ -438,7 +438,7 @@ namespace AM.Core
                                                 mailPiece.DocTypeId = docType.Id;
 
                                                 //Update Due Date and its other calculation based on updated document type.
-                                                commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client.AppCode);
+                                                commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
                                                 eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 

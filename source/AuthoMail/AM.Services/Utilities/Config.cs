@@ -10,25 +10,42 @@ using System.Web.Hosting;
 using AM.Lib;
 using System.ComponentModel;
 using AM.Entities;
+using System.Text.RegularExpressions;
 
 namespace AM.Services
 {
     public class Config
     {
+        private static Dictionary<int, int> clientGroupMap;
+        private static Dictionary<int, List<Holiday>> groupHolidays;
+
         #region General
         [Description("To indicate on which environment job is running.")]
         public static string Common_Environment { get; private set; }
         public static string Common_EnvironmentInitial { get; private set; }
         public static string Common_AuthoMailRootFolder { get; private set; }
         public static string Common_EDeliveryRootFolder { get; private set; }
-        public static List<Holiday> Common_Holidays { get; private set; }
+        //public static List<Holiday> Common_Holidays { get; private set; }
         public static List<Holiday> Common_FederalHolidays { get; private set; }
+
         public static int Common_ProcessingBufferTime { get; private set; }
         public static string Common_FedExTrackingAccountCode { get; private set; }
         public static string Common_FedExTrackingUrl { get; private set; }
         public static string Common_ErrorSubscribedEmailSubject { get; private set; }
         public static string Common_ErrorSubscribedEmailCc { get; private set; }
         public static string Common_ErrorSubscribedEmailTemplate { get; private set; }
+
+        public static List<Holiday> GetHolidaysByClientId(int clientId)
+        {
+            int groupId;
+
+            if (!clientGroupMap.TryGetValue(clientId, out groupId))
+            {
+                groupId = 1;
+            }
+
+            return groupHolidays[groupId];
+        }
 
         #endregion
 
@@ -116,7 +133,7 @@ namespace AM.Services
         public static string Web_API_PB_Email_Subject { get; private set; }
         public static string Web_API_PB_Email_BodyMsg { get; private set; }
         [Description("Define client's local timezone.")]
-        public static string Web_API_PB_ClientTimeZone { get; private set; }        
+        public static string Web_API_PB_ClientTimeZone { get; private set; }
         [Description("Path of PCI pdf template which is used to send when pullback is requested.")]
         public static string Web_API_PB_PullBackForm_PCI { get; private set; }
         [Description("Path of NORDIS pdf template which is used to send when pullback is requested.")]
@@ -256,8 +273,10 @@ namespace AM.Services
             InitializeProperties<Config>();
             using (ICommonService commonSvc = new CommonService())
             {
-                Common_Holidays = commonSvc.GetHolidayList();
+                //Common_Holidays = commonSvc.GetHolidayList();
                 Common_FederalHolidays = commonSvc.GetFederalHolidayList();
+                clientGroupMap = commonSvc.GetClientHolidayGroup();
+                groupHolidays = commonSvc.GetHolidayList();
             }
         }
 
