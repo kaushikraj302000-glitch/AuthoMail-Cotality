@@ -3,7 +3,7 @@
  * Copyright (c) 2012 Matias Meno <m@tias.me>
  */
 @-webkit-keyframes passing-through {
-  0% {
+    0% {
     opacity: 0;
     -webkit-transform: translateY(40px);
     -moz-transform: translateY(40px);
@@ -173,11 +173,16 @@
 .dropzone, .dropzone * {
   box-sizing: border-box; }
 
+.upload-container {
+    border: 0px!important;
+  
+}
+
 .dropzone {
   min-height: 150px;
   border: 2px solid rgba(0, 0, 0, 0.3);
   background: white;
-  padding: 20px 20px; }
+   }
   .dropzone.dz-clickable {
     cursor: pointer; }
     .dropzone.dz-clickable * {
@@ -185,25 +190,35 @@
     .dropzone.dz-clickable .dz-message, .dropzone.dz-clickable .dz-message * {
       cursor: pointer; }
   .dropzone.dz-started .dz-message {
-    display: none; }
-  .dropzone.dz-drag-hover {
-    border-style: solid; }
+    display: block; }
+    .dropzone.dz-drag-hover {
+        border: 2px solid #ff531a !important;
+        margin-right: -0.4% !important;
+        border-style: solid;
+    }
     .dropzone.dz-drag-hover .dz-message {
-      opacity: 0.5; }
-  .dropzone .dz-message {
-    text-align: center;
-    margin: 2em 0; }
-    .dropzone .dz-message .dz-button {
-      background: none;
-      color: inherit;
-      border: none;
-      padding: 0;
-      font: inherit;
-      cursor: pointer;
-      outline: inherit; }
+        
+        opacity: 0.5;
+    }
+    .dropzone.dz-clickable .dz-message {
+        width: 54px;
+        z-index: 1000;
+        margin-bottom: -4%;
+    }
+    .dropzone .dz-message {
+        text-align: left;
+        display: block;
+        padding: 5px;
+    }
+        .dropzone .dz-message .dz-button {
+            font: inherit;
+            cursor: pointer;
+            outline: inherit;
+            margin-top: -2px;
+        }
   .dropzone .dz-preview {
     position: relative;
-    display: inline-block;
+    display: none;
     vertical-align: top;
     margin: 16px;
     min-height: 100px; }
@@ -228,7 +243,7 @@
     .dropzone .dz-preview .dz-remove {
       font-size: 14px;
       text-align: center;
-      display: block;
+      display: none;
       cursor: pointer;
       border: none; }
       .dropzone .dz-preview .dz-remove:hover {

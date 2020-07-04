@@ -2,8 +2,8 @@
     -webkit-box-align: center;
     -ms-flex-align: center;
     align-items: center;
-    border: 2px dashed #d2d2d2;
-    border-radius: 3px;
+    /*border: 2px dashed #d2d2d2;
+    border-radius: 3px;*/
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
