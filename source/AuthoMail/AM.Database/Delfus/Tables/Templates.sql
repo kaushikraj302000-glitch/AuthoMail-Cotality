@@ -6,6 +6,7 @@
 	[ModifiedById] NVARCHAR (128) NOT NULL,
 	[ModifiedOn] datetime NOT NULL,
 	[Status] NVARCHAR(250) NOT NULL, 
+    [Reason] NVARCHAR(1024) NULL, 
     CONSTRAINT [PK_Templates] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
 	CONSTRAINT [FK_Users_UploadedById] FOREIGN KEY ([ModifiedById]) REFERENCES [Profile].[Users] ([Id])
 )

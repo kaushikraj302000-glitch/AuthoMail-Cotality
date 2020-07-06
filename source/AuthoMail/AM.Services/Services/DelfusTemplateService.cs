@@ -14,6 +14,7 @@ namespace AM.Services.Services
         Task<KeyValuePair<bool, string>> SaveTemplate(DelfusTemplate delfusTemplate);
         Task<IEnumerable<DelfusTemplate>> DelfusTemplatesByFileName(string fileName);
         Task<IEnumerable<string>> GetDelfusMergeList(string connectionString);
+        Task<IEnumerable<DelfusTemplate>> DelfusTemplateSummary();
     }
     public class DelfusTemplateService : ServiceBase, IDelfusTemplateService
     {
@@ -38,7 +39,7 @@ namespace AM.Services.Services
             select t.*,u.DisplayName as ModifiedBy
             from Delfus.Templates t 
             inner join Profile.Users u on t.ModifiedById=u.Id
-            where t.FilePath=@FileName order by ModifiedOn desc", new { FileName=fileName });
+            where t.FilePath=@FileName order by ModifiedOn desc", new { FileName = fileName });
         }
 
         public async Task<IEnumerable<string>> GetDelfusMergeList(string connectionString)
@@ -47,6 +48,14 @@ namespace AM.Services.Services
             {
                 return await db.QueryAsync<string>("SELECT TemplateFieldMapName FROM [Schema].[Request] WHERE RecordType IN ('L','C') AND TemplateFieldMapName IS NOT NULL");
             }
+        }
+        public async Task<IEnumerable<DelfusTemplate>> DelfusTemplateSummary()
+        {
+            return await db.QueryAsync<DelfusTemplate>(@"
+            select t.*,u.DisplayName as ModifiedBy
+            from Delfus.Templates t 
+            inner join Profile.Users u on t.ModifiedById=u.Id
+            order by ModifiedOn desc");
         }
 
     }
