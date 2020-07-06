@@ -42,9 +42,16 @@ namespace AM.Services.Services
         public async Task<IEnumerable<DelfusTemplate>> DelfusTemplateSummary()
         {
             return await db.QueryAsync<DelfusTemplate>(@"
-            select t.*,u.DisplayName as ModifiedBy
+            with cte as
+(
+	select max(Id) as Id from Delfus.Templates
+	group by FileName
+)
+
+select t.*,u.DisplayName as ModifiedBy
             from Delfus.Templates t 
             inner join Profile.Users u on t.ModifiedById=u.Id
+			and t.Id in (select Id from cte)
             order by ModifiedOn desc");
         }
 

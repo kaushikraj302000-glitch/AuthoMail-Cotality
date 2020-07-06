@@ -22,7 +22,6 @@
         <thead>
             <tr>
                 <th style="width:660px">Name</th>
-                <th>Size</th>
                 <th>Modified On</th>
                 <th>Status</th>
                 <th class="dt-head-center" style="width:200px">Reason</th>
@@ -60,7 +59,7 @@
                     "columns": [
 
                         { "data": "FileName", "className": 'dt-body-left' },
-                        { "data": "FileSize", "className": 'dt-body-left' },
+                        //{ "data": "FileSize", "className": 'dt-body-left' },
                         {
                             "data": "ModifiedOn",
                             "render": function (data, type, row, meta) {
@@ -71,7 +70,10 @@
                             "data": "Status",
                             "className": 'dt-body-left',
                             "render": function (data) {
-                                if (data != 'Error') {
+                                if (data == 'Modified') {
+                                    return '<span class="label label-info"> ' + data + ' </span>';
+                                }
+                                else if (data == 'Valid') {
                                     return '<span class="label label-success"> ' + data + ' </span>';
                                 }
                                 else {
