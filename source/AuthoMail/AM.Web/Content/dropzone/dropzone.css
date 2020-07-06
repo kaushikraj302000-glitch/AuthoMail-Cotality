@@ -196,6 +196,9 @@
         margin-right: -0.4% !important;
         border-style: solid;
     }
+    .dropzone.dz-clickable > .dt-button {
+         cursor: pointer !important; 
+    }
     .dropzone.dz-drag-hover .dz-message {
         
         opacity: 0.5;

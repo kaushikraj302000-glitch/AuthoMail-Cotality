@@ -1228,6 +1228,7 @@ namespace AM.Web.Controllers
             try
             {
                 HttpClient client = new HttpClient();
+                client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
                 HttpResponseMessage response = new HttpResponseMessage();
                 response = await client.GetAsync($@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\DownloadTemplate?fileName={fileName}");
                 if (response.IsSuccessStatusCode)
@@ -1255,6 +1256,7 @@ namespace AM.Web.Controllers
         public async Task<object> DelfusTemplatesList()
         {
             HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
             HttpResponseMessage response = new HttpResponseMessage();
             response = await client.GetAsync($@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\GetTemplates");
             if (response.IsSuccessStatusCode)
@@ -1281,6 +1283,7 @@ namespace AM.Web.Controllers
             try
             {
                 HttpClient client = new HttpClient();
+                client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
                 HttpResponseMessage response = new HttpResponseMessage();
                 response = await client.DeleteAsync($@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\DeleteTemplate?fileName={fileName}");
                 if (response.IsSuccessStatusCode)
@@ -1310,6 +1313,7 @@ namespace AM.Web.Controllers
         public async Task<bool> IsTemplateExists(string fileName)
         {
             HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
             HttpResponseMessage response = new HttpResponseMessage();
             response = await client.GetAsync($@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\IsTemplateExists?fileName={fileName}");
             if (response.IsSuccessStatusCode)

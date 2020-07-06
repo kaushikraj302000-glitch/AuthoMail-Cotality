@@ -20,6 +20,10 @@ namespace AM.Scanner.Controllers
         [Route("DownloadTemplate")]
         public HttpResponseMessage DownloadDelfusTemplate(string fileName)
         {
+            if (Unauthorized(HttpContext.Current.Request))
+            {
+                return Request.CreateResponse(HttpStatusCode.Unauthorized);
+            }
             //Create HTTP Response.
             HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
 
@@ -55,8 +59,12 @@ namespace AM.Scanner.Controllers
 
         [HttpGet]
         [Route("GetTemplates")]
-        public List<FileDetails> GetDelfusTemplates()
+        public IHttpActionResult GetDelfusTemplates()
         {
+            if (Unauthorized(HttpContext.Current.Request))
+            {
+                return StatusCode(HttpStatusCode.Unauthorized);
+            }
             DirectoryInfo d = new DirectoryInfo(Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "DelfusTemplates"));//Assuming Test is your Folder
             List<FileDetails> fileDetails = new List<FileDetails>();
             FileInfo[] fileInfos = d.GetFiles("*.docx");
@@ -66,10 +74,11 @@ namespace AM.Scanner.Controllers
                 {
                     FileName = fileInfo.Name,
                     FileSize = fileInfo.Length > 0 ? $"{ fileInfo.Length / 1024} KB" : "0 KB",
-                    Status = true
+                    Status = true,
+                    ModifiedOn = fileInfo.LastWriteTimeUtc
                 });
             }
-            return fileDetails; //Getting Text files
+            return Ok(fileDetails); //Getting Text files
 
         }
 
@@ -77,6 +86,10 @@ namespace AM.Scanner.Controllers
         [Route("DeleteTemplate")]
         public IHttpActionResult DeleteTemplate(string fileName)
         {
+            if (Unauthorized(HttpContext.Current.Request))
+            {
+                return StatusCode(HttpStatusCode.Unauthorized);
+            }
             string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "DelfusTemplates", fileName);
 
             //Check whether File exists.
@@ -84,7 +97,7 @@ namespace AM.Scanner.Controllers
             {
                 File.Delete(filePath);
                 return Ok();
-               
+
             }
             else
             {
@@ -100,20 +113,17 @@ namespace AM.Scanner.Controllers
             try
             {
                 var request = HttpContext.Current.Request;
-                if (request.Headers["Id"].Trim() == "5b189031-eecc-42d7-8b6d-b531caf1036e")
+                if (Unauthorized(request))
                 {
-                    string path = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "DelfusTemplates");
-                    if (!Directory.Exists(path))
-                    {
-                        Directory.CreateDirectory(path);
-                    }
-                    request.Files[0].SaveAs(Path.Combine(path, request.Headers["FileName"].Trim()));
-                    return Ok("File save successfully.");
+                    return StatusCode(HttpStatusCode.Unauthorized);
                 }
-                else
+                string path = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "DelfusTemplates");
+                if (!Directory.Exists(path))
                 {
-                    return BadRequest("Url is not valid.");
+                    Directory.CreateDirectory(path);
                 }
+                request.Files[0].SaveAs(Path.Combine(path, request.Headers["FileName"].Trim()));
+                return Ok("File save successfully.");
             }
             catch (Exception e)
             {
@@ -125,6 +135,10 @@ namespace AM.Scanner.Controllers
         [Route("IsTemplateExists")]
         public IHttpActionResult IsTemplateExists(string fileName)
         {
+            if (Unauthorized(HttpContext.Current.Request))
+            {
+                return StatusCode(HttpStatusCode.Unauthorized);
+            }
             string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "DelfusTemplates", fileName);
 
             //Check whether File exists.
@@ -137,6 +151,19 @@ namespace AM.Scanner.Controllers
             {
                 //Throw 404 (Not Found) exception if File not found.
                 return NotFound();
+            }
+
+        }
+
+        public bool Unauthorized(HttpRequest request)
+        {
+            if (request.Headers["Id"].Trim() != "5b189031-eecc-42d7-8b6d-b531caf1036e")
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
     }

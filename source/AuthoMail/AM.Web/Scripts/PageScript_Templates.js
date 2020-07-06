@@ -119,6 +119,7 @@
             "language": {
                 "emptyTable": "No rows to display."
             },
+            dom: 'Bfrtip',
             //"processing": true,
             //"serverSide": true,
             "ajax": {
@@ -126,29 +127,38 @@
                 "type": "GET"
             },
             destroy: true,
+            buttons: [
+                {
+                    text: 'My button',
+                    className:'btn btn-info',
+                    action: function (e, dt, node, config) {
+                        alert('Button activated');
+                    }
+                }
+            ],
             paging: false,
             "columns": [
                 
                 { "data": "FileName" ,"className": 'dt-body-left'},
                 { "data": "FileSize", "className": 'dt-body-left'},
-                //{
-                //    "data": "UploadedOn",
-                //    "render": function (data, type, row, meta) {
-                //        return moment(data).format("MM/DD/YY HH:mm:ss");
-                //    }
-                //},
                 {
-                    "data": "Status",
-                    "className": 'dt-body-left',
-                    "render": function (data) {
-                        if (data == true) {
-                            return '<span class="label label-success"> Valid </span>';
-                        }
-                        else {
-                            return '<span class="label label-danger" title="'+data+'"> Invalid </span>';
-                        }
+                    "data": "ModifiedOn",
+                    "render": function (data, type, row, meta) {
+                        return moment(data).format("MM/DD/YY HH:mm:ss");
                     }
                 },
+                //{
+                //    "data": "Status",
+                //    "className": 'dt-body-left',
+                //    "render": function (data) {
+                //        if (data == true) {
+                //            return '<span class="label label-success"> Valid </span>';
+                //        }
+                //        else {
+                //            return '<span class="label label-danger" title="'+data+'"> Invalid </span>';
+                //        }
+                //    }
+                //},
                 {
                     "data": "FileName",
                     "className": 'dt-body-left',

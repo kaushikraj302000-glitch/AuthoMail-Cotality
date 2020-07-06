@@ -10,5 +10,6 @@ namespace AM.Web.Models
         public string FileName { get; set; }
         public string FileSize { get; set; }
         public bool Status { get; set; }
+        public DateTime ModifiedOn { get; set; }
     }
 }
