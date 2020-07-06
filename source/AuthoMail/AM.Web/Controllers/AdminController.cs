@@ -24,6 +24,7 @@ using System.Net.Http.Headers;
 using AM.Services.Services;
 using Newtonsoft.Json;
 using System.Threading;
+using DELFUS.TemplateImporter;
 
 namespace AM.Web.Controllers
 {
@@ -1195,37 +1196,98 @@ namespace AM.Web.Controllers
         [HttpPost]
         public async Task<ActionResult> SaveDelfusTemplates(HttpPostedFileBase template)
         {
-            DateTime now = DateTime.UtcNow;
-            List<string> errors = new List<string>();
-            string[] fileType = { ".doc", ".docx" };
-            if (!fileType.Contains(Path.GetExtension(template.FileName)))
+            IEnumerable<string> mastermergeList = await delfusTemplateSvc.GetDelfusMergeList(Config.Web_Delfus_ConnectionString);
+
+            TemplateValidation validation = new TemplateValidation();
+            using (Stream inputStream = template.InputStream)
             {
-                return Json(JsonResponseFactory.ErrorResponse("File type not supported."));
-            }
-            string uploadURL = $@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\SaveTemplate";// ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
-            bool isTemplateExists = await IsTemplateExists(template.FileName);
-            var uploadResult = await UploadFileToServer(template.FileName, template.InputStream, uploadURL);
+                MemoryStream memoryStream = inputStream as MemoryStream;
+                if (memoryStream == null)
+                {
+                    memoryStream = new MemoryStream();
+                    inputStream.CopyTo(memoryStream);
+                }
+                TemplateValidationInfo validationInfo = validation.VerifyTemplate(memoryStream.ToArray(), mastermergeList.ToList());
+                string error = string.Empty;
+                if (validationInfo.HasAnchorTagIssue)
+                {
+                    error = "This template has anchor tag issue.";
+                }
+                if (validationInfo.NewMergeFields.Count>0)
+                {
+                    string newline = error.Length > 0 ? "\n" : "";
+                    error += $"{newline} This template have new merge fields({string.Join(",",validationInfo.NewMergeFields)}).";
+                }
+                if (!string.IsNullOrEmpty(error))
+                {
+                    await delfusTemplateSvc.SaveTemplate(
+                         new DelfusTemplate
+                         {
+                             FileName = Path.GetFileNameWithoutExtension(template.FileName),
+                             FilePath = template.FileName,
+                             ModifiedOn = DateTime.UtcNow,
+                             ModifiedById = User.Identity.GetUserId(),
+                             Status = "Invalid"
+                         }
+                         );
+                    return Json(JsonResponseFactory.ErrorResponse(error));
+                }
+                // ToDo: UsesAgencyAddress implementation
+                List<string> errors = new List<string>();
+                string[] fileType = { ".doc", ".docx" };
+                if (!fileType.Contains(Path.GetExtension(template.FileName)))
+                {
+                    await delfusTemplateSvc.SaveTemplate(
+                         new DelfusTemplate
+                         {
+                             FileName = Path.GetFileNameWithoutExtension(template.FileName),
+                             FilePath = template.FileName,
+                             ModifiedOn = DateTime.UtcNow,
+                             ModifiedById = User.Identity.GetUserId(),
+                             Status = "Invalid"
+                         }
+                         );
+                    return Json(JsonResponseFactory.ErrorResponse("File type not supported."));
+                }
+                string uploadURL = $@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\SaveTemplate";// ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
+                bool isTemplateExists = await IsTemplateExists(template.FileName);
+                var uploadResult = await UploadFileToServer(template.FileName, template.InputStream, uploadURL);
 
 
-            if (uploadResult.Key)
-            {
-                var result = await delfusTemplateSvc.SaveTemplate(
-                     new DelfusTemplate
-                     {
-                         FileName = Path.GetFileNameWithoutExtension(template.FileName),
-                         FilePath = template.FileName,
-                         ModifiedOn = DateTime.UtcNow,
-                         ModifiedById = User.Identity.GetUserId(),
-                         Status = isTemplateExists ? "Modified" : "Added"
-                     }
-                     );
-                return Json(JsonResponseFactory.SuccessResponse("Template uploaded successfully."));
+                if (uploadResult.Key)
+                {
+                    var result = await delfusTemplateSvc.SaveTemplate(
+                         new DelfusTemplate
+                         {
+                             FileName = Path.GetFileNameWithoutExtension(template.FileName),
+                             FilePath = template.FileName,
+                             ModifiedOn = DateTime.UtcNow,
+                             ModifiedById = User.Identity.GetUserId(),
+                             Status = isTemplateExists ? "Modified" : "Added"
+                         }
+                         );
+                    return Json(JsonResponseFactory.SuccessResponse("Template uploaded successfully."));
+                }
+                else
+                {
+                    errors.Add(uploadResult.Value);
+                    await delfusTemplateSvc.SaveTemplate(
+                         new DelfusTemplate
+                         {
+                             FileName = Path.GetFileNameWithoutExtension(template.FileName),
+                             FilePath = template.FileName,
+                             ModifiedOn = DateTime.UtcNow,
+                             ModifiedById = User.Identity.GetUserId(),
+                             Status = "Invalid"
+                         }
+                         );
+                }
+                return Json(JsonResponseFactory.ErrorResponse(errors));
             }
-            else
-            {
-                errors.Add(uploadResult.Value);
-            }
-            return Json(JsonResponseFactory.ErrorResponse(errors));
+            
+            //HttpPostedFileBase template = templates.FirstOrDefault();
+
+         
         }
         [HttpPost]
         public async Task<ActionResult> DownloadDelfusTemplate(string fileName)

@@ -183,6 +183,11 @@ namespace AM.Services
 
         #endregion
 
+        #region Web Delfus Template
+        [Description("Web Delfus Connection string.")]
+        public static string Web_Delfus_ConnectionString { get; private set; }
+        #endregion
+
         #region USPSIntegration
 
         public static bool Web_API_USPS_IsDbLoggingEnabled { get; private set; }
