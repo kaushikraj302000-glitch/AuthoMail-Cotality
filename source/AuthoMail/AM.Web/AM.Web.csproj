@@ -585,6 +585,7 @@
     <Content Include="Views\Admin\CreateOrEditDocType.cshtml" />
     <Content Include="Template\PullBackForm_NORDIS.pdf" />
     <Content Include="Views\Admin\Templates.cshtml" />
+    <Content Include="Views\Admin\TemplateSummary.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -1187,6 +1187,11 @@ namespace AM.Web.Controllers
         {
             return View();
         }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult TemplateSummary()
+        {
+            return View();
+        }
         [HttpPost]
         public async Task<ActionResult> SaveDelfusTemplates(HttpPostedFileBase template)
         {
@@ -1265,16 +1270,18 @@ namespace AM.Web.Controllers
             }
 
             return Json(null, JsonRequestBehavior.AllowGet);
-
-
+        }
+        [HttpGet]
+        public async Task<object> DelfusTemplatesSummary()
+        {
+            var data = await delfusTemplateSvc.DelfusTemplateSummary();
+            return Json(new { data = data }, JsonRequestBehavior.AllowGet);
         }
         [HttpGet]
         public async Task<object> DelfusTemplatesHistory(string fileName)
         {
             var data = await delfusTemplateSvc.DelfusTemplatesByFileName(fileName);
             return Json(new { data = data.ToList() }, JsonRequestBehavior.AllowGet);
-
-
         }
 
         [HttpPost]
