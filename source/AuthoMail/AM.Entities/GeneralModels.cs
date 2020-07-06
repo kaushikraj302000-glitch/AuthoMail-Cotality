@@ -104,6 +104,8 @@ namespace AM.Entities
         public const string Missing_DocumentDate = "Missing_DocumentDate";
         public const string Missing_NoticeDate = "Missing_NoticeDate";
         public const string Missing_CommunityName = "Missing_CommunityName";
+        public const string Manifest_Missing_Or_Invalid = "Manifest_Missing_Or_Invalid";
+        public const string Invalid_ClientCode = "Invalid_ClientCode";
 
         public static string GetAMCMappingCode(string amOutcomecode)
         {

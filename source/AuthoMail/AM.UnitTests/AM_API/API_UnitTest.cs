@@ -116,7 +116,7 @@ namespace AM.UnitTests
             };
             var response = CreateMailRequest(mailPiece).Result;
 
-            Assert.AreEqual(mailPiece.Id, response.UniqueId);
+            Assert.AreEqual(mailPiece.Id, response.Id);
             Assert.AreEqual("Your request is queued for processing.", response.Message);            
         }
         [TestMethod]

@@ -21,7 +21,7 @@ namespace AM.Entities
     public class MailAPIResponse
     {
         public Guid Id { get; set; }
-        public Guid UniqueId { get; set; }
+        //public Guid UniqueId { get; set; }
         public string Message { get; set; }
         public DateTime ReceivedOn { get; set; }
         public string ClientCode { get; set; }
@@ -40,14 +40,14 @@ namespace AM.Entities
         public int TotalSheets { get; set; }
         public DateTime? PulledBackOn { get; set; }
 
-        public bool ShouldSerializeId()
-        {
-            return this.MailingStatus != ShippingStatus.Acknowledgement.ToString() && this.Id != Guid.Empty;
-        }
-        public bool ShouldSerializeUniqueId()
-        {
-            return this.MailingStatus == ShippingStatus.Acknowledgement.ToString();
-        }
+        //public bool ShouldSerializeId()
+        //{
+        //    return this.MailingStatus != ShippingStatus.Acknowledgement.ToString() && this.Id != Guid.Empty;
+        //}
+        //public bool ShouldSerializeUniqueId()
+        //{
+        //    return this.MailingStatus == ShippingStatus.Acknowledgement.ToString();
+        //}
         public bool ShouldSerializeMessage()
         {
             return this.MailingStatus == ShippingStatus.Acknowledgement.ToString() || this.MailingStatus == ShippingStatus.NotFound.ToString();
