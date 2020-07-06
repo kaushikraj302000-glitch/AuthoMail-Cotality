@@ -5,7 +5,9 @@
         Dropzone.options.uploadtemplatediv = {
             paramName: "template", // The name that will be used to transfer the file
             //maxFilesize: 2, // MB
-            timeout: 60000,
+            //timeout: 60000,
+            //uploadMultiple:true,
+            //parallelUploads:100,
             dictDefaultMessage: '',//<b>Click or Drag here to upload template(s).</b>',
             //acceptedFiles:  'file/doc, file/docx',//'doc, docx',//"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             //accept: function (file, done) {
@@ -38,8 +40,8 @@
             },
             queuecomplete: function (response) {
                 //console.log(response);
-                
-                //TemplateList();
+                TemplateList();
+                alertMessage("green", 'Template(s) uploaded.');
             },
             error: function (err) {
                 //console.log('error: ', err);
@@ -50,46 +52,46 @@
                 //    console.log('addedfile: ', file);
                 //});
                 this.on("success", function (file, response) {
-                    var table = $('#templatelisttable').DataTable();
-                    if (response.Success) {
-                        var isFound = false;
-                        table.rows(function (idx, data, node) {
-                            if (data.FileName === file.name) {
-                                table.row(idx).data({
-                                    "FileName": file.name,
-                                    "FileSize": parseInt(file.size / 1024) + 'KB',
-                                    "Status": true,
-                                    "FileName": file.name
-                                }).draw();
-                                isFound = true;
-                            }
+                    //var table = $('#templatelisttable').DataTable();
+                    //if (response.Success) {
+                    //    var isFound = false;
+                    //    table.rows(function (idx, data, node) {
+                    //        if (data.FileName === file.name) {
+                    //            table.row(idx).data({
+                    //                "FileName": file.name,
+                    //                "FileSize": parseInt(file.size / 1024) + 'KB',
+                    //                "Status": true,
+                    //                "FileName": file.name
+                    //            }).draw();
+                    //            isFound = true;
+                    //        }
 
-                        });
-                        if (isFound==false) {
-                            table.row.add({
-                                "FileName": file.name,
-                                "FileSize": parseInt(file.size / 1024) + 'KB',
-                                "Status": true,
-                                "FileName": file.name
-                            }).draw();
-                        }
+                    //    });
+                    //    if (isFound==false) {
+                    //        table.row.add({
+                    //            "FileName": file.name,
+                    //            "FileSize": parseInt(file.size / 1024) + 'KB',
+                    //            "Status": true,
+                    //            "FileName": file.name
+                    //        }).draw();
+                    //    }
                         
-                        alertMessage("green", 'Template uploading completed.');
-                        //var messages = '<ul>';
-                        //for (var i = 0; i < response.Object.length; i++) {
-                        //    messages += '<li>' + response.Object[i] + '</li>';
-                        //}
-                        //$(file.previewElement).addClass("dz-error").find('.dz-error-message').html(messages);
-                    }
-                    else {
-                        table.row.add({
-                            "FileName": file.name,
-                            "FileSize": parseInt(file.size / 1024) + 'KB',
-                            "Status": response.ErrorMessage,
-                            "FileName": file.name
-                        }).draw();
                         
-                    }
+                    //    //var messages = '<ul>';
+                    //    //for (var i = 0; i < response.Object.length; i++) {
+                    //    //    messages += '<li>' + response.Object[i] + '</li>';
+                    //    //}
+                    //    //$(file.previewElement).addClass("dz-error").find('.dz-error-message').html(messages);
+                    //}
+                    //else {
+                    //    table.row.add({
+                    //        "FileName": file.name,
+                    //        "FileSize": parseInt(file.size / 1024) + 'KB',
+                    //        "Status": response.ErrorMessage,
+                    //        "FileName": file.name
+                    //    }).draw();
+                        
+                    //}
                 });
                 //this.on("error", function (file, errorMessage) {
                 //    console.log('err: ', file);
@@ -129,10 +131,11 @@
             destroy: true,
             buttons: [
                 {
-                    text: 'My button',
-                    className:'btn btn-info',
+                    text: 'Uploaded Summary',
+                    className: 'btn btn-info',
                     action: function (e, dt, node, config) {
-                        alert('Button activated');
+                        window.open(baseUrl + 'Admin/SystemSettings');
+
                     }
                 }
             ],
