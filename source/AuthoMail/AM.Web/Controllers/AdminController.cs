@@ -1197,26 +1197,20 @@ namespace AM.Web.Controllers
         public async Task<ActionResult> SaveDelfusTemplates(HttpPostedFileBase template)
         {
             IEnumerable<string> mastermergeList = await delfusTemplateSvc.GetDelfusMergeList(Config.Web_Delfus_ConnectionString);
-
+            var temp = template.InputStream;
             TemplateValidation validation = new TemplateValidation();
-            using (Stream inputStream = template.InputStream)
-            {
-                MemoryStream memoryStream = inputStream as MemoryStream;
-                if (memoryStream == null)
-                {
-                    memoryStream = new MemoryStream();
-                    inputStream.CopyTo(memoryStream);
-                }
-                TemplateValidationInfo validationInfo = validation.VerifyTemplate(memoryStream.ToArray(), mastermergeList.ToList());
+            byte[] fileData = GetByteArrayFromFile(template);
+           
+            TemplateValidationInfo validationInfo = validation.VerifyTemplate(fileData, mastermergeList.ToList());
                 string error = string.Empty;
                 if (validationInfo.HasAnchorTagIssue)
                 {
                     error = "This template has anchor tag issue.";
                 }
-                if (validationInfo.NewMergeFields.Count>0)
+                if (validationInfo.NewMergeFields.Count > 0)
                 {
                     string newline = error.Length > 0 ? "\n" : "";
-                    error += $"{newline} This template have new merge fields({string.Join(",",validationInfo.NewMergeFields)}).";
+                    error += $"{newline} This template have new merge fields ({string.Join(",", validationInfo.NewMergeFields)}).";
                 }
                 if (!string.IsNullOrEmpty(error))
                 {
@@ -1227,13 +1221,16 @@ namespace AM.Web.Controllers
                              FilePath = template.FileName,
                              ModifiedOn = DateTime.UtcNow,
                              ModifiedById = User.Identity.GetUserId(),
-                             Status = "Invalid"
+                             Status = "Invalid",
+                             Reason = error
                          }
                          );
                     return Json(JsonResponseFactory.ErrorResponse(error));
                 }
-                // ToDo: UsesAgencyAddress implementation
-                List<string> errors = new List<string>();
+            //}
+
+            // ToDo: UsesAgencyAddress implementation
+            List<string> errors = new List<string>();
                 string[] fileType = { ".doc", ".docx" };
                 if (!fileType.Contains(Path.GetExtension(template.FileName)))
                 {
@@ -1244,14 +1241,15 @@ namespace AM.Web.Controllers
                              FilePath = template.FileName,
                              ModifiedOn = DateTime.UtcNow,
                              ModifiedById = User.Identity.GetUserId(),
-                             Status = "Invalid"
+                             Status = "Invalid",
+                             Reason = "File type not supported."
                          }
                          );
                     return Json(JsonResponseFactory.ErrorResponse("File type not supported."));
                 }
                 string uploadURL = $@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\SaveTemplate";// ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
                 bool isTemplateExists = await IsTemplateExists(template.FileName);
-                var uploadResult = await UploadFileToServer(template.FileName, template.InputStream, uploadURL);
+                var uploadResult = await UploadFileToServer(template.FileName, fileData, uploadURL);
 
 
                 if (uploadResult.Key)
@@ -1278,16 +1276,16 @@ namespace AM.Web.Controllers
                              FilePath = template.FileName,
                              ModifiedOn = DateTime.UtcNow,
                              ModifiedById = User.Identity.GetUserId(),
-                             Status = "Invalid"
+                             Status = "Invalid",
+                             Reason = uploadResult.Value
                          }
                          );
                 }
                 return Json(JsonResponseFactory.ErrorResponse(errors));
-            }
-            
+
             //HttpPostedFileBase template = templates.FirstOrDefault();
 
-         
+
         }
         [HttpPost]
         public async Task<ActionResult> DownloadDelfusTemplate(string fileName)
@@ -1395,7 +1393,7 @@ namespace AM.Web.Controllers
         #endregion Delfus TemplateManager
 
         #region UploadDownloadConfiguration
-        public async Task<KeyValuePair<bool, string>> UploadFileToServer(string fileName, Stream stream, string uploadURL)
+        public async Task<KeyValuePair<bool, string>> UploadFileToServer(string fileName, byte[] fileData, string uploadURL)
         {
 
             HttpClient client = new HttpClient();
@@ -1403,24 +1401,38 @@ namespace AM.Web.Controllers
             client.DefaultRequestHeaders.Add("FileName", fileName);
             MultipartFormDataContent form = new MultipartFormDataContent();
             HttpContent content = new StringContent("file");
-            content = new StreamContent(stream);
-            content.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+            using(MemoryStream memoryStream=new MemoryStream(fileData))
             {
-                Name = "file",
-                FileName = fileName
-            };
-            form.Add(content, "file", fileName);
-            HttpResponseMessage response = await client.PostAsync(uploadURL, form);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<string>();
-                return new KeyValuePair<bool, string>(true, result);
-            }
-            else
-            {
-                return new KeyValuePair<bool, string>(false, "File not uploaded, Please try again.");
+                content = new StreamContent(memoryStream);
+                content.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "file",
+                    FileName = fileName
+                };
+                form.Add(content, "file", fileName);
+                HttpResponseMessage response = await client.PostAsync(uploadURL, form);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<string>();
+                    return new KeyValuePair<bool, string>(true, result);
+                }
+                else
+                {
+                    return new KeyValuePair<bool, string>(false, "File not uploaded, Please try again.");
+                }
+
             }
 
+        }
+
+        public byte[] GetByteArrayFromFile(HttpPostedFileBase fileBase)
+        {
+            using (MemoryStream target = new MemoryStream())
+            {
+                fileBase.InputStream.CopyTo(target);
+                return target.ToArray();
+            }
+                
         }
         #endregion UploadDownloadConfiguration
     }

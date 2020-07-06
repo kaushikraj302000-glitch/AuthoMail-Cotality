@@ -58,7 +58,7 @@
                     paging: false,
                     "columns": [
 
-                        { "data": "FileName", "className": 'dt-body-left' },
+                        { "data": "FilePath", "className": 'dt-body-left' },
                         //{ "data": "FileSize", "className": 'dt-body-left' },
                         {
                             "data": "ModifiedOn",
@@ -70,18 +70,25 @@
                             "data": "Status",
                             "className": 'dt-body-left',
                             "render": function (data) {
-                                if (data == 'Modified') {
-                                    return '<span class="label label-info"> ' + data + ' </span>';
-                                }
-                                else if (data == 'Valid') {
+                                if (data == "Modified") {
                                     return '<span class="label label-success"> ' + data + ' </span>';
                                 }
-                                else {
+                                else if (data == "Deleted" || data == "Invalid") {
                                     return '<span class="label label-danger"> ' + data + ' </span>';
+                                }
+                                else if (data == "Added") {
+                                    return '<span class="label label-info"> ' + data + ' </span>';
+                                }
+                                else {
+                                    return '--';
                                 }
                             }
                         },
-                        { "data": "Reason", "className": 'dt-body-left' },
+                        {
+                            "data": "Reason", "className": 'dt-body-left',
+                            "render": function (data, type, row, meta) {
+                                return data=="" || data==null ?"--":data;
+                            } },
                         //{
                         //    "data": "FileName",
                         //    "className": 'dt-body-left',

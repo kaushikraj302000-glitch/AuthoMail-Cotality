@@ -22,9 +22,9 @@ namespace AM.Services.Services
         {
             try
             {
-                string query = @"INSERT INTO Delfus.Templates (FileName ,FilePath ,ModifiedById ,ModifiedOn ,Status)
+                string query = @"INSERT INTO Delfus.Templates (FileName ,FilePath ,ModifiedById ,ModifiedOn ,Status, Reason)
                     VALUES 
-                  (@FileName ,@FilePath ,@ModifiedById ,@ModifiedOn ,@Status)";
+                  (@FileName ,@FilePath ,@ModifiedById ,@ModifiedOn ,@Status, @Reason)";
                 await db.ExecuteAsync(query, delfusTemplate);
                 return new KeyValuePair<bool, string>(true, "File uploaded successfully.");
             }

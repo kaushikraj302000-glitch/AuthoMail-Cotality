@@ -67,7 +67,8 @@ namespace AM.Scanner.Controllers
             }
             DirectoryInfo d = new DirectoryInfo(Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "DelfusTemplates"));//Assuming Test is your Folder
             List<FileDetails> fileDetails = new List<FileDetails>();
-            FileInfo[] fileInfos = d.GetFiles("*.docx");
+            string[] fileType = { ".doc", ".docx" };
+            FileInfo[] fileInfos = d.GetFiles("*.*").Where(f=>fileType.Contains(Path.GetExtension(f.FullName))).ToArray();
             foreach (var fileInfo in fileInfos)
             {
                 fileDetails.Add(new FileDetails

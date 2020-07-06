@@ -39,9 +39,9 @@
                 //alertMessage("green", 'All templates uploaded successfully.');
             },
             queuecomplete: function (response) {
-                //console.log(response);
+                console.log(response);
                 TemplateList();
-                alertMessage("green", 'Template(s) uploaded.');
+                alertMessage("green", 'Please check Upload Summary for more details.');
             },
             error: function (err) {
                 //console.log('error: ', err);
@@ -134,7 +134,7 @@
                     text: 'Uploaded Summary',
                     className: 'btn btn-info',
                     action: function (e, dt, node, config) {
-                        window.open(baseUrl + 'Admin/SystemSettings');
+                        window.open(baseUrl + 'Admin/TemplateSummary');
 
                     }
                 }
@@ -267,7 +267,7 @@
                             if (data == "Modified") {
                                 return '<span class="label label-success"> Modified </span>';
                             }
-                            else if (data == "Deleted") {
+                            else if (data == "Deleted" || data == "Invalid") {
                                 return '<span class="label label-danger"> Deleted </span>';
                             }
                             else if (data == "Added") {
