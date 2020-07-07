@@ -41,8 +41,8 @@
             queuecomplete: function (response) {
                 console.log(response);
                 TemplateList();
-                alertMessage("green", 'Please check Upload Summary for more details.');
-                window.open(baseUrl + 'Admin/TemplateSummary');
+                alertMessage("green", 'Upload completed: Please check upload summary for more details.');
+                //window.open(baseUrl + 'Admin/TemplateSummary');
             },
             error: function (err) {
                 //console.log('error: ', err);
@@ -107,7 +107,9 @@
             }
         };
     }
-
+    function calcDataTableHeight(decreaseTableHeight) {
+        return ($(window).innerHeight() - 240) - decreaseTableHeight;
+    };
     function TemplateList() {
         var id = 'templatelisttable';
         if ($.fn.DataTable.isDataTable('#' + id)) {
@@ -133,7 +135,7 @@
             destroy: true,
             buttons: [
                 {
-                    text: 'View Template Uploaded Summary',
+                    text: 'View Template Upload Summary',
                     className: 'btn btn-info',
                     action: function (e, dt, node, config) {
                         window.open(baseUrl + 'Admin/TemplateSummary');
@@ -255,6 +257,7 @@
                 destroy: true,
                 searching: false,
                 info: false,
+                scrollY: calcDataTableHeight(80),
                 paging: false,
                 "columns": [
                     { "data": "ModifiedBy" },
