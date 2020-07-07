@@ -42,6 +42,7 @@
                 console.log(response);
                 TemplateList();
                 alertMessage("green", 'Please check Upload Summary for more details.');
+                window.open(baseUrl + 'Admin/TemplateSummary');
             },
             error: function (err) {
                 //console.log('error: ', err);
@@ -122,6 +123,7 @@
                 "emptyTable": "No rows to display."
             },
             dom: 'Bfrtip',
+            order: [[2, "desc"]],
             //"processing": true,
             //"serverSide": true,
             "ajax": {
@@ -131,7 +133,7 @@
             destroy: true,
             buttons: [
                 {
-                    text: 'Uploaded Summary',
+                    text: 'View Template Uploaded Summary',
                     className: 'btn btn-info',
                     action: function (e, dt, node, config) {
                         window.open(baseUrl + 'Admin/TemplateSummary');
@@ -143,9 +145,10 @@
             "columns": [
                 
                 { "data": "FileName" ,"className": 'dt-body-left'},
-                { "data": "FileSize", "className": 'dt-body-left'},
+                { "data": "FileSize", "className": 'dt-body-center'},
                 {
                     "data": "ModifiedOn",
+                    "className": 'dt-body-center',
                     "render": function (data, type, row, meta) {
                         return moment(data).format("MM/DD/YY HH:mm:ss");
                     }
@@ -168,7 +171,7 @@
                     "render": function (data, type, row, meta) {
                         if (row.Status==true) {
                             var buttons = '<button title="Download Template" type="button" class="btn btn-success btn-sm downloadtemplate" data-id="' + data + '"><i class="fa fa-download"></i></button>';
-                            buttons += ' <button type="button" title="History Of Template" class="btn btn-info btn-sm historytemplate" data-id="' + data + '"><i class="fa fa-history"></i></button>';
+                            buttons += ' <button type="button" title="View Template History" class="btn btn-info btn-sm historytemplate" data-id="' + data + '"><i class="fa fa-history"></i></button>';
                             buttons += ' <button type="button" title="Delete Template" class="btn btn-danger btn-sm removetemplate" data-id="' + data + '"><i class="fa fa-trash"></i></button>';
 
 
@@ -268,7 +271,7 @@
                                 return '<span class="label label-success"> Modified </span>';
                             }
                             else if (data == "Deleted" || data == "Invalid") {
-                                return '<span class="label label-danger"> Deleted </span>';
+                                return '<span class="label label-danger"> '+data+' </span>';
                             }
                             else if (data == "Added") {
                                 return '<span class="label label-info"> Added </span>';

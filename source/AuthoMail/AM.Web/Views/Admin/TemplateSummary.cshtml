@@ -6,7 +6,7 @@
 <div class="panel panel-default">
     <div class="panel-heading">
         <div class="panel-title">
-            <h3>Delfus Template Summary</h3>
+            <h3>Delfus Template Uploaded Summary</h3>
         </div>
     </div>
     <div class="panel-body">
@@ -21,10 +21,10 @@
     <table class="table table-striped compact">
         <thead>
             <tr>
-                <th style="width:660px">Name</th>
+                <th style="width:360px">Name</th>
                 <th>Modified On</th>
                 <th>Status</th>
-                <th class="dt-head-center" style="width:200px">Reason</th>
+                <th class="dt-head-left" style="width:200px">Reason</th>
             </tr>
         </thead>
     </table>
@@ -54,7 +54,7 @@
                         "type": "GET"
                     },
                     destroy: true,
-
+                    order: [[1, "desc"]],
                     paging: false,
                     "columns": [
 
@@ -62,6 +62,7 @@
                         //{ "data": "FileSize", "className": 'dt-body-left' },
                         {
                             "data": "ModifiedOn",
+                            "className": 'dt-body-left',
                             "render": function (data, type, row, meta) {
                                 return moment(data).format("MM/DD/YY HH:mm:ss");
                             }
