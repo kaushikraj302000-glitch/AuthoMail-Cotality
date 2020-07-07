@@ -27,10 +27,10 @@ namespace PCI.Service
                         msg.To.Add(Common.Email_ToNordis);
                         msg.CC.Add(Common.Email_CcNordis);
 
-                        string pvClientCode = printVendorCode == "DEL_NORDIS" ? "TAXDELFUS" : "ADE";
+                        string pvClientCode = printVendorCode == "DEL_NORDIS" ? "TAXDELFUS " : "ADE ";
 
                         //Here subject string contains "Batch Submitted To {Location} : {FileName} at {Time} Total Files : {FileCount} Total Page Count : {PageCount}"
-                        msg.Subject = Common.ApplicationEnvironment + " : " + Common.SubmitNordisBatchEmailSubject.Fill(pvClientCode, Path.GetFileName(fileName), Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy hh:mm tt") + " EST", mailPiecesCount, totalPages);
+                        msg.Subject = Common.ApplicationEnvironment + " : "+ pvClientCode + Common.SubmitNordisBatchEmailSubject.Fill(vendorCode, Path.GetFileName(fileName), Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy hh:mm tt") + " EST", mailPiecesCount, totalPages);
                         sb = new StringBuilder(File.ReadAllText(Common.SubmitNordisBatchEmailTemplate));
                     }
                     else
