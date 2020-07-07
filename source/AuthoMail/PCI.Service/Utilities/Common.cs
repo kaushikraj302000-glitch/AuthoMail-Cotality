@@ -36,6 +36,11 @@ namespace PCI.Service
         public static string Email_ToNordis { get; private set; }
         public static string Email_CcNordis { get; private set; }
 
+        public static string SubmitDELNordisBatchEmailSubject { get; private set; }
+        public static string SubmitDELNordisBatchEmailTemplate { get; private set; }
+        public static string Email_ToDELNordis { get; private set; }
+        public static string Email_CcDELNordis { get; private set; }
+
         public static string SuspendBatchEmailSubject { get; private set; }
         public static string SuspendBatchEmailTemplate { get; private set; }
         public static string SuspendEmail_To { get; private set; }
@@ -107,6 +112,12 @@ namespace PCI.Service
                 Email_ToNordis = submitNordisBatchEmailChannel.To;
                 Email_CcNordis = submitNordisBatchEmailChannel.Cc;
 
+                var submitDELNordisBatchEmailChannel = DAL.GetEmailChannelByTitleName("PnS_DELSubmitNordisBatchEmail");
+                SubmitDELNordisBatchEmailSubject = submitDELNordisBatchEmailChannel.Subject;
+                SubmitDELNordisBatchEmailTemplate = submitDELNordisBatchEmailChannel.BodyTemplate;
+                Email_ToDELNordis = submitDELNordisBatchEmailChannel.To;
+                Email_CcDELNordis = submitDELNordisBatchEmailChannel.Cc;
+
                 var submitPCIBatchEmailChannel = DAL.GetEmailChannelByTitleName("PnS_SubmitPCIBatchEmail");
                 SubmitPCIBatchEmailSubject = submitPCIBatchEmailChannel.Subject;
                 SubmitPCIBatchEmailTemplate = submitPCIBatchEmailChannel.BodyTemplate;
@@ -119,7 +130,7 @@ namespace PCI.Service
                 PCI_Issue_Email_To = invalidPCIResponseEmailChannel.To;
                 PCI_Issue_Email_Cc = invalidPCIResponseEmailChannel.Cc;
 
-                var invalidNordisResponseEmailChannel = DAL.GetEmailChannelByTitleName("PnS_PCIIssueEmail");
+                var invalidNordisResponseEmailChannel = DAL.GetEmailChannelByTitleName("PnS_NORDISIssueEmail");
                 NORDIS_Issue_Subject = invalidNordisResponseEmailChannel.Subject;
                 NORDIS_Issue_Email_To = invalidNordisResponseEmailChannel.To;
                 NORDIS_Issue_Email_Cc = invalidNordisResponseEmailChannel.Cc;
