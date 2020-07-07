@@ -992,6 +992,11 @@ namespace AM.Console
                 return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not available for this package." };
             }
 
+            if (mailPieceDTO.DocumentOrPackageType == "E-Delivery")
+            {
+                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages) };
+            }
+
             int pageCount = 0;
             List<int> blankPageNos = new List<int>();
             using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
