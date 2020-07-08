@@ -169,6 +169,7 @@
     </Compile>
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\CoverLetterAPIController.cs" />
+    <Compile Include="Controllers\DelfusTemplateAPIController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\BaseAPIController.cs" />
     <Compile Include="Controllers\ReportsController.cs" />
@@ -179,6 +180,7 @@
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
     <Compile Include="Models\ClientDetails.cs" />
+    <Compile Include="Models\FileDetails.cs" />
     <Compile Include="Models\PerfTimerLogger.cs" />
     <Compile Include="Models\ReportViewModel.cs" />
     <Compile Include="Models\ScanDetails.cs">
