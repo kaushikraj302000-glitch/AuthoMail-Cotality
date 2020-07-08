@@ -149,8 +149,8 @@ namespace PCI.Service
             {
                 if (ex.Message.Contains("connection attempt failed") || ex.Message.Contains("connected party did not properly respond") || ex.Message.Contains("established connection failed") || ex.Message.Contains("target machine actively refused it"))
                 {
-                    var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex);
-                    log.Error(connectionMsg);
+                    var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex.Message);
+                    log.Error(ex);
                     MailUtility.SendSFTConnectionIssueNotificationEmail(connectionMsg, pvCode);
                     Thread.Sleep(60000);
                     return;
@@ -174,8 +174,8 @@ namespace PCI.Service
             {
                 if (ex.Message.Contains("connection attempt failed") || ex.Message.Contains("connected party did not properly respond") || ex.Message.Contains("established connection failed") || ex.Message.Contains("target machine actively refused it"))
                 {
-                    var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex);
-                    log.Error(connectionMsg);
+                    var connectionMsg = "Error occured while connecting to Print Vendor {0}'s SFT Site with <br/> below exception <br/>{1}".Fill(pvCode, ex.Message);
+                    log.Error(ex);
                     MailUtility.SendSFTConnectionIssueNotificationEmail(connectionMsg, pvCode);
                     Thread.Sleep(60000);
                     return;
@@ -402,7 +402,7 @@ namespace PCI.Service
                     if (sftSite.IsFileAvailable(serverFilePath))
                         sftSite.RenameFile(serverFilePath, "{0}/{1}.zip".Fill(ptDetails.FromADEDir, ptBatchDetails.PrintBatchName));
 
-                    MailUtility.SendBatchSubmittedNotificationEmail(ptDetails.VendorCode, "{0}.zip".Fill(ptBatchDetails.PrintBatchName), mpList.Count, mpList.Sum(c => c.TotalPages));
+                    MailUtility.SendBatchSubmittedNotificationEmail(ptDetails.VendorCode, ptDetails.PrintVendorCode, "{0}.zip".Fill(ptBatchDetails.PrintBatchName), mpList.Count, mpList.Sum(c => c.TotalPages));
                 }
 
                 scope.Complete();

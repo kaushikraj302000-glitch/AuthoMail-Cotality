@@ -88,6 +88,31 @@ namespace AM.Lib
             File.Move(temp, dest);
         }
 
+        public static byte[] Mergebase64PDFs(params string[] pdflist)
+        {
+            using (var ms = new MemoryStream())
+            using (var doc = new Document())
+            using (var copy = new PdfSmartCopy(doc, ms))
+            {
+                doc.Open();
+                // This is done to open and merge (Secured) PDFs which allow printing but not copying or merging
+                PdfReader.unethicalreading = true;
+                foreach (var pdf in pdflist)
+                {
+                    //Create a PdfReader
+                    using (var reader = new PdfReader(Convert.FromBase64String(pdf)))
+                    {
+                        //Add the entire document
+                        copy.AddDocument(reader);
+                        reader.Close();
+                    }
+                }
+                PdfReader.unethicalreading = false;
+                doc.Close();
+                return ms.ToArray();
+            }
+        }
+
         public static void BookmarkedPdfFilesMerge(string outputPdf, string[] sourcePdfs)
         {
             PdfReader reader = null;

@@ -12,6 +12,10 @@ namespace AM.Services
         {
             return ErrorResponse(code, error, null);
         }
+        public static object ErrorResponse(List<string> errors)
+        {
+            return ErrorResponse(null, null, errors);
+        }
 
         public static object ErrorResponse(string code, string error, object referenceObject)
         {

@@ -1,0 +1,120 @@
+﻿
+@{
+    ViewBag.Title = "Delfus Template Summary";
+}
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <div class="panel-title">
+            <h3>DELFUS Template Upload Summary - <b>@(AM.Services.Config.Common_Environment == AM.Services.Env.Prod ? "PRODUCTION":"UAT") </b></h3>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div id="templatestablebody">
+
+        </div>
+    </div>
+</div>
+
+<div id="templatebody" style="display:none;">
+
+    <table class="table table-striped compact">
+        <thead>
+            <tr>
+                <th style="width:360px">Name</th>
+                <th>Modified On</th>
+                <th>Status</th>
+                <th class="dt-head-left" style="width:200px">Reason</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+@section Scripts{
+    @Styles.Render("~/bundles/datatablescss")
+    @Scripts.Render("~/bundles/datatables")
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            function TemplateList() {
+                var id = 'templatelisttable';
+                if ($.fn.DataTable.isDataTable('#' + id)) {
+                    $('#' + id).remove();
+                    $('#' + id + '_wrapper').remove();
+                    $('#templatestablebody').empty();
+                }
+                var tableBody = $('#templatebody').html();
+                tableBody = $(tableBody).attr('id', id);
+                $('#templatestablebody').html(tableBody);
+                var table = $('#templatelisttable').DataTable({
+                    "language": {
+                        "emptyTable": "No rows to display."
+                    },
+                    "ajax": {
+                        "url": baseUrl + "DelfusTemplate/DelfusTemplatesSummary",
+                        "type": "GET"
+                    },
+                    destroy: true,
+                    order: [[1, "desc"]],
+                    paging: false,
+                    "columns": [
+
+                        { "data": "FilePath", "className": 'dt-body-left' },
+                        //{ "data": "FileSize", "className": 'dt-body-left' },
+                        {
+                            "data": "ModifiedOn",
+                            "className": 'dt-body-left',
+                            "render": function (data, type, row, meta) {
+                                return moment(data).format("MM/DD/YY HH:mm:ss");
+                            }
+                        },
+                        {
+                            "data": "Status",
+                            "className": 'dt-body-left',
+                            "render": function (data) {
+                                if (data == "Modified") {
+                                    return '<span class="label label-success"> ' + data + ' </span>';
+                                }
+                                else if (data == "Deleted" || data == "Invalid") {
+                                    return '<span class="label label-danger"> ' + data + ' </span>';
+                                }
+                                else if (data == "Added") {
+                                    return '<span class="label label-info"> ' + data + ' </span>';
+                                }
+                                else {
+                                    return '--';
+                                }
+                            }
+                        },
+                        {
+                            "data": "Reason", "className": 'dt-body-left',
+                            "render": function (data, type, row, meta) {
+                                return data=="" || data==null ?"--":data;
+                            } },
+                        //{
+                        //    "data": "FileName",
+                        //    "className": 'dt-body-left',
+                        //    "render": function (data, type, row, meta) {
+                        //        if (row.Status == true) {
+                        //            var buttons = '<button title="Download Template" type="button" class="btn btn-success btn-sm downloadtemplate" data-id="' + data + '"><i class="fa fa-download"></i></button>';
+                        //            buttons += ' <button type="button" title="History Of Template" class="btn btn-info btn-sm historytemplate" data-id="' + data + '"><i class="fa fa-history"></i></button>';
+                        //            buttons += ' <button type="button" title="Delete Template" class="btn btn-danger btn-sm removetemplate" data-id="' + data + '"><i class="fa fa-trash"></i></button>';
+
+
+                        //            return buttons;
+                        //        } else {
+                        //            return '--';
+                        //        }
+
+                        //    }
+                        //},
+                    ]
+                });
+
+            }
+
+            TemplateList();
+        });
+    </script>
+}
+
+

@@ -50,7 +50,5 @@ namespace AM.Scanner.Controllers
             response.Content.Headers.ContentType = new MediaTypeHeaderValue(MimeMapping.GetMimeMapping(fileName));
             return response;
         }
-        
-       
     }
 }
