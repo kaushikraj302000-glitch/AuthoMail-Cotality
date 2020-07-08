@@ -6,7 +6,7 @@
 <div class="panel panel-default">
     <div class="panel-heading">
         <div class="panel-title">
-            <h3> <b>@AM.Services.Config.Common_Environment</b> DELFUS Template Upload Summary</h3>
+            <h3>DELFUS Template Upload Summary - <b>@(AM.Services.Config.Common_Environment == AM.Services.Env.Prod ? "PRODUCTION":"UAT") </b></h3>
         </div>
     </div>
     <div class="panel-body">
@@ -50,7 +50,7 @@
                         "emptyTable": "No rows to display."
                     },
                     "ajax": {
-                        "url": baseUrl + "Admin/DelfusTemplatesSummary",
+                        "url": baseUrl + "DelfusTemplate/DelfusTemplatesSummary",
                         "type": "GET"
                     },
                     destroy: true,

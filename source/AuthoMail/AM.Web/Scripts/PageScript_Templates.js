@@ -42,7 +42,7 @@
                 console.log(response);
                 TemplateList();
                 alertMessage("green", 'Upload completed: Please check upload summary for more details.');
-                //window.open(baseUrl + 'Admin/TemplateSummary');
+                //window.open(baseUrl + 'DelfusTemplate/TemplateSummary');
             },
             error: function (err) {
                 //console.log('error: ', err);
@@ -129,7 +129,7 @@
             //"processing": true,
             //"serverSide": true,
             "ajax": {
-                "url": baseUrl + "Admin/DelfusTemplatesList",
+                "url": baseUrl + "DelfusTemplate/DelfusTemplatesList",
                 "type": "GET"
             },
             destroy: true,
@@ -138,7 +138,7 @@
                     text: 'View Template Upload Summary',
                     className: 'btn btn-info',
                     action: function (e, dt, node, config) {
-                        window.open(baseUrl + 'Admin/TemplateSummary');
+                        window.open(baseUrl + 'DelfusTemplate/TemplateSummary');
 
                     }
                 }
@@ -208,7 +208,7 @@
                 var fileName = $(this).data('id');
                 $.ajax({
                     type: "POST",
-                    url: baseUrl + "admin/RemoveDelfusTemplate",
+                    url: baseUrl + "DelfusTemplate/RemoveDelfusTemplate",
                     data: { fileName: fileName },
                     dataType: "json",
                     success: function (response) {
@@ -233,7 +233,7 @@
         $('#templatelisttable tbody').on('click', '.historytemplate', function () {
             var fileName = $(this).data('id');
             $("#historyLabel").text('History of ' + fileName);
-            var url = baseUrl + "Admin/DelfusTemplatesHistory?fileName=" + fileName;
+            var url = baseUrl + "DelfusTemplate/DelfusTemplatesHistory?fileName=" + fileName;
             console.log(fileName,url)
             var id = 'historytable';
             if ($.fn.DataTable.isDataTable('#' + id)) {
@@ -299,7 +299,7 @@
             var fileName = $(this).data('id');
             $.ajax({
                 type: "POST",
-                url: baseUrl + "Admin/DownloadDelfusTemplate",
+                url: baseUrl + "DelfusTemplate/DownloadDelfusTemplate",
                 data: { fileName: fileName },
                 dataType: "json",
                 success: function (response) {

@@ -83,6 +83,10 @@
 
                             </ul>
                         </li>
+                        @if (User.IsInRole(AM.Entities.AMRoles.Delfus))
+                        {
+                            <li>@Html.ActionLink("Manage Delfus Template", "Templates", "DelfusTemplate")</li>
+                        }
                         @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA) || User.IsInRole(AM.Entities.AMRoles.CoreLogicUserManager))
                         {
                             <li class="dropdown">
@@ -100,7 +104,7 @@
                                         <li>@Html.ActionLink("Manage Clients", "ManageClients", "Admin")</li>
                                         <li>@Html.ActionLink("Manage Envelope", "ManageEnvelopes", "Admin")</li>
                                         <li>@Html.ActionLink("Manage Print Trails", "ManagePrintTrails", "Admin")</li>
-                                        <li>@Html.ActionLink("Manage Delfus Template", "Templates", "Admin")</li>
+                                        <li>@Html.ActionLink("Manage Delfus Template", "Templates", "DelfusTemplate")</li>
                                     }
                                     <li>@Html.ActionLink("Services and Cost ", "AllProjectSetupDetails", "Admin")</li>
                                 </ul>
