@@ -200,3 +200,4 @@ ModelManifest.xml
 /source/AuthoMail/AM.ProductionToUATBridge/Packages
 /docs/WebApiClient
 /source/AuthoMail/AM.Web/Properties/PublishProfiles
+/source/AuthoMail/AM.Web/App_Data

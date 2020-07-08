@@ -20,6 +20,8 @@ using System.Text;
 using System.Web.Http.Controllers;
 using iTextSharp.text.exceptions;
 using DocumentFormat.OpenXml.Wordprocessing;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using System.Web;
 
 namespace AM.Web.Controllers
 {
@@ -87,11 +89,9 @@ bufferSize: 4096, useAsync: true)) { }
             }
             catch (Exception ex)
             {
-                string msg = string.Format("Unexpected error occured while processing your request.");
-                log.Error(msg, ex);
-                var res = new MailAPIResponse { MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Unknown_Error, ErrorDesc = msg, ReceivedOn = receivedOn };
-
-                return Request.CreateResponse(HttpStatusCode.BadRequest, res);
+                var traceId = Guid.NewGuid();
+                log.Error("TraceId: {0}, Message: {1}".Fill(traceId, ex.Message), ex);
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Unexpected error. TraceId : {0}".Fill(traceId));
             }
         }
 
@@ -100,7 +100,15 @@ bufferSize: 4096, useAsync: true)) { }
         public async Task<HttpResponseMessage> CreateMailRequest()
         {
             var receivedOn = Common.Now;
-            string root = System.Web.HttpContext.Current.Server.MapPath("~/App_Data");
+            var mailPiece = new MailPiece();
+            if (Request.Content.Headers.ContentLength / 1024f / 1024f > 101)
+            {
+                var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.RequestTooLarge, ErrorMessage = "Maximum request length exceeded." }, receivedOn);
+                return Request.CreateResponse(HttpStatusCode.RequestEntityTooLarge, res);
+            }
+            //TO DO: create local path and upload
+            //.57/d:/UAT/WEB/
+            string root = Config.MailRequestAPI_FilesDownloadPath;
             var provider = new MultipartFormDataStreamProvider(root);
 
             try
@@ -112,12 +120,11 @@ bufferSize: 4096, useAsync: true)) { }
                 {
                     Id = Guid.NewGuid()
                 };
-                var mailPiece = new MailPiece();
-                string manifestErrDesc = null;
+
                 var manifest = provider.FormData.GetValues("Manifest");
                 var filekeys = provider.FileData.Select(f => f.Headers.ContentDisposition.Name).ToList();
                 //validation for "Manifest"
-                ValidateManifestRequest(ref mailPiece, ref manifestErrDesc, manifest, filekeys);
+                string manifestErrDesc = ValidateManifestRequest(ref mailPiece, manifest, filekeys);
                 var downloadedFiles = provider.FileData.Select(f => f.LocalFileName).ToList();
                 if (!manifestErrDesc.IsNullOrWhiteSpace())
                 {
@@ -137,7 +144,7 @@ bufferSize: 4096, useAsync: true)) { }
                 using (ICommonService commonSvc = new CommonService())
                 {
                     //Check mailpiece id is unique.
-                    if (mailPiece.Id != Guid.Empty && commonSvc.CheckForDuplicateMailPieceUniqueId(mailPiece.Id))
+                    if (commonSvc.CheckForDuplicateMailPieceUniqueId(mailPiece.Id))
                     {
                         DeleteFiles(downloadedFiles);
                         var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_DuplicateKey, ErrorMessage = string.Format("The specified package id '{0}' conflicts with an existing package. Retry with a new GUID.", mailPiece.Id) }, receivedOn);
@@ -152,17 +159,15 @@ bufferSize: 4096, useAsync: true)) { }
                     {
                         DeleteFiles(downloadedFiles);
                         //Return error response and insert entry of invalid_client                                           
-                        var invalidClient = await clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "_Invalid");
+                        var invalidClient = await clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "Invalid");
                         await InsertInvalidBatch(receivedOn, sFTChannel, mailBatch, invalidClient.Id, "Invalid client code specified.");
-                        mailPiece.DocumentOrPackage.IncludePatternBaseString = false;
+                        if (mailPiece.DocumentOrPackage != null) mailPiece.DocumentOrPackage.IncludePatternBaseString = false;
                         var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_ClientCode, ErrorMessage = string.Format("Invalid client code specified.") }, receivedOn);
                         return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                     }
-                    else
-                    {
-                        mailBatch.ClientCode = client.AppCode;
-                        mailBatch.ClientBatchId = mailBatch.Id.ToString();
-                    }
+                    mailBatch.ClientCode = client.AppCode;
+                    mailBatch.ClientBatchId = mailBatch.Id.ToString();
+
                 }
 
                 switch (sFTChannel.Code.Split('_')[0].ToUpper())
@@ -188,7 +193,7 @@ bufferSize: 4096, useAsync: true)) { }
                                 await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
                                 await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                             }
-                            mailPiece.DocumentOrPackage.IncludePatternBaseString = false;
+                            if (mailPiece.DocumentOrPackage != null) mailPiece.DocumentOrPackage.IncludePatternBaseString = false;
                             var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = result.Code, ErrorMessage = result.ErrorMessage }, receivedOn);
 
                             return Request.CreateResponse(HttpStatusCode.BadRequest, res);
@@ -198,75 +203,83 @@ bufferSize: 4096, useAsync: true)) { }
 
 
                 // merge PDFS into a single file, use File.GetRandomFileName method to get unique filename
-                var finalPdfPath = Path.Combine(root, Path.GetRandomFileName());
-                finalPdfPath = Path.ChangeExtension(finalPdfPath, ".pdf");
-
+                //var finalPdfPath = Path.Combine(root, Path.GetRandomFileName());
+                //finalPdfPath = Path.ChangeExtension(finalPdfPath, ".pdf");
+                var finalPdfPath = Path.Combine(root, "{0}.pdf".Fill(mailPiece.BusinessFriendlyIdValue.GetValidFileName()));
                 var files = mailPiece.DocumentOrPackage.Files
                     .Select(f =>
                     {
                         var fileData = provider.FileData.SingleOrDefault(fd => fd.Headers.ContentDisposition.Name.Replace("\"", "") == f);
-                        var filePath = fileData == null ? null : fileData.LocalFileName;
-                        return new KeyValuePair<string, string>(f, filePath);
+                        return new KeyValuePair<string, MultipartFileData>(f, fileData);
                     })
                     .ToList();
 
-                var nullFilePathList = files.Where(f => f.Value == null);
+                var nullFilePathList = files.Where(f => f.Value == null).ToList();
 
                 // filepath null validation check
-                if (nullFilePathList.ToList().Count > 0)
+                if (nullFilePathList.Count > 0)
                 {
-                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not available." }, receivedOn);
+                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file not found for the following file keys: {0}".Fill(string.Join(",", nullFilePathList.Select(n => n.Key))) }, receivedOn);
                     return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                 }
 
-                // count pdf pages of each file
-                if (files.Count == 1)
+                //// count pdf pages of each file
+                //if (files.Count == 1)
+                //{
+                //    try
+                //    {
+                //        int pageCount = PdfUtil.GetPageCount(files[0].Value);
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        log.Error(ex.Message, ex);
+                //        // if there are any exceptions while counting pages or merging, don't delete files and send badreqeust with mailresponse object, it should contain file names
+                //        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "'{0}' pdf file is either corrupt or has no pages.".Fill(files[0].Key) }, receivedOn);
+                //        return Request.CreateResponse(HttpStatusCode.BadRequest, res);
+                //    }
+                //    File.Move(files[0].Value, finalPdfPath);
+                //}
+                //else
+                //{
+                int i = 0;
+                string temp = null;
+                string prevFile = null;
+                if (mailPiece.CustomInfo != null) mailPiece.CustomInfo = new List<Metadata>();
+                do
                 {
                     try
                     {
-                        int pageCount = PdfUtil.GetPageCount(files[0].Value);
+                        var file = files[i].Value;
+                        var pageCount = PdfUtil.GetPageCount(file.LocalFileName);
+
+                        mailPiece.CustomInfo.Add(new Metadata { Key = "Files", Value = "FileKey: {0} | FileName:{1} | PageCount: {2}".Fill(files[i].Key, file.Headers.ContentDisposition.FileName, pageCount) });
+
+                        //if (temp != null) File.Delete(temp);
+                        temp = Path.Combine(root, Path.GetRandomFileName());
+                        temp = Path.ChangeExtension(temp, ".pdf");
+
+                        if (prevFile == null)
+                            File.Copy(file.LocalFileName, temp);
+                        else
+                        {
+                            PdfUtil.MergePDFs(prevFile, file.LocalFileName, temp);
+                            File.Delete(prevFile);
+                        }
+                        prevFile = temp;
                     }
-                    catch (Exception ex)
+                    catch (Exception e)
                     {
-                        log.Error(ex.Message, ex);
+                        log.Error(e.Message, e);
                         // if there are any exceptions while counting pages or merging, don't delete files and send badreqeust with mailresponse object, it should contain file names
-                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "Pdf is either corrupt or has no pages." }, receivedOn);
+                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "'{0}' pdf file is either corrupt or has no pages.".Fill(files[i].Key) }, receivedOn);
                         return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                     }
-                    File.Move(files[0].Value, finalPdfPath);
-                }
-                else
-                {
-                    var prevFile = files[0].Value;
-                    int pageCount;
-                    string temp = null;
-                    List<string> tempFiles = new List<string>();
-                    for (int i = 1; i < files.Count; i++)
-                    {
-                        try
-                        {
-                            pageCount = PdfUtil.GetPageCount(prevFile);
-                            var file = files[i].Value;
-                            pageCount = PdfUtil.GetPageCount(file);
+                    i++;
+                } while (i < files.Count);
 
-                            //if (temp != null) File.Delete(temp);
-                            temp = Path.Combine(root, Path.GetRandomFileName());
-                            temp = Path.ChangeExtension(temp, ".pdf");
-                            PdfUtil.MergePDFs(prevFile, file, temp);
-                            prevFile = temp;
-                            tempFiles.Add(temp);
-                        }
-                        catch (Exception e)
-                        {
-                            log.Error(e.Message, e);
-                            // if there are any exceptions while counting pages or merging, don't delete files and send badreqeust with mailresponse object, it should contain file names
-                            var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "Pdf is either corrupt or has no pages." }, receivedOn);
-                            return Request.CreateResponse(HttpStatusCode.BadRequest, res);
-                        }
-                    }
-                    File.Move(prevFile, finalPdfPath);
-                    DeleteFiles(tempFiles);
-                }
+                File.Move(temp, finalPdfPath);
+
+                //}
 
                 // call method passing mailpiece
                 /// mp.DocumentOrPackage.Path = "new PDF name"
@@ -289,17 +302,18 @@ bufferSize: 4096, useAsync: true)) { }
             }
             catch (Exception e)
             {
-                log.Error(e.Message, e);
-                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e);
+                var traceId = Guid.NewGuid();
+                log.Error("TraceId: {0}, Message: {1}".Fill(traceId, e.Message), e);
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Unexpected error. TraceId : {0}".Fill(traceId));
             }
-
         }
 
-        private static void ValidateManifestRequest(ref MailPiece mailPiece, ref string manifestErrDesc, string[] manifest, List<string> filekeys)
+        private static string ValidateManifestRequest(ref MailPiece mailPiece, string[] manifest, List<string> filekeys)
         {
+            string manifestErrDesc = null;
             if (manifest == null)
             {
-                manifestErrDesc = "Manifest missing, cannot continue.";
+                manifestErrDesc = "Manifest is mandatory.";
             }
             else if (manifest.Length > 1)
             {
@@ -323,6 +337,7 @@ bufferSize: 4096, useAsync: true)) { }
                     manifestErrDesc = string.Format("Could not process manifest: Path '{0}', line {1}, position {2}.", jrEx.Path, jrEx.LineNumber, jrEx.LinePosition);
                 }
             }
+            return manifestErrDesc;
         }
 
         private static void DeleteFiles(List<string> files)
@@ -504,13 +519,12 @@ bufferSize: 4096, useAsync: true)) { }
             if (mailPiece.BusinessFriendlyIdName.IsNullOrWhiteSpace() || mailPiece.BusinessFriendlyIdValue.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_ShippingDetail, ErrorMessage = "Business friendly Id or value is not specified in package." };
 
-            //if (mailPiece.DocumentOrPackage != null)
-            //{
-            //    if (mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace())
-            //        yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf name  is mandatory." };
-            //    if (mailPiece.DocumentOrPackage.Base64String.IsNullOrWhiteSpace())
-            //        yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file  is mandatory." };
-            //}          
+            // TODO : check DocumentOrPackage is not empty and DocumentOrPackage.Files property is not empty
+            if (mailPiece.DocumentOrPackage == null)
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_DocumentOrPackage, ErrorMessage = "DocumentOrPackage is mandatory." };
+            else if (mailPiece.DocumentOrPackage.Files == null)
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Files is mandatory." };
+
             yield break;
         }
 

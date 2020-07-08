@@ -468,7 +468,7 @@ namespace AM.Services
 
         public bool CheckForDuplicateMailPieceUniqueId(Guid mpUniqueId)
         {
-            string query = "SELECT Count(*) from AM.MailPieces where UniqueId = @UniqueId";
+            string query = "select case when exists(select 1 from AM.MailPieces where UniqueId = @UniqueId) then 1 else 0 end";            
             return db.ExecuteScalar<bool>(query, new { UniqueId = mpUniqueId });
         }
 

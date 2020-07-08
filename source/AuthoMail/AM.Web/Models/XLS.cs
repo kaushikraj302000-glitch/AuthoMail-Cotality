@@ -676,9 +676,5 @@ namespace AM.Web.Models
             return (inputString == null || inputString == DBNull.Value) ? (string)null : inputString.ToString();
         }
 
-        public static string Fill(this string format, params object[] args)
-        {
-            return String.Format(format, args);
-        }
     }
 }

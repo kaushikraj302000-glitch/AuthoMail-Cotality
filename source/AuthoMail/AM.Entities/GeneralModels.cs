@@ -106,7 +106,9 @@ namespace AM.Entities
         public const string Missing_CommunityName = "Missing_CommunityName";
         public const string Manifest_Missing_Or_Invalid = "Manifest_Missing_Or_Invalid";
         public const string Invalid_ClientCode = "Invalid_ClientCode";
-
+        public const string Missing_DocumentOrPackage = "Missing_DocumentOrPackage";
+        public const string Missing_Files = "Missing_Files";
+        public const string RequestTooLarge = "RequestTooLarge";
         public static string GetAMCMappingCode(string amOutcomecode)
         {
             switch (amOutcomecode)
