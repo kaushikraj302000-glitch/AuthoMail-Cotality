@@ -201,3 +201,4 @@ ModelManifest.xml
 /docs/WebApiClient
 /source/AuthoMail/AM.Web/Properties/PublishProfiles
 /source/AuthoMail/AM.Web/App_Data
+*.jfm
