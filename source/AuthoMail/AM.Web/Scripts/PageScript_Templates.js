@@ -16,10 +16,9 @@
             //},
             autoQueue: true,
             autoDiscover: false,
-            uploadprogress: function (file, progress, bytesSent) {
-                $("#progressBar").show();
-                $("#progressBar").val(Math.round(progress));
-            },
+            //uploadprogress: function (file, progress, bytesSent) {
+                
+            //},
             //processing: function (response) {
             //    console.log('processing: ', response);
             //},
@@ -31,15 +30,18 @@
             //    console.log('success : ', file.name);
             //    console.log('success : ', response);
             //},
-            complete: function (response) {
-                $("#progressBar").hide();
-            },
+            //complete: function (response) {
+                
+            //},
             totaluploadprogress: function (response) {
+                $("#progressBar").show();
+                $("#progressBar").val(Math.round(response));
                 //console.log('totaluploadprogress:', response);
                 //alertMessage("green", 'All templates uploaded successfully.');
             },
             queuecomplete: function (response) {
                 console.log(response);
+                $("#progressBar").hide();
                 TemplateList();
                 alertMessage("green", 'Upload completed: Please check upload summary for more details.');
                 //window.open(baseUrl + 'DelfusTemplate/TemplateSummary');
