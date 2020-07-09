@@ -101,7 +101,7 @@ bufferSize: 4096, useAsync: true)) { }
         {
             var receivedOn = Common.Now;
             var mailPiece = new MailPiece();
-            if (Request.Content.Headers.ContentLength / 1024f / 1024f > 101)
+            if (Request.Content.Headers.ContentLength / 1024f / 1024f > 100)
             {
                 var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.RequestTooLarge, ErrorMessage = "Maximum request length exceeded." }, receivedOn);
                 return Request.CreateResponse(HttpStatusCode.RequestEntityTooLarge, res);
