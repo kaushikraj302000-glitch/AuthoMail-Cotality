@@ -217,7 +217,7 @@ bufferSize: 4096, useAsync: true)) { }
                 // filepath null validation check
                 if (nullFilePathList.Count > 0)
                 {
-                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file not found for the following file keys: {0}".Fill(string.Join(",", nullFilePathList.Select(n => n.Key))) }, receivedOn);
+                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file not found for the following file key(s): {0}".Fill(string.Join(",", nullFilePathList.Select(n => n.Key))) }, receivedOn);
                     return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                 }
 
@@ -226,6 +226,16 @@ bufferSize: 4096, useAsync: true)) { }
                 string temp = null;
                 string prevFile = null;
                 if (mailPiece.CustomInfo == null) mailPiece.CustomInfo = new List<Metadata>();
+
+                foreach (var customInfo in mailPiece.CustomInfo)
+                {
+                    if (customInfo.Key.IsNullOrWhiteSpace())
+                    {
+                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "CustomInfo's Key is mandatory." }, receivedOn);
+                        return Request.CreateResponse(HttpStatusCode.BadRequest, res);
+                    }
+                }
+
                 do
                 {
                     try
@@ -236,7 +246,9 @@ bufferSize: 4096, useAsync: true)) { }
                         mailPiece.CustomInfo.Add(new Metadata { Key = "Files", Value = "FileKey: {0} | FileName:{1} | PageCount: {2}".Fill(files[i].Key, file.Headers.ContentDisposition.FileName.Replace("\"", ""), pageCount) });
 
                         //if (temp != null) File.Delete(temp);
-                        temp = Path.Combine(root, Path.GetRandomFileName());
+                        var fileName = mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() ? Path.GetRandomFileName() : mailPiece.DocumentOrPackage.Name;
+
+                        temp = Path.Combine(root, fileName);
                         temp = Path.ChangeExtension(temp, ".pdf");
 
                         if (prevFile == null)
@@ -497,13 +509,13 @@ bufferSize: 4096, useAsync: true)) { }
             }
 
             if (mailPiece.BusinessFriendlyIdName.IsNullOrWhiteSpace() || mailPiece.BusinessFriendlyIdValue.IsNullOrWhiteSpace())
-                yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_ShippingDetail, ErrorMessage = "Business friendly Id or value is not specified in package." };
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_BusinessIdentifier, ErrorMessage = "Business friendly Id or value is not specified in package." };
 
             // TODO : check DocumentOrPackage is not empty and DocumentOrPackage.Files property is not empty
             if (mailPiece.DocumentOrPackage == null)
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_DocumentOrPackage, ErrorMessage = "DocumentOrPackage is mandatory." };
             else if (mailPiece.DocumentOrPackage.Files == null)
-                yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Files is mandatory." };
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Files property is mandatory." };
 
             yield break;
         }
