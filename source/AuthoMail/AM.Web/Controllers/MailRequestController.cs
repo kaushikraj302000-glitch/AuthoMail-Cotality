@@ -101,7 +101,7 @@ bufferSize: 4096, useAsync: true)) { }
         {
             var receivedOn = Common.Now;
             var mailPiece = new MailPiece();
-            if (Request.Content.Headers.ContentLength / 1024f / 1024f > 100)
+            if (Request.Content.Headers.ContentLength / 1024f / 1024f > Config.MailRequestAPI_MaxRequestSize)
             {
                 var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.RequestTooLarge, ErrorMessage = "Maximum request length exceeded." }, receivedOn);
                 return Request.CreateResponse(HttpStatusCode.RequestEntityTooLarge, res);
@@ -159,7 +159,7 @@ bufferSize: 4096, useAsync: true)) { }
                     {
                         DeleteFiles(downloadedFiles);
                         //Return error response and insert entry of invalid_client                                           
-                        var invalidClient = await clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "Invalid");
+                        var invalidClient = await clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "_Invalid");
                         await InsertInvalidBatch(receivedOn, sFTChannel, mailBatch, invalidClient.Id, "Invalid client code specified.");
                         if (mailPiece.DocumentOrPackage != null) mailPiece.DocumentOrPackage.IncludePatternBaseString = false;
                         var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_ClientCode, ErrorMessage = string.Format("Invalid client code specified.") }, receivedOn);
