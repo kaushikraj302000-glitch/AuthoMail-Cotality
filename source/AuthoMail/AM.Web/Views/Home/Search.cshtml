@@ -112,7 +112,7 @@
                                     <option value="PulledBack">Pulledback</option>
                                     <option value="Error">Error</option>
                                     <option value="Shipped">Shipped</option>
-                                    <option value="eDelivered">eDelivered</option>
+                                    @*<option value="eDelivered">eDelivered</option>*@
                                 </select>
                             </div>
 
@@ -790,9 +790,9 @@
                     case "InProgress":
                         status = '<span class="label medium label-blue">' + this.ShippingStatus + '</span>';
                         break;
-                    case "eDelivered":
-                        status = '<span class="label medium label-Edelivery">' + this.ShippingStatus + '</span>';
-                        break;
+                    //case "eDelivered":
+                    //    status = '<span class="label medium label-Edelivery">' + this.ShippingStatus + '</span>';
+                    //    break;
                 }
                 this.ShippingStatus = status;
                 var trackingNo = "";
@@ -853,9 +853,9 @@
                     case "InProgress":
                         status = '<span class="label medium label-blue">' + this.Status + '</span>';
                         break;
-                    case "eDelivered":
-                        status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
-                        break;
+                    //case "eDelivered":
+                    //    status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
+                    //    break;
                 }
                 this.ShippingStatusFormatted = status;
                 var trackingNo = "";

@@ -203,6 +203,8 @@ namespace AM.Services
         #region Web Delfus Template
         [Description("Web Delfus Connection string.")]
         public static string Web_Delfus_ConnectionString { get; private set; }
+        [Description("Web Delfus API Url")]
+        public static string Web_Delfus_API_Url { get; private set; }
         #endregion
 
         #region USPSIntegration

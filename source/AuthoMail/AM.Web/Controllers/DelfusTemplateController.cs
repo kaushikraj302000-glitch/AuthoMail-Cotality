@@ -54,7 +54,7 @@ namespace AM.Web.Controllers
             if (validationInfo.NewMergeFields.Count > 0)
             {
                 string newline = error.Length > 0 ? "\n" : "";
-                error += $"{newline} This template have new merge fields ({string.Join(",", validationInfo.NewMergeFields)}).";
+                error += $"{newline}This template has below merge field(s) which does not exist in Vendor file.\n\t({string.Join(", ", validationInfo.NewMergeFields)}).";
             }
             if (!string.IsNullOrEmpty(error))
             {
@@ -86,12 +86,12 @@ namespace AM.Web.Controllers
                          ModifiedOn = DateTime.UtcNow,
                          ModifiedById = User.Identity.GetUserId(),
                          Status = "Invalid",
-                         Reason = "File type not supported."
+                         Reason = "Selected file type not supported.."
                      }
                      );
-                return Json(JsonResponseFactory.ErrorResponse("File type not supported."));
+                return Json(JsonResponseFactory.ErrorResponse("Selected file type not supported."));
             }
-            string uploadURL = $@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\SaveTemplate";// ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
+            string uploadURL = $@"{Config.Web_Delfus_API_Url}\SaveTemplate";// ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
             bool isTemplateExists = await IsTemplateExists(template.FileName);
             var uploadResult = await UploadFileToServer(template.FileName, fileData, uploadURL);
 
@@ -139,7 +139,7 @@ namespace AM.Web.Controllers
                 HttpClient client = new HttpClient();
                 client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
                 HttpResponseMessage response = new HttpResponseMessage();
-                response = await client.GetAsync($@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\DownloadTemplate?fileName={fileName}");
+                response = await client.GetAsync($@"{Config.Web_Delfus_API_Url}\DownloadTemplate?fileName={fileName}");
                 if (response.IsSuccessStatusCode)
                 {
                     var stream = await response.Content.ReadAsByteArrayAsync();
@@ -167,7 +167,7 @@ namespace AM.Web.Controllers
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
             HttpResponseMessage response = new HttpResponseMessage();
-            response = await client.GetAsync($@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\GetTemplates");
+            response = await client.GetAsync($@"{Config.Web_Delfus_API_Url}\GetTemplates");
             if (response.IsSuccessStatusCode)
             {
                 return Json(new { data = await response.Content.ReadAsAsync<List<FileDetails>>() }, JsonRequestBehavior.AllowGet);
@@ -196,7 +196,7 @@ namespace AM.Web.Controllers
                 HttpClient client = new HttpClient();
                 client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
                 HttpResponseMessage response = new HttpResponseMessage();
-                response = await client.DeleteAsync($@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\DeleteTemplate?fileName={fileName}");
+                response = await client.DeleteAsync($@"{Config.Web_Delfus_API_Url}\DeleteTemplate?fileName={fileName}");
                 if (response.IsSuccessStatusCode)
                 {
                     await delfusTemplateSvc.SaveTemplate(
@@ -226,7 +226,7 @@ namespace AM.Web.Controllers
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
             HttpResponseMessage response = new HttpResponseMessage();
-            response = await client.GetAsync($@"{ConfigurationManager.AppSettings["DelfusAPIBaseUrl"]}\IsTemplateExists?fileName={fileName}");
+            response = await client.GetAsync($@"{Config.Web_Delfus_API_Url}\IsTemplateExists?fileName={fileName}");
             if (response.IsSuccessStatusCode)
             {
                 return true;
