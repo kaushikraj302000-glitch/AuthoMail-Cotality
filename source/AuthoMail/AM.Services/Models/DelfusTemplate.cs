@@ -11,7 +11,6 @@ namespace AM.Services
         public int Id { get; set; }
         public string FileName { get; set; }
         public string FilePath { get; set; }
-        public string ModifiedById { get; set; }
         public string ModifiedBy { get; set; }
         public DateTime ModifiedOn { get; set; }
         public string Status { get; set; }

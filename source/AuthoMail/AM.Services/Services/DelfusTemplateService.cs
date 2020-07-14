@@ -13,18 +13,18 @@ namespace AM.Services.Services
     {
         Task<KeyValuePair<bool, string>> SaveTemplate(DelfusTemplate delfusTemplate);
         Task<IEnumerable<DelfusTemplate>> DelfusTemplatesByFileName(string fileName);
-        Task<IEnumerable<string>> GetDelfusMergeList(string connectionString);
+        Task<IEnumerable<string>> GetDelfusMergeList();
         Task<IEnumerable<DelfusTemplate>> DelfusTemplateSummary();
     }
-    public class DelfusTemplateService : ServiceBase, IDelfusTemplateService
+    public class DelfusTemplateService : DelfusServiceBase, IDelfusTemplateService
     {
         public async Task<KeyValuePair<bool, string>> SaveTemplate(DelfusTemplate delfusTemplate)
         {
             try
             {
-                string query = @"INSERT INTO Delfus.Templates (FileName ,FilePath ,ModifiedById ,ModifiedOn ,Status, Reason)
+                string query = @"INSERT INTO Templates (FileName ,FilePath ,ModifiedBy ,ModifiedOn ,Status, Reason)
                     VALUES 
-                  (@FileName ,@FilePath ,@ModifiedById ,@ModifiedOn ,@Status, @Reason)";
+                  (@FileName ,@FilePath ,@ModifiedBy ,@ModifiedOn ,@Status, @Reason)";
                 await db.ExecuteAsync(query, delfusTemplate);
                 return new KeyValuePair<bool, string>(true, "File uploaded successfully.");
             }
@@ -35,33 +35,26 @@ namespace AM.Services.Services
         }
         public async Task<IEnumerable<DelfusTemplate>> DelfusTemplatesByFileName(string fileName)
         {
-            return await db.QueryAsync<DelfusTemplate>(@"
-            select t.*,u.DisplayName as ModifiedBy
-            from Delfus.Templates t 
-            inner join Profile.Users u on t.ModifiedById=u.Id
-            where t.FilePath=@FileName order by ModifiedOn desc", new { FileName = fileName });
+            return await db.QueryAsync<DelfusTemplate>(@"select * from Templates
+                    where FilePath=@FileName order by ModifiedOn desc", new { FileName = fileName });
         }
 
-        public async Task<IEnumerable<string>> GetDelfusMergeList(string connectionString)
+        public async Task<IEnumerable<string>> GetDelfusMergeList()
         {
-            using (IDbConnection db = new SqlConnection(connectionString))
-            {
-                return await db.QueryAsync<string>("SELECT TemplateFieldMapName FROM [Schema].[Request] WHERE RecordType IN ('L','C') AND TemplateFieldMapName IS NOT NULL");
-            }
+             return await db.QueryAsync<string>("SELECT TemplateFieldMapName FROM [Schema].[Request] WHERE RecordType IN ('L','C') AND TemplateFieldMapName IS NOT NULL");
+           
         }
         public async Task<IEnumerable<DelfusTemplate>> DelfusTemplateSummary()
         {
             return await db.QueryAsync<DelfusTemplate>(@"
             with cte as
 (
-	select max(Id) as Id from Delfus.Templates
+	select max(Id) as Id from Templates
 	group by FileName
 )
 
-select t.*,u.DisplayName as ModifiedBy
-            from Delfus.Templates t 
-            inner join Profile.Users u on t.ModifiedById=u.Id
-			and t.Id in (select Id from cte)
+         select * from Templates  
+			where Id in (select Id from cte)
             order by ModifiedOn desc");
         }
 

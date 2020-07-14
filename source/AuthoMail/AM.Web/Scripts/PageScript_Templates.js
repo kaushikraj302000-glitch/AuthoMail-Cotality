@@ -56,11 +56,11 @@
                 //console.log(dropzoneObj.files.length, totalError)
                 if (totalError > 0) {
                     if (dropedFile == totalError) {
-                        alertMessage("red", 'Upload failed with ' + totalError + ' error(s). You are being redirected to “Upload summary” page for more details.');
+                        alertMessage("red", 'Upload failed with ' + totalError + ' error(s). You are being redirected to “Upload summary” page for more details...');
 
                     }
                     else {
-                        alertMessage("yellow", 'Upload completed with ' + totalError + ' error(s). You are being redirected to “Upload summary” page for more details.');
+                        alertMessage("yellow", 'Upload completed with ' + totalError + ' error(s). You are being redirected to “Upload summary” page for more details...');
                         setTimeout(function () {
                             TemplateList();
                         }, 1000);
@@ -283,15 +283,8 @@
                 "scrollCollapse": true,
                 paging: false,
                 "columns": [
-                    { "data": "ModifiedBy" },
                     {
-                        "data": "ModifiedOn",
-                        "render": function (data, type, row, meta) {
-                            return moment(data).format("MM/DD/YY HH:mm:ss");
-                        }
-                    },
-                    {
-                        "data": "Status",
+                        "data": "Status", "className": 'dt-body-center',
                         "render": function (data) {
                             if (data == "Modified") {
                                 return '<span class="label label-success"> Modified </span>';
@@ -306,7 +299,15 @@
                                 return '--';
                             }
                         }
-                    }
+                    },
+                    { "data": "ModifiedBy" ,"className": 'dt-body-right'},
+                    {
+                        "data": "ModifiedOn", "className": 'dt-body-right',
+                        "render": function (data, type, row, meta) {
+                            return moment(data).format("MM/DD/YY HH:mm:ss");
+                        }
+                    },
+                    
                 ]
             });
             $('#' + id).width(496);

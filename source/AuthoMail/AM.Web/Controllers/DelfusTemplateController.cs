@@ -40,16 +40,21 @@ namespace AM.Web.Controllers
         [HttpPost]
         public async Task<ActionResult> SaveDelfusTemplates(HttpPostedFileBase template)
         {
-            IEnumerable<string> mastermergeList = await delfusTemplateSvc.GetDelfusMergeList(Config.Web_Delfus_ConnectionString);
+            IEnumerable<string> mastermergeList = await delfusTemplateSvc.GetDelfusMergeList();
             var temp = template.InputStream;
             TemplateValidation validation = new TemplateValidation();
             byte[] fileData = GetByteArrayFromFile(template);
 
             TemplateValidationInfo validationInfo = validation.VerifyTemplate(fileData, mastermergeList.ToList());
             string error = string.Empty;
+            if (!validationInfo.IsValidDoc)
+            {
+                error = "Selected file type not supported.";
+            }
             if (validationInfo.HasAnchorTagIssue)
             {
-                error = "This template has anchor tag issue.";
+                string newline = error.Length > 0 ? "\n" : "";
+                error = $"{newline}This template has anchor tag issue.";
             }
             if (validationInfo.NewMergeFields.Count > 0)
             {
@@ -64,7 +69,7 @@ namespace AM.Web.Controllers
                          FileName = Path.GetFileNameWithoutExtension(template.FileName),
                          FilePath = template.FileName,
                          ModifiedOn = DateTime.UtcNow,
-                         ModifiedById = User.Identity.GetUserId(),
+                         ModifiedBy = User.Identity.DisplayName(),
                          Status = "Invalid",
                          Reason = error
                      }
@@ -75,22 +80,6 @@ namespace AM.Web.Controllers
 
             // ToDo: UsesAgencyAddress implementation
             List<string> errors = new List<string>();
-            string[] fileType = { ".doc", ".docx" };
-            if (!fileType.Contains(Path.GetExtension(template.FileName)))
-            {
-                await delfusTemplateSvc.SaveTemplate(
-                     new DelfusTemplate
-                     {
-                         FileName = Path.GetFileNameWithoutExtension(template.FileName),
-                         FilePath = template.FileName,
-                         ModifiedOn = DateTime.UtcNow,
-                         ModifiedById = User.Identity.GetUserId(),
-                         Status = "Invalid",
-                         Reason = "Selected file type not supported.."
-                     }
-                     );
-                return Json(JsonResponseFactory.ErrorResponse("Selected file type not supported."));
-            }
             string uploadURL = $@"{Config.Web_Delfus_API_Url}\SaveTemplate";// ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
             bool isTemplateExists = await IsTemplateExists(template.FileName);
             var uploadResult = await UploadFileToServer(template.FileName, fileData, uploadURL);
@@ -104,7 +93,7 @@ namespace AM.Web.Controllers
                          FileName = Path.GetFileNameWithoutExtension(template.FileName),
                          FilePath = template.FileName,
                          ModifiedOn = DateTime.UtcNow,
-                         ModifiedById = User.Identity.GetUserId(),
+                         ModifiedBy = User.Identity.DisplayName(),
                          Status = isTemplateExists ? "Modified" : "Added"
                      }
                      );
@@ -119,7 +108,7 @@ namespace AM.Web.Controllers
                          FileName = Path.GetFileNameWithoutExtension(template.FileName),
                          FilePath = template.FileName,
                          ModifiedOn = DateTime.UtcNow,
-                         ModifiedById = User.Identity.GetUserId(),
+                         ModifiedBy = User.Identity.DisplayName(),
                          Status = "Invalid",
                          Reason = uploadResult.Value
                      }
@@ -205,7 +194,7 @@ namespace AM.Web.Controllers
                          FileName = Path.GetFileNameWithoutExtension(fileName),
                          FilePath = fileName,
                          ModifiedOn = DateTime.UtcNow,
-                         ModifiedById = User.Identity.GetUserId(),
+                         ModifiedBy = User.Identity.DisplayName(),
                          Status = "Deleted"
                      }
                      );

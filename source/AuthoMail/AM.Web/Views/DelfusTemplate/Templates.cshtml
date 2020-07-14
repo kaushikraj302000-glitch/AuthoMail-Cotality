@@ -30,13 +30,13 @@
     .upload-container .btn {
          margin-top: 0px !important; 
     }
-    table.dataTable.compact thead th, table.dataTable.compact thead td {
+    /*table.dataTable.compact thead th, table.dataTable.compact thead td {
         padding: 4px 17px 4px 18px !important;
     }
 
     table.dataTable thead .sorting, table.dataTable thead .sorting_asc, table.dataTable thead .sorting_desc, table.dataTable thead .sorting_asc_disabled, table.dataTable thead .sorting_desc_disabled {
         background-position: center left !important;
-    }
+    }*/
     .dataTables_wrapper .dataTables_info {
         clear: none !important;
         margin-left: 14% !important;
@@ -52,6 +52,32 @@
         font-size: 15px !important;
         font-weight: bold !important;
         color:#000 !important;
+    }
+  
+    table.dataTable thead .sorting_asc {
+        background: url(../Content/datatables/images/sort_asc.png) no-repeat center right !important;
+    }
+
+    table.dataTable thead .sorting_desc {
+        background: url(../Content/datatables/images/sort_desc.png) no-repeat center right !important;
+    }
+
+    table.dataTable thead .sorting {
+        background: url(../Content/datatables/images/sort_both.png) no-repeat center right !important;
+    }
+    th {
+        /*border-top: 1px solid #353a3a !important;
+        border-bottom: 1px solid #353a3a !important;*/
+        border-right: 1px solid #aaa !important;
+    }
+    .table thead th {
+        font-size:15px !important;
+    }
+        th: first-child {
+            border-left: 1px solid #aaa !important;
+        }
+     .table tbody tr td:last-child {
+        padding-right: 23px !important;
     }
 </style>
 <div class="panel panel-default">
@@ -76,7 +102,8 @@
         </div>
     </div>
     <div class="panel-body">
-        <progress id="progressBar" value="0" max="100" style="width:100%;display:none;"></progress>
+        <progress id="progressBar" value="0" max="100" style="        width: 100%;
+        display: none;"></progress>
         <div class="upload-container" style="padding:0px;">
 
             <form action="SaveDelfusTemplates" id="uploadtemplatediv" enctype="multipart/form-data" method="post" class="dropzone" style="border:none;">
@@ -89,7 +116,7 @@
     </div>
 </div>
 
-<div id="templatebody" style="display:none;">
+<div id="templatebody" style="display: none;">
 
     <table class="table table-striped compact">
         <thead>
@@ -113,9 +140,9 @@
     <table class="table table-striped compact" style="width:500px">
         <thead>
             <tr>
-                <th>Modified By</th>
-                <th>Modified On</th>
-                <th>Action</th>
+                <th class="dt-head-center">User Action</th>
+                <th class="dt-head-center">Modified By</th>
+                <th class="dt-head-center">Modified On</th>
             </tr>
         </thead>
     </table>
