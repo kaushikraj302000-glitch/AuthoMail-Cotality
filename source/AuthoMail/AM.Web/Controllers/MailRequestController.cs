@@ -250,7 +250,7 @@ bufferSize: 4096, useAsync: true)) { }
                         var file = files[i].Value;
                         var pageCount = PdfUtil.GetPageCount(file.LocalFileName);
 
-                        mailPiece.CustomInfo.Add(new Metadata { Key = "Files", Value = "FileKey: {0} | FileName:{1} | PageCount: {2}".Fill(files[i].Key, file.Headers.ContentDisposition.FileName.Replace("\"", ""), pageCount) });
+                        mailPiece.CustomInfo.Add(new Metadata { Key = files[i].Key, Value = "FileName:{0} | PageCount: {1}".Fill(file.Headers.ContentDisposition.FileName.Replace("\"", ""), pageCount) });
 
                         //if (temp != null) File.Delete(temp);
                         // var fileName = mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() ? Path.GetRandomFileName() : mailPiece.DocumentOrPackage.Name;
