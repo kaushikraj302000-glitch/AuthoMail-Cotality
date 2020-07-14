@@ -59,11 +59,11 @@ namespace AM.Web.Controllers
                         {
                             await writer.WriteAsync(xml);
                         }
-                        ZipArchiveEntry pdfEntry = archive.CreateEntry(Path.GetFileName(mailPiece.DocumentOrPackage.Path));
+                        ZipArchiveEntry pdfEntry = archive.CreateEntry(mailPiece.DocumentOrPackage.Name);
                         using (var pdfStream = pdfEntry.Open())
+                        using (var payloadStream = new FileStream(mailPiece.DocumentOrPackage.Path, FileMode.Open, FileAccess.Read))
                         {
-                            var payloadStream = new MemoryStream(File.ReadAllBytes(mailPiece.DocumentOrPackage.Path));
-                            await payloadStream.CopyToAsync(pdfStream);
+                            await payloadStream.CopyToAsync(pdfStream, 81920);
                         }
                     }
                 }
@@ -101,7 +101,7 @@ bufferSize: 4096, useAsync: true)) { }
         {
             var receivedOn = Common.Now;
             var mailPiece = new MailPiece();
-            if (Request.Content.Headers.ContentLength / 1024f / 1024f > 100)
+            if (Request.Content.Headers.ContentLength / 1024f / 1024f > Config.MailRequestAPI_MaxRequestSize)
             {
                 var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.RequestTooLarge, ErrorMessage = "Maximum request length exceeded." }, receivedOn);
                 return Request.CreateResponse(HttpStatusCode.RequestEntityTooLarge, res);
@@ -159,7 +159,7 @@ bufferSize: 4096, useAsync: true)) { }
                     {
                         DeleteFiles(downloadedFiles);
                         //Return error response and insert entry of invalid_client                                           
-                        var invalidClient = await clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "Invalid");
+                        var invalidClient = await clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "_Invalid");
                         await InsertInvalidBatch(receivedOn, sFTChannel, mailBatch, invalidClient.Id, "Invalid client code specified.");
                         if (mailPiece.DocumentOrPackage != null) mailPiece.DocumentOrPackage.IncludePatternBaseString = false;
                         var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_ClientCode, ErrorMessage = string.Format("Invalid client code specified.") }, receivedOn);
@@ -203,9 +203,7 @@ bufferSize: 4096, useAsync: true)) { }
 
 
                 // merge PDFS into a single file, use File.GetRandomFileName method to get unique filename
-                //var finalPdfPath = Path.Combine(root, Path.GetRandomFileName());
-                //finalPdfPath = Path.ChangeExtension(finalPdfPath, ".pdf");
-                var finalPdfPath = Path.Combine(root, "{0}.pdf".Fill(mailPiece.BusinessFriendlyIdValue.GetValidFileName()));
+
                 var files = mailPiece.DocumentOrPackage.Files
                     .Select(f =>
                     {
@@ -219,32 +217,31 @@ bufferSize: 4096, useAsync: true)) { }
                 // filepath null validation check
                 if (nullFilePathList.Count > 0)
                 {
-                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file not found for the following file keys: {0}".Fill(string.Join(",", nullFilePathList.Select(n => n.Key))) }, receivedOn);
+                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file not found for the following file key(s): {0}".Fill(string.Join(",", nullFilePathList.Select(n => n.Key))) }, receivedOn);
                     return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                 }
 
-                //// count pdf pages of each file
-                //if (files.Count == 1)
-                //{
-                //    try
-                //    {
-                //        int pageCount = PdfUtil.GetPageCount(files[0].Value);
-                //    }
-                //    catch (Exception ex)
-                //    {
-                //        log.Error(ex.Message, ex);
-                //        // if there are any exceptions while counting pages or merging, don't delete files and send badreqeust with mailresponse object, it should contain file names
-                //        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "'{0}' pdf file is either corrupt or has no pages.".Fill(files[0].Key) }, receivedOn);
-                //        return Request.CreateResponse(HttpStatusCode.BadRequest, res);
-                //    }
-                //    File.Move(files[0].Value, finalPdfPath);
-                //}
-                //else
-                //{
+                //// count pdf pages of each file             
                 int i = 0;
                 string temp = null;
                 string prevFile = null;
-                if (mailPiece.CustomInfo != null) mailPiece.CustomInfo = new List<Metadata>();
+                if (mailPiece.CustomInfo == null) mailPiece.CustomInfo = new List<Metadata>();
+
+                foreach (var customInfo in mailPiece.CustomInfo)
+                {
+                    if (customInfo.Key.IsNullOrWhiteSpace())
+                    {
+                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "CustomInfo's Key is mandatory." }, receivedOn);
+                        return Request.CreateResponse(HttpStatusCode.BadRequest, res);
+                    }
+                }
+
+                if (files.Count > 99)
+                {
+                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Pdf counts must not be greater than 99." }, receivedOn);
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, res);
+                }
+
                 do
                 {
                     try
@@ -252,10 +249,12 @@ bufferSize: 4096, useAsync: true)) { }
                         var file = files[i].Value;
                         var pageCount = PdfUtil.GetPageCount(file.LocalFileName);
 
-                        mailPiece.CustomInfo.Add(new Metadata { Key = "Files", Value = "FileKey: {0} | FileName:{1} | PageCount: {2}".Fill(files[i].Key, file.Headers.ContentDisposition.FileName, pageCount) });
+                        mailPiece.CustomInfo.Add(new Metadata { Key = "Files", Value = "FileKey: {0} | FileName:{1} | PageCount: {2}".Fill(files[i].Key, file.Headers.ContentDisposition.FileName.Replace("\"", ""), pageCount) });
 
                         //if (temp != null) File.Delete(temp);
-                        temp = Path.Combine(root, Path.GetRandomFileName());
+                        var fileName = mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() ? Path.GetRandomFileName() : mailPiece.DocumentOrPackage.Name;
+
+                        temp = Path.Combine(root, fileName);
                         temp = Path.ChangeExtension(temp, ".pdf");
 
                         if (prevFile == null)
@@ -277,13 +276,12 @@ bufferSize: 4096, useAsync: true)) { }
                     i++;
                 } while (i < files.Count);
 
-                File.Move(temp, finalPdfPath);
-
-                //}
+                //File.Move(temp, finalPdfPath);
+                var finalPdfPath = temp;
 
                 // call method passing mailpiece
                 /// mp.DocumentOrPackage.Path = "new PDF name"
-                mailPiece.DocumentOrPackage.Name = Path.GetFileName(finalPdfPath);
+                mailPiece.DocumentOrPackage.Name = "{0}.pdf".Fill(mailPiece.BusinessFriendlyIdValue.GetValidFileName());
                 mailPiece.DocumentOrPackage.Path = finalPdfPath;
                 var response = await CreateAMBatch(mailBatch, mailPiece, sFTChannel, receivedOn);
                 var responseContent = await response.Content.ReadAsStringAsync();
@@ -489,8 +487,15 @@ bufferSize: 4096, useAsync: true)) { }
 
             if (mailPiece.RecipientInfo != null)
             {
-                if (mailPiece.RecipientInfo.Address.Street.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Address.City.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Address.State.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Address.Zip.IsNullOrWhiteSpace())
-                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient address is mandatory." };
+                if (mailPiece.RecipientInfo.Address != null)
+                {
+                    if (mailPiece.RecipientInfo.Address.Street.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Address.City.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Address.State.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Address.Zip.IsNullOrWhiteSpace())
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient address is mandatory." };
+                }
+                else
+                {
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient Address is mandatory." };
+                }
 
                 if (mailPiece.RecipientInfo.Recipient.FirstName.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Recipient.LastName.IsNullOrWhiteSpace())
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient first and last name are mandatory." };
@@ -498,11 +503,26 @@ bufferSize: 4096, useAsync: true)) { }
 
             if (mailPiece.ReturnInfo != null)
             {
-                if (mailPiece.ReturnInfo.Address.Street.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.City.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.State.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.Zip.IsNullOrWhiteSpace())
-                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return recipient address is mandatory." };
+                if (mailPiece.ReturnInfo.Address != null)
+                {
+                    if (mailPiece.ReturnInfo.Address.Street.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.City.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.State.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.Zip.IsNullOrWhiteSpace())
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return recipient address is mandatory." };
+                }
+                else
+                {
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return Address is mandatory." };
+                }
 
-                if (mailPiece.ReturnInfo.Recipient.FirstName.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Recipient.LastName.IsNullOrWhiteSpace())
-                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Return recipient first and last name are mandatory." };
+                if (mailPiece.ReturnInfo.Recipient != null)
+                {
+                    if (mailPiece.ReturnInfo.Recipient.FirstName.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Recipient.LastName.IsNullOrWhiteSpace())
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Return recipient first and last name are mandatory." };
+                }
+                else
+                {
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Return recipient is mandatory." };
+                }
+
             }
 
             if (mailPiece.DocumentOrPackageType.IsNullOrWhiteSpace())
@@ -517,13 +537,13 @@ bufferSize: 4096, useAsync: true)) { }
             }
 
             if (mailPiece.BusinessFriendlyIdName.IsNullOrWhiteSpace() || mailPiece.BusinessFriendlyIdValue.IsNullOrWhiteSpace())
-                yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_ShippingDetail, ErrorMessage = "Business friendly Id or value is not specified in package." };
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_BusinessIdentifier, ErrorMessage = "Business friendly Id or value is not specified in package." };
 
             // TODO : check DocumentOrPackage is not empty and DocumentOrPackage.Files property is not empty
             if (mailPiece.DocumentOrPackage == null)
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_DocumentOrPackage, ErrorMessage = "DocumentOrPackage is mandatory." };
             else if (mailPiece.DocumentOrPackage.Files == null)
-                yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Files is mandatory." };
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Files property is mandatory." };
 
             yield break;
         }

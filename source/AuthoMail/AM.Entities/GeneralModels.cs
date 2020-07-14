@@ -105,6 +105,7 @@ namespace AM.Entities
         public const string Missing_NoticeDate = "Missing_NoticeDate";
         public const string Missing_CommunityName = "Missing_CommunityName";
         public const string Manifest_Missing_Or_Invalid = "Manifest_Missing_Or_Invalid";
+        public const string Invalid_BusinessIdentifier = "Invalid_BusinessIdentifier";
         public const string Invalid_ClientCode = "Invalid_ClientCode";
         public const string Missing_DocumentOrPackage = "Missing_DocumentOrPackage";
         public const string Missing_Files = "Missing_Files";
