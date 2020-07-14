@@ -221,6 +221,12 @@ bufferSize: 4096, useAsync: true)) { }
                     return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                 }
 
+                if (files.Count > 99)
+                {
+                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Up to 99 pdf files are supported per mailpiece." }, receivedOn);
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, res);
+                }
+
                 //// count pdf pages of each file             
                 int i = 0;
                 string temp = null;
@@ -236,11 +242,6 @@ bufferSize: 4096, useAsync: true)) { }
                     }
                 }
 
-                if (files.Count > 99)
-                {
-                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Pdf counts must not be greater than 99." }, receivedOn);
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, res);
-                }
 
                 do
                 {
@@ -252,9 +253,9 @@ bufferSize: 4096, useAsync: true)) { }
                         mailPiece.CustomInfo.Add(new Metadata { Key = "Files", Value = "FileKey: {0} | FileName:{1} | PageCount: {2}".Fill(files[i].Key, file.Headers.ContentDisposition.FileName.Replace("\"", ""), pageCount) });
 
                         //if (temp != null) File.Delete(temp);
-                        var fileName = mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() ? Path.GetRandomFileName() : mailPiece.DocumentOrPackage.Name;
+                        // var fileName = mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() ? Path.GetRandomFileName() : mailPiece.DocumentOrPackage.Name;
 
-                        temp = Path.Combine(root, fileName);
+                        temp = Path.Combine(root, Path.GetRandomFileName());
                         temp = Path.ChangeExtension(temp, ".pdf");
 
                         if (prevFile == null)
@@ -281,7 +282,10 @@ bufferSize: 4096, useAsync: true)) { }
 
                 // call method passing mailpiece
                 /// mp.DocumentOrPackage.Path = "new PDF name"
-                mailPiece.DocumentOrPackage.Name = "{0}.pdf".Fill(mailPiece.BusinessFriendlyIdValue.GetValidFileName());
+
+
+                mailPiece.DocumentOrPackage.Name = mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() ? "{0}.pdf".Fill(mailPiece.BusinessFriendlyIdValue.GetValidFileName()) : mailPiece.DocumentOrPackage.Name;
+
                 mailPiece.DocumentOrPackage.Path = finalPdfPath;
                 var response = await CreateAMBatch(mailBatch, mailPiece, sFTChannel, receivedOn);
                 var responseContent = await response.Content.ReadAsStringAsync();
