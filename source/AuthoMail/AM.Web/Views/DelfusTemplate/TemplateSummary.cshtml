@@ -2,11 +2,38 @@
 @{
     ViewBag.Title = "Delfus Template Summary";
 }
-
+<style>
+    .label {
+        font-size: 14px !important;
+    }
+    table.dataTable.compact thead th, table.dataTable.compact thead td {
+        padding: 4px 17px 4px 18px !important;
+    }
+    table.dataTable thead .sorting, table.dataTable thead .sorting_asc, table.dataTable thead .sorting_desc, table.dataTable thead .sorting_asc_disabled, table.dataTable thead .sorting_desc_disabled {
+        background-position: center left !important;
+    }
+    .prewrap {
+        white-space: pre-wrap;
+    }
+</style>
 <div class="panel panel-default">
     <div class="panel-heading">
         <div class="panel-title">
-            <h3>DELFUS Template Upload Summary - <b>@(AM.Services.Config.Common_Environment == AM.Services.Env.Prod ? "PRODUCTION":"UAT") </b></h3>
+            <h3>
+                DELFUS Template Upload Summary -
+                @if (AM.Services.Config.Common_Environment == AM.Services.Env.Prod)
+                {
+                    <b class="text-danger">
+                        PRODUCTION
+                    </b>
+                }
+                else
+                {
+                    <b>
+                        UAT
+                    </b>
+                }
+                </h3>
         </div>
     </div>
     <div class="panel-body">
@@ -21,10 +48,10 @@
     <table class="table table-striped compact">
         <thead>
             <tr>
-                <th style="width:360px">Name</th>
-                <th>Modified On</th>
-                <th>Status</th>
-                <th class="dt-head-left" style="width:200px">Reason</th>
+                <th class="dt-head-left" style="width:190px">Name</th>
+                <th class="dt-head-left" style="width:175px">Modified On</th>
+                <th class="dt-head-left" style="width:130px">Status</th>
+                <th class="dt-head-left" style="width:360px">Reason</th>
             </tr>
         </thead>
     </table>
@@ -53,6 +80,7 @@
                         "url": baseUrl + "DelfusTemplate/DelfusTemplatesSummary",
                         "type": "GET"
                     },
+                    dom:'lifrtp',
                     destroy: true,
                     order: [[1, "desc"]],
                     paging: false,
@@ -72,7 +100,7 @@
                             "className": 'dt-body-left',
                             "render": function (data) {
                                 if (data == "Modified") {
-                                    return '<span class="label label-success"> ' + data + ' </span>';
+                                    return '<span class="label label-success fa-2x"> ' + data + ' </span>';
                                 }
                                 else if (data == "Deleted" || data == "Invalid") {
                                     return '<span class="label label-danger"> ' + data + ' </span>';
@@ -86,7 +114,7 @@
                             }
                         },
                         {
-                            "data": "Reason", "className": 'dt-body-left',
+                            "data": "Reason", "className": 'dt-body-left prewrap',
                             "render": function (data, type, row, meta) {
                                 return data=="" || data==null ?"--":data;
                             } },

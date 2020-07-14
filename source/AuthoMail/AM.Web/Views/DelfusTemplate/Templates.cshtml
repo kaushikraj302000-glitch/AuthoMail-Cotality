@@ -12,19 +12,67 @@
     </div>
 </div>*@
 <style>
-    .dt-buttons {
+    hr {
+        margin-top: 7px !important;
+    }
+        .dt-buttons {
         margin-bottom: -3% !important;
         cursor: pointer !important;
     }
     .dt-button {
         margin-top: 0% !important;
         margin-bottom: 8px !important;
+        margin-left:6% !important;
+    }
+    .dataTables_filter {
+        margin-top: 4px;
+    }
+    .upload-container .btn {
+         margin-top: 0px !important; 
+    }
+    table.dataTable.compact thead th, table.dataTable.compact thead td {
+        padding: 4px 17px 4px 18px !important;
+    }
+
+    table.dataTable thead .sorting, table.dataTable thead .sorting_asc, table.dataTable thead .sorting_desc, table.dataTable thead .sorting_asc_disabled, table.dataTable thead .sorting_desc_disabled {
+        background-position: center left !important;
+    }
+    .dataTables_wrapper .dataTables_info {
+        clear: none !important;
+        margin-left: 14% !important;
+        padding-top: 8px !important;
+    }
+    .label {
+        font-size: 14px !important;
+    }
+    .dataTables_scrollBody > table > thead{
+        display:none !important;
+    }
+    .totalcounts {
+        font-size: 15px !important;
+        font-weight: bold !important;
+        color:#000 !important;
     }
 </style>
 <div class="panel panel-default">
     <div class="panel-heading">
         <div class="panel-title">
-            <h3> DELFUS Templates - <b>@(AM.Services.Config.Common_Environment == AM.Services.Env.Prod ? "PRODUCTION":"UAT") </b></h3>
+            <h3>
+                DELFUS Templates - @if (AM.Services.Config.Common_Environment == AM.Services.Env.Prod)
+                {
+                    <b class="text-danger">
+                        PRODUCTION
+                    </b>
+                }
+                else
+                {
+                    <b>
+                        UAT
+                    </b>
+                }
+                <sapn class="pull-right totalcounts">Total counts: <span id="totalcounts"> --</span></sapn>
+            </h3>
+           
         </div>
     </div>
     <div class="panel-body">
@@ -46,9 +94,9 @@
     <table class="table table-striped compact">
         <thead>
             <tr>
-                <th style="width:360px">Name</th>
-                <th class="dt-head-center">Size</th>
-                <th class="dt-head-center">Modified On</th>
+                <th class="dt-head-left" style="width: 260px ">Name</th>
+                <th class="dt-head-left" style="width: 260px ">Size</th>
+                <th class="dt-head-left" style="width: 260px ">Modified On</th>
                 <th class="dt-head-center" style="width:185px">Action</th>
                 @*<th>Uploaded By</th>
         <th>Uploaded On</th>

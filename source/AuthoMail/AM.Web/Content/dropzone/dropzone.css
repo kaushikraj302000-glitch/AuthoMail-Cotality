@@ -206,7 +206,7 @@
     .dropzone.dz-clickable .dz-message {
         width: 54px;
         z-index: 1000;
-        margin-bottom: -4%;
+        margin-bottom: -3.6%;
     }
     .dropzone .dz-message {
         text-align: left;
