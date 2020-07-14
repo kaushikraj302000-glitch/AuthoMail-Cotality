@@ -54,7 +54,7 @@ namespace AM.Web.Controllers
             if (validationInfo.NewMergeFields.Count > 0)
             {
                 string newline = error.Length > 0 ? "\n" : "";
-                error += $"{newline}This template has below merge field(s) which does not exist in Vendor file.\n\t({string.Join(", ", validationInfo.NewMergeFields)}).";
+                error += $"{newline}This template has below merge field(s) which does not exist in Vendor file.\n\n({string.Join(", ", validationInfo.NewMergeFields)}).";
             }
             if (!string.IsNullOrEmpty(error))
             {
