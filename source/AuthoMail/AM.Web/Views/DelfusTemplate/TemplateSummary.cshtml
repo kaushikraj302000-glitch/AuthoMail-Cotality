@@ -2,43 +2,30 @@
 @{
     ViewBag.Title = "Delfus Template Summary";
 }
+<link rel="stylesheet" href="~/Content/ag/ag-grid.css">
+<link href="~/Content/ag/ag-theme-alpine.css" rel="stylesheet" />
 <style>
+    .ag-header-cell-label {
+        justify-content: left !important;
+        font-size: 17px !important;
+    }
+
+    .ag-theme-alpine .ag-ltr .ag-cell {
+        text-align: left !important;
+    }
+    .panel .panel-body:last-child {
+        padding-bottom: 15px !important;
+    }
+    .searchbox {
+        width: 230px;
+        height: auto;
+        margin-top: 5px;
+    }
+
     .label {
         font-size: 14px !important;
     }
-    /*table.dataTable.compact thead th, table.dataTable.compact thead td {
-        padding: 4px 17px 4px 18px !important;
-    }
-    table.dataTable thead .sorting, table.dataTable thead .sorting_asc, table.dataTable thead .sorting_desc, table.dataTable thead .sorting_asc_disabled, table.dataTable thead .sorting_desc_disabled {
-        background-position: center left !important;
-    }*/
-    .prewrap {
-        white-space: pre-wrap;
-    }
-    table.dataTable thead .sorting_asc {
-        background: url(../Content/datatables/images/sort_asc.png) no-repeat center right !important;
-    }
-
-    table.dataTable thead .sorting_desc {
-        background: url(../Content/datatables/images/sort_desc.png) no-repeat center right !important;
-    }
-
-    table.dataTable thead .sorting {
-        background: url(../Content/datatables/images/sort_both.png) no-repeat center right !important;
-    }
-
-    th {
-        /*border-top: 1px solid #aaa !important;
-        border-bottom: 1px solid #aaa !important;*/
-        border-right: 1px solid #aaa !important;
-    }
-    .table thead th {
-        font-size: 15px !important;
-    }
-
-        th:first-child {
-            border-left: 1px solid #aaa !important;
-        }
+   
 </style>
 <div class="panel panel-default">
     <div class="panel-heading">
@@ -57,114 +44,116 @@
                         UAT
                     </b>
                 }
-                </h3>
+            </h3>
         </div>
     </div>
     <div class="panel-body">
-        <div id="templatestablebody">
-
+        <input type="text" class="form-control pull-right searchbox" id="quickFilter" placeholder="Search" />
+        <div class="row" id="accReqTableBody" style="height: calc(100% - 25px); ">
+            <div id="requestGrid" style="width:100%;margin-top:3.8%;" class="ag-theme-alpine"></div>
         </div>
     </div>
 </div>
 
-<div id="templatebody" style="display:none;">
 
-    <table class="table table-striped compact">
-        <thead>
-            <tr>
-                <th class="dt-head-left" style="width:190px">Name</th>
-                <th class="dt-head-left" style="width:175px">Modified On</th>
-                <th class="dt-head-left" style="width:130px">Status</th>
-                <th class="dt-head-left" style="width:360px">Reason</th>
-            </tr>
-        </thead>
-    </table>
-</div>
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
+    <script src="~/Content/ag/ag-grid-community.min.noStyle.js"></script>
+    <script>var __basePath = '';</script>
 
     <script type="text/javascript">
-        $(document).ready(function () {
-            function TemplateList() {
-                var id = 'templatelisttable';
-                if ($.fn.DataTable.isDataTable('#' + id)) {
-                    $('#' + id).remove();
-                    $('#' + id + '_wrapper').remove();
-                    $('#templatestablebody').empty();
-                }
-                var tableBody = $('#templatebody').html();
-                tableBody = $(tableBody).attr('id', id);
-                $('#templatestablebody').html(tableBody);
-                var table = $('#templatelisttable').DataTable({
-                    "language": {
-                        "emptyTable": "No rows to display."
-                    },
-                    "ajax": {
-                        "url": baseUrl + "DelfusTemplate/DelfusTemplatesSummary",
-                        "type": "GET"
-                    },
-                    dom:'lifrtp',
-                    destroy: true,
-                    order: [[1, "desc"]],
-                    paging: false,
-                    "columns": [
+        function ApplyAGGrid() {
+            $("#requestGrid").empty();
+            var columnDefs = [
+                { headerName: 'Name', field: 'FilePath', sortable: true, maxWidth: 180},
+                {
+                    headerName: 'Modified On', field: 'ModifiedOn', maxWidth: 180, sortable: true, sort: 'desc', cellRenderer: function (params) {
+                        return moment(params.value).format("MM/DD/YY HH:mm:ss");
+                    }
+                },
+                {
+                    headerName: 'Status', field: 'Status', sortable: true, maxWidth: 150, cellRenderer: function (params) {
+                        if (params.value == "Modified") {
+                            return '<span class="label label-success"> Modified </span>';
+                        }
+                        else if (params.value == "Deleted" || params.value == "Invalid") {
+                            return '<span class="label label-danger"> ' + params.value + ' </span>';
+                        }
+                        else if (params.value == "Added") {
+                            return '<span class="label label-info"> Added </span>';
+                        }
+                        else {
+                            return '--';
+                        }
+                    }
+                },
+                {
+                    headerName: 'Reason', field: 'Reason', sortable: true, cellStyle: { 'white-space': 'normal' }, cellRenderer: function (params) {
+                        return params.value == null  ? "--" : params.value;
+                    }
+                },
+                
+                
+            ];
 
-                        { "data": "FilePath", "className": 'dt-body-left' },
-                        //{ "data": "FileSize", "className": 'dt-body-left' },
-                        {
-                            "data": "ModifiedOn",
-                            "className": 'dt-body-left',
-                            "render": function (data, type, row, meta) {
-                                return moment(data).format("MM/DD/YY HH:mm:ss");
-                            }
+            fetch(baseUrl + "DelfusTemplate/DelfusTemplatesSummary")
+                .then(response => response.json())
+                .then((data) => {
+                    $("#totalcounts").text(data.data.length);
+                    gridOptions = {
+                        defaultColDef: {
+                            sortable: true,
+                            filter: false,
+                            resizable: true,
+                            autoHeight: true,
                         },
-                        {
-                            "data": "Status",
-                            "className": 'dt-body-left',
-                            "render": function (data) {
-                                if (data == "Modified") {
-                                    return '<span class="label label-success fa-2x"> ' + data + ' </span>';
-                                }
-                                else if (data == "Deleted" || data == "Invalid") {
-                                    return '<span class="label label-danger"> ' + data + ' </span>';
-                                }
-                                else if (data == "Added") {
-                                    return '<span class="label label-info"> ' + data + ' </span>';
-                                }
-                                else {
-                                    return '--';
-                                }
-                            }
-                        },
-                        {
-                            "data": "Reason", "className": 'dt-body-left prewrap',
-                            "render": function (data, type, row, meta) {
-                                return data=="" || data==null ?"--":data;
-                            } },
-                        //{
-                        //    "data": "FileName",
-                        //    "className": 'dt-body-left',
-                        //    "render": function (data, type, row, meta) {
-                        //        if (row.Status == true) {
-                        //            var buttons = '<button title="Download Template" type="button" class="btn btn-success btn-sm downloadtemplate" data-id="' + data + '"><i class="fa fa-download"></i></button>';
-                        //            buttons += ' <button type="button" title="History Of Template" class="btn btn-info btn-sm historytemplate" data-id="' + data + '"><i class="fa fa-history"></i></button>';
-                        //            buttons += ' <button type="button" title="Delete Template" class="btn btn-danger btn-sm removetemplate" data-id="' + data + '"><i class="fa fa-trash"></i></button>';
-
-
-                        //            return buttons;
-                        //        } else {
-                        //            return '--';
-                        //        }
-
+                        columnDefs: columnDefs,
+                        //rowSelection: 'single',
+                        //rowDeselection: true,
+                        suppressCellSelection: true,
+                        rowData: data.data,
+                        //floatingFilter: true,
+                        //onCellClicked: (e) => {
+                        //    if (e.column.colId !== 'bookingRefNo') { // cell is from non-select column
+                        //        e.node.setSelected(true);
                         //    }
                         //},
-                    ]
+                        //onSelectionChanged: onSelectionChanged,
+                        //onGridSizeChanged: onGridSizeChanged,
+                        onGridReady: function (params) {
+                            params.api.sizeColumnsToFit();
+
+                            window.addEventListener('resize', function () {
+                                setTimeout(function () {
+                                    params.api.sizeColumnsToFit();
+                                });
+                            });
+                        },
+                    };
+                    // gridOptions.api.setRowData(data);
+                    var gridDiv = document.querySelector('#requestGrid');
+                    new agGrid.Grid(gridDiv, gridOptions);
+                    gridOptions.api.sizeColumnsToFit();
+                    onQuickFilterChanged(gridOptions);
+                    $("#requestGrid").height(calcDataTableHeight());
+
                 });
-
-            }
-
-            TemplateList();
+        }
+        var calcDataTableHeight = function () {
+            var decreaseHeight = (($(window).innerHeight() * 190) / 657);
+            return ($(window).innerHeight() - decreaseHeight);
+        };
+        function onQuickFilterChanged(gridOptions) {
+            $("#quickFilter").on("input", function (e) {
+                if (e.which == 13) {
+                    return false;
+                }
+                gridOptions.api.setQuickFilter(document.getElementById('quickFilter').value);
+            });
+        }
+        $(document).ready(function () {
+            ApplyAGGrid();
         });
     </script>
 }

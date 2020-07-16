@@ -1,6 +1,102 @@
 ﻿var DolfusTemplates = function () {
+    var gridOptions;
 
+    var calcDataTableHeight = function () {
+        var decreaseHeight = (($(window).innerHeight() * 190) / 657);
+        return ($(window).innerHeight() - decreaseHeight);
+    };
+    function onQuickFilterChanged(gridOptions) {
+        $("#quickFilter").on("input", function (e) {
+            if (e.which == 13) {
+                return false;
+            }
+            gridOptions.api.setQuickFilter(document.getElementById('quickFilter').value);
+        });
+    }
+    function ApplyAGGrid() {
+        $("#requestGrid").empty();
+        var columnDefs = [
+            { headerName: 'Name', field: 'FileName', sortable: true, cellStyle: { 'text-align': 'left !important' }, headerClass: 'leftalign' },
+            { headerName: 'Size (KB)', field: 'FileSize', sortable: true, },
+            {
+                headerName: 'Modified On', field: 'ModifiedOn', sortable: true, sort: 'desc', cellRenderer: function (params) {
+                    return moment(params.value).format("MM/DD/YY HH:mm:ss");
+                }
+            },
+            {
+                headerName: 'Action', field: 'FileName', sortable: false, cellRenderer: function (params) {
+                    if (params.data.Status == true) {
+                        var buttons = '<button title="Download Template" type="button" class="btn btn-success btn-sm downloadtemplate" data-id="' + params.data.FileName + '"><i class="fa fa-download"></i></button>';
+                        buttons += ' <button type="button" title="View Template History" class="btn btn-info btn-sm historytemplate" data-id="' + params.data.FileName + '"><i class="fa fa-history"></i></button>';
+                        buttons += ' <button type="button" title="Delete Template" class="btn btn-danger btn-sm removetemplate" data-id="' + params.data.FileName + '"><i class="fa fa-trash"></i></button>';
+                        var eDiv = document.createElement('span');
+                        eDiv.innerHTML = buttons;
+                        var historytemplate = eDiv.querySelector('.historytemplate');
+                        historytemplate.addEventListener('click', function () {
+                            GetHistory($(this).data('id'));
+                        });
+                        var downloadtemplate = eDiv.querySelector('.downloadtemplate');
+                        downloadtemplate.addEventListener('click', function () {
+                            DownloadTemplate($(this));
+                        });
+                        var removetemplate = eDiv.querySelector('.removetemplate');
+                        removetemplate.addEventListener('click', function () {
+                            RemoveTemplate($(this), gridOptions);
+                        });
 
+                        return eDiv;
+                    } else {
+                        return '--';
+                    }
+                }
+
+            }
+        ];
+
+        fetch(baseUrl + "DelfusTemplate/DelfusTemplatesList")
+            .then(response => response.json())
+            .then((data) => {
+                console.log(data.data);
+                $("#totalcounts").text(data.data.length);
+                gridOptions = {
+                    defaultColDef: {
+                        sortable: true,
+                        filter: false,
+                        resizable: true
+                    },
+                    columnDefs: columnDefs,
+                    //rowSelection: 'single',
+                    //rowDeselection: true,
+                    suppressCellSelection: true,
+                    rowData: data.data,
+                    //floatingFilter: true,
+                    //onCellClicked: (e) => {
+                    //    if (e.column.colId !== 'bookingRefNo') { // cell is from non-select column
+                    //        e.node.setSelected(true);
+                    //    }
+                    //},
+                    //onSelectionChanged: onSelectionChanged,
+                    //onGridSizeChanged: onGridSizeChanged,
+                    onGridReady: function (params) {
+                        params.api.sizeColumnsToFit();
+
+                        window.addEventListener('resize', function () {
+                            setTimeout(function () {
+                                params.api.sizeColumnsToFit();
+                            });
+                        });
+                    },
+                };
+                // gridOptions.api.setRowData(data);
+                var gridDiv = document.querySelector('#requestGrid');
+                console.log(gridOptions, gridDiv)
+                new agGrid.Grid(gridDiv, gridOptions);
+                gridOptions.api.sizeColumnsToFit();
+                onQuickFilterChanged(gridOptions);
+                $("#requestGrid").height(calcDataTableHeight());
+
+            });
+    }
     function DropZoneInit() {
         var uploadedProgress = 0;
         var totalError = 0;
@@ -42,16 +138,16 @@
             //},
             totaluploadprogress: function (response) {
                 //uploadedProgress = response >= uploadedProgress ? response : uploadedProgress;
-                uploadedProgress = parseInt(uploadedFile * 100) / dropzoneObj.files.length ;
-               // console.log(parseInt(uploadedFile / dropzoneObj.files.length))
+                uploadedProgress = parseInt(uploadedFile * 100) / dropzoneObj.files.length;
+                // console.log(parseInt(uploadedFile / dropzoneObj.files.length))
                 $("#progressBar").val(Math.round(uploadedProgress));
                 //console.log('totaluploadprogress:', response, uploadedFile, uploadedProgress, dropzoneObj);
                 //alertMessage("green", 'All templates uploaded successfully.');
             },
             queuecomplete: function (response) {
                 //console.log(response);
-                
-                
+
+
                 $("#progressBar").hide();
                 //console.log(dropzoneObj.files.length, totalError)
                 if (totalError > 0) {
@@ -62,7 +158,7 @@
                     else {
                         alertMessage("yellow", 'Upload completed with ' + totalError + ' error(s). You are being redirected to “Upload summary” page for more details...');
                         setTimeout(function () {
-                            TemplateList();
+                            ApplyAGGrid();
                         }, 1000);
                     }
                     setTimeout(function () {
@@ -71,8 +167,8 @@
                     totalError = 0;
                     uploadedFile = 0;
                 } else {
-                alertMessage("green", 'Upload completed: Please check upload summary for more details.');
-                    TemplateList();
+                    alertMessage("green", 'Upload completed: Please check upload summary for more details.');
+                    ApplyAGGrid();
                 }
                 dropedFile = 0;
                 //window.open(baseUrl + 'DelfusTemplate/TemplateSummary');
@@ -90,27 +186,7 @@
                     var table = $('#templatelisttable').DataTable();
                     if (response.Success) {
                         uploadedFile += 1;
-                        //var isFound = false;
-                        //table.rows(function (idx, data, node) {
-                        //    if (data.FileName === file.name) {
-                        //        table.row(idx).data({
-                        //            "FileName": file.name,
-                        //            "FileSize": parseInt(file.size / 1024) + 'KB',
-                        //            "Status": true,
-                        //            "FileName": file.name
-                        //        }).draw(false);
-                        //        isFound = true;
-                        //    }
-
-                        //});
-                        //if (isFound == false) {
-                        //    table.row.add({
-                        //        "FileName": file.name,
-                        //        "FileSize": parseInt(file.size / 1024) + 'KB',
-                        //        "Status": true,
-                        //        "FileName": file.name
-                        //    }).draw(false);
-                        //}
+                        
 
                     } else {
                         totalError += 1;
@@ -124,229 +200,145 @@
                 });
             }
         };
-        
+
     }
-    function calcDataTableHeight(decreaseTableHeight) {
+    function calcDataTableHeightWithParam(decreaseTableHeight) {
         return ($(window).innerHeight() - 240) - decreaseTableHeight;
     };
-    function TemplateList() {
-        var id = 'templatelisttable';
-        if ($.fn.DataTable.isDataTable('#' + id)) {
-            $('#' + id).remove();
-            $('#' + id + '_wrapper').remove();
-            $('#templatestablebody').empty();
-        }
-        var tableBody = $('#templatebody').html();
-        tableBody = $(tableBody).attr('id', id);
-        $('#templatestablebody').html(tableBody);
-        var table = $('#templatelisttable').DataTable({
-            "language": {
-                "emptyTable": "No rows to display."
-            },
-            dom: 'Blifrtp',//Blifrtp
-            order: [[2, "desc"]],
-            //"processing": true,
-            //"serverSide": true,
-            "ajax": {
-                "url": baseUrl + "DelfusTemplate/DelfusTemplatesList",
-                "type": "GET"
-            },
-            destroy: true,
-            buttons: [
-                {
-                    text: 'View Template Upload Summary',
-                    className: 'btn btn-info pull-left',
-                    action: function (e, dt, node, config) {
-                        window.open(baseUrl + 'DelfusTemplate/TemplateSummary');
-
-                    }
-                }
-            ],
-            paging: false,
-            "columns": [
-
-                { "data": "FileName", "className": 'dt-body-left' },
-                { "data": "FileSize", "className": 'dt-body-left', 'searchable': false, },
-                {
-                    "data": "ModifiedOn",
-                    "className": 'dt-body-left',
-                    "render": function (data, type, row, meta) {
-                        $("#totalcounts").text(meta.row+1);
-                        return moment(data).format("MM/DD/YY HH:mm:ss");
-                    }
-                },
-                //{
-                //    "data": "Status",
-                //    "className": 'dt-body-left',
-                //    "render": function (data) {
-                //        if (data == true) {
-                //            return '<span class="label label-success"> Valid </span>';
-                //        }
-                //        else {
-                //            return '<span class="label label-danger" title="'+data+'"> Invalid </span>';
-                //        }
-                //    }
-                //},
-                {
-                    "data": "FileName",
-                    "className": 'dt-body-center',
-                    orderable: false,
-                    "render": function (data, type, row, meta) {
-                        if (row.Status == true) {
-                            var buttons = '<button title="Download Template" type="button" class="btn btn-success btn-sm downloadtemplate" data-id="' + data + '"><i class="fa fa-download"></i></button>';
-                            buttons += ' <button type="button" title="View Template History" class="btn btn-info btn-sm historytemplate" data-id="' + data + '"><i class="fa fa-history"></i></button>';
-                            buttons += ' <button type="button" title="Delete Template" class="btn btn-danger btn-sm removetemplate" data-id="' + data + '"><i class="fa fa-trash"></i></button>';
-
-
-                            return buttons;
-                        } else {
-                            return '--';
-                        }
-
-                    }
-                },
-                //{ "data": "RemovedBy" },
-                //{
-                //    "data": "RemovedOn",
-                //    "render": function (data, type, row, meta) {
-                //        if (data == null) return null;
-                //        return moment(data).format("MM/DD/YY HH:mm:ss");
-                //    }
-                //}
-            ]
-        });
-        var info = table.page.info();
-        RemoveTemplate(table);
-        DownloadTemplate();
-        GetHistory();
-    }
-    function RemoveTemplate(table) {
-        $('#templatelisttable tbody').on('click', '.removetemplate', function () {
-            var data = table.row($(this).parents('tr')).data();
-            var isConfirm = confirm('Are you sure you want to delete "' + data.FileName + '" template?');
-            if (isConfirm) {
-                var context = $(this);
-                $(this).attr('disabled', 'disabled');
-                var fileName = $(this).data('id');
-                $.ajax({
-                    type: "POST",
-                    url: baseUrl + "DelfusTemplate/RemoveDelfusTemplate",
-                    data: { fileName: fileName },
-                    dataType: "json",
-                    success: function (response) {
-                        if (response.Success) {
-                            alertMessage("green", 'Template has been deleted.');
-                        }
-                        else {
-                            alertMessage("red", response.ErrorMessage);
-                        }
-                        $(context).removeAttr('disabled');
-                        TemplateList();
-                    },
-                    error: function (err) {
-                        console.log(err);
-                        $(context).removeAttr('disabled');
-                    }
-                });
-            }
-        });
-    }
-    function GetHistory() {
-        $('#templatelisttable tbody').on('click', '.historytemplate', function () {
-            var fileName = $(this).data('id');
-            $("#historyLabel").text('History of ' + fileName);
-            var url = baseUrl + "DelfusTemplate/DelfusTemplatesHistory?fileName=" + fileName;
-            //console.log(fileName, url)
-            var id = 'historytable';
-            if ($.fn.DataTable.isDataTable('#' + id)) {
-                $('#' + id).remove();
-                $('#' + id + '_wrapper').remove();
-                $('#historytablebody').empty();
-            }
-            var tableBody = $('#historybody').html();
-            tableBody = $(tableBody).attr('id', id);
-            $('#historytablebody').html(tableBody);
-            var table = $('#historytable').DataTable({
-                "language": {
-                    "emptyTable": "No rows to display."
-                },
-                //"processing": true,
-                //"serverSide": true,
-                "ajax": {
-                    "url": url,
-                    "type": "GET"
-                },
-                destroy: true,
-                searching: false,
-                info: false,
-                scrollY: calcDataTableHeight(80),
-                "scrollCollapse": true,
-                paging: false,
-                "columns": [
-                    {
-                        "data": "Status", "className": 'dt-body-center',
-                        "render": function (data) {
-                            if (data == "Modified") {
-                                return '<span class="label label-success"> Modified </span>';
-                            }
-                            else if (data == "Deleted" || data == "Invalid") {
-                                return '<span class="label label-danger"> ' + data + ' </span>';
-                            }
-                            else if (data == "Added") {
-                                return '<span class="label label-info"> Added </span>';
-                            }
-                            else {
-                                return '--';
-                            }
-                        }
-                    },
-                    { "data": "ModifiedBy" ,"className": 'dt-body-right'},
-                    {
-                        "data": "ModifiedOn", "className": 'dt-body-right',
-                        "render": function (data, type, row, meta) {
-                            return moment(data).format("MM/DD/YY HH:mm:ss");
-                        }
-                    },
-                    
-                ]
-            });
-            $('#' + id).width(496);
-            $("#historyModal").modal('show');
-        });
-    }
-    function DownloadTemplate() {
-        $('#templatelisttable tbody').on('click', '.downloadtemplate', function () {
-            var context = $(this);
-            $(this).attr('disabled', 'disabled');
-            $(this).find('i').removeClass('fa-download');
-            $(this).find('i').addClass('fa-spining fa-spinner fa-spin');
-            var fileName = $(this).data('id');
+    function RemoveTemplate(obj) {
+        var fileName = $(obj).data('id');
+        var isConfirm = confirm('Are you sure you want to delete "' + fileName + '" template?');
+        if (isConfirm) {
+            var context = $(obj);
+            $(obj).attr('disabled', 'disabled');
             $.ajax({
                 type: "POST",
-                url: baseUrl + "DelfusTemplate/DownloadDelfusTemplate",
+                url: baseUrl + "DelfusTemplate/RemoveDelfusTemplate",
                 data: { fileName: fileName },
                 dataType: "json",
                 success: function (response) {
-                    //console.log(response);
                     if (response.Success) {
-                        var stream = response.Object.stream;
-                        var sampleArr = base64ToArrayBuffer(stream);
-                        saveByteArray(response.Object.fileName, sampleArr);
+                        alertMessage("green", 'Template has been deleted.');
                     }
                     else {
                         alertMessage("red", response.ErrorMessage);
                     }
                     $(context).removeAttr('disabled');
-                    $(context).find('i').removeClass('fa-spining fa-spinner fa-spin');
-                    $(context).find('i').addClass('fa-download');
+                    ApplyAGGrid();
                 },
                 error: function (err) {
-                    //console.log(err);
+                    console.log(err);
                     $(context).removeAttr('disabled');
-                    $(context).find('i').removeClass('fa-spining fa-spinner fa-spin');
-                    $(context).find('i').addClass('fa-download');
                 }
             });
+        }
+    }
+    function GetHistory(fileName) {
+        $("#historyModal").modal('show');
+        $("#historyLabel").text('History of ' + fileName);
+        var url = baseUrl + "DelfusTemplate/DelfusTemplatesHistory?fileName=" + fileName;
+        var columnDefs = [
+            {
+                headerName: 'User Action', field: 'Status', sortable: true, cellRenderer: function (params) {
+                    if (params.value == "Modified") {
+                        return '<span class="label label-success"> Modified </span>';
+                    }
+                    else if (params.value == "Deleted" || params.value == "Invalid") {
+                        return '<span class="label label-danger"> ' + params.value + ' </span>';
+                    }
+                    else if (params.value == "Added") {
+                        return '<span class="label label-info"> Added </span>';
+                    }
+                    else {
+                        return '--';
+                    }
+                }
+            },
+            { headerName: 'Modified By', field: 'ModifiedBy', sortable: true, },
+            {
+                headerName: 'Modified On', field: 'ModifiedOn', sortable: true, sort: 'desc', cellRenderer: function (params) {
+                    return moment(params.value).format("MM/DD/YY HH:mm:ss");
+                }
+            },
+        ];
+        var historyGridOptions;
+        fetch(url)
+            .then(response => response.json())
+            .then((res) => {
+                console.log(res.data);
+                historyGridOptions = {
+                    defaultColDef: {
+                        sortable: true,
+                        filter: false,
+                        resizable: true
+                    },
+                    columnDefs: columnDefs,
+                    //rowSelection: 'single',
+                    //rowDeselection: true,
+                    suppressCellSelection: true,
+                    rowData: res.data,
+                    //floatingFilter: true,
+                    //onCellClicked: (e) => {
+                    //    if (e.column.colId !== 'bookingRefNo') { // cell is from non-select column
+                    //        e.node.setSelected(true);
+                    //    }
+                    //},
+                    //onSelectionChanged: onSelectionChanged,
+                    //onGridSizeChanged: onGridSizeChanged,
+                    onGridReady: function (params) {
+                        params.api.sizeColumnsToFit();
+
+                        window.addEventListener('resize', function () {
+                            setTimeout(function () {
+                                params.api.sizeColumnsToFit();
+                            });
+                        });
+
+                    },
+                };
+                // gridOptions.api.setRowData(data);
+                var gridDiv = document.querySelector('#historyGrid');
+                console.log(historyGridOptions, gridDiv)
+                $('#historyGrid').empty();
+                new agGrid.Grid(gridDiv, historyGridOptions);
+                historyGridOptions.api.sizeColumnsToFit();
+                onQuickFilterChanged(historyGridOptions);
+                $("#historyGrid").height(calcDataTableHeightWithParam(70));
+
+            });
+        $("#historyModal").modal('show');
+    }
+    function DownloadTemplate(obj) {
+        var context = $(obj);
+        $(obj).attr('disabled', 'disabled');
+        $(obj).find('i').removeClass('fa-download');
+        $(obj).find('i').addClass('fa-spining fa-spinner fa-spin');
+        var fileName = $(obj).data('id');
+        $.ajax({
+            type: "POST",
+            url: baseUrl + "DelfusTemplate/DownloadDelfusTemplate",
+            data: { fileName: fileName },
+            dataType: "json",
+            success: function (response) {
+                //console.log(response);
+                if (response.Success) {
+                    var stream = response.Object.stream;
+                    var sampleArr = base64ToArrayBuffer(stream);
+                    saveByteArray(response.Object.fileName, sampleArr);
+                }
+                else {
+                    alertMessage("red", response.ErrorMessage);
+                }
+                $(context).removeAttr('disabled');
+                $(context).find('i').removeClass('fa-spining fa-spinner fa-spin');
+                $(context).find('i').addClass('fa-download');
+            },
+            error: function (err) {
+                //console.log(err);
+                $(context).removeAttr('disabled');
+                $(context).find('i').removeClass('fa-spining fa-spinner fa-spin');
+                $(context).find('i').addClass('fa-download');
+            }
         });
     }
     function base64ToArrayBuffer(base64) {
@@ -371,11 +363,13 @@
     return {
         init: function () {
             DropZoneInit();
-            TemplateList();
-            //UploadTemplates()
+            ApplyAGGrid();
         }
     };
 }();
 jQuery(document).ready(function () {
     DolfusTemplates.init();
+    $(document).on("keydown", "form", function (event) {
+        return event.key != "Enter";
+    });
 });

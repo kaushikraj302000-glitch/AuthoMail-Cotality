@@ -74,7 +74,7 @@ namespace AM.Scanner.Controllers
                 fileDetails.Add(new FileDetails
                 {
                     FileName = fileInfo.Name,
-                    FileSize = fileInfo.Length > 0 ? $"{ fileInfo.Length / 1024} KB" : "0 KB",
+                    FileSize = fileInfo.Length > 0 ?  fileInfo.Length / 1024 : 0,
                     Status = true,
                     ModifiedOn = fileInfo.LastWriteTimeUtc
                 });
