@@ -375,11 +375,8 @@
     <Content Include="clui\images\1sso-image.jpg" />
     <Content Include="Content\ag\ag-grid-community.min.js" />
     <Content Include="Content\ag\ag-grid-community.min.noStyle.js" />
-    <Content Include="Content\ag\ag-grid-enterprise.min.noStyle.js" />
     <Content Include="Content\ag\ag-grid.css" />
     <Content Include="Content\ag\ag-theme-alpine.css" />
-    <Content Include="Content\ag\ag-theme-balham.css" />
-    <Content Include="Content\ag\t1.html" />
     <Content Include="Content\bootstrap-timepicker\bootstrap-timepicker.css" />
     <Content Include="Content\bootstrap-timepicker\bootstrap-timepicker.js" />
     <Content Include="Content\bootstrap-timepicker\bootstrap-timepicker.min.css" />
