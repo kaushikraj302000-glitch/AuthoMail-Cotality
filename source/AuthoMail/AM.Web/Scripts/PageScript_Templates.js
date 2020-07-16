@@ -11,6 +11,9 @@
                 return false;
             }
             gridOptions.api.setQuickFilter(document.getElementById('quickFilter').value);
+            //console.log(gridOptions.api.getDisplayedRowCount())
+            $("#filterLength").text('Showing ' + gridOptions.api.getDisplayedRowCount() + ' of ' + $("#totalcounts").text());
+
         });
     }
     function ApplyAGGrid() {
@@ -58,6 +61,7 @@
             .then((data) => {
                 $("#quickFilter").val("");
                 $("#totalcounts").text(data.data.length);
+                $("#filterLength").text('Showing ' + data.data.length + ' of ' + data.data.length);
                 gridOptions = {
                     defaultColDef: {
                         sortable: true,
@@ -85,6 +89,7 @@
                                 params.api.sizeColumnsToFit();
                             });
                         });
+                        
                     },
                 };
                 // gridOptions.api.setRowData(data);
@@ -94,7 +99,6 @@
                 gridOptions.api.sizeColumnsToFit();
                 onQuickFilterChanged(gridOptions);
                 $("#requestGrid").height(calcDataTableHeight());
-
             });
     }
     function DropZoneInit() {

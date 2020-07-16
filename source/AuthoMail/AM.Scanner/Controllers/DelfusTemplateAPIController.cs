@@ -83,15 +83,16 @@ namespace AM.Scanner.Controllers
 
         }
 
-        [HttpDelete]
+        [HttpPost]
         [Route("DeleteTemplate")]
-        public IHttpActionResult DeleteTemplate(string fileName)
+        public IHttpActionResult DeleteTemplate()
         {
-            if (Unauthorized(HttpContext.Current.Request))
+            var request = HttpContext.Current.Request;
+            if (Unauthorized(request))
             {
                 return StatusCode(HttpStatusCode.Unauthorized);
             }
-            string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), fileName);
+            string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), request.Params["fileName"].Trim());
 
             //Check whether File exists.
             if (File.Exists(filePath))

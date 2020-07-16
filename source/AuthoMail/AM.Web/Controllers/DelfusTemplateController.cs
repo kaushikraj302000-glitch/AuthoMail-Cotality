@@ -55,18 +55,18 @@ namespace AM.Web.Controllers
             }
             if (Path.GetFileNameWithoutExtension(template.FileName).Length != 10)
             {
-                string newline = error.Length > 0 ? "\n" : "";
+                string newline = error.Length > 0 ? " " : "";
                 error += $"{newline}Invalid template name. (template name should have 10 characters)";
             }
             if (validationInfo.HasAnchorTagIssue)
             {
-                string newline = error.Length > 0 ? "\n" : "";
+                string newline = error.Length > 0 ? " " : "";
                 error += $"{newline}This template has anchor tag issue.";
             }
             if (validationInfo.NewMergeFields != null && validationInfo.NewMergeFields.Count > 0)
             {
-                string newline = error.Length > 0 ? "\n" : "";
-                error += $"{newline}This template has below merge field(s) which does not exist in Vendor file.\n({string.Join(", ", validationInfo.NewMergeFields)}).";
+                string newline = error.Length > 0 ? " " : "";
+                error += $"{newline}This template has below merge field(s) which does not exist in Vendor file. ({string.Join(", ", validationInfo.NewMergeFields)}).";
             }
             if (!string.IsNullOrEmpty(error))
             {
@@ -192,7 +192,9 @@ namespace AM.Web.Controllers
                 HttpClient client = new HttpClient();
                 client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
                 HttpResponseMessage response = new HttpResponseMessage();
-                response = await client.DeleteAsync($@"{Config.Web_Delfus_API_Url}\DeleteTemplate?fileName={fileName}");
+                var values = new Dictionary<string, string>{ { "fileName", fileName } };
+                var content = new FormUrlEncodedContent(values);
+                response = await client.PostAsync($@"{Config.Web_Delfus_API_Url}\DeleteTemplate", content);
                 if (response.IsSuccessStatusCode)
                 {
                     await delfusTemplateSvc.SaveTemplate(
