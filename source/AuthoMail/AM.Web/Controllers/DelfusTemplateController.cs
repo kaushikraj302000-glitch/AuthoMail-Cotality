@@ -40,8 +40,22 @@ namespace AM.Web.Controllers
         [HttpPost]
         public async Task<ActionResult> SaveDelfusTemplates(HttpPostedFileBase template)
         {
+            if (Path.GetFileNameWithoutExtension(template.FileName).Length != 10)
+            {
+                await delfusTemplateSvc.SaveTemplate(
+                     new DelfusTemplate
+                     {
+                         FileName = Path.GetFileNameWithoutExtension(template.FileName),
+                         FilePath = template.FileName,
+                         ModifiedOn = DateTime.UtcNow,
+                         ModifiedBy = User.Identity.DisplayName(),
+                         Status = "Invalid",
+                         Reason = "Invalid template name. (template name should have 10 characters)"
+                     }
+                     );
+                return Json(JsonResponseFactory.ErrorResponse("Invalid template name. (template name should have 10 characters)"));
+            }
             IEnumerable<string> mastermergeList = await delfusTemplateSvc.GetDelfusMergeList();
-            var temp = template.InputStream;
             TemplateValidation validation = new TemplateValidation();
             byte[] fileData = GetByteArrayFromFile(template);
 
