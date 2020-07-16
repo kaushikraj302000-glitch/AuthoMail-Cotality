@@ -56,7 +56,7 @@
         fetch(baseUrl + "DelfusTemplate/DelfusTemplatesList")
             .then(response => response.json())
             .then((data) => {
-                console.log(data.data);
+                $("#quickFilter").val("");
                 $("#totalcounts").text(data.data.length);
                 gridOptions = {
                     defaultColDef: {

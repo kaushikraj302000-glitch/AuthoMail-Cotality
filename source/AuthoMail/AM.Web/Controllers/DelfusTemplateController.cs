@@ -40,40 +40,33 @@ namespace AM.Web.Controllers
         [HttpPost]
         public async Task<ActionResult> SaveDelfusTemplates(HttpPostedFileBase template)
         {
-            if (Path.GetFileNameWithoutExtension(template.FileName).Length != 10)
-            {
-                await delfusTemplateSvc.SaveTemplate(
-                     new DelfusTemplate
-                     {
-                         FileName = Path.GetFileNameWithoutExtension(template.FileName),
-                         FilePath = template.FileName,
-                         ModifiedOn = DateTime.UtcNow,
-                         ModifiedBy = User.Identity.DisplayName(),
-                         Status = "Invalid",
-                         Reason = "Invalid template name. (template name should have 10 characters)"
-                     }
-                     );
-                return Json(JsonResponseFactory.ErrorResponse("Invalid template name. (template name should have 10 characters)"));
-            }
+
             IEnumerable<string> mastermergeList = await delfusTemplateSvc.GetDelfusMergeList();
             TemplateValidation validation = new TemplateValidation();
             byte[] fileData = GetByteArrayFromFile(template);
 
             TemplateValidationInfo validationInfo = validation.VerifyTemplate(fileData, mastermergeList.ToList());
             string error = string.Empty;
-            if (!validationInfo.IsValidDoc)
+            string[] fileType = { ".doc", ".docx" };
+
+            if (!fileType.Contains(Path.GetExtension(template.FileName)))
             {
                 error = "Selected file type not supported.";
+            }
+            if (Path.GetFileNameWithoutExtension(template.FileName).Length != 10)
+            {
+                string newline = error.Length > 0 ? "\n" : "";
+                error += $"{newline}Invalid template name. (template name should have 10 characters)";
             }
             if (validationInfo.HasAnchorTagIssue)
             {
                 string newline = error.Length > 0 ? "\n" : "";
-                error = $"{newline}This template has anchor tag issue.";
+                error += $"{newline}This template has anchor tag issue.";
             }
-            if (validationInfo.NewMergeFields.Count > 0)
+            if (validationInfo.NewMergeFields != null && validationInfo.NewMergeFields.Count > 0)
             {
                 string newline = error.Length > 0 ? "\n" : "";
-                error += $"{newline}This template has below merge field(s) which does not exist in Vendor file.\n\n({string.Join(", ", validationInfo.NewMergeFields)}).";
+                error += $"{newline}This template has below merge field(s) which does not exist in Vendor file.\n({string.Join(", ", validationInfo.NewMergeFields)}).";
             }
             if (!string.IsNullOrEmpty(error))
             {
@@ -237,7 +230,7 @@ namespace AM.Web.Controllers
 
             return false;
         }
-        
+
         public async Task<KeyValuePair<bool, string>> UploadFileToServer(string fileName, byte[] fileData, string uploadURL)
         {
 
@@ -279,6 +272,6 @@ namespace AM.Web.Controllers
             }
 
         }
-        
+
     }
 }
