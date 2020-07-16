@@ -28,7 +28,7 @@ namespace AM.Scanner.Controllers
             HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
 
             //Set the File Path.
-            string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "DelfusTemplates", fileName);
+            string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), fileName);
 
             //Check whether File exists.
             if (!File.Exists(filePath))
@@ -65,7 +65,7 @@ namespace AM.Scanner.Controllers
             {
                 return StatusCode(HttpStatusCode.Unauthorized);
             }
-            DirectoryInfo d = new DirectoryInfo(Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "DelfusTemplates"));//Assuming Test is your Folder
+            DirectoryInfo d = new DirectoryInfo(Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString()));//Assuming Test is your Folder
             List<FileDetails> fileDetails = new List<FileDetails>();
             string[] fileType = { ".doc", ".docx" };
             FileInfo[] fileInfos = d.GetFiles("*.*").Where(f=>fileType.Contains(Path.GetExtension(f.FullName))).ToArray();
@@ -91,7 +91,7 @@ namespace AM.Scanner.Controllers
             {
                 return StatusCode(HttpStatusCode.Unauthorized);
             }
-            string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "DelfusTemplates", fileName);
+            string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), fileName);
 
             //Check whether File exists.
             if (File.Exists(filePath))
@@ -118,7 +118,7 @@ namespace AM.Scanner.Controllers
                 {
                     return StatusCode(HttpStatusCode.Unauthorized);
                 }
-                string path = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "DelfusTemplates");
+                string path = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString());
                 if (!Directory.Exists(path))
                 {
                     Directory.CreateDirectory(path);
@@ -140,7 +140,7 @@ namespace AM.Scanner.Controllers
             {
                 return StatusCode(HttpStatusCode.Unauthorized);
             }
-            string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "DelfusTemplates", fileName);
+            string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), fileName);
 
             //Check whether File exists.
             if (File.Exists(filePath))
