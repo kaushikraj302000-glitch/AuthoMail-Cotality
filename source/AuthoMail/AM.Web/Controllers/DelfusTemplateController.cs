@@ -51,7 +51,7 @@ namespace AM.Web.Controllers
 
             if (!fileType.Contains(Path.GetExtension(template.FileName)))
             {
-                error = "Selected file type not supported.";
+                error = "Selected file type is not supported.";
             }
             if (Path.GetFileNameWithoutExtension(template.FileName).Length != 10)
             {
