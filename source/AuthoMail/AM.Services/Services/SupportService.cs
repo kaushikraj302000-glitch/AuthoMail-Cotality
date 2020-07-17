@@ -718,7 +718,7 @@ inner join Common.Clients c on d.ClientId=c.Id";
 
         public List<DocTypeVM> GetDocTypesByClientId(int ClientId)
         {
-            string q = "select cd.Id,cd.ClientId,cd.DocTypeName as DocTypeCode,c.Name as ClientName,c.AppCode from [dbo].[v_DocTypes] cd,Common.Clients c where cd.ClientId = c.Id and ClientId =@clientId";
+            string q = "select cd.Id,cd.ClientId,cd.DocTypeName as DocTypeCode,c.Name as ClientName,c.AppCode from [dbo].[v_DocTypes] cd,Common.Clients c where cd.ClientId = c.Id and ClientId =@clientId and DocTypeName <> 'E-Delivery'";
             return db.Query<DocTypeVM>(q, new { clientId = ClientId }).ToList();
         }
         public List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id)
