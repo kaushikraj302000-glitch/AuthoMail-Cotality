@@ -24,6 +24,8 @@
             {
                 headerName: 'Modified On', field: 'ModifiedOn', sortable: true, sort: 'desc', cellRenderer: function (params) {
                     return moment(params.value).format("MM/DD/YY HH:mm:ss");
+                }, getQuickFilterText: function (params) {
+                    return moment(params.value).format("MM/DD/YY HH:mm:ss");
                 }
             },
             {
@@ -66,7 +68,8 @@
                     defaultColDef: {
                         sortable: true,
                         filter: false,
-                        resizable: true
+                        resizable: true,
+                        cellClass: 'cell-copy-text',
                     },
                     columnDefs: columnDefs,
                     //rowSelection: 'single',
@@ -83,7 +86,7 @@
                     //onGridSizeChanged: onGridSizeChanged,
                     onGridReady: function (params) {
                         params.api.sizeColumnsToFit();
-
+                        $("#loading").hide();
                         window.addEventListener('resize', function () {
                             setTimeout(function () {
                                 params.api.sizeColumnsToFit();
@@ -373,6 +376,7 @@
 }();
 jQuery(document).ready(function () {
     DolfusTemplates.init();
+    $("#loading").show();
     $(document).on("keydown", "form", function (event) {
         return event.key != "Enter";
     });

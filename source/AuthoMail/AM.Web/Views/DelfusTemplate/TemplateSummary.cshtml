@@ -25,6 +25,9 @@
     .label {
         font-size: 14px !important;
     }
+    .cell-copy-text {
+        user-select: all !important;
+    }
    
 </style>
 <div class="panel panel-default">
@@ -70,6 +73,8 @@
                 {
                     headerName: 'Modified On', field: 'ModifiedOn', maxWidth: 180, sortable: true, sort: 'desc', cellRenderer: function (params) {
                         return moment(params.value).format("MM/DD/YY HH:mm:ss");
+                    },getQuickFilterText: function(params) {
+                        return moment(params.value).format("MM/DD/YY HH:mm:ss");
                     }
                 },
                 {
@@ -107,6 +112,7 @@
                             filter: false,
                             resizable: true,
                             autoHeight: true,
+                            cellClass: 'cell-copy-text',
                         },
                         columnDefs: columnDefs,
                         //rowSelection: 'single',
