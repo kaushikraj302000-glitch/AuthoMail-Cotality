@@ -14,8 +14,6 @@ namespace AM.Console
         private static log4net.ILog log;
         static void Main(string[] args)
         {
-            Aspose.Words.License license = new Aspose.Words.License();
-            license.SetLicense("Aspose.Words.lic");
             //Code Added to create argument wise log file
             var argString = String.Join(",", args);
             log4net.LogicalThreadContext.Properties["args"] = argString;
