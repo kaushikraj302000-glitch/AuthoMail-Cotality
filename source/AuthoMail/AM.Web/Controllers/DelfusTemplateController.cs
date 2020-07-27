@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using AM.Web.Models;
+using System.Diagnostics;
 
 namespace AM.Web.Controllers
 {
@@ -41,17 +42,18 @@ namespace AM.Web.Controllers
         [HttpPost]
         public async Task<ActionResult> SaveDelfusTemplates(HttpPostedFileBase template)
         {
-
+            
             try
             {
+                log.Info("Delfus save template");
                 IEnumerable<string> mastermergeList = await delfusTemplateSvc.GetDelfusMergeList();
                 TemplateValidation validation = new TemplateValidation();
-                byte[] fileData = GetByteArrayFromFile(template);
-
+                byte[] fileData =await GetByteArrayFromFile(template);
+                log.Info("Delfus GetByteArrayFromFile");
                 TemplateValidationInfo validationInfo = validation.VerifyTemplate(fileData, mastermergeList.ToList());
                 string error = string.Empty;
                 string[] fileType = { ".doc", ".docx" };
-
+                log.Info("Delfus VerifyTemplate");
                 if (!fileType.Contains(Path.GetExtension(template.FileName)))
                 {
                     error = "Selected file type is not supported.";
@@ -71,6 +73,7 @@ namespace AM.Web.Controllers
                     string newline = error.Length > 0 ? " " : "";
                     error += $"{newline}This template has below merge field(s) which does not exist in Vendor file. ({string.Join(", ", validationInfo.NewMergeFields)}).";
                 }
+                log.Info("Delfus error check"+ error);
                 if (!string.IsNullOrEmpty(error))
                 {
                     await delfusTemplateSvc.SaveTemplate(
@@ -92,8 +95,9 @@ namespace AM.Web.Controllers
                 List<string> errors = new List<string>();
                 string uploadURL = $@"{Config.Web_Delfus_API_Url}\SaveTemplate";// ConfigurationManager.AppSettings["DelfusTemplateUploadUrl"].ToString();
                 bool isTemplateExists = await IsTemplateExists(template.FileName);
+                log.Info("Delfus IsTemplateExists");
                 var uploadResult = await UploadFileToServer(template.FileName, fileData, uploadURL);
-
+                log.Info("Delfus UploadFileToServer");
 
                 if (uploadResult.Key)
                 {
@@ -107,6 +111,7 @@ namespace AM.Web.Controllers
                              Status = isTemplateExists ? "Modified" : "Added"
                          }
                          );
+                    log.Info("Delfus success");
                     return Json(JsonResponseFactory.SuccessResponse("Template uploaded successfully."));
                 }
                 else
@@ -123,13 +128,19 @@ namespace AM.Web.Controllers
                              Reason = uploadResult.Value
                          }
                          );
+                    log.Info("Delfus Error"+ string.Join(",",error));
                 }
                 return Json(JsonResponseFactory.ErrorResponse(errors));
 
             }
             catch (Exception e)
             {
-                log.Error(e.ToString());
+                var st = new StackTrace(e, true);
+                // Get the top stack frame
+                var frame = st.GetFrame(0);
+                // Get the line number from the stack frame
+                var line = frame.GetFileLineNumber();
+                log.Error(+line+":"+ e.ToString());
                 return Json(JsonResponseFactory.ErrorResponse(e.Message));
             }
             //HttpPostedFileBase template = templates.FirstOrDefault();
@@ -297,6 +308,7 @@ namespace AM.Web.Controllers
                     };
                     form.Add(content, "file", fileName);
                     HttpResponseMessage response = await client.PostAsync(uploadURL, form);
+                    log.Info(response.StatusCode + ": Delfus Uploaded");
                     if (response.IsSuccessStatusCode)
                     {
                         var result = await response.Content.ReadAsAsync<string>();
@@ -317,13 +329,13 @@ namespace AM.Web.Controllers
 
         }
 
-        public byte[] GetByteArrayFromFile(HttpPostedFileBase fileBase)
+        public async Task<byte[]> GetByteArrayFromFile(HttpPostedFileBase fileBase)
         {
             try
             {
                 using (MemoryStream target = new MemoryStream())
                 {
-                    fileBase.InputStream.CopyTo(target);
+                    await fileBase.InputStream.CopyToAsync(target);
                     return target.ToArray();
                 }
             }
