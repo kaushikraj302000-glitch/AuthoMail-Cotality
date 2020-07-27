@@ -223,7 +223,6 @@
     <Build Include="dbo\Functions\ufn_GetSweepTimings.sql" />
     <Build Include="dbo\Stored Procedures\ConfigureDELFUSClient.sql" />
     <Build Include="dbo\Functions\ufn_ESTToUTC.sql" />
-    <Build Include="dbo\Functions\ufn_GetSweepTimings_1.sql" />
     <Build Include="dbo\Stored Procedures\SP_GetScanStats_Temp.sql" />
     <Build Include="dbo\Stored Procedures\SP_GetRecentBatchesStats_Temp.sql" />
   </ItemGroup>
