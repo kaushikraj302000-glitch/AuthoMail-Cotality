@@ -984,10 +984,17 @@ namespace AM.Console
 
         private MailPieceValidationResult ValidateCommonValidation(MailPieceDTO mailPieceDTO, MailBatchInfo mbi)
         {
+
+            bool allowInsertsOnly;
+            using (IDocTypeService docSvc = new DocTypeService())
+            {
+                allowInsertsOnly = docSvc.AllowInsertsOnlyDocumentType(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType);
+            }
+
             //in last system will check for general validations
             string localFilePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
 
-            if (!File.Exists(localFilePath))
+            if (!File.Exists(localFilePath) && !allowInsertsOnly)
             {
                 return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not available for this package." };
             }
@@ -999,16 +1006,24 @@ namespace AM.Console
 
             int pageCount = 0;
             List<int> blankPageNos = new List<int>();
-            using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
-            {
-                pageCount = reader.NumberOfPages;
-                mailPieceDTO.TotalPages = pageCount;//System is going to store TotalPages only for AM.EDMailPieces table from here
-                blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
-            }
 
-            //NOTE : Here system is storing file size of received pdf in KB
-            FileInfo fileInfo = new FileInfo(localFilePath);
-            mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
+            if (File.Exists(localFilePath))
+            {
+                using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
+                {
+                    pageCount = reader.NumberOfPages;
+                    mailPieceDTO.TotalPages = pageCount;//System is going to store TotalPages only for AM.EDMailPieces table from here
+                    blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
+                }
+
+                //NOTE : Here system is storing file size of received pdf in KB
+                FileInfo fileInfo = new FileInfo(localFilePath);
+                mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
+            }
+            else if (allowInsertsOnly)
+            {
+                mailPieceDTO.TotalPages = 0;
+            }
 
             if (mailPieceDTO.IsFallBackRequested || !mailPieceDTO.IsEDeliveryRequested)
             {
@@ -1026,7 +1041,7 @@ namespace AM.Console
                 {
                     return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages) };
                 }
-                else if (pageCount == blankPageNos.Count())
+                else if (pageCount != 0 && pageCount == blankPageNos.Count)
                 {
                     mailPieceDTO.TotalBlankPages = blankPageNos.Count;
                     mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);

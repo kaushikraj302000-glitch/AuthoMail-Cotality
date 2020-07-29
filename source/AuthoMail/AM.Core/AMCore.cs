@@ -193,7 +193,7 @@ namespace AM.Core
                             mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
                             #endregion
 
-                            List<PnSConfigDetailCoverLetter> coverLetters = docTypeSvc.GetDocumentCoverLetterTemplates(mailPiece.PnSConfigDetailId.Value);                           
+                            List<PnSConfigDetailCoverLetter> coverLetters = docTypeSvc.GetDocumentCoverLetterTemplates(mailPiece.PnSConfigDetailId.Value);
 
                             SmartDocs doc = new SmartDocs();
 
@@ -528,20 +528,28 @@ namespace AM.Core
                                 endLetterPdfPaths.Add(response.CoverLetterPath);
                             }
 
-                            response = doc.GenerateDoc(coverLetterPdfPaths, pdfFilePath, outputFilePath, docType.ContentScalePercent, docType.NoOfCopies, endLetterPdfPaths);
-
-                            if (response.HasError)
+                            if (!File.Exists(pdfFilePath) && docType.AllowInsertsOnly)
                             {
-                                mailPiece.ErrorCode = OutComeCodes.Invalid_PDF_File;
-                                mailPiece.TotalPages = 0;
-                                mailPiece.DueDate = null;
-                                mailPiece.PrintTrailId = null;
-                                mailPiece.PrintLocation = null;
-                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                mailPiece.ErrorDesc = response.ExceptionDetail;
+                                File.Move(coverLetterPdfPaths.First(), outputFilePath);
+                                mailPiece.TotalPages = PdfUtil.GetPageCount(outputFilePath);
+                            }
+                            else
+                            {
+                                response = doc.GenerateDoc(coverLetterPdfPaths, pdfFilePath, outputFilePath, docType.ContentScalePercent, docType.NoOfCopies, endLetterPdfPaths);
+
+                                if (response.HasError)
+                                {
+                                    mailPiece.ErrorCode = OutComeCodes.Invalid_PDF_File;
+                                    mailPiece.TotalPages = 0;
+                                    mailPiece.DueDate = null;
+                                    mailPiece.PrintTrailId = null;
+                                    mailPiece.PrintLocation = null;
+                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                    mailPiece.ErrorDesc = response.ExceptionDetail;
+                                }
+                                mailPiece.TotalPages = response.TotalPages;
                             }
 
-                            mailPiece.TotalPages = response.TotalPages;
                             mailPiece.TotalSheets = docType.PrintFormat == "Duplex" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;
 
                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
