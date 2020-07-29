@@ -21,6 +21,7 @@ namespace AM.Services
         List<PnSConfigDetailCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId);
         List<PnSConfigDetailCoverLetter> GetDocumentRearLetterTemplates(int pnSConfigDetailId);
         DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId);
+        bool AllowInsertsOnlyDocumentType(int clientId, string docType);
     }
 
     public class DocTypeService : ServiceBase, IDocTypeService
@@ -154,6 +155,13 @@ namespace AM.Services
 
                 return maxCutOffDocType;
             }
+        }
+
+        public bool AllowInsertsOnlyDocumentType(int clientId, string docType)
+        {
+            string query = "SELECT AllowInsertsOnly FROM AM.DocTypes WHERE ClientId=@clientId AND IsActive=1 AND DocTypeName=@docType";
+
+            return db.QuerySingleOrDefault<bool>(query, new { clientId, docType });
         }
     }
 }

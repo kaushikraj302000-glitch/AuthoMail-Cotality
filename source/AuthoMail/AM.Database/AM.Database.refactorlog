@@ -28,4 +28,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="ModifiedOn" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="3e359b05-55d2-47d0-b3c5-a2d8c2fa949c" ChangeDateTime="07/29/2020 05:16:33">
+    <Property Name="ElementName" Value="[AM].[DocTypes].[IsInsertsOnly]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[AM].[DocTypes]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="AllowInsertsOnly" />
+  </Operation>
 </Operations>

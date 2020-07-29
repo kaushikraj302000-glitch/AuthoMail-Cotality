@@ -72,6 +72,7 @@ namespace AM.Entities
         public int MaxPage { get; set; }
         public bool IsFallBack { get; set; }
         public bool IsPrintReady { get; set; }
+        public bool AllowInsertsOnly { get; set; }
 
         public TimeSpan? BizdayStartTime { get; set; }
         public TimeSpan? BizdayEndTime { get; set; }
