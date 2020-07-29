@@ -1,8 +1,6 @@
 ﻿using AM.Entities;
 using AM.Services;
-using AM.Web.Models;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,15 +11,12 @@ using System.Net.Http;
 using System.Web.Http;
 using System.Xml.Serialization;
 using AM.Lib;
-using Newtonsoft.Json.Serialization;
 using System.Web.Http.Cors;
 using System.Threading.Tasks;
-using System.Text;
-using System.Web.Http.Controllers;
-using iTextSharp.text.exceptions;
-using DocumentFormat.OpenXml.Wordprocessing;
-using DocumentFormat.OpenXml.Office2010.Excel;
-using System.Web;
+using System.Diagnostics;
+using iTextSharp;
+using iTextSharp.text.pdf;
+using iTextSharp.text;
 
 namespace AM.Web.Controllers
 {
@@ -54,16 +49,20 @@ namespace AM.Web.Controllers
                 {
                     using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
                     {
+                        // ZipFile.CreateFromDirectory("", "", CompressionLevel.Fastest, false);
                         ZipArchiveEntry xmlEntry = archive.CreateEntry(string.Format("{0}.xml", mailBatch.Id));
                         using (StreamWriter writer = new StreamWriter(xmlEntry.Open()))
                         {
                             await writer.WriteAsync(xml);
                         }
-                        ZipArchiveEntry pdfEntry = archive.CreateEntry(mailPiece.DocumentOrPackage.Name);
-                        using (var pdfStream = pdfEntry.Open())
-                        using (var payloadStream = new FileStream(mailPiece.DocumentOrPackage.Path, FileMode.Open, FileAccess.Read))
+                        if (!mailPiece.DocumentOrPackage.Path.IsNullOrWhiteSpace())
                         {
-                            await payloadStream.CopyToAsync(pdfStream, 81920);
+                            ZipArchiveEntry pdfEntry = archive.CreateEntry(mailPiece.DocumentOrPackage.Name);
+                            using (var pdfStream = pdfEntry.Open())
+                            using (var payloadStream = new FileStream(mailPiece.DocumentOrPackage.Path, FileMode.Open, FileAccess.Read))
+                            {
+                                await payloadStream.CopyToAsync(pdfStream, 81920);
+                            }
                         }
                     }
                 }
@@ -99,6 +98,9 @@ bufferSize: 4096, useAsync: true)) { }
         [HttpPost]
         public async Task<HttpResponseMessage> CreateMailRequest()
         {
+            List<double> perf = new List<double>();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             var receivedOn = Common.Now;
             var mailPiece = new MailPiece();
             if (Request.Content.Headers.ContentLength / 1024f / 1024f > Config.MailRequestAPI_MaxRequestSize)
@@ -109,11 +111,19 @@ bufferSize: 4096, useAsync: true)) { }
             //TO DO: create local path and upload
             //.57/d:/UAT/WEB/
             string root = Config.MailRequestAPI_FilesDownloadPath;
+            sw.Stop();
+            perf.Add(sw.Elapsed.TotalSeconds);
+            log.DebugFormat("Request size check: {0}", sw.Elapsed.TotalSeconds);
+            sw.Restart();
             var provider = new MultipartFormDataStreamProvider(root);
 
             try
             {
                 await Request.Content.ReadAsMultipartAsync(provider);
+                sw.Stop();
+                perf.Add(sw.Elapsed.TotalSeconds);
+                log.DebugFormat("Files Downloaded: {0}", sw.Elapsed.TotalSeconds);
+                sw.Restart();
                 SFTChannel sFTChannel;
                 Client client;
                 MailBatch mailBatch = new MailBatch()
@@ -174,7 +184,7 @@ bufferSize: 4096, useAsync: true)) { }
                 {
                     case "ELLIEMAE":
                     default:
-                        var result = ValidateClientSpecificRules(mailPiece);
+                        var result = ValidateClientSpecificRules(mailPiece,client);
                         if (result.Code != OutComeCodes.No_Error)
                         {
                             DeleteFiles(downloadedFiles);
@@ -201,36 +211,6 @@ bufferSize: 4096, useAsync: true)) { }
                         break;
                 }
 
-
-                // merge PDFS into a single file, use File.GetRandomFileName method to get unique filename
-
-                var files = mailPiece.DocumentOrPackage.Files
-                    .Select(f =>
-                    {
-                        var fileData = provider.FileData.SingleOrDefault(fd => fd.Headers.ContentDisposition.Name.Replace("\"", "") == f);
-                        return new KeyValuePair<string, MultipartFileData>(f, fileData);
-                    })
-                    .ToList();
-
-                var nullFilePathList = files.Where(f => f.Value == null).ToList();
-
-                // filepath null validation check
-                if (nullFilePathList.Count > 0)
-                {
-                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file not found for the following file key(s): {0}".Fill(string.Join(",", nullFilePathList.Select(n => n.Key))) }, receivedOn);
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, res);
-                }
-
-                if (files.Count > 99)
-                {
-                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Up to 99 pdf files are supported per mailpiece." }, receivedOn);
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, res);
-                }
-
-                //// count pdf pages of each file             
-                int i = 0;
-                string temp = null;
-                string prevFile = null;
                 if (mailPiece.CustomInfo == null) mailPiece.CustomInfo = new List<Metadata>();
 
                 foreach (var customInfo in mailPiece.CustomInfo)
@@ -242,58 +222,109 @@ bufferSize: 4096, useAsync: true)) { }
                     }
                 }
 
-
-                do
+                
+                if ((mailPiece.DocumentOrPackage.Files != null && mailPiece.DocumentOrPackage.Files.Count == 0 && mailPiece.DocumentOrPackage.Inserts.IsNullOrWhiteSpace()) || (mailPiece.DocumentOrPackage.Files == null && mailPiece.DocumentOrPackage.Inserts.IsNullOrWhiteSpace()))
                 {
-                    try
+                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Missing_Files, ErrorMessage = "Request cannot proceed further without Files or Inserts value." }, receivedOn);
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, res);
+                }
+
+                if (mailPiece.DocumentOrPackage.Files != null && mailPiece.DocumentOrPackage.Files.Count > 0)
+                {
+                    var files = mailPiece.DocumentOrPackage.Files
+                   .Select(f =>
+                   {
+                       var fileData = provider.FileData.SingleOrDefault(fd => fd.Headers.ContentDisposition.Name.Replace("\"", "") == f);
+                       return new KeyValuePair<string, MultipartFileData>(f, fileData);
+                   })
+                   .ToList();
+
+                    var nullFilePathList = files.Where(f => f.Value == null).ToList();
+
+                    // filepath null validation check
+                    if (nullFilePathList.Count > 0)
                     {
-                        var file = files[i].Value;
-                        var pageCount = PdfUtil.GetPageCount(file.LocalFileName);
-
-                        mailPiece.CustomInfo.Add(new Metadata { Key = files[i].Key, Value = "FileName:{0} | PageCount: {1}".Fill(file.Headers.ContentDisposition.FileName.Replace("\"", ""), pageCount) });
-
-                        //if (temp != null) File.Delete(temp);
-                        // var fileName = mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() ? Path.GetRandomFileName() : mailPiece.DocumentOrPackage.Name;
-
-                        temp = Path.Combine(root, Path.GetRandomFileName());
-                        temp = Path.ChangeExtension(temp, ".pdf");
-
-                        if (prevFile == null)
-                            File.Copy(file.LocalFileName, temp);
-                        else
-                        {
-                            PdfUtil.MergePDFs(prevFile, file.LocalFileName, temp);
-                            File.Delete(prevFile);
-                        }
-                        prevFile = temp;
-                    }
-                    catch (Exception e)
-                    {
-                        log.Error(e.Message, e);
-                        // if there are any exceptions while counting pages or merging, don't delete files and send badreqeust with mailresponse object, it should contain file names
-                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "'{0}' pdf file is either corrupt or has no pages.".Fill(files[i].Key) }, receivedOn);
+                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file not found for the following file key(s): {0}".Fill(string.Join(",", nullFilePathList.Select(n => n.Key))) }, receivedOn);
                         return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                     }
-                    i++;
-                } while (i < files.Count);
 
-                //File.Move(temp, finalPdfPath);
-                var finalPdfPath = temp;
+                    if (files.Count > 99)
+                    {
+                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Up to 99 pdf files are supported per mailpiece." }, receivedOn);
+                        return Request.CreateResponse(HttpStatusCode.BadRequest, res);
+                    }
+                    sw.Stop();
+                    perf.Add(sw.Elapsed.TotalSeconds);
+                    log.DebugFormat("Validation complete: {0}", sw.Elapsed.TotalSeconds);
+
+                    sw.Restart();
+                    string finalPdfPath = null;
+
+                    string destPdf = Path.Combine(root, Path.GetRandomFileName());
+                    destPdf = Path.ChangeExtension(destPdf, ".pdf");
+                    using (var ds = new FileStream(destPdf, FileMode.Create))
+                    using (var doc = new Document())
+                    using (var copy = new PdfSmartCopy(doc, ds))
+                    {
+                        doc.Open();
+                        // This is done to open and merge (Secured) PDFs which allow printing but not copying or merging
+                        PdfReader.unethicalreading = true;
+                        //Loop through each input file                        
+                        foreach (var file in files)
+                        {
+                            try
+                            {
+                                using (var reader = new PdfReader(file.Value.LocalFileName))
+                                {
+                                    mailPiece.CustomInfo.Add(new Metadata { Key = file.Key, Value = "FileName:{0} | PageCount: {1}".Fill(file.Value.Headers.ContentDisposition.FileName.Replace("\"", ""), reader.NumberOfPages) });
+                                    //Add the entire document
+                                    copy.AddDocument(reader);
+                                    reader.Close();
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                log.Error(e.Message, e);
+                                // if there are any exceptions while counting pages or merging, don't delete files and send badreqeust with mailresponse object, it should contain file names
+                                var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "'{0}' pdf file is either corrupt or has no pages.".Fill(file.Key) }, receivedOn);
+                                return Request.CreateResponse(HttpStatusCode.BadRequest, res);
+                            }
+                        }
+                        PdfReader.unethicalreading = false;
+                        doc.Close();
+                    }
+                    finalPdfPath = destPdf;
+                    mailPiece.DocumentOrPackage.Path = finalPdfPath;
+                    sw.Stop();
+                    perf.Add(sw.Elapsed.TotalSeconds);
+                    log.DebugFormat("Merge pdfs completed: {0}", sw.Elapsed.TotalSeconds);
+                }
+
+               
+                sw.Restart();
+
 
                 // call method passing mailpiece
-                /// mp.DocumentOrPackage.Path = "new PDF name"
-
 
                 mailPiece.DocumentOrPackage.Name = mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() ? "{0}.pdf".Fill(mailPiece.BusinessFriendlyIdValue.GetValidFileName()) : mailPiece.DocumentOrPackage.Name;
 
-                mailPiece.DocumentOrPackage.Path = finalPdfPath;
+               
                 var response = await CreateAMBatch(mailBatch, mailPiece, sFTChannel, receivedOn);
+                sw.Stop();
+                perf.Add(sw.Elapsed.TotalSeconds);
+                log.DebugFormat("Batch created: {0}", sw.Elapsed.TotalSeconds);
+                sw.Restart();
                 var responseContent = await response.Content.ReadAsStringAsync();
                 var mailResponse = JsonConvert.DeserializeObject<MailAPIResponse>(responseContent);
                 // if get success response then delete files. 
                 if (response.IsSuccessStatusCode)
                 {
                     DeleteFiles(downloadedFiles);
+                    sw.Stop();
+                    perf.Add(sw.Elapsed.TotalSeconds);
+                    log.DebugFormat("Delete files: {0}", sw.Elapsed.TotalSeconds);
+                    log.DebugFormat("Perf {0} {1} {2}", mailPiece.Id, ",", String.Join(",", perf));
+                    //sw.Restart();
                     return Request.CreateResponse(HttpStatusCode.OK, mailResponse);
                 }
                 else
@@ -478,7 +509,7 @@ bufferSize: 4096, useAsync: true)) { }
             }
         }
 
-        private IEnumerable<MailPieceValidationResult> GetAllMailPieceBasicErrors(MailPiece mailPiece)
+        private IEnumerable<MailPieceValidationResult> GetAllMailPieceBasicErrors(MailPiece mailPiece,Client client)
         {
             //Duplicate key validation
             using (ICommonService commonSvc = new CommonService())
@@ -543,18 +574,24 @@ bufferSize: 4096, useAsync: true)) { }
             if (mailPiece.BusinessFriendlyIdName.IsNullOrWhiteSpace() || mailPiece.BusinessFriendlyIdValue.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_BusinessIdentifier, ErrorMessage = "Business friendly Id or value is not specified in package." };
 
+            bool allowInsertsOnly;
+            using (IDocTypeService docSvc = new DocTypeService())
+            {
+                allowInsertsOnly = docSvc.AllowInsertsOnlyDocumentType(client.Id, mailPiece.DocumentOrPackageType);
+            }
+
             // TODO : check DocumentOrPackage is not empty and DocumentOrPackage.Files property is not empty
             if (mailPiece.DocumentOrPackage == null)
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_DocumentOrPackage, ErrorMessage = "DocumentOrPackage is mandatory." };
-            else if (mailPiece.DocumentOrPackage.Files == null)
+            else if (mailPiece.DocumentOrPackage.Files == null && !allowInsertsOnly)
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Files property is mandatory." };
 
             yield break;
         }
 
-        private MailPieceValidationResult ValidateClientSpecificRules(MailPiece mailPiece)
+        private MailPieceValidationResult ValidateClientSpecificRules(MailPiece mailPiece,Client client)
         {
-            var errors = GetAllMailPieceBasicErrors(mailPiece).ToList();
+            var errors = GetAllMailPieceBasicErrors(mailPiece,client).ToList();
 
             if (errors.Count > 0)
             {
