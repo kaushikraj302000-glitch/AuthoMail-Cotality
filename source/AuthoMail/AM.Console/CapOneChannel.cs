@@ -2,11 +2,14 @@
 using AM.Entities;
 using AM.Lib;
 using AM.Services;
-using Aspose.Words;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -533,36 +536,39 @@ namespace AM.Console
                         }
 
                         var templateFilePath = Path.Combine(Config.Monitor_CustomTemplateFolder, client.AppCode, customTemplate.CustomTemplatePath);
-
-                        Document doc = new Document(templateFilePath);
-                        doc.Range.Replace(new Regex(@"\[BorrowerFullName\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.FirstName, mp.RecipientInfo.Recipient.LastName).Trim() : "" : "");
-                        doc.Range.Replace(new Regex(@"\[BorrowerFullNameReverse\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}, {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).FormattedName() : "" : "");
-                        doc.Range.Replace(new Regex(@"\[BorrFName\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}".Fill(mp.RecipientInfo.Recipient.FirstName).Trim() : "" : "");
-                        doc.Range.Replace(new Regex(@"\[BorrLName\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}".Fill(mp.RecipientInfo.Recipient.LastName).Trim() : "" : "");
-                        doc.Range.Replace(new Regex(@"\[BorrStreetAddress\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.Street).Trim() : "" : "");
-                        doc.Range.Replace(new Regex(@"\[BorrCity\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.City).Trim() : "" : "");
-                        doc.Range.Replace(new Regex(@"\[BorrState\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.State).Trim() : "" : "");
-                        doc.Range.Replace(new Regex(@"\[BorrZip\]"), mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.Zip).Trim() : "" : "");
-                        if (mp.CustomInfo != null)
+                        var base64Template = Convert.ToBase64String(File.ReadAllBytes(templateFilePath));
+                        dynamic objFloodRequest = new ExpandoObject();
+                        objFloodRequest.Data = new
                         {
-                            if (mp.CustomInfo.SingleOrDefault(m => m.Key == "LoanNumber").Value.IsNullOrWhiteSpace())
-                            {
-                                doc.Range.Replace(new Regex(@"\[LoanNumber\]"), "");
-                            }
-                            else
-                            {
-                                doc.Range.Replace(new Regex(@"\[LoanNumber\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "LoanNumber").Value);
-                            }
-                            doc.Range.Replace(new Regex(@"\[PropStreetAddress\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value);
-                            doc.Range.Replace(new Regex(@"\[PropCity\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value);
-                            doc.Range.Replace(new Regex(@"\[PropState\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value);
-                            doc.Range.Replace(new Regex(@"\[PropZip\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyZip").Value);
-                            doc.Range.Replace(new Regex(@"\[DocumentDate\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "DocumentDate").Value);
-                            doc.Range.Replace(new Regex(@"\[NoticeDate\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "NoticeDate").Value);
-                            doc.Range.Replace(new Regex(@"\[CommunityName\]"), mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityName").Value);
-                        }
-                        doc.Save(printReadyTemplatePath);
+                            BorrowerFullName = mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.FirstName, mp.RecipientInfo.Recipient.LastName).Trim() : "" : "",
+                            BorrowerFullNameReverse = mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}, {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).FormattedName() : "" : "",
+                            BorrFName = mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}".Fill(mp.RecipientInfo.Recipient.FirstName).Trim() : "" : "",
+                            BorrLName = mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}".Fill(mp.RecipientInfo.Recipient.LastName).Trim() : "" : "",
+                            BorrStreetAddress = mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.Street).Trim() : "" : "",
+                            BorrCity = mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.City).Trim() : "" : "",
+                            BorrState = mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.State).Trim() : "" : "",
+                            BorrZip = mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.Zip).Trim() : "" : "",
+                            LoanNumber = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "LoanNumber").Value.IsNullOrWhiteSpace() ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "LoanNumber").Value,
+                            PropStreetAddress = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value,
+                            PropCity = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity")?.Value,
+                            PropState = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState")?.Value,
+                            PropZip = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyZip")?.Value,
+                            DocumentDate = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "DocumentDate")?.Value,
+                            NoticeDate = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "NoticeDate")?.Value,
+                            CommunityName = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityName")?.Value
+                        };
 
+                        objFloodRequest.Settings = new
+                        {
+                            MailMergeOptions = "RemoveEmptyParagraphs",
+                            ReportEngineOptions = "RemoveEmptyParagraphs",
+                            OutputDocType = "pdf",
+                            Template = base64Template
+                        };
+
+                        objFloodRequest.TransformData = null;
+
+                        GenerateDoc(objFloodRequest, mp.DocumentOrPackage.Name, mbi);
                     }
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now).Wait();
@@ -580,6 +586,25 @@ namespace AM.Console
                 sftSite.Disconnect();
 
             log.Debug("Download job queue is completed.");
+        }
+
+        private async Task GenerateDoc(dynamic objFloodRequest, string pdfFileName, MailBatchInfo batchInfo)
+        {
+            using (var httpClient = new HttpClient())
+            using (var stringContent = new StringContent(JsonConvert.SerializeObject(objFloodRequest), Encoding.UTF8, "application/json"))
+            {
+                HttpResponseMessage httpResponse = await httpClient.PostAsync(Config.Common_DocGen_API, stringContent);
+                var responseString = await httpResponse.Content.ReadAsStringAsync();
+                if (!httpResponse.IsSuccessStatusCode || httpResponse.StatusCode != HttpStatusCode.OK)
+                {
+                    //await _commonService.UpdateLienDisqualifyReason(lienRecord.Id, responseString);
+                    return;
+                }
+                var docGenResponse = JsonConvert.DeserializeObject<DocGenResponse>(responseString);
+                string finalPdfPath = Path.Combine(batchInfo.AMRequestPath, pdfFileName);
+
+                File.WriteAllBytes(finalPdfPath, docGenResponse.DocumentData);
+            }
         }
 
         protected override void ValidateBatches()

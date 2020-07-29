@@ -16,70 +16,87 @@ namespace AM.Scanner.Controllers
     [RoutePrefix("api/Delfus")]
     public class DelfusTemplateAPIController : ApiController
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         [HttpGet]
         [Route("DownloadTemplate")]
         public HttpResponseMessage DownloadDelfusTemplate(string fileName)
         {
-            if (Unauthorized(HttpContext.Current.Request))
+            try
             {
-                return Request.CreateResponse(HttpStatusCode.Unauthorized);
-            }
-            //Create HTTP Response.
-            HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
+                if (Unauthorized(HttpContext.Current.Request))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized);
+                }
+                //Create HTTP Response.
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
 
-            //Set the File Path.
-            string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), fileName);
+                //Set the File Path.
+                string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), fileName);
 
-            //Check whether File exists.
-            if (!File.Exists(filePath))
-            {
-                //Throw 404 (Not Found) exception if File not found.
-                response.StatusCode = HttpStatusCode.NotFound;
-                response.ReasonPhrase = string.Format("File not found: {0} .", fileName);
+                //Check whether File exists.
+                if (!File.Exists(filePath))
+                {
+                    //Throw 404 (Not Found) exception if File not found.
+                    response.StatusCode = HttpStatusCode.NotFound;
+                    response.ReasonPhrase = string.Format("File not found: {0} .", fileName);
+                    return response;
+                }
+
+                //Read the File into a Byte Array.
+                byte[] bytes = File.ReadAllBytes(filePath);
+
+                //Set the Response Content.
+                response.Content = new ByteArrayContent(bytes);
+
+                //Set the Response Content Length.
+                response.Content.Headers.ContentLength = bytes.LongLength;
+
+                //Set the Content Disposition Header Value and FileName.
+                response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment");
+                response.Content.Headers.ContentDisposition.FileName = fileName;
+
+                //Set the File Content Type.
+                response.Content.Headers.ContentType = new MediaTypeHeaderValue(MimeMapping.GetMimeMapping(fileName));
                 return response;
             }
-
-            //Read the File into a Byte Array.
-            byte[] bytes = File.ReadAllBytes(filePath);
-
-            //Set the Response Content.
-            response.Content = new ByteArrayContent(bytes);
-
-            //Set the Response Content Length.
-            response.Content.Headers.ContentLength = bytes.LongLength;
-
-            //Set the Content Disposition Header Value and FileName.
-            response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment");
-            response.Content.Headers.ContentDisposition.FileName = fileName;
-
-            //Set the File Content Type.
-            response.Content.Headers.ContentType = new MediaTypeHeaderValue(MimeMapping.GetMimeMapping(fileName));
-            return response;
+            catch (Exception e)
+            {
+                log.Error(e.ToString());
+                return Request.CreateResponse(HttpStatusCode.BadRequest,e.Message);
+            }
         }
 
         [HttpGet]
         [Route("GetTemplates")]
         public IHttpActionResult GetDelfusTemplates()
         {
-            if (Unauthorized(HttpContext.Current.Request))
+            try
             {
-                return StatusCode(HttpStatusCode.Unauthorized);
-            }
-            DirectoryInfo d = new DirectoryInfo(Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString()));//Assuming Test is your Folder
-            List<FileDetails> fileDetails = new List<FileDetails>();
-            string[] fileType = { ".doc", ".docx" };
-            FileInfo[] fileInfos = d.GetFiles("*.*").Where(f=>fileType.Contains(Path.GetExtension(f.FullName))).ToArray();
-            foreach (var fileInfo in fileInfos)
-            {
-                fileDetails.Add(new FileDetails
+                if (Unauthorized(HttpContext.Current.Request))
                 {
-                    FileName = fileInfo.Name,
-                    FileSize = fileInfo.Length > 0 ?  fileInfo.Length / 1024 : 0,
-                    Status = true,
-                    ModifiedOn = fileInfo.LastWriteTimeUtc
-                });
+                    return StatusCode(HttpStatusCode.Unauthorized);
+                }
+                DirectoryInfo d = new DirectoryInfo(Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString()));//Assuming Test is your Folder
+                List<FileDetails> fileDetails = new List<FileDetails>();
+                string[] fileType = { ".doc", ".docx" };
+                FileInfo[] fileInfos = d.GetFiles("*.*").Where(f => fileType.Contains(Path.GetExtension(f.FullName))).ToArray();
+                foreach (var fileInfo in fileInfos)
+                {
+                    fileDetails.Add(new FileDetails
+                    {
+                        FileName = fileInfo.Name,
+                        FileSize = fileInfo.Length > 0 ? fileInfo.Length / 1024 : 0,
+                        Status = true,
+                        ModifiedOn = fileInfo.LastWriteTimeUtc
+                    });
+                }
+                return Ok(fileDetails); //Getting Text files
             }
-            return Ok(fileDetails); //Getting Text files
+            catch (Exception e)
+            {
+                log.Error(e.ToString());
+                return BadRequest(e.Message);
+            }
 
         }
 
@@ -87,24 +104,33 @@ namespace AM.Scanner.Controllers
         [Route("DeleteTemplate")]
         public IHttpActionResult DeleteTemplate()
         {
-            var request = HttpContext.Current.Request;
-            if (Unauthorized(request))
+            try
             {
-                return StatusCode(HttpStatusCode.Unauthorized);
-            }
-            string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), request.Params["fileName"].Trim());
+                var request = HttpContext.Current.Request;
+                if (Unauthorized(request))
+                {
+                    return StatusCode(HttpStatusCode.Unauthorized);
+                }
+                string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), request.Params["fileName"].Trim());
 
-            //Check whether File exists.
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-                return Ok();
+                //Check whether File exists.
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                    return Ok();
 
+                }
+                else
+                {
+                    //Throw 404 (Not Found) exception if File not found.
+                    return NotFound();
+                }
             }
-            else
+            catch (Exception e)
             {
-                //Throw 404 (Not Found) exception if File not found.
-                return NotFound();
+
+                log.Error(e.ToString());
+                return BadRequest(e.Message);
             }
         }
 
@@ -129,6 +155,7 @@ namespace AM.Scanner.Controllers
             }
             catch (Exception e)
             {
+                log.Error(e.ToString());
                 return BadRequest(e.Message);
             }
         }
@@ -137,22 +164,30 @@ namespace AM.Scanner.Controllers
         [Route("IsTemplateExists")]
         public IHttpActionResult IsTemplateExists(string fileName)
         {
-            if (Unauthorized(HttpContext.Current.Request))
+            try
             {
-                return StatusCode(HttpStatusCode.Unauthorized);
-            }
-            string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), fileName);
+                if (Unauthorized(HttpContext.Current.Request))
+                {
+                    return StatusCode(HttpStatusCode.Unauthorized);
+                }
+                string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), fileName);
 
-            //Check whether File exists.
-            if (File.Exists(filePath))
-            {
-                return Ok();
+                //Check whether File exists.
+                if (File.Exists(filePath))
+                {
+                    return Ok();
 
+                }
+                else
+                {
+                    //Throw 404 (Not Found) exception if File not found.
+                    return NotFound();
+                }
             }
-            else
+            catch (Exception e)
             {
-                //Throw 404 (Not Found) exception if File not found.
-                return NotFound();
+                log.Error(e.ToString());
+                return BadRequest(e.Message);
             }
 
         }

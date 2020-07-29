@@ -19,7 +19,9 @@ namespace AM.Services
         DocType GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, DateTime estReceivedOn, string shippingCarrier, string shippingServiceType);
         DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId);
         List<PnSConfigDetailCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId);
+        List<PnSConfigDetailCoverLetter> GetDocumentRearLetterTemplates(int pnSConfigDetailId);
         DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId);
+        bool AllowInsertsOnlyDocumentType(int clientId, string docType);
     }
 
     public class DocTypeService : ServiceBase, IDocTypeService
@@ -59,7 +61,14 @@ namespace AM.Services
 
         public List<PnSConfigDetailCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId)
         {
-            string query = "SELECT * FROM [Common].[PnSConfigDetailCoverLetters] WHERE PnSConfigDetailId=@PnSConfigDetailId";
+            string query = "SELECT * FROM [Common].[PnSConfigDetailCoverLetters] WHERE PnSConfigDetailId=@PnSConfigDetailId AND SeqId<=100 ORDER BY SeqId";
+
+            return db.Query<PnSConfigDetailCoverLetter>(query, new { PnSConfigDetailId = pnSConfigDetailId }).ToList();
+        }
+
+        public List<PnSConfigDetailCoverLetter> GetDocumentRearLetterTemplates(int pnSConfigDetailId)
+        {
+            string query = "SELECT * FROM [Common].[PnSConfigDetailCoverLetters] WHERE PnSConfigDetailId=@PnSConfigDetailId AND SeqId > 100 ORDER BY SeqId";
 
             return db.Query<PnSConfigDetailCoverLetter>(query, new { PnSConfigDetailId = pnSConfigDetailId }).ToList();
         }
@@ -146,6 +155,13 @@ namespace AM.Services
 
                 return maxCutOffDocType;
             }
+        }
+
+        public bool AllowInsertsOnlyDocumentType(int clientId, string docType)
+        {
+            string query = "SELECT AllowInsertsOnly FROM AM.DocTypes WHERE ClientId=@clientId AND IsActive=1 AND DocTypeName=@docType";
+
+            return db.QuerySingleOrDefault<bool>(query, new { clientId, docType });
         }
     }
 }

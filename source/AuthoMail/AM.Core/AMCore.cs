@@ -193,14 +193,11 @@ namespace AM.Core
                             mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
                             #endregion
 
-                            List<PnSConfigDetailCoverLetter> docTypeLetters = docTypeSvc.GetDocumentCoverLetterTemplates(mailPiece.PnSConfigDetailId.Value).OrderBy(o => o.SeqId).ToList();
-
-                            var frontCoverLetters = docTypeLetters.Where(seq => seq.SeqId <= 100);
-                            var rearCoverLetters = docTypeLetters.Where(seq => seq.SeqId > 100);
+                            List<PnSConfigDetailCoverLetter> coverLetters = docTypeSvc.GetDocumentCoverLetterTemplates(mailPiece.PnSConfigDetailId.Value);
 
                             SmartDocs doc = new SmartDocs();
 
-                            var docTypeLetter = frontCoverLetters.SingleOrDefault();
+                            var docTypeLetter = coverLetters.SingleOrDefault();
                             //foreach (var docTypeLetter in frontCoverLetters)
                             //{
                             //Folder structure and file naming convention should be Root/AppCode/AppCode_DocTypeCode_SeqNo.pdf
@@ -505,47 +502,54 @@ namespace AM.Core
                             //}
 
                             //Here system will add rear cover page only when print location is Dallas CL
-                            if (mailPiece.PrintLocation == "Dallas CL")
+                            List<PnSConfigDetailCoverLetter> rearCoverLetters = docTypeSvc.GetDocumentRearLetterTemplates(mailPiece.PnSConfigDetailId.Value);
+
+                            foreach (var rearCoverLetter in rearCoverLetters)
                             {
-                                foreach (var rearCoverLetter in rearCoverLetters)
+                                endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, rearCoverLetter.CoverLetterTemplatePath);
+                                //For now reverse barcoding will be mail piece id
+                                mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
+
+                                response = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
+
+                                if (response.HasError)
                                 {
-                                    endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, rearCoverLetter.CoverLetterTemplatePath);
-                                    //For now reverse barcoding will be mail piece id
-                                    mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
-
-                                    response = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
-
-                                    if (response.HasError)
-                                    {
-                                        mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                        mailPiece.TotalPages = 0;
-                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                        mailPiece.ErrorDesc = response.ExceptionDetail;
-                                        mailPiece.DueDate = null;
-                                        mailPiece.PrintLocation = null;
-                                        mailPiece.PrintTrailId = null;
-                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                        continue;
-                                    }
-
-                                    endLetterPdfPaths.Add(response.CoverLetterPath);
+                                    mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                    mailPiece.TotalPages = 0;
+                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                    mailPiece.ErrorDesc = response.ExceptionDetail;
+                                    mailPiece.DueDate = null;
+                                    mailPiece.PrintLocation = null;
+                                    mailPiece.PrintTrailId = null;
+                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                    continue;
                                 }
+
+                                endLetterPdfPaths.Add(response.CoverLetterPath);
                             }
 
-                            response = doc.GenerateDoc(coverLetterPdfPaths, pdfFilePath, outputFilePath, docType.ContentScalePercent, docType.NoOfCopies, endLetterPdfPaths);
-
-                            if (response.HasError)
+                            if (!File.Exists(pdfFilePath) && docType.AllowInsertsOnly)
                             {
-                                mailPiece.ErrorCode = OutComeCodes.Invalid_PDF_File;
-                                mailPiece.TotalPages = 0;
-                                mailPiece.DueDate = null;
-                                mailPiece.PrintTrailId = null;
-                                mailPiece.PrintLocation = null;
-                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                mailPiece.ErrorDesc = response.ExceptionDetail;
+                                File.Move(coverLetterPdfPaths.First(), outputFilePath);
+                                mailPiece.TotalPages = PdfUtil.GetPageCount(outputFilePath);
+                            }
+                            else
+                            {
+                                response = doc.GenerateDoc(coverLetterPdfPaths, pdfFilePath, outputFilePath, docType.ContentScalePercent, docType.NoOfCopies, endLetterPdfPaths);
+
+                                if (response.HasError)
+                                {
+                                    mailPiece.ErrorCode = OutComeCodes.Invalid_PDF_File;
+                                    mailPiece.TotalPages = 0;
+                                    mailPiece.DueDate = null;
+                                    mailPiece.PrintTrailId = null;
+                                    mailPiece.PrintLocation = null;
+                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                    mailPiece.ErrorDesc = response.ExceptionDetail;
+                                }
+                                mailPiece.TotalPages = response.TotalPages;
                             }
 
-                            mailPiece.TotalPages = response.TotalPages;
                             mailPiece.TotalSheets = docType.PrintFormat == "Duplex" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;
 
                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
