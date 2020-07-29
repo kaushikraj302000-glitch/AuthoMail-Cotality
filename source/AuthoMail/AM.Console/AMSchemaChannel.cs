@@ -988,7 +988,7 @@ namespace AM.Console
             bool allowInsertsOnly;
             using (IDocTypeService docSvc = new DocTypeService())
             {
-                allowInsertsOnly = docSvc.IsInsertsOnlyDocumentType(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType);
+                allowInsertsOnly = docSvc.AllowInsertsOnlyDocumentType(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType);
             }
 
             //in last system will check for general validations
