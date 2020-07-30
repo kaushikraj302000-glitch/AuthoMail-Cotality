@@ -151,6 +151,8 @@ bufferSize: 4096, useAsync: true)) { }
 
                 // Validate manifest contents
                 mailBatch.MailPieces.Add(mailPiece);
+
+                // Explictly checked to return appropriate HTTP error code  : 409
                 using (ICommonService commonSvc = new CommonService())
                 {
                     //Check mailpiece id is unique.
@@ -184,7 +186,7 @@ bufferSize: 4096, useAsync: true)) { }
                 {
                     case "ELLIEMAE":
                     default:
-                        var result = ValidateClientSpecificRules(mailPiece,client);
+                        var result = ValidateClientSpecificRules(mailPiece, client);
                         if (result.Code != OutComeCodes.No_Error)
                         {
                             DeleteFiles(downloadedFiles);
@@ -209,24 +211,6 @@ bufferSize: 4096, useAsync: true)) { }
                             return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                         }
                         break;
-                }
-
-                if (mailPiece.CustomInfo == null) mailPiece.CustomInfo = new List<Metadata>();
-
-                foreach (var customInfo in mailPiece.CustomInfo)
-                {
-                    if (customInfo.Key.IsNullOrWhiteSpace())
-                    {
-                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "CustomInfo's Key is mandatory." }, receivedOn);
-                        return Request.CreateResponse(HttpStatusCode.BadRequest, res);
-                    }
-                }
-
-                
-                if ((mailPiece.DocumentOrPackage.Files != null && mailPiece.DocumentOrPackage.Files.Count == 0 && mailPiece.DocumentOrPackage.Inserts.IsNullOrWhiteSpace()) || (mailPiece.DocumentOrPackage.Files == null && mailPiece.DocumentOrPackage.Inserts.IsNullOrWhiteSpace()))
-                {
-                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Missing_Files, ErrorMessage = "Request cannot proceed further without Files or Inserts value." }, receivedOn);
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                 }
 
                 if (mailPiece.DocumentOrPackage.Files != null && mailPiece.DocumentOrPackage.Files.Count > 0)
@@ -299,16 +283,18 @@ bufferSize: 4096, useAsync: true)) { }
                     perf.Add(sw.Elapsed.TotalSeconds);
                     log.DebugFormat("Merge pdfs completed: {0}", sw.Elapsed.TotalSeconds);
                 }
-
-               
-                sw.Restart();
-
-
+                else
+                {
+                    sw.Stop();
+                    perf.Add(sw.Elapsed.TotalSeconds);
+                    log.DebugFormat("Validation complete: {0}", sw.Elapsed.TotalSeconds);
+                    sw.Restart();
+                }
                 // call method passing mailpiece
 
                 mailPiece.DocumentOrPackage.Name = mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() ? "{0}.pdf".Fill(mailPiece.BusinessFriendlyIdValue.GetValidFileName()) : mailPiece.DocumentOrPackage.Name;
 
-               
+
                 var response = await CreateAMBatch(mailBatch, mailPiece, sFTChannel, receivedOn);
                 sw.Stop();
                 perf.Add(sw.Elapsed.TotalSeconds);
@@ -323,7 +309,7 @@ bufferSize: 4096, useAsync: true)) { }
                     sw.Stop();
                     perf.Add(sw.Elapsed.TotalSeconds);
                     log.DebugFormat("Delete files: {0}", sw.Elapsed.TotalSeconds);
-                    log.DebugFormat("Perf {0} {1} {2}", mailPiece.Id, ",", String.Join(",", perf));
+                    log.DebugFormat("Perf {0} , {1}", mailPiece.Id, String.Join(",", perf));
                     //sw.Restart();
                     return Request.CreateResponse(HttpStatusCode.OK, mailResponse);
                 }
@@ -509,7 +495,7 @@ bufferSize: 4096, useAsync: true)) { }
             }
         }
 
-        private IEnumerable<MailPieceValidationResult> GetAllMailPieceBasicErrors(MailPiece mailPiece,Client client)
+        private IEnumerable<MailPieceValidationResult> GetAllMailPieceBasicErrors(MailPiece mailPiece, Client client)
         {
             //Duplicate key validation
             using (ICommonService commonSvc = new CommonService())
@@ -583,15 +569,29 @@ bufferSize: 4096, useAsync: true)) { }
             // TODO : check DocumentOrPackage is not empty and DocumentOrPackage.Files property is not empty
             if (mailPiece.DocumentOrPackage == null)
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_DocumentOrPackage, ErrorMessage = "DocumentOrPackage is mandatory." };
-            else if (mailPiece.DocumentOrPackage.Files == null && !allowInsertsOnly)
-                yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Files property is mandatory." };
+            else if ((mailPiece.DocumentOrPackage.Files == null || mailPiece.DocumentOrPackage.Files.Count == 0) && !allowInsertsOnly)
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Files property must be populated for non-inserts only packages." };
+            else if ((mailPiece.DocumentOrPackage.Files == null || mailPiece.DocumentOrPackage.Files.Count == 0) && mailPiece.DocumentOrPackage.Inserts.IsNullOrWhiteSpace())
+            {
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Request cannot proceed further without Files or Inserts value." };
+            }
+
+            if (mailPiece.CustomInfo == null) mailPiece.CustomInfo = new List<Metadata>();
+
+            foreach (var customInfo in mailPiece.CustomInfo)
+            {
+                if (customInfo.Key.IsNullOrWhiteSpace())
+                {
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "CustomInfo's Key is mandatory." };
+                }
+            }
 
             yield break;
         }
 
-        private MailPieceValidationResult ValidateClientSpecificRules(MailPiece mailPiece,Client client)
+        private MailPieceValidationResult ValidateClientSpecificRules(MailPiece mailPiece, Client client)
         {
-            var errors = GetAllMailPieceBasicErrors(mailPiece,client).ToList();
+            var errors = GetAllMailPieceBasicErrors(mailPiece, client).ToList();
 
             if (errors.Count > 0)
             {
