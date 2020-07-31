@@ -17,6 +17,8 @@ using System.Diagnostics;
 using iTextSharp;
 using iTextSharp.text.pdf;
 using iTextSharp.text;
+using System.Xml.Schema;
+using System.Xml;
 
 namespace AM.Web.Controllers
 {
@@ -25,6 +27,13 @@ namespace AM.Web.Controllers
     [RoutePrefix("api")]
     public class MailRequestController : ApiController
     {
+        private static XmlSchemaSet schemas = new XmlSchemaSet();
+
+        static MailRequestController()
+        {
+            schemas.Add(null, XmlReader.Create(new StringReader(Entities.Properties.Resources.MailingRequest)));
+        }
+
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         [Route("test")]
@@ -43,7 +52,7 @@ namespace AM.Web.Controllers
                 string zipFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.zip", mailBatch.Id));
                 string triggerFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.GO", mailBatch.Id));
 
-                string xml = ToXML(mailBatch);
+                string xml = XmlUtil.Serialize(mailBatch);
 
                 using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.OpenOrCreate))
                 {
@@ -152,6 +161,8 @@ bufferSize: 4096, useAsync: true)) { }
                 // Validate manifest contents
                 mailBatch.MailPieces.Add(mailPiece);
 
+
+
                 // Explictly checked to return appropriate HTTP error code  : 409
                 using (ICommonService commonSvc = new CommonService())
                 {
@@ -186,7 +197,7 @@ bufferSize: 4096, useAsync: true)) { }
                 {
                     case "ELLIEMAE":
                     default:
-                        var result = ValidateClientSpecificRules(mailPiece, client);
+                        var result = ValidateClientSpecificRules(mailBatch, client);
                         if (result.Code != OutComeCodes.No_Error)
                         {
                             DeleteFiles(downloadedFiles);
@@ -243,6 +254,8 @@ bufferSize: 4096, useAsync: true)) { }
 
                     sw.Restart();
                     string finalPdfPath = null;
+
+                    if (mailPiece.CustomInfo == null) mailPiece.CustomInfo = new List<Metadata>();
 
                     string destPdf = Path.Combine(root, Path.GetRandomFileName());
                     destPdf = Path.ChangeExtension(destPdf, ".pdf");
@@ -354,6 +367,10 @@ bufferSize: 4096, useAsync: true)) { }
                 catch (JsonReaderException jrEx)
                 {
                     manifestErrDesc = string.Format("Could not process manifest: Path '{0}', line {1}, position {2}.", jrEx.Path, jrEx.LineNumber, jrEx.LinePosition);
+                }
+                catch (Exception ex)
+                {
+                    manifestErrDesc = string.Format("Could not process manifest: {0}", ex.Message);
                 }
             }
             return manifestErrDesc;
@@ -485,18 +502,10 @@ bufferSize: 4096, useAsync: true)) { }
             }
         }
 
-        public string ToXML(MailBatch mailBatch)
+        private IEnumerable<MailPieceValidationResult> GetAllMailPieceBasicErrors(MailBatch mailBatch, Client client)
         {
-            using (var stringwriter = new System.IO.StringWriter())
-            {
-                var serializer = new XmlSerializer(mailBatch.GetType());
-                serializer.Serialize(stringwriter, mailBatch);
-                return stringwriter.ToString();
-            }
-        }
+            var mailPiece = mailBatch.MailPieces.First();
 
-        private IEnumerable<MailPieceValidationResult> GetAllMailPieceBasicErrors(MailPiece mailPiece, Client client)
-        {
             //Duplicate key validation
             using (ICommonService commonSvc = new CommonService())
             {
@@ -576,22 +585,56 @@ bufferSize: 4096, useAsync: true)) { }
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Request cannot proceed further without Files or Inserts value." };
             }
 
-            if (mailPiece.CustomInfo == null) mailPiece.CustomInfo = new List<Metadata>();
-
-            foreach (var customInfo in mailPiece.CustomInfo)
+            if (mailPiece.CustomInfo != null)
             {
-                if (customInfo.Key.IsNullOrWhiteSpace())
+                if (mailPiece.CustomInfo.Count == 0)
                 {
-                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "CustomInfo's Key is mandatory." };
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Metadata is mandatory in custominfo." };
                 }
+
+                foreach (var customInfo in mailPiece.CustomInfo)
+                {
+                    if (customInfo.Key.IsNullOrWhiteSpace())
+                    {
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "CustomInfo's Key is mandatory." };
+                    }
+                }
+            }
+
+            List<MailPieceValidationResult> schemaValidationErrors = new List<MailPieceValidationResult>();
+            try
+            {
+                var requestXML = XmlUtil.ValidateXml(schemas, XmlUtil.Serialize<MailBatch>(mailBatch));
+            }
+            catch (XmlSchemaValidationException ex)
+            {
+                if (ex.Message.Contains("Phone"))
+                {
+                    schemaValidationErrors.Add(new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Provided phone number is not in valid format. Please provide it in following format : (2XX) 2XX XXXX, 2XX2XXXXXX, 2XX-2XX-XXXX, 2XX 2XX XXXX" });
+                }
+
+                if (ex.Message.Contains("EmailAddress"))
+                {
+                    schemaValidationErrors.Add(new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "EmailAddress field cannot be empty string if mentioned." });
+                }
+
+                if (ex.Message.Contains("USZIP"))
+                {
+                    schemaValidationErrors.Add(new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Provided zip code is not in valid format." });
+                }
+            }
+
+            foreach (var error in schemaValidationErrors)
+            {
+                yield return error;
             }
 
             yield break;
         }
 
-        private MailPieceValidationResult ValidateClientSpecificRules(MailPiece mailPiece, Client client)
+        private MailPieceValidationResult ValidateClientSpecificRules(MailBatch mailBatch, Client client)
         {
-            var errors = GetAllMailPieceBasicErrors(mailPiece, client).ToList();
+            var errors = GetAllMailPieceBasicErrors(mailBatch, client).ToList();
 
             if (errors.Count > 0)
             {
