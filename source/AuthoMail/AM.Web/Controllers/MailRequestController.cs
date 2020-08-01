@@ -484,7 +484,7 @@ bufferSize: 4096, useAsync: true)) { }
 
         private MailAPIResponse GetErrorResponse(MailPiece mailPiece, MailPieceValidationResult validationResult, DateTime receivedOn)
         {
-            return new MailAPIResponse { Id = mailPiece.Id, ClientCode = mailPiece.ClientCode, BusinessFriendlyIdName = mailPiece.BusinessFriendlyIdName, BusinessFriendlyIdValue = mailPiece.BusinessFriendlyIdValue, DocumentOrPackage = mailPiece.DocumentOrPackage, RecipientInfo = mailPiece.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = validationResult.Code, ErrorDesc = validationResult.ErrorMessage, ReceivedOn = receivedOn };
+            return new MailAPIResponse { Id = mailPiece.Id, ClientCode = mailPiece.ClientCode, BusinessFriendlyIdName = mailPiece.BusinessFriendlyIdName, BusinessFriendlyIdValue = mailPiece.BusinessFriendlyIdValue, DocumentOrPackageType = mailPiece.DocumentOrPackageType, DocumentOrPackage = mailPiece.DocumentOrPackage, RecipientInfo = mailPiece.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = validationResult.Code, ErrorDesc = validationResult.ErrorMessage, ReceivedOn = receivedOn };
         }
 
         private async static Task InsertInvalidBatch(DateTime receivedTime, SFTChannel sFTChannel, MailBatch mailBatch, int clientId, string errorMessage)
@@ -602,31 +602,24 @@ bufferSize: 4096, useAsync: true)) { }
             }
 
             List<MailPieceValidationResult> schemaValidationErrors = new List<MailPieceValidationResult>();
-            try
+
+            var requestXML = XmlUtil.ValidateXml(schemas, XmlUtil.Serialize<MailBatch>(mailBatch));
+            if (requestXML.HasErrors)
             {
-                var requestXML = XmlUtil.ValidateXml(schemas, XmlUtil.Serialize<MailBatch>(mailBatch));
-            }
-            catch (XmlSchemaValidationException ex)
-            {
-                if (ex.Message.Contains("Phone"))
+                if (requestXML.Errors.Contains("Phone"))
                 {
-                    schemaValidationErrors.Add(new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Provided phone number is not in valid format. Please provide it in following format : (2XX) 2XX XXXX, 2XX2XXXXXX, 2XX-2XX-XXXX, 2XX 2XX XXXX" });
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Provided phone number is not in valid format. Please provide it in following format : (2XX) 2XX XXXX, 2XX2XXXXXX, 2XX-2XX-XXXX, 2XX 2XX XXXX" };
                 }
 
-                if (ex.Message.Contains("EmailAddress"))
+                if (requestXML.Errors.Contains("EmailAddress"))
                 {
-                    schemaValidationErrors.Add(new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "EmailAddress field cannot be empty string if mentioned." });
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "EmailAddress field cannot be empty string if mentioned." };
                 }
 
-                if (ex.Message.Contains("USZIP"))
+                if (requestXML.Errors.Contains("USZIP"))
                 {
-                    schemaValidationErrors.Add(new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Provided zip code is not in valid format." });
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Provided zip code is not in valid format." };
                 }
-            }
-
-            foreach (var error in schemaValidationErrors)
-            {
-                yield return error;
             }
 
             yield break;

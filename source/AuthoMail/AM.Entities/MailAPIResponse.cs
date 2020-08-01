@@ -27,6 +27,7 @@ namespace AM.Entities
         public string ClientCode { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
+        public string DocumentOrPackageType { get; set; }
         public DocumentOrPackage DocumentOrPackage { get; set; }
         public RecipientInfo RecipientInfo { get; set; }
         public string MailingStatus { get; set; }
@@ -68,6 +69,11 @@ namespace AM.Entities
             return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
         }
         public bool ShouldSerializeBusinessFriendlyIdValue()
+        {
+            if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
+            return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
+        }
+        public bool ShouldSerializeDocumentOrPackageType()
         {
             if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
             return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
