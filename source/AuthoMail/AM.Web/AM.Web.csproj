@@ -579,6 +579,7 @@
     <Content Include="Views\Admin\_DocTypePageRange.cshtml" />
     <Content Include="Views\Admin\CreateOrEditDocType.cshtml" />
     <Content Include="Template\PullBackForm_NORDIS.pdf" />
+    <Content Include="Views\Account\ClientSelection.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

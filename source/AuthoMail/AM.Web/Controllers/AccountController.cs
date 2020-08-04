@@ -30,17 +30,19 @@ namespace AM.Web.Controllers
         private AMUserManager _userManager;
         private ISupportService supportSvc;
         private IAccountManageService accSvc;
+        private readonly IClientPermissionService clientPermissionSvc;
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public AccountController()
         {
         }
 
-        public AccountController(AMUserManager userManager, AMSignInManager signInManager, ISupportService supportSvc, IAccountManageService accSvc)
+        public AccountController(AMUserManager userManager, AMSignInManager signInManager, ISupportService supportSvc, IAccountManageService accSvc, IClientPermissionService clientPermissionSvc)
         {
             UserManager = userManager;
             SignInManager = signInManager;
             this.supportSvc = supportSvc;
             this.accSvc = accSvc;
+            this.clientPermissionSvc = clientPermissionSvc;
         }
 
         public AMSignInManager SignInManager
@@ -630,35 +632,14 @@ namespace AM.Web.Controllers
 
             if (result.Succeeded)
             {
-                var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
-                string emails = string.Empty;
-                if (Config.Common_Environment == Env.Prod)
+                bool isCoreLogicUser = CLAuthentication.HasCorelogicAccount(user.Email);
+                if (!isCoreLogicUser)
                 {
-                    sb.Replace("{{url}}", "https://authomail.corelogic.com");
-                    emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+                    user.EmailConfirmed = false;
+                    await UserManager.UpdateAsync(user);
+                    return RedirectToAction("ClientSelection", new { userId = userId });
                 }
-                else if (Config.Common_Environment == Env.Staging)
-                {
-                    sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
-                    emails = supportSvc.GetEmailsFromClientDomain(user.Email);
-                }
-                else
-                {
-                    string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("SignUpRequest", "Admin"));
-                    sb.Replace("{{url}}", url);
-                    emails = Config.Web_RegistrationDefaultEmails;
-                }
-                sb.Replace("{{email}}", user.Email);
-
-                //Send email to specified client admin for new registration request.
-                await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in authomail.", sb.ToString());
-                //Send email to client for waiting for approval of registration
-                sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\WaitForApproval.html")));
-                sb.Replace("{{name}}", user.FirstName);
-                sb.Replace("{{email}}", user.Email);
-                sb.Replace("{{defaultemails}}", string.Join(", ", emails.Split(',')));
-                await InternalEmail.SendMail(user.Email, null, Config.Web_RegistrationBCCEmails, "Welcome to AuthoMail.", sb.ToString());
-                ViewBag.Message = "Thank you for confirming your email. Your registration request is now awaiting approval. Please note that you may login only after your account is approved.";
+                ViewBag.Message = await ConfirmEmailAndSendMail(user);
                 ViewBag.Success = true;
                 return View();
             }
@@ -676,7 +657,81 @@ namespace AM.Web.Controllers
                 return View();
             }
         }
+        private async Task<string> ConfirmEmailAndSendMail(ProfileUser user)
+        {
+            var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
+            string emails = string.Empty;
+            if (Config.Common_Environment == Env.Prod)
+            {
+                sb.Replace("{{url}}", "https://authomail.corelogic.com");
+                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+            }
+            else if (Config.Common_Environment == Env.Staging)
+            {
+                sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
+                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+            }
+            else
+            {
+                string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("SignUpRequest", "Admin"));
+                sb.Replace("{{url}}", url);
+                emails = Config.Web_RegistrationDefaultEmails;
+            }
+            sb.Replace("{{email}}", user.Email);
 
+            //Send email to specified client admin for new registration request.
+            await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in authomail.", sb.ToString());
+            //Send email to client for waiting for approval of registration
+            sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\WaitForApproval.html")));
+            sb.Replace("{{name}}", user.FirstName);
+            sb.Replace("{{email}}", user.Email);
+            sb.Replace("{{defaultemails}}", string.Join(", ", emails.Split(',')));
+            await InternalEmail.SendMail(user.Email, null, Config.Web_RegistrationBCCEmails, "Welcome to AuthoMail.", sb.ToString());
+            return "Thank you for confirming your email. Your registration request is now awaiting approval. Please note that you may login only after your account is approved.";
+        }
+        [AllowAnonymous]
+        public async Task<ActionResult> ClientSelection(string userId)
+        {
+            var user = await UserManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                ViewBag.Success = false;
+                ViewBag.Message = "User not found.";
+                return View();
+            }
+            var isAlreadyRequested = await clientPermissionSvc.IsUserClientRequestPending(userId);
+            if (isAlreadyRequested)
+            {
+                ViewBag.Success = false;
+                ViewBag.Message = "User's request already recorded.";
+                return View();
+            }
+            ViewBag.Success = true;
+            string domainName = new MailAddress(user.Email).Host;
+            ViewBag.clientDomains = await clientPermissionSvc.GetClientDomainByDomainName(domainName);
+            ViewBag.userId = userId;
+            return View();
+        }
+        [AllowAnonymous, HttpPost]
+        public async Task<ActionResult> ClientSelection(string userId, List<int> clientIds)
+        {
+            var user = await UserManager.FindByIdAsync(userId);
+            var clientUserMapping = new ClientUserMapping
+            {
+                UserId = userId,
+                ModifiedById = User.Identity.GetUserId(),
+            };
+            for (int i = 0; i < clientIds.Count; i++)
+            {
+                clientUserMapping.ClientId = clientIds[i];
+                clientUserMapping.Status = ClientUserMappingStatusTypes.Pending;
+                await clientPermissionSvc.InsertClientIdAndUserId(clientUserMapping);
+            }
+            user.EmailConfirmed = true;
+            await UserManager.UpdateAsync(user);
+            var message = await ConfirmEmailAndSendMail(user);
+            return Json(JsonResponseFactory.SuccessResponse(message), JsonRequestBehavior.AllowGet);
+        }
         //
         // GET: /Account/ForgotPassword
         [AllowAnonymous]
