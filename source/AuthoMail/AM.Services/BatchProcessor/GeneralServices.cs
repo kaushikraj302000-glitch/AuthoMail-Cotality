@@ -174,6 +174,7 @@ namespace AM.Services
                 BusinessFriendlyIdName = mp.BusinessFriendlyIdName,
                 BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,
                 ClientCode = clientCode,
+                DocumentOrPackageType = mp.DocumentOrPackageType,
                 DocumentOrPackage = new DocumentOrPackage() { Name = mp.FileName },
                 ReceivedOn = mailBatch.ReceivedOn.Value,
                 RecipientInfo = new RecipientInfo() { Recipient = new Recipient() { FirstName = mp.RcptFirstName, LastName = mp.RcptLastName }, Address = new Entities.Address() { Street = mp.RcptAddressStreet, City = mp.RcptAddressCity, State = mp.RcptAddressState, Zip = mp.RcptAddressZIP } },

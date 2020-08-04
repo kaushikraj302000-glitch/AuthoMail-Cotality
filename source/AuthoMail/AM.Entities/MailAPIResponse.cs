@@ -27,6 +27,7 @@ namespace AM.Entities
         public string ClientCode { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
+        public string DocumentOrPackageType { get; set; }
         public DocumentOrPackage DocumentOrPackage { get; set; }
         public RecipientInfo RecipientInfo { get; set; }
         public string MailingStatus { get; set; }
