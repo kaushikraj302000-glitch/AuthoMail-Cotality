@@ -226,7 +226,7 @@ namespace AM.Entities
         public string EmailAddress { get; set; }
         public bool ShouldSerializeEmailAddress()
         {
-            return !string.IsNullOrWhiteSpace(EmailAddress);
+            return !(EmailAddress == null);
         }
     }
 
@@ -284,7 +284,7 @@ namespace AM.Entities
         public string Country { get; set; }
         public bool ShouldSerializeCountry()
         {
-            return !string.IsNullOrWhiteSpace(Country);
+            return !(Country == null);
         }
     }
 
