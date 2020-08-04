@@ -19,6 +19,9 @@ using iTextSharp.text.pdf;
 using iTextSharp.text;
 using System.Xml.Schema;
 using System.Xml;
+using System.Web.UI.WebControls;
+using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace AM.Web.Controllers
 {
@@ -410,6 +413,7 @@ bufferSize: 4096, useAsync: true)) { }
                             ClientCode = response.AppCode,
                             BusinessFriendlyIdName = response.BusinessFriendlyIdName,
                             BusinessFriendlyIdValue = response.BusinessFriendlyIdValue,
+                            DocumentOrPackageType = response.DocumentOrPackageType,
                             DocumentOrPackage = new DocumentOrPackage { Name = response.FileName, Inserts = response.Inserts },
                             RecipientInfo = new RecipientInfo
                             {
@@ -484,7 +488,7 @@ bufferSize: 4096, useAsync: true)) { }
 
         private MailAPIResponse GetErrorResponse(MailPiece mailPiece, MailPieceValidationResult validationResult, DateTime receivedOn)
         {
-            return new MailAPIResponse { Id = mailPiece.Id, ClientCode = mailPiece.ClientCode, BusinessFriendlyIdName = mailPiece.BusinessFriendlyIdName, BusinessFriendlyIdValue = mailPiece.BusinessFriendlyIdValue, DocumentOrPackage = mailPiece.DocumentOrPackage, RecipientInfo = mailPiece.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = validationResult.Code, ErrorDesc = validationResult.ErrorMessage, ReceivedOn = receivedOn };
+            return new MailAPIResponse { Id = mailPiece.Id, ClientCode = mailPiece.ClientCode, BusinessFriendlyIdName = mailPiece.BusinessFriendlyIdName, BusinessFriendlyIdValue = mailPiece.BusinessFriendlyIdValue, DocumentOrPackageType = mailPiece.DocumentOrPackageType, DocumentOrPackage = mailPiece.DocumentOrPackage, RecipientInfo = mailPiece.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = validationResult.Code, ErrorDesc = validationResult.ErrorMessage, ReceivedOn = receivedOn };
         }
 
         private async static Task InsertInvalidBatch(DateTime receivedTime, SFTChannel sFTChannel, MailBatch mailBatch, int clientId, string errorMessage)
@@ -560,8 +564,16 @@ bufferSize: 4096, useAsync: true)) { }
 
             if (mailPiece.eDelivery != null)
             {
+                //TODO : Email address validation if not empty.
                 if (mailPiece.RecipientInfo.Recipient.EmailAddress.IsNullOrWhiteSpace())
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Email address is mandatory." };
+                else
+                {
+                    if (!IsValidEmail(mailPiece.RecipientInfo.Recipient.EmailAddress))
+                    {
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Email address is not in a valid format." };
+                    }
+                }
                 if (mailPiece.eDelivery.ExpiryDate < Common.EstToday)
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Issue_In_EDelivery, ErrorMessage = "The expiration date must be greater than or equal to current date." };
             }
@@ -600,35 +612,7 @@ bufferSize: 4096, useAsync: true)) { }
                     }
                 }
             }
-
-            List<MailPieceValidationResult> schemaValidationErrors = new List<MailPieceValidationResult>();
-            try
-            {
-                var requestXML = XmlUtil.ValidateXml(schemas, XmlUtil.Serialize<MailBatch>(mailBatch));
-            }
-            catch (XmlSchemaValidationException ex)
-            {
-                if (ex.Message.Contains("Phone"))
-                {
-                    schemaValidationErrors.Add(new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Provided phone number is not in valid format. Please provide it in following format : (2XX) 2XX XXXX, 2XX2XXXXXX, 2XX-2XX-XXXX, 2XX 2XX XXXX" });
-                }
-
-                if (ex.Message.Contains("EmailAddress"))
-                {
-                    schemaValidationErrors.Add(new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "EmailAddress field cannot be empty string if mentioned." });
-                }
-
-                if (ex.Message.Contains("USZIP"))
-                {
-                    schemaValidationErrors.Add(new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Provided zip code is not in valid format." });
-                }
-            }
-
-            foreach (var error in schemaValidationErrors)
-            {
-                yield return error;
-            }
-
+           
             yield break;
         }
 
@@ -640,8 +624,85 @@ bufferSize: 4096, useAsync: true)) { }
             {
                 return new MailPieceValidationResult() { Code = errors.First().Code, ErrorMessage = string.Join(" | ", errors.Select(row => row.ErrorMessage)) };
             }
+            else
+            {
+                // Schema validation
+                var scehmaErrors = GetAllSchemaErrors(mailBatch, client).ToList();
+
+                if (scehmaErrors.Count > 0)
+                {
+                    return new MailPieceValidationResult() { Code = errors.First().Code, ErrorMessage = string.Join(" | ", errors.Select(row => row.ErrorMessage)) };
+                }
+            }
 
             return new MailPieceValidationResult() { Code = OutComeCodes.No_Error };
+        }
+
+        private IEnumerable<MailPieceValidationResult> GetAllSchemaErrors(MailBatch mailBatch, Client client)
+        {
+            //TODO : Take Phone and USZIP validation with others. After validating all checks, call ValidateXml
+            var xmlValidationResult = XmlUtil.ValidateXml(schemas, XmlUtil.Serialize<MailBatch>(mailBatch));
+
+            foreach (var error in xmlValidationResult.ErrorList)
+            {
+                if (error.Contains("http://schemas.corelogic.com/ade/authomail/") && error.Contains("NAPhone"))
+                {
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Provided phone number is not in a valid format. Please provide it in one of the following formats : (XXX) XXX XXXX, XXXXXXXXXX, XXX-XXX-XXXX, XXX XXX XXXX" };
+                }
+                else if (error.Contains("http://schemas.corelogic.com/ade/authomail/") && error.Contains("USZIP"))
+                {
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Provided zip code is not in a valid format." };
+                }
+                else
+                {
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = error };
+                }
+            }
+        }
+
+        public static bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            try
+            {
+                // Normalize the domain
+                email = Regex.Replace(email, @"(@)(.+)$", DomainMapper,
+                                      RegexOptions.None, TimeSpan.FromMilliseconds(200));
+
+                // Examines the domain part of the email and normalizes it.
+                string DomainMapper(Match match)
+                {
+                    // Use IdnMapping class to convert Unicode domain names.
+                    var idn = new IdnMapping();
+
+                    // Pull out and process domain name (throws ArgumentException on invalid)
+                    var domainName = idn.GetAscii(match.Groups[2].Value);
+
+                    return match.Groups[1].Value + domainName;
+                }
+            }
+            catch (RegexMatchTimeoutException e)
+            {
+                return false;
+            }
+            catch (ArgumentException e)
+            {
+                return false;
+            }
+
+            try
+            {
+                return Regex.IsMatch(email,
+                    @"^(?("")("".+?(?<!\\)""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))" +
+                    @"(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-0-9a-z]*[0-9a-z]*\.)+[a-z0-9][\-a-z0-9]{0,22}[a-z0-9]))$",
+                    RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                return false;
+            }
         }
 
         public class MailPieceValidationResult

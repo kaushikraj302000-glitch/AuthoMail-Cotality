@@ -73,6 +73,11 @@ namespace AM.Entities
             if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
             return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
         }
+        public bool ShouldSerializeDocumentOrPackageType()
+        {
+            if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
+            return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
+        }
         public bool ShouldSerializeDocumentOrPackage()
         {
             if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
