@@ -243,8 +243,8 @@
                 <li><a href="http://www.corelogic.com/about-us/our-company.aspx" target="_blank">About Our Company</a></li>
                 <li><a href="http://www.corelogic.com/about-us/contact-us.aspx" target="_blank">Contact Us</a></li>
                 @*<li><a href="#">FAQs</a></li>
-                <li><a href="#">Sitemap</a></li>
-                <li><a href="#">Terms of Use</a></li>*@
+                    <li><a href="#">Sitemap</a></li>
+                    <li><a href="#">Terms of Use</a></li>*@
                 <li><a href="http://www.corelogic.com/privacy.aspx" target="_blank">Policies</a></li>
             </ol>
         </div>
@@ -252,5 +252,8 @@
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/cljs")
     @RenderSection("scripts", required: false)
+    <script>
+    var baseUrl = '@Url.Content("~/")';
+    </script>
 </body>
 </html>

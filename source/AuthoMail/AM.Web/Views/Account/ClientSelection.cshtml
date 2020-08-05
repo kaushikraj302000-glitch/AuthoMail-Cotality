@@ -11,13 +11,12 @@
     <div id="Message"></div>
     <div class="panel panel-primary">
         <div class="panel-heading">
-            Please select the Appcode(s) then after your Email will be confirm.
+            <h3>Please select the Appcode(s) then after your Email will be confirm.</h3>
         </div>
         <div class="panel-body">
             <div class="form-group">
                 <label class="control-label">AppCode</label>
-                <select class="form-control selectpicker" multiple id="appcode">
-                    <option value="">Select AppCode</option>
+                <select class="form-control selectpicker" multiple id="appcode" data-live-search="true" data-live-search-placeholder="Search AppCode">
                     @foreach (var appcode in ViewBag.clientDomains as List<AM.Services.ClientIdNameVM>)
                     {
                         <option value="@(appcode.Id)">@appcode.NameAppCode</option>
@@ -49,7 +48,9 @@
                         dataType: "json",
                         success: function (response) {
                             if (response.Success) {
-                                $('.panel-body').html('<div class="alert alert-success text-center">' + response.Object + '</div>');
+                                $('.panel-body').html('<div class="alert alert-green text-center">' + response.Object + '</div>');
+                                $('#confirmemail').remove();
+                                $('.panel-heading').remove();
                             } else {
                                 toastr.error(response.ErrorMessage);
                             }

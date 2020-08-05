@@ -67,14 +67,26 @@
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
-                <h2 id="myModalLabel">Are you sure you want to approve client sign up request? </h2>
+                @*<h2 id="myModalLabel">Are you sure you want to approve client sign up request? </h2>*@
+                <h2>Please select Role & AppCode(s).</h2>
+            </div>
+            <div class="modal-body">
                 <input type="hidden" id="auserId" name="auserId" />
                 <input type="hidden" id="astatus" name="astatus" />
                 <div id="RoleAreaDiv"></div>
-                <hr />
-                <button type="button" class="btn btn-primary" id="approved"><i class="fa fa-check"></i> Yes</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
+                <div id="AppCodeAreaDiv">
+                    <div class="form-group">
+                        <label class="control-label">AppCode</label>
+                        <select data-live-search="true" data-live-search-placeholder="Select AppCode" class="form-control" multiple="multiple" id="appcodeselect" title="AppCode">
+                        </select>
+                    </div>
+                </div>
             </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="approved"><i class="fa fa-check"></i> Approve</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
+            </div>
+
         </div>
     </div>
 </div>
@@ -84,7 +96,7 @@
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
-                <h2 id="myModalLabel"> Are you sure you want to reject client sign up request?</h2>
+                @*<h2 id="myModalLabel"> Are you sure you want to reject client sign up request?</h2>*@
                 <input type="hidden" id="ruserId" name="ruserId" />
                 <input type="hidden" id="rstatus" name="rstatus" />
                 <hr />
@@ -271,27 +283,37 @@
             $("#approveModal").find("#astatus").val("");
             $("#approveModal").find("#auserId").val($(val).data("userid"));
             $("#approveModal").find("#astatus").val($(val).data("status"));
-            BindRole();
+            BindRole($(val).data("userid"));
             $("#approveModal").modal("show");
         }
         function BindRole(userId) {
             var userRole = '';
             $.ajax({
                 type: "GET",
-                url: baseUrl + "Admin/GetRoleForAssign",
+                url: baseUrl + "Admin/GetRoleAndAppCode",
                 data: {userId:userId},
                 dataType: "json",
                 success: function (response) {
+                    console.log(response);
                     if (response.Success) {
-
-                            var roleRadio = '<div class="form-group"> <label class="cotrol-label">Select Role</label>';
-                            $.each(response.Object.roles, function (i, v) {
-                                roleRadio += '<input type="radio" class="cl-radio roleradiocls" name="roleradio" value=' + v + ' />' + ' <label>'+v+'</label>';
+                            var roleRadio = '<div class="form-group"> <label class="control-label" style="margin-right:10px">Select Role</label>';
+                        $.each(response.Object.roles, function (i, v) {
+                            var isChecked = response.Object.isCL ? '' : 'checked';
+                            roleRadio += '<input type="radio" ' + isChecked+' class="radiobtn roleradiocls" name="roleradio" value=' + v + ' />' + ' <label>'+v+'</label>';
                             });
                             roleRadio+='</div>';
 
                         $('#RoleAreaDiv').html(roleRadio);
-                        GetClientsOnRoleChange(userId);
+                        if (response.Object.isCL) {
+                            $('#appcodeselect').append('<option value="all">All</option>');
+                        }
+                        else {
+                            $("#RoleAreaDiv").hide();
+                        }
+                        $.each(response.Object.appCodes, function (i, v) {
+                            $('#appcodeselect').append('<option value="' + v.Id + '">' + v.NameAppCode+'</option>');
+                        });
+                        $('#appcodeselect').selectpicker('refresh');
                     }
                     else {
                         $('#RoleAreaDiv').html('<div class="alert laert-danger text-center"><b>'+response.ErrorMessage+'</b></div>');
@@ -299,12 +321,14 @@
                 }
             });
         }
-        function GetClientsOnRoleChange(userId) {
-            $('.roleradiocls').unbind('change');
-            $('.roleradiocls').bind('change', function (e) {
-
+        function radiBtnEvent() {
+            $('.radiobtn').unbind('change');
+            $('..radiobtn').bind('change', function (e) {
+                e.preventDefault();
+                $(this).val(this.checked);
             });
         }
+
         function RejectUser(val) {
             $("#rejectModal").find("#ruserId").val("");
             $("#rejectModal").find("#rstatus").val("");
@@ -313,22 +337,31 @@
             $("#rejectModal").modal("show");
         }
         $("#approved").click(function () {
-            $("#approveModal").modal("hide");
-            UpdateUserStatus($("#approveModal").find("#auserId").val(), $("#approveModal").find("#astatus").val())
+            var role = $("input[name=roleradio]:checked").val();
+            var appcode = $('#appcodeselect').val();
+            if (role == undefined || role == null || role == "") {
+                alertMessage("red", "Please select role.")
+                return false;
+            }
+            if (appcode == undefined || appcode == null || appcode == "") {
+                alertMessage("red", "Please select AppCode.");
+                return false;
+            }
+            UpdateUserStatus($("#approveModal").find("#auserId").val(), $("#approveModal").find("#astatus").val(),appcode, role);
         });
         $("#rejected").click(function () {
             $("#rejectModal").modal("hide");
-            UpdateUserStatus($("#rejectModal").find("#ruserId").val(), $("#rejectModal").find("#rstatus").val())
+            UpdateUserStatus($("#rejectModal").find("#ruserId").val(), $("#rejectModal").find("#rstatus").val(),null,null)
         });
 
-        function UpdateUserStatus(userId, status) {
+        function UpdateUserStatus(userId, status,clientIds,role) {
             //console.log(userId+" "+status)
             var el = $("#myModal").find(".modal-body");
             el.empty();
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Admin/UpdateUsersRequestSignUp",
-                data: JSON.stringify({ userId: userId, status: status }),
+                data: JSON.stringify({ userId: userId, status: status, clientIds: clientIds, role: role}),
                 contentType: "application/json; charset=utf-8",
                 dataType: "JSON",
                 success: function (response) {

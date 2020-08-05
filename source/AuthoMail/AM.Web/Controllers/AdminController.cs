@@ -32,7 +32,8 @@ namespace AM.Web.Controllers
         IConfigService confSvc;
         IInventoryService inventorySvc;
         IProjectRequestService projectRequestSvc;
-        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc, IProjectRequestService projectRequestSvc)
+        private readonly IClientPermissionService clientPermissionSvc;
+        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc, IProjectRequestService projectRequestSvc, IClientPermissionService clientPermissionSvc)
         {
             UserManager = userManager;
             this.supportSvc = supportSvc;
@@ -40,6 +41,7 @@ namespace AM.Web.Controllers
             this.confSvc = confSvc;
             this.inventorySvc = inventorySvc;
             this.projectRequestSvc = projectRequestSvc;
+            this.clientPermissionSvc = clientPermissionSvc;
         }
         // GET: Admin
         #region SignUp Request
@@ -48,7 +50,7 @@ namespace AM.Web.Controllers
 
             return View();
         }
-        public async Task<ActionResult> GetRoleForAssign(string userId)
+        public async Task<ActionResult> GetRoleAndAppCode(string userId)
         {
             if (userId == null)
             {
@@ -62,7 +64,15 @@ namespace AM.Web.Controllers
             bool IsCL = CLAuthentication.HasCorelogicAccount(user.Email);
             var roles = new List<string> { AMRoles.Client };
             if (IsCL) roles.Add(AMRoles.BA);
-            return Json(JsonResponseFactory.SuccessResponse(roles), JsonRequestBehavior.AllowGet);
+
+            var appCodes = await clientPermissionSvc.GetAppCodeByUserIdORall(IsCL ? null : userId);
+            var data = new
+            {
+                roles = roles,
+                appCodes = appCodes,
+                isCL = IsCL
+            };
+            return Json(JsonResponseFactory.SuccessResponse(data), JsonRequestBehavior.AllowGet);
         }
         public AMUserManager UserManager
         {
@@ -82,11 +92,16 @@ namespace AM.Web.Controllers
             return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
-        public async Task<ActionResult> UpdateUsersRequestSignUp(string userId, string status)
+        public async Task<ActionResult> UpdateUsersRequestSignUp(string userId, string status, List<int> clientIds, string role)
         {
             try
             {
+                if (role == AMRoles.Client && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    await clientPermissionSvc.ApproveOrDeclinedClientsForUser(userId, clientIds, User.Identity.GetUserId());
+                }
                 var model = supportSvc.UpdateUsersRequestSignUp(userId, status, User.Identity.GetUserId());
+
                 var user = UserManager.FindById(userId);
 
                 string template = status.Equals(AMUserStatus.Approved) ? "ApproveRegistration.html" : "RejectRegistration.html";

@@ -716,10 +716,11 @@ namespace AM.Web.Controllers
         public async Task<ActionResult> ClientSelection(string userId, List<int> clientIds)
         {
             var user = await UserManager.FindByIdAsync(userId);
+            var systemUser = await UserManager.FindByNameAsync("system@milestonetechnoconsulting.com");
             var clientUserMapping = new ClientUserMapping
             {
                 UserId = userId,
-                ModifiedById = User.Identity.GetUserId(),
+                ModifiedById = systemUser.Id
             };
             for (int i = 0; i < clientIds.Count; i++)
             {
