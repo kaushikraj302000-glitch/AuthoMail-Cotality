@@ -7,14 +7,16 @@
     .btnsize {
         padding: 4px 12px !important;
     }
-     .dataTables_wrapper {
+
+    .dataTables_wrapper {
         margin-top: -1.5% !important;
     }
 </style>
 <div class="panel panel-default">
     <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
     <div class="panel-heading" id="signUpHeader">
-        <div class="panel-title"><i class="fa fa-lock"></i>
+        <div class="panel-title">
+            <i class="fa fa-lock"></i>
             Client sign up request.
         </div>
     </div>
@@ -68,6 +70,7 @@
                 <h2 id="myModalLabel">Are you sure you want to approve client sign up request? </h2>
                 <input type="hidden" id="auserId" name="auserId" />
                 <input type="hidden" id="astatus" name="astatus" />
+                <div id="RoleAreaDiv"></div>
                 <hr />
                 <button type="button" class="btn btn-primary" id="approved"><i class="fa fa-check"></i> Yes</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
@@ -98,7 +101,7 @@
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header">
                 <h1 id="myModalLabel">Sign Up Response</h1>
-                
+
             </div>
             <div class="modal-body">
 
@@ -268,7 +271,39 @@
             $("#approveModal").find("#astatus").val("");
             $("#approveModal").find("#auserId").val($(val).data("userid"));
             $("#approveModal").find("#astatus").val($(val).data("status"));
+            BindRole();
             $("#approveModal").modal("show");
+        }
+        function BindRole(userId) {
+            var userRole = '';
+            $.ajax({
+                type: "GET",
+                url: baseUrl + "Admin/GetRoleForAssign",
+                data: {userId:userId},
+                dataType: "json",
+                success: function (response) {
+                    if (response.Success) {
+
+                            var roleRadio = '<div class="form-group"> <label class="cotrol-label">Select Role</label>';
+                            $.each(response.Object.roles, function (i, v) {
+                                roleRadio += '<input type="radio" class="cl-radio roleradiocls" name="roleradio" value=' + v + ' />' + ' <label>'+v+'</label>';
+                            });
+                            roleRadio+='</div>';
+
+                        $('#RoleAreaDiv').html(roleRadio);
+                        GetClientsOnRoleChange(userId);
+                    }
+                    else {
+                        $('#RoleAreaDiv').html('<div class="alert laert-danger text-center"><b>'+response.ErrorMessage+'</b></div>');
+                    }
+                }
+            });
+        }
+        function GetClientsOnRoleChange(userId) {
+            $('.roleradiocls').unbind('change');
+            $('.roleradiocls').bind('change', function (e) {
+
+            });
         }
         function RejectUser(val) {
             $("#rejectModal").find("#ruserId").val("");

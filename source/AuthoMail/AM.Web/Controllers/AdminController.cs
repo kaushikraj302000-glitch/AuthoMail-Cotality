@@ -45,7 +45,24 @@ namespace AM.Web.Controllers
         #region SignUp Request
         public ActionResult SignUpRequest()
         {
+
             return View();
+        }
+        public async Task<ActionResult> GetRoleForAssign(string userId)
+        {
+            if (userId == null)
+            {
+                return Json(JsonResponseFactory.ErrorResponse("User not found"), JsonRequestBehavior.AllowGet);
+            }
+            var user = await UserManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return Json(JsonResponseFactory.ErrorResponse("User not found"), JsonRequestBehavior.AllowGet);
+            }
+            bool IsCL = CLAuthentication.HasCorelogicAccount(user.Email);
+            var roles = new List<string> { AMRoles.Client };
+            if (IsCL) roles.Add(AMRoles.BA);
+            return Json(JsonResponseFactory.SuccessResponse(roles), JsonRequestBehavior.AllowGet);
         }
         public AMUserManager UserManager
         {

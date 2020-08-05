@@ -10,6 +10,7 @@ using Microsoft.AspNet.Identity.Owin;
 using AM.Entities;
 using System.Security.Claims;
 using Microsoft.Owin.Security;
+using System.Threading.Tasks;
 
 namespace AM.Web.Controllers
 {
@@ -20,12 +21,14 @@ namespace AM.Web.Controllers
         IHomeService homeSvc;
         private AMSignInManager _signInManager;
         private AMUserManager _userManager;
+        //private readonly IClientPermissionService clientPermissionSvc;
         public CommonController(IReportService repoSvc, IHomeService homeSvc, AMSignInManager signInManager, AMUserManager userManager)
         {
             this.repoSvc = repoSvc;
             this.homeSvc = homeSvc;
             UserManager = userManager;
             SignInManager = signInManager;
+            //this.clientPermissionSvc = clientPermissionSvc;
         }
         public AMUserManager UserManager
         {
@@ -77,11 +80,16 @@ namespace AM.Web.Controllers
             return PartialView("_GetHeadingForBusinessId", model);
         }
 
-        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client)]
         [HttpGet]
-        public ActionResult GetClientMenu()
+        public async Task<ActionResult> GetClientMenu()
         {
             var model = User.IsInRole(AMRoles.BA) ? homeSvc.GetAllActiveClient().Where(u => u.Id > 0).ToList() : homeSvc.GetAllActiveClient();
+            if (User.IsInRole(AMRoles.Client))
+            {
+                var result = await homeSvc.GetAllActiveAppCodeForClientRole(User.Identity.GetUserId());
+                model = result.ToList();
+            }
             return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
         }
 
