@@ -254,10 +254,14 @@
         </div>
     </footer>
     @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/cljs")    
+    @Scripts.Render("~/bundles/cljs")
+    @Scripts.Render("~/bundles/clcomponetjs")
     @RenderSection("scripts", required: false)
     <script>
-    var baseUrl = '@Url.Content("~/")';
+        var baseUrl = '@Url.Content("~/")';
+        $(document).ready(function () {
+            init();
+        });
     </script>
 </body>
 </html>

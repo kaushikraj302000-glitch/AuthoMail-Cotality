@@ -7,7 +7,7 @@
         width: 80vw;
         height: 50vh;
         display: flex;
-        align-items:baseline;
+        align-items: baseline;
         justify-content: center;
     }
 
@@ -29,7 +29,7 @@
             <div class="panel-body">
                 <div class="form-group">
                     <label class="control-label">AppCode</label>
-                    <select class="form-control selectpicker" multiple id="appcode" data-live-search="true" data-live-search-placeholder="Search AppCode">
+                    <select class="form-control selectpicker" multiple="multiple" id="appcode" data-live-search="true" data-live-search-placeholder="Search AppCode">
                         @foreach (var appcode in ViewBag.clientDomains as List<AM.Services.ClientIdNameVM>)
                         {
                             <option value="@(appcode.Id)">@appcode.NameAppCode</option>
@@ -46,7 +46,6 @@
         @Scripts.Render("~/bundles/jqueryval")
         <script type="text/javascript">
             $(document).ready(function () {
-                $('.selectpicker').selectpicker('refresh');
                 var userId = '@(ViewBag.userId)';
                 $('#confirmemail').click(function (e) {
                     e.preventDefault();

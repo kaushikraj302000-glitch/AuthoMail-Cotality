@@ -82,7 +82,7 @@
                 <div id="AppCodeAreaDiv">
                     <div class="form-group">
                         <label class="control-label">AppCode</label>
-                        <select data-live-search="true" data-live-search-placeholder="Select AppCode" class="form-control" multiple="multiple" id="appcodeselect" title="AppCode">
+                        <select data-live-search="true" data-live-search-placeholder="Select AppCode" class="form-control selectpicker" multiple="multiple" id="appcodeselect" title="AppCode">
                         </select>
                     </div>
                 </div>
@@ -292,7 +292,7 @@
             BindRole($(val).data("userid"));
             $("#approveModal").modal("show");
         }
-        function BindRole(userId) {            
+        function BindRole(userId) {
             $.ajax({
                 type: "GET",
                 url: baseUrl + "Admin/GetRoleAndAppCode",
