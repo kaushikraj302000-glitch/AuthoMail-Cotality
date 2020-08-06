@@ -462,6 +462,7 @@
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
+    <Content Include="Template\PartiallyApproveRegistration.html" />
     <Content Include="Template\WaitForApproval.html" />
     <Content Include="Template\ApproveRegistration.html" />
     <Content Include="Template\ForgotPassword.html" />

@@ -302,8 +302,8 @@ namespace AM.Web.Controllers
             EmailValidate emailValidate = new EmailValidate(email);
             if (emailValidate.IsValid)
             {
-                var clientDomain = supportSvc.FingByDomainName(emailValidate.Host);
-                if (clientDomain == null)
+                var IsDomainExists = supportSvc.IsDomainExists(emailValidate.Host);
+                if (!IsDomainExists)
                 {
                     emailValidate.Message = string.Format("Users of the specified domain name '{0}' are not allowed to register.", emailValidate.Host);
                     emailValidate.IsValid = false;
@@ -503,8 +503,8 @@ namespace AM.Web.Controllers
                             return View(model);
                         }
                         MailAddress mAdd = new MailAddress(model.Email);
-                        var clientdomain = supportSvc.FingByDomainName(mAdd.Host);
-                        if (clientdomain == null)
+                        var IsDomainExists = supportSvc.IsDomainExists(mAdd.Host);
+                        if (!IsDomainExists)
                         {
                             ModelState.AddModelError("", string.Format("Users of the specified domain name '{0}' are not allowed to register.", mAdd.Host));
                             return View(model);

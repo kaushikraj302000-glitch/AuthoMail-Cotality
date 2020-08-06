@@ -2,30 +2,44 @@
     ViewBag.Title = "Email confirmed";
     Layout = "~/Views/Shared/_LayoutLogin.cshtml";
 }
+<style>
+    .parent {
+        width: 80vw;
+        height: 50vh;
+        display: flex;
+        align-items:baseline;
+        justify-content: center;
+    }
 
+    .child {
+        width: 45vw;
+    }
+</style>
 <div style="margin-top:2%">
 
 </div>
 @if (ViewBag.Success)
 {
     <div id="Message"></div>
-    <div class="panel panel-primary">
-        <div class="panel-heading">
-            <h3>Please select the Appcode(s) then after your Email will be confirm.</h3>
-        </div>
-        <div class="panel-body">
-            <div class="form-group">
-                <label class="control-label">AppCode</label>
-                <select class="form-control selectpicker" multiple id="appcode" data-live-search="true" data-live-search-placeholder="Search AppCode">
-                    @foreach (var appcode in ViewBag.clientDomains as List<AM.Services.ClientIdNameVM>)
-                    {
-                        <option value="@(appcode.Id)">@appcode.NameAppCode</option>
-                    }
-                </select>
+    <div class="parent">
+        <div class="panel panel-primary child">
+            <div class="panel-heading">
+                <h3>Please select the Appcode(s) then after your Email will be confirm.</h3>
             </div>
-        </div>
-        <div class="panel-footer text-right">
-            <button type="button" id="confirmemail" class="btn btn-success">Confirm Email</button>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="control-label">AppCode</label>
+                    <select class="form-control selectpicker" multiple id="appcode" data-live-search="true" data-live-search-placeholder="Search AppCode">
+                        @foreach (var appcode in ViewBag.clientDomains as List<AM.Services.ClientIdNameVM>)
+                        {
+                            <option value="@(appcode.Id)">@appcode.NameAppCode</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="panel-footer text-right">
+                <button type="button" id="confirmemail" class="btn btn-success">Confirm Email</button>
+            </div>
         </div>
     </div>
     @section Scripts {
@@ -38,7 +52,7 @@
                     e.preventDefault();
                     var clientIds = $('#appcode').val();
                     if (clientIds == null || clientIds == '') {
-                        toastr.error("Please select AppCode.");
+                        alertMessage("red", "Please select AppCode.");
                         return false;
                     }
                     $.ajax({
@@ -52,7 +66,7 @@
                                 $('#confirmemail').remove();
                                 $('.panel-heading').remove();
                             } else {
-                                toastr.error(response.ErrorMessage);
+                                alertMessage("red", response.ErrorMessage);
                             }
                         }
                     });

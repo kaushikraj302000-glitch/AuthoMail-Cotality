@@ -84,12 +84,13 @@ namespace AM.Web.Controllers
         [HttpGet]
         public async Task<ActionResult> GetClientMenu()
         {
-            var model = User.IsInRole(AMRoles.BA) ? homeSvc.GetAllActiveClient().Where(u => u.Id > 0).ToList() : homeSvc.GetAllActiveClient();
             if (User.IsInRole(AMRoles.Client))
             {
                 var result = await homeSvc.GetAllActiveAppCodeForClientRole(User.Identity.GetUserId());
-                model = result.ToList();
+                return Json(JsonResponseFactory.SuccessResponse(result.ToList()), JsonRequestBehavior.AllowGet);
             }
+            var model = User.IsInRole(AMRoles.BA) ? homeSvc.GetAllActiveClient().Where(u => u.Id > 0).ToList() : homeSvc.GetAllActiveClient();
+
             return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
         }
 

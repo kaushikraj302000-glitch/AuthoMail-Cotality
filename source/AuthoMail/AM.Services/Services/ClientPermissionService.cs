@@ -36,13 +36,14 @@ where UserId=@userId and ClientId in @clientIds";
                 now = DateTime.UtcNow,
                 clientIds = approveclientIds
             });
-            //Decline client request
+
+            //Decline client other request
             sql = @"update Common.ClientUserMapping
-set Status=@status,
-ModifiedOn=@now,
-ModifiedById=@ModifiedById
-where UserId=@userId and Status=@pendingStatus";
-            await db.ExecuteAsync(sql, new
+                set Status=@status,
+                ModifiedOn=@now,
+                ModifiedById=@ModifiedById
+                where UserId=@userId and Status=@pendingStatus";
+            db.Execute(sql, new
             {
                 userId = userId,
                 status = ClientUserMappingStatusTypes.Declined,
@@ -50,15 +51,18 @@ where UserId=@userId and Status=@pendingStatus";
                 now = DateTime.UtcNow,
                 pendingStatus = ClientUserMappingStatusTypes.Pending
             });
-            //sql = @"update profile.users set ClientId=@clientId where Id=@userId";
-            //await db.ExecuteAsync(sql, new { clientId = approveclientIds.First(), userId = userId });
+
+            string setClientToUser = "UPDATE [Profile].[Users] SET ClientId=@clientId,Status=@status,ClosedOn=@closedOn,ClosedBy=@closedBy WHERE Id=@userId";
+            int result = db.Execute(setClientToUser, new { status = AMUserStatus.Approved, closedOn = DateTime.UtcNow, clientId = approveclientIds.Min(), closedBy = modifiedById, userId = userId });
             return await GetClientDomainByUserId(userId);
         }
 
         public async Task<IEnumerable<ClientUserMapping>> GetClientDomainByUserId(string userId)
         {
-            string sql = @"select * from Common.ClientUserMapping where UserId=@userId";
-            return await db.QueryAsync<ClientUserMapping>(sql, userId);
+            string sql = @"select cum.*,c.Name +' (' +c.AppCode+')' as ClientName from Common.ClientUserMapping cum
+inner join Common.Clients c on cum.ClientId=c.Id
+where UserId=@userId";
+            return await db.QueryAsync<ClientUserMapping>(sql, new { userId = userId });
         }
         public async Task<IEnumerable<ClientIdNameVM>> GetClientDomainByDomainName(string domainName)
         {

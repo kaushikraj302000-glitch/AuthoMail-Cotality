@@ -4,6 +4,10 @@
 <link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 
 <style>
+    #alertContainer {
+        z-index: 1101;
+    }
+
     .btnsize {
         padding: 4px 12px !important;
     }
@@ -71,6 +75,7 @@
                 <h2>Please select Role & AppCode(s).</h2>
             </div>
             <div class="modal-body">
+                <div class="errormsg"></div>
                 <input type="hidden" id="auserId" name="auserId" />
                 <input type="hidden" id="astatus" name="astatus" />
                 <div id="RoleAreaDiv"></div>
@@ -96,9 +101,10 @@
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
-                @*<h2 id="myModalLabel"> Are you sure you want to reject client sign up request?</h2>*@
+                <h2 id="myModalLabel"> Are you sure you want to reject client sign up request?</h2>
                 <input type="hidden" id="ruserId" name="ruserId" />
                 <input type="hidden" id="rstatus" name="rstatus" />
+                <div class="errormsg"></div>
                 <hr />
                 <button type="button" class="btn btn-primary" id="rejected"><i class="fa fa-check"></i> Yes</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
@@ -286,15 +292,15 @@
             BindRole($(val).data("userid"));
             $("#approveModal").modal("show");
         }
-        function BindRole(userId) {
-            var userRole = '';
+        function BindRole(userId) {            
             $.ajax({
                 type: "GET",
                 url: baseUrl + "Admin/GetRoleAndAppCode",
                 data: {userId:userId},
                 dataType: "json",
                 success: function (response) {
-                    console.log(response);
+                    $('#RoleAreaDiv').html('');
+                    $('#appcodeselect').find('option').remove();
                     if (response.Success) {
                             var roleRadio = '<div class="form-group"> <label class="control-label" style="margin-right:10px">Select Role</label>';
                         $.each(response.Object.roles, function (i, v) {
@@ -321,13 +327,6 @@
                 }
             });
         }
-        function radiBtnEvent() {
-            $('.radiobtn').unbind('change');
-            $('..radiobtn').bind('change', function (e) {
-                e.preventDefault();
-                $(this).val(this.checked);
-            });
-        }
 
         function RejectUser(val) {
             $("#rejectModal").find("#ruserId").val("");
@@ -347,17 +346,19 @@
                 alertMessage("red", "Please select AppCode.");
                 return false;
             }
-            UpdateUserStatus($("#approveModal").find("#auserId").val(), $("#approveModal").find("#astatus").val(),appcode, role);
+            UpdateUserStatus("approveModal",$("#approveModal").find("#auserId").val(), $("#approveModal").find("#astatus").val(),appcode, role);
         });
         $("#rejected").click(function () {
-            $("#rejectModal").modal("hide");
-            UpdateUserStatus($("#rejectModal").find("#ruserId").val(), $("#rejectModal").find("#rstatus").val(),null,null)
+            //$("#rejectModal").modal("hide");
+            UpdateUserStatus("rejectModal",$("#rejectModal").find("#ruserId").val(), $("#rejectModal").find("#rstatus").val(), null, null);
         });
 
-        function UpdateUserStatus(userId, status,clientIds,role) {
+        function UpdateUserStatus(modalid,userId, status,clientIds,role) {
             //console.log(userId+" "+status)
-            var el = $("#myModal").find(".modal-body");
-            el.empty();
+            $("#approved").attr('disabled', 'disabled');
+            $("#rejected").attr('disabled', 'disabled');
+            var el = $("#" + modalid).find(".errormsg");
+            el.html('<div class="alert alert-blue text-center"><b>Please wait...</b></div>');
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Admin/UpdateUsersRequestSignUp",
@@ -371,6 +372,8 @@
                         if (response.Object != null) {
                             if (response.Object.Key) {
                                 el.html("<div class='alert alert-green'>" + response.Object.Value + "</div>");
+                                $("#" + modalid).modal("hide");
+                                alertMessage('green', response.Object.Value);
                             }
                             else {
                                 el.html("<div class='alert alert-red'>" + response.Object.Value + "</div>");
@@ -383,7 +386,9 @@
                         el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
 
                     }
-                    $("#myModal").modal("show");
+                    $("#approved").removeAttr('disabled');
+                    $("#rejected").removeAttr('disabled');
+                    //$("#myModal").modal("show");
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
 

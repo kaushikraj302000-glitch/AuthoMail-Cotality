@@ -70,6 +70,7 @@ namespace AM.Services
     public class ClientUserMapping
     {
         public int ClientId { get; set; }
+        public string ClientName { get; set; }
         public string UserId { get; set; }
         public string Status { get; set; }
         public DateTime CreatedOn { get; set; }

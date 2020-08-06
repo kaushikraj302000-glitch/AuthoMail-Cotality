@@ -21,6 +21,9 @@ using System.Collections.Specialized;
 using System.Net.Http;
 using System.Configuration;
 using System.Net.Http.Headers;
+using AM.Lib;
+//using Microsoft.Ajax.Utilities;
+
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager)]
@@ -96,19 +99,66 @@ namespace AM.Web.Controllers
         {
             try
             {
+                //validation
+                if (status.IsNullOrWhiteSpace())
+                {
+                    return Json(JsonResponseFactory.ErrorResponse("Status can't be empty."), JsonRequestBehavior.AllowGet);
+                }
+                if (status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (role.IsNullOrWhiteSpace())
+                    {
+                        return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
+                    }
+                    if (!(role.Equals(AMRoles.BA, StringComparison.CurrentCultureIgnoreCase) || role.Equals(AMRoles.Client, StringComparison.CurrentCultureIgnoreCase)))
+                    {
+                        return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
+                    }
+                    if (clientIds == null)
+                    {
+                        return Json(JsonResponseFactory.ErrorResponse("Please select AppCode(s)."), JsonRequestBehavior.AllowGet);
+                    }
+                }
+                var model = new KeyValuePair<bool, string>();
+                string partiallyApproveRequest = null;
                 if (role == AMRoles.Client && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    await clientPermissionSvc.ApproveOrDeclinedClientsForUser(userId, clientIds, User.Identity.GetUserId());
-                }
-                var model = supportSvc.UpdateUsersRequestSignUp(userId, status, User.Identity.GetUserId());
+                    var output = await clientPermissionSvc.ApproveOrDeclinedClientsForUser(userId, clientIds, User.Identity.GetUserId());
 
+                    if (output.Any(o => o.Status == ClientUserMappingStatusTypes.Declined))
+                    {
+                        foreach (var item in output)
+                        {
+                            partiallyApproveRequest = $@"{partiallyApproveRequest} <tr>
+                            <th style='border: 1px solid black; padding: 5px 10px;'>{item.ClientName}</th>
+                                <td style='border: 1px solid black; padding: 5px 10px;'>{item.Status}</td>
+                            </tr>";
+                        }
+                        model = new KeyValuePair<bool, string>(true, "Sign up request approved successfully for partial AppCode(s).");
+                    }
+                    else
+                    {
+                        model = new KeyValuePair<bool, string>(true, "Sign up request approved successfully for all AppCode(s).");
+                    }
+                }
+                else
+                {
+                    model = supportSvc.UpdateUsersRequestSignUp(userId, status, User.Identity.GetUserId());
+                }
                 var user = UserManager.FindById(userId);
 
                 string template = status.Equals(AMUserStatus.Approved) ? "ApproveRegistration.html" : "RejectRegistration.html";
+                if (!(partiallyApproveRequest.IsNullOrWhiteSpace()))
+                {
+                    template = "PartiallyApproveRegistration.html";
+                }
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\" + template)));
                 sb.Replace("{{name}}", user.FirstName);
                 sb.Replace("{{email}}", user.Email);
-
+                if (partiallyApproveRequest.IsNullOrWhiteSpace())
+                {
+                    sb.Replace("{{PartiallyApproveRequestTableData}}", partiallyApproveRequest);
+                }
                 string AuthoMailURL = "";
                 if (Config.Common_Environment == Env.Prod)
                 {
@@ -189,7 +239,7 @@ namespace AM.Web.Controllers
                 }
                 else
                 {
-                    model = supportSvc.UpdateClientDomain(domainName, oldDomain);
+                    model = supportSvc.UpdateClientDomain(domainName, clientId, oldDomain);
                     return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
                 }
             }
