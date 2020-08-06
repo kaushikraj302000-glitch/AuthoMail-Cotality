@@ -12,8 +12,8 @@ namespace AM.Services
     public interface ISupportService : IDisposable
     {
         List<ClientDomains> FindDomainByClientId(int clientId);
-        ClientDomains FingByDomainName(string domainName);
-        ClientDomains FingByDomainNameAndClientId(string domainName, int clientId);
+        ClientDomains FindByDomainName(string domainName);
+        ClientDomains FindByDomainNameAndClientId(string domainName, int clientId);
         bool IsDomainExists(string domainName);
         List<ClientDomains> GetClientDomains();
         bool HasClientDomain(int clientId, string domainName);
@@ -76,14 +76,14 @@ namespace AM.Services
             return db.Query<ClientDomains>(query, new { clientId = clientId }).ToList();
         }
 
-        public ClientDomains FingByDomainName(string domainName)
+        public ClientDomains FindByDomainName(string domainName)
         {
             string query = "SELECT cd.*,c.Name as [ClientName] FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE [AllowedDomain] = @domainName AND cd.ClientId=c.Id";
             return db.QuerySingleOrDefault<ClientDomains>(query, new { domainName = domainName });
         }
-        public ClientDomains FingByDomainNameAndClientId(string domainName, int clientId)
+        public ClientDomains FindByDomainNameAndClientId(string domainName, int clientId)
         {
-            string query = "SELECT cd.*,c.Name as [ClientName] FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE [AllowedDomain] = @domainName AND cd.ClientId=@clientId";
+            string query = "SELECT cd.*,c.Name as [ClientName] FROM [Common].[ClientDomains] cd inner join [Common].[Clients] c on cd.clientid=c.Id WHERE [AllowedDomain] = @domainName AND cd.ClientId=@clientId";
             return db.QuerySingleOrDefault<ClientDomains>(query, new { domainName = domainName, clientId = clientId });
         }
         public bool IsDomainExists(string domainName)
@@ -109,7 +109,7 @@ namespace AM.Services
         public int CreateClientDomain(int clientId, string domainName)
         {
             if (domainName.IsNullOrWhiteSpace()) throw new Exception("Domain name cannot be null.");
-            if (FingByDomainNameAndClientId(domainName, clientId) != null) throw new Exception("Domain name already exists with this client.");
+            if (FindByDomainNameAndClientId(domainName, clientId) != null) throw new Exception("Domain name already exists with this client.");
             if (Uri.CheckHostName(domainName) != UriHostNameType.Dns) throw new Exception("Invalid domain name.");
             string query = "INSERT INTO [Common].[ClientDomains] ([ClientId],[AllowedDomain]) VALUES (@clientId,@domainName)";
             return db.Execute(query, new { clientId = clientId, domainName = domainName });
@@ -118,8 +118,8 @@ namespace AM.Services
         {
             if (domainName.IsNullOrWhiteSpace()) throw new Exception("Domain name cannot be null.");
             if (Uri.CheckHostName(domainName) != UriHostNameType.Dns) throw new Exception("Invalid domain name.");
-            if (FingByDomainName(domainName) != null) throw new Exception("Domain name already exists.");
-            if (FingByDomainName(existingDomainName) == null) throw new Exception("Existing domain name not found.");
+            if (FindByDomainNameAndClientId(domainName, clientId) != null) throw new Exception("Domain name already exists.");
+            if (!IsDomainExists(existingDomainName)) throw new Exception("Existing domain name not found.");
 
             var usersCountQ = "SELECT TOP 1 Email FROM [Profile].[Users] WHERE Email Like @domain";
             string userEmail = db.QueryFirstOrDefault<string>(usersCountQ, new { domain = string.Format("%{0}", existingDomainName) });

@@ -202,12 +202,12 @@ namespace AM.Web.Controllers
             }
         }
         [Authorize(Roles = AMRoles.Admin), HttpGet]
-        public ActionResult GetDomainByName(string domainName)
+        public ActionResult GetDomainByNameAndclientId(string domainName, int clientId)
         {
 
             if (!string.IsNullOrWhiteSpace(domainName))
             {
-                ClientDomains domain = supportSvc.FingByDomainName(domainName);
+                ClientDomains domain = supportSvc.FindByDomainNameAndClientId(domainName, clientId);
                 ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name", domain.ClientId);
                 return PartialView("_AddOrEditDomain", domain);
             }
