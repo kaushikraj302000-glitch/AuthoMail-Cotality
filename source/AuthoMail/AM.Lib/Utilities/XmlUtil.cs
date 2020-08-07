@@ -25,7 +25,7 @@ namespace AM.Lib
         {
             ValidationResult vResult = new ValidationResult() { HasErrors = false, ErrorList = new List<string>() };
 
-            XDocument xDoc = XDocument.Load(xml);
+            XDocument xDoc = XDocument.Parse(xml);
             StringBuilder sbErrorMessage = new StringBuilder();
 
             xDoc.Validate(schemaSet, (o, e) =>

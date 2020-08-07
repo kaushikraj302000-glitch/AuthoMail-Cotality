@@ -242,7 +242,7 @@ bufferSize: 4096, useAsync: true)) { }
                     // filepath null validation check
                     if (nullFilePathList.Count > 0)
                     {
-                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file not found for the following file key(s): {0}".Fill(string.Join(",", nullFilePathList.Select(n => n.Key))) }, receivedOn);
+                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file not found for the following file key(s): {0}.".Fill(string.Join(",", nullFilePathList.Select(n => n.Key))) }, receivedOn);
                         return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                     }
 
@@ -371,9 +371,13 @@ bufferSize: 4096, useAsync: true)) { }
                 {
                     manifestErrDesc = string.Format("Could not process manifest: Path '{0}', line {1}, position {2}.", jrEx.Path, jrEx.LineNumber, jrEx.LinePosition);
                 }
-                catch (Exception ex)
+                catch (JsonSerializationException jsEx)
                 {
-                    manifestErrDesc = string.Format("Could not process manifest: {0}", ex.Message);
+                    manifestErrDesc = string.Format("Could not process manifest: Path '{0}', line {1}, position {2}.", jsEx.Path, jsEx.LineNumber, jsEx.LinePosition);
+                }
+                catch (Exception)
+                {
+                    manifestErrDesc = string.Format("Unexpected error. Could not process manifest");
                 }
             }
             return manifestErrDesc;
@@ -525,7 +529,15 @@ bufferSize: 4096, useAsync: true)) { }
                 {
                     if (mailPiece.RecipientInfo.Address.Street.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Address.City.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Address.State.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Address.Zip.IsNullOrWhiteSpace())
                         yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient address is mandatory." };
-                }
+
+                    if (!mailPiece.RecipientInfo.Address.Zip.IsNullOrWhiteSpace() && (mailPiece.RecipientInfo.Address.Country.IsNullOrWhiteSpace() || (!mailPiece.RecipientInfo.Address.Country.IsNullOrWhiteSpace() && (mailPiece.RecipientInfo.Address.Country == "USA" || mailPiece.RecipientInfo.Address.Country == "US" || mailPiece.RecipientInfo.Address.Country == "The United States of America" || mailPiece.RecipientInfo.Address.Country == "United States of America" || mailPiece.RecipientInfo.Address.Country == "United States"))))
+                    {
+                        if (!Regex.Match(mailPiece.RecipientInfo.Address.Zip, @"^(?(^00000(|-0000))|\d{5}(?:|[-\s]+\d{4}))$").Success)
+                        {
+                            yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient zipcode is in invalid format." };
+                        }
+                    }
+                }               
                 else
                 {
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient Address is mandatory." };
@@ -541,6 +553,14 @@ bufferSize: 4096, useAsync: true)) { }
                 {
                     if (mailPiece.ReturnInfo.Address.Street.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.City.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.State.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.Zip.IsNullOrWhiteSpace())
                         yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return recipient address is mandatory." };
+                    
+                    if (!mailPiece.ReturnInfo.Address.Zip.IsNullOrWhiteSpace() && (mailPiece.ReturnInfo.Address.Country.IsNullOrWhiteSpace() || (!mailPiece.ReturnInfo.Address.Country.IsNullOrWhiteSpace() && (mailPiece.ReturnInfo.Address.Country == "USA" || mailPiece.ReturnInfo.Address.Country == "US" || mailPiece.ReturnInfo.Address.Country == "The United States of America" || mailPiece.ReturnInfo.Address.Country == "United States of America" || mailPiece.ReturnInfo.Address.Country == "United States"))))
+                    {
+                        if (!Regex.Match(mailPiece.ReturnInfo.Address.Zip, @"^(?(^00000(|-0000))|\d{5}(?:|[-\s]+\d{4}))$").Success)
+                        {
+                            yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return recipient zipcode is in invalid format." };
+                        }
+                    }
                 }
                 else
                 {
@@ -631,7 +651,7 @@ bufferSize: 4096, useAsync: true)) { }
 
                 if (scehmaErrors.Count > 0)
                 {
-                    return new MailPieceValidationResult() { Code = errors.First().Code, ErrorMessage = string.Join(" | ", errors.Select(row => row.ErrorMessage)) };
+                    return new MailPieceValidationResult() { Code = scehmaErrors.First().Code, ErrorMessage = string.Join(" | ", scehmaErrors.Select(row => row.ErrorMessage)) };
                 }
             }
 
@@ -652,6 +672,10 @@ bufferSize: 4096, useAsync: true)) { }
                 else if (error.Contains("http://schemas.corelogic.com/ade/authomail/") && error.Contains("USZIP"))
                 {
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Provided zip code is not in a valid format." };
+                }
+                else if (error.Contains("http://schemas.corelogic.com/ade/authomail/") && error.Contains("EmailAddress"))
+                {
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Email address is not in a valid format or blank." };
                 }
                 else
                 {
