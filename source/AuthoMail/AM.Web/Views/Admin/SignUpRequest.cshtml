@@ -320,6 +320,7 @@
                             $('#appcodeselect').append('<option value="' + v.Id + '">' + v.NameAppCode+'</option>');
                         });
                         $('#appcodeselect').selectpicker('refresh');
+                        BindRoleEvent();
                     }
                     else {
                         $('#RoleAreaDiv').html('<div class="alert laert-danger text-center"><b>'+response.ErrorMessage+'</b></div>');
@@ -327,7 +328,18 @@
                 }
             });
         }
-
+        function BindRoleEvent() {
+            $('.radiobtn').unbind('change');
+            $('.radiobtn').bind('change', function (e) {
+                var role = $(this).val();
+                if (role.toLowerCase() == 'client') {
+                    $('#AppCodeAreaDiv').show();
+                }
+                else {
+                    $('#AppCodeAreaDiv').hide();
+                }
+            });
+        }
         function RejectUser(val) {
             $("#rejectModal").find("#ruserId").val("");
             $("#rejectModal").find("#rstatus").val("");
