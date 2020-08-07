@@ -342,10 +342,10 @@
                 alertMessage("red", "Please select role.")
                 return false;
             }
-            if (appcode == undefined || appcode == null || appcode == "") {
-                alertMessage("red", "Please select AppCode.");
-                return false;
-            }
+            //if (appcode == undefined || appcode == null || appcode == "") {
+            //    alertMessage("red", "Please select AppCode.");
+            //    return false;
+            //}
             UpdateUserStatus("approveModal",$("#approveModal").find("#auserId").val(), $("#approveModal").find("#astatus").val(),appcode, role);
         });
         $("#rejected").click(function () {

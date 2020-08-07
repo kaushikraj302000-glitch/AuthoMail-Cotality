@@ -99,30 +99,28 @@ namespace AM.Web.Controllers
         {
             try
             {
-                //validation
                 if (status.IsNullOrWhiteSpace())
                 {
                     return Json(JsonResponseFactory.ErrorResponse("Status can't be empty."), JsonRequestBehavior.AllowGet);
                 }
-                if (status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
+                if (role.IsNullOrWhiteSpace())
                 {
-                    if (role.IsNullOrWhiteSpace())
-                    {
-                        return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
-                    }
-                    if (!(role.Equals(AMRoles.BA, StringComparison.CurrentCultureIgnoreCase) || role.Equals(AMRoles.Client, StringComparison.CurrentCultureIgnoreCase)))
-                    {
-                        return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
-                    }
-                    if (clientIds == null)
-                    {
-                        return Json(JsonResponseFactory.ErrorResponse("Please select AppCode(s)."), JsonRequestBehavior.AllowGet);
-                    }
+                    return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
                 }
+
+
                 var model = new KeyValuePair<bool, string>();
                 string partiallyApproveRequest = null;
                 if (role == AMRoles.Client && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
                 {
+                    if (!(role.Equals(AMRoles.BA, StringComparison.CurrentCultureIgnoreCase) || role.Equals(AMRoles.Client, StringComparison.CurrentCultureIgnoreCase)))
+                    {
+                        return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
+                    }
+                    if (clientIds == null || clientIds.Count == 0)
+                    {
+                        return Json(JsonResponseFactory.ErrorResponse("Please select AppCode(s)."), JsonRequestBehavior.AllowGet);
+                    }
                     var output = await clientPermissionSvc.ApproveOrDeclinedClientsForUser(userId, clientIds, User.Identity.GetUserId());
 
                     if (output.Any(o => o.Status == ClientUserMappingStatusTypes.Declined))
