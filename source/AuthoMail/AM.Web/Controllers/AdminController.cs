@@ -153,7 +153,7 @@ namespace AM.Web.Controllers
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\" + template)));
                 sb.Replace("{{name}}", user.FirstName);
                 sb.Replace("{{email}}", user.Email);
-                if (partiallyApproveRequest.IsNullOrWhiteSpace())
+                if (!partiallyApproveRequest.IsNullOrWhiteSpace())
                 {
                     sb.Replace("{{PartiallyApproveRequestTableData}}", partiallyApproveRequest);
                 }
