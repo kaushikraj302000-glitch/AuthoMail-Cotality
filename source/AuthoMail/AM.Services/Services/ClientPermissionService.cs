@@ -17,6 +17,8 @@ namespace AM.Services
         Task<IEnumerable<ClientUserMapping>> ApproveOrDeclinedClientsForUser(string userId, List<int> approveclientIds, string modifiedById);
         Task<IEnumerable<ClientUserMapping>> GetClientDomainByUserId(string userId);
         Task<bool> IsUserClientRequestPending(string userId);
+        Task<KeyValuePair<bool, string>> EditSaveRoleClient(ProfileUser user, List<int> clientIds, string role, string modifiedById, bool isCLUser);
+        Task<int[]> GetApproveAppCodesByUserId(string userId);
     }
     public class ClientPermissionService : ServiceBase, IClientPermissionService
     {
@@ -110,6 +112,73 @@ values(@ClientId,@UserId,@Status,@CreatedOn,@ModifiedOn,@ModifiedById)";
 select ClientId from Common.ClientUserMapping where UserId=@userId) order by Name";
                 return await db.QueryAsync<ClientIdNameVM>(sql, new { userId = userId });
             }
+        }
+
+        public async Task<KeyValuePair<bool, string>> EditSaveRoleClient(ProfileUser user, List<int> clientIds, string role, string modifiedById, bool isCLUser)
+        {
+            await db.OpenAsync();
+            using (var t = db.BeginTransaction())
+            {
+                try
+                {
+                    var BAClientRoleId = await db.QueryAsync<string>("select Id from Profile.Roles where Name=@ba or Name=@client", new { ba = AMRoles.BA, client = AMRoles.Client }, transaction: t);
+                    if (isCLUser && role == AMRoles.BA)
+                    {
+                        string sql = "delete from Common.ClientUserMapping where UserId=@userId";
+                        await db.ExecuteAsync(sql, new { userId = user.Id }, transaction: t);
+
+                        sql = @"delete from Profile.UserRoles where UserId=@userId and RoleId in @roles";
+                        await db.ExecuteAsync(sql, new { userId = user.Id, roles = BAClientRoleId }, transaction: t);
+
+                        sql = @"insert into Profile.UserRoles (UserId,RoleId) values(@userId,(select Id from Profile.Roles where Name=@roleName))";
+                        await db.ExecuteAsync(sql, new { userId = user.Id, roleName = AMRoles.BA }, transaction: t);
+                    }
+                    else
+                    {
+                        if (role == AMRoles.BA)
+                            return new KeyValuePair<bool, string>(false, "Invalid role.");
+                        string sql = "delete from Common.ClientUserMapping where UserId=@userId";
+                        await db.ExecuteAsync(sql, new { userId = user.Id }, transaction: t);
+
+                        sql = @"delete from Profile.UserRoles where UserId=@userId and RoleId in @roles";
+                        await db.ExecuteAsync(sql, new { userId = user.Id, roles = BAClientRoleId }, transaction: t);
+
+                        sql = @"insert into Profile.UserRoles (UserId,RoleId) values(@userId,(select Id from Profile.Roles where Name=@roleName))";
+                        await db.ExecuteAsync(sql, new { userId = user.Id, roleName = AMRoles.Client }, transaction: t);
+
+                        sql = "INSERT INTO Common.ClientUserMapping (ClientId ,UserId ,Status ,CreatedOn ,ModifiedOn ,ModifiedById)  VALUES (@ClientId ,@UserId ,@Status ,@CreatedOn ,@ModifiedOn ,@ModifiedById)";
+                        var now = DateTime.UtcNow;
+                        for (int i = 0; i < clientIds.Count; i++)
+                        {
+                            await db.ExecuteAsync(sql, new
+                            {
+                                ClientId = clientIds[i],
+                                UserId = user.Id,
+                                Status = ClientUserMappingStatusTypes.Approved,
+                                CreatedOn = now,
+                                ModifiedOn = now,
+                                ModifiedById = modifiedById
+                            }, transaction: t);
+                        }
+                        sql = "update Profile.Users set ClientId=@clientId where Id=@userId";
+                        await db.ExecuteAsync(sql, new { userId = user.Id, clientId = clientIds.Min() }, transaction: t);
+                    }
+                    t.Commit();
+                    return new KeyValuePair<bool, string>(true, "Save successfully");
+                }
+                catch (Exception ex)
+                {
+                    t.Rollback();
+                    return new KeyValuePair<bool, string>(false, ex.Message);
+                }
+
+            }
+        }
+
+        public async Task<int[]> GetApproveAppCodesByUserId(string userId)
+        {
+            var output = await db.QueryAsync<int>("select ClientId from Common.ClientUserMapping where UserId=@userId and Status=@status", new { userId = userId, status = ClientUserMappingStatusTypes.Approved });
+            return output.ToArray();
         }
     }
 }

@@ -20,6 +20,8 @@ using System.Configuration;
 using System.Net;
 using System.Collections.Generic;
 using System.Net.Http;
+using AutoMapper;
+using WebGrease.Css.Extensions;
 
 namespace AM.Web.Controllers
 {
@@ -859,12 +861,36 @@ namespace AM.Web.Controllers
         {
             return View();
         }
-        [Authorize(Roles = AMRoles.Admin)]
-        public JsonResult GetAllUsers()
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+        public async Task<JsonResult> GetAllUsers()
         {
-            var users = UserManager.Users;
+            var users = await accSvc.GetAllUsers();
             if (users == null || users.Count() == 0) return Json(JsonResponseFactory.ErrorResponse("Users not found."), JsonRequestBehavior.AllowGet);
             return Json(JsonResponseFactory.SuccessResponse(new { model = users.ToList() }), JsonRequestBehavior.AllowGet);
+        }
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+        public async Task<JsonResult> GetAllUserToDownExcel(int timezoneOffset)
+        {
+            var users = await accSvc.GetAllUsers();
+            var model = new List<AMAllUsersReportVM>();
+            foreach (var user in users)
+            {
+                model.Add(
+                    new AMAllUsersReportVM
+                    {
+                        Email = user.Email,
+                        EmailConfirmed = user.EmailConfirmed,
+                        DisplayName = user.DisplayName,
+                        Status = user.Status,
+                        LastLoginTimeUTC = user.LastLoginTimeUTC.HasValue ? user.LastLoginTimeUTC.Value.AddMinutes(timezoneOffset) : user.LastLoginTimeUTC,
+                        RequestedOn = user.RequestedOn.AddMinutes(timezoneOffset)
+                    }
+                    );
+            }
+            var dataTable = ExcelHelper.ToDataTable<AMAllUsersReportVM>(model);
+            var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            return Json(JsonResponseFactory.SuccessResponse(Convert.ToBase64String(memoryStream.ToArray())), JsonRequestBehavior.AllowGet);
         }
         [HttpPost, Authorize(Roles = AMRoles.Admin)]
         public JsonResult UnlockUser(string userId)
