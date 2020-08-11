@@ -15,6 +15,7 @@ namespace AM.Services
     {
         KeyValuePair<bool, string> CreateUser(AccountUser user, string userId);
         Task UpdateChangePasswordDateAsync(string userId);
+        Task<IEnumerable<AMAllUsers>> GetAllUsers();
     }
     public class AccountManageService : ServiceBase, IAccountManageService
     {
@@ -141,6 +142,33 @@ namespace AM.Services
         public async Task UpdateChangePasswordDateAsync(string userId)
         {
             await db.ExecuteAsync("update Profile.Users set ChangePasswordDateUTC=@utcDate where Id=@userId", new { userId = userId, utcDate = DateTime.UtcNow });
+        }
+        public async Task<IEnumerable<AMAllUsers>> GetAllUsers()
+        {
+            string sql = @"with users as
+(
+	select * from Profile.Users
+),
+roles as
+(
+select u.Id,STRING_AGG(r.Name,', ') as Roles from users u
+left outer join Profile.UserRoles ur on u.Id=ur.UserId
+left outer join Profile.Roles r on ur.RoleId=r.Id
+group by u.Id
+),
+clients as
+(
+	select cu.UserId, STRING_AGG(c.AppCode, ', ') as Clients from Common.ClientUserMapping cu
+	inner join Common.Clients c on cu.ClientId=c.Id
+	where cu.Status=@requestStatus
+	group by cu.UserId
+)
+select u.*,r.Roles,c.Clients from users u
+left outer join roles r on u.Id=r.Id
+left outer join clients c on u.Id=c.UserId
+";
+            var output = await db.QueryAsync<AMAllUsers>(sql, new { requestStatus = ClientUserMappingStatusTypes.Approved });
+            return output;
         }
     }
 }

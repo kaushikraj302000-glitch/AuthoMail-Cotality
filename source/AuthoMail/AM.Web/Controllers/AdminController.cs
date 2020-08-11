@@ -22,6 +22,7 @@ using System.Net.Http;
 using System.Configuration;
 using System.Net.Http.Headers;
 using AM.Lib;
+using System.Net.Mail;
 //using Microsoft.Ajax.Utilities;
 
 namespace AM.Web.Controllers
@@ -69,11 +70,41 @@ namespace AM.Web.Controllers
             if (IsCL) roles.Add(AMRoles.BA);
 
             var appCodes = await clientPermissionSvc.GetAppCodeByUserIdORall(IsCL ? null : userId);
+
             var data = new
             {
                 roles = roles,
                 appCodes = appCodes,
                 isCL = IsCL
+            };
+            return Json(JsonResponseFactory.SuccessResponse(data), JsonRequestBehavior.AllowGet);
+        }
+        public async Task<ActionResult> EditGetRoleAndAppCode(string userId)
+        {
+            if (userId == null)
+            {
+                return Json(JsonResponseFactory.ErrorResponse("User not found"), JsonRequestBehavior.AllowGet);
+            }
+            var user = await UserManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return Json(JsonResponseFactory.ErrorResponse("User not found"), JsonRequestBehavior.AllowGet);
+            }
+            bool IsCL = CLAuthentication.HasCorelogicAccount(user.Email);
+            var roles = new List<string> { AMRoles.Client };
+            if (IsCL) roles.Add(AMRoles.BA);
+
+            //var appCodes = await clientPermissionSvc.GetAppCodeByUserIdORall(IsCL ? null : userId);
+            var domainAppCode = await clientPermissionSvc.GetClientDomainByDomainName(new MailAddress(user.Email).Host);
+            var userRole = await UserManager.GetRolesAsync(user.Id);
+            var approveAppCode = await clientPermissionSvc.GetApproveAppCodesByUserId(user.Id);
+            var data = new
+            {
+                roles = roles,
+                isCL = IsCL,
+                domainAppCode = domainAppCode,
+                userRole = userRole.Select(u => u == AMRoles.BA || u == AMRoles.Client).FirstOrDefault(),
+                approveAppCode = approveAppCode
             };
             return Json(JsonResponseFactory.SuccessResponse(data), JsonRequestBehavior.AllowGet);
         }
@@ -182,6 +213,31 @@ namespace AM.Web.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<ActionResult> SaveEditRoleClient(string userId, List<int> clientIds, string role)
+        {
+            if (userId.IsNullOrWhiteSpace())
+            {
+                return Json(JsonResponseFactory.ErrorResponse("User not found."), JsonRequestBehavior.AllowGet);
+            }
+            if (role.IsNullOrWhiteSpace())
+            {
+                return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
+            }
+            if (clientIds != null)
+                clientIds.RemoveAll(c=>c==0);
+            if (role == AMRoles.Client && (clientIds == null || clientIds.Count == 0))
+            {
+                return Json(JsonResponseFactory.ErrorResponse("Please select AppCode(s)."), JsonRequestBehavior.AllowGet);
+            }
+            var user = await UserManager.FindByIdAsync(userId);
+            var output = await clientPermissionSvc.EditSaveRoleClient(user, clientIds, role, User.Identity.GetUserId(), CLAuthentication.HasCorelogicAccount(user.Email));
+            if (output.Key)
+                return Json(JsonResponseFactory.SuccessResponse(output.Value), JsonRequestBehavior.AllowGet);
+
+            return Json(JsonResponseFactory.ErrorResponse(output.Value), JsonRequestBehavior.AllowGet);
+
+        }
         #endregion
 
         #region Manage Domain
