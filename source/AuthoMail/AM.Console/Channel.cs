@@ -422,7 +422,7 @@ namespace AM.Console
                     using (IGeneralService generalSvc = new GeneralService())
                     using (ICommonService commonSvc = new CommonService())
                     {
-                        string deliveryReport = generalSvc.GeneralJsonReport(mailPieces.FirstOrDefault(), mbi.MailBatch, mbi.Client.AppCode);
+                        string deliveryReport = generalSvc.GeneralJsonReport(mailPieces.FirstOrDefault().UniqueId.ToString());
                         if (!string.IsNullOrWhiteSpace(deliveryReport))
                         {
                             deliveryReportFileName = "{0}-{1}-{2}.json".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());

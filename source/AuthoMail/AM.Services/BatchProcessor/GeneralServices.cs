@@ -21,7 +21,7 @@ namespace AM.Services
         StringBuilder GeneralDeliveryReport(List<MailPieces> mailPieces, string separator);
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatches mailBatch);
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatchDTO mailBatch, string clientCode);
-        string GeneralJsonReport(MailPieces mp, MailBatchDTO mailBatch, string clientCode);
+        string GeneralJsonReport(string mpUniqueId);
         List<BatchAPIResponse> GeneralJsonAPIResponse(List<MailPieces> mailpieces, MailBatchDTO mailBatch, string clientCode);
         string GeneralJsonReport(MailPieces mp, MailBatches mailBatch);
         Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport);
@@ -167,33 +167,79 @@ namespace AM.Services
             return serializedString;
         }
 
-        public string GeneralJsonReport(MailPieces mp, MailBatchDTO mailBatch, string clientCode)
-        {
-            MailAPIResponse response = new MailAPIResponse()
+        public string GeneralJsonReport(string mpUniqueId)
+        {            
+            using (IMailPieceService mailPieceService = new MailPieceService())
             {
-                BusinessFriendlyIdName = mp.BusinessFriendlyIdName,
-                BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,
-                ClientCode = clientCode,
-                DocumentOrPackageType = mp.DocumentOrPackageType,
-                DocumentOrPackage = new DocumentOrPackage() { Name = mp.FileName },
-                ReceivedOn = mailBatch.ReceivedOn.Value,
-                RecipientInfo = new RecipientInfo() { Recipient = new Recipient() { FirstName = mp.RcptFirstName, LastName = mp.RcptLastName }, Address = new Entities.Address() { Street = mp.RcptAddressStreet, City = mp.RcptAddressCity, State = mp.RcptAddressState, Zip = mp.RcptAddressZIP } },
-                ShippingMethod = mp.DocTypes == null ? "" : mp.DocTypes.ShippingCarrier,
-                ShippingServiceType = mp.DocTypes == null ? "" : mp.DocTypes.ShippingServiceType,
-                TotalPages = mp.TotalPages,
-                TrackingNumber = mp.TrackingNo,
-                ErrorCode = mp.ErrorCode,
-                ErrorDesc = mp.ErrorDesc,
-                Id = mp.UniqueId,
-                MailingStatus = mp.ShippingStatus,
-                PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue,
-                ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue,
-                TotalSheets = mp.TotalPages
-            };
+                BatchResponse batchResponse = mailPieceService.GetMailPieceDetailsByMailPieceUniqueId(mpUniqueId);
 
-            var serializedString = JsonConvert.SerializeObject(response);
+                if (batchResponse != null)
+                {
+                    MailAPIResponse response = new MailAPIResponse()
+                    {
+                        Id = batchResponse.UniqueId,
+                        ReceivedOn = batchResponse.ReceivedOn,
+                        ClientCode = batchResponse.AppCode,
+                        BusinessFriendlyIdName = batchResponse.BusinessFriendlyIdName,
+                        BusinessFriendlyIdValue = batchResponse.BusinessFriendlyIdValue,
+                        DocumentOrPackageType = batchResponse.DocumentOrPackageType,
+                        DocumentOrPackage = new DocumentOrPackage { Name = batchResponse.FileName, Inserts = batchResponse.Inserts },
+                        RecipientInfo = new RecipientInfo
+                        {
+                            Recipient = new Recipient
+                            {
+                                Organization = batchResponse.RcptOrganization,
+                                Prefix = batchResponse.RcptPrefix,
+                                Suffix = batchResponse.RcptSuffix,
+                                FirstName = batchResponse.RcptFirstName,
+                                MiddleName = batchResponse.RcptMiddleName,
+                                LastName = batchResponse.RcptLastName,
+                                Phone = batchResponse.RcptPhone,
+                                EmailAddress = batchResponse.RcptEmailId
+                            },
+                            Address = new Entities.Address
+                            {
+                                OptionalLine1AboveStreet = batchResponse.RcptAddrOptionalLine1AboveStreet,
+                                OptionalLine1BelowStreet = batchResponse.RcptAddrOptionalLine1BelowStreet,
+                                OptionalLine2AboveStreet = batchResponse.RcptAddrOptionalLine2AboveStreet,
+                                OptionalLine2BelowStreet = batchResponse.RcptAddrOptionalLine2BelowStreet,
+                                AptOrSuiteOrOther = batchResponse.RcptAddressAptOrSuiteOrOther,
+                                Street = batchResponse.RcptAddressStreet,
+                                City = batchResponse.RcptAddressCity,
+                                State = batchResponse.RcptAddressState,
+                                Zip = batchResponse.RcptAddressZIP,
+                                Country = batchResponse.RcptAddressCountry
+                            }
+                        },
+                        MailingStatus = batchResponse.ShippingStatus,
+                        ErrorCode = batchResponse.ErrorCode,
+                        ErrorDesc = batchResponse.ErrorDesc,
+                        ShippedOn = batchResponse.ShippedOn,
+                        ShippingMethod = batchResponse.ShippingCarrier,
+                        ShippingServiceType = batchResponse.ShippingServiceType,
+                        TrackingNumber = batchResponse.TrackingNo,
+                        TotalPages = batchResponse.TotalPages,
+                        TotalSheets = batchResponse.TotalSheets,
+                        PulledBackOn = batchResponse.PulledBackOn
+                    };
 
-            return serializedString;
+                    var serializedString = JsonConvert.SerializeObject(response);
+
+                    return serializedString;
+                }
+                else
+                {
+                    MailAPIResponse response = new MailAPIResponse()
+                    {
+                        Id = Guid.Parse(mpUniqueId),
+                        MailingStatus = ShippingStatus.NotFound.ToString(),
+                        Message = "The specified package does not exist."
+                    };
+
+                    var serializedString = JsonConvert.SerializeObject(response);
+                    return serializedString;
+                }
+            }
         }
 
         public List<BatchAPIResponse> GeneralJsonAPIResponse(List<MailPieces> mailpieces, MailBatchDTO mailBatch, string clientCode)

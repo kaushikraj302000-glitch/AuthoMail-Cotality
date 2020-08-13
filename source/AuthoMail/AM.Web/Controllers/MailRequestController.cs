@@ -404,69 +404,11 @@ bufferSize: 4096, useAsync: true)) { }
             List<MailAPIResponse> mailAPIResponses = new List<MailAPIResponse>();
 
             foreach (var mailPieceId in uniqueIds)
-            {
-                using (MailPieceService mailPieceService = new MailPieceService())
+            {              
+                using (IGeneralService generalSvc = new GeneralService())
                 {
-                    var response = mailPieceService.GetMailPieceDetailsByMailPieceUniqueId(mailPieceId);
-                    if (response != null)
-                    {
-                        mailAPIResponses.Add(new MailAPIResponse
-                        {
-                            Id = response.UniqueId,
-                            ReceivedOn = response.ReceivedOn,
-                            ClientCode = response.AppCode,
-                            BusinessFriendlyIdName = response.BusinessFriendlyIdName,
-                            BusinessFriendlyIdValue = response.BusinessFriendlyIdValue,
-                            DocumentOrPackageType = response.DocumentOrPackageType,
-                            DocumentOrPackage = new DocumentOrPackage { Name = response.FileName, Inserts = response.Inserts },
-                            RecipientInfo = new RecipientInfo
-                            {
-                                Recipient = new Recipient
-                                {
-                                    Organization = response.RcptOrganization,
-                                    Prefix = response.RcptPrefix,
-                                    Suffix = response.RcptSuffix,
-                                    FirstName = response.RcptFirstName,
-                                    MiddleName = response.RcptMiddleName,
-                                    LastName = response.RcptLastName,
-                                    Phone = response.RcptPhone,
-                                    EmailAddress = response.RcptEmailId
-                                },
-                                Address = new Entities.Address
-                                {
-                                    OptionalLine1AboveStreet = response.RcptAddrOptionalLine1AboveStreet,
-                                    OptionalLine1BelowStreet = response.RcptAddrOptionalLine1BelowStreet,
-                                    OptionalLine2AboveStreet = response.RcptAddrOptionalLine2AboveStreet,
-                                    OptionalLine2BelowStreet = response.RcptAddrOptionalLine2BelowStreet,
-                                    AptOrSuiteOrOther = response.RcptAddressAptOrSuiteOrOther,
-                                    Street = response.RcptAddressStreet,
-                                    City = response.RcptAddressCity,
-                                    State = response.RcptAddressState,
-                                    Zip = response.RcptAddressZIP,
-                                    Country = response.RcptAddressCountry
-                                }
-                            },
-                            MailingStatus = response.ShippingStatus,
-                            ErrorCode = response.ErrorCode,
-                            ErrorDesc = response.ErrorDesc,
-                            ShippedOn = response.ShippedOn,
-                            ShippingMethod = response.ShippingCarrier,
-                            ShippingServiceType = response.ShippingServiceType,
-                            TrackingNumber = response.TrackingNo,
-                            TotalPages = response.TotalPages,
-                            TotalSheets = response.TotalSheets,
-                            PulledBackOn = response.PulledBackOn
-                        });
-                    }
-                    else
-                    {
-                        mailAPIResponses.Add(new MailAPIResponse
-                        {
-                            Id = Guid.Parse(mailPieceId),
-                            MailingStatus = ShippingStatus.NotFound.ToString(),
-                            Message = "The specified package does not exist."
-                        });
-                    }
+                    string deliveryReport = generalSvc.GeneralJsonReport(mailPieceId);
+                    mailAPIResponses.Add(JsonConvert.DeserializeObject<MailAPIResponse>(deliveryReport));
                 }
             }
             return mailAPIResponses;

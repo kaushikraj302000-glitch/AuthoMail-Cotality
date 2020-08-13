@@ -1644,7 +1644,7 @@ namespace AM.Core
                             using (IGeneralService generalSvc = new GeneralService())
                             {
                                 //NOTE : Reason to use FirstOrDefault : AM will get only single request using API
-                                string responseReport = generalSvc.GeneralJsonReport(mailPieces.FirstOrDefault(), mbi.MailBatch, mbi.Client.AppCode);
+                                string responseReport = generalSvc.GeneralJsonReport(mailPieces.FirstOrDefault().UniqueId.ToString());
 
                                 if (!string.IsNullOrWhiteSpace(responseReport))
                                 {

@@ -1288,7 +1288,7 @@ namespace AM.Console
                         //NOTE : Reason to use FirstOrDefault : AM will get only single request using API
                         errorReportFileName = "{0}-{1}-{2}.json".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
                         errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                        errorData = generalSvc.GeneralJsonReport(erroredMPs.FirstOrDefault(), mbi.MailBatch, mbi.Client.AppCode);
+                        errorData = generalSvc.GeneralJsonReport(erroredMPs.FirstOrDefault().UniqueId.ToString());
                         if (!string.IsNullOrWhiteSpace(errorData))
                         {
                             File.WriteAllText(errorReportPath, errorData.ToString());
