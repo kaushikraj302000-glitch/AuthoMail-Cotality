@@ -56,9 +56,12 @@
                         <li>@Html.ActionLink("Home", "Index", "Home")</li>
                         @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA) || User.IsInRole(AM.Entities.AMRoles.Client))
                         {
-                            <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Clients <span class="caret"></span></a>
-                                <ul class="dropdown-menu" id="clientmenu"></ul>
+                            @*<li class="dropdown">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Clients <span class="caret"></span></a>
+                                    <ul class="dropdown-menu" id="clientmenu"></ul>
+                                </li>*@
+                            <li>
+                                <a href="#" id="clientmenu">Clients</a>
                             </li>
                         }
 
@@ -144,8 +147,39 @@
             </div>
         </footer>
     </div>
-   
 
+    @*<div id="clientmodal" class="modal fade" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <div class="modal-header">
+                        <h3>Please choose client</h3>
+                    </div>
+                    <div class="modal-body">
+                        <select class="form-control" id="clientselect"></select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+    <div class="modal fade" id="clientmodal" tabindex="-1" role="dialog" aria-labelledby="myclientmodal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <div class="modal-header">
+                    <h1 id="myModalLabel">Please choose client</h1>
+                </div>
+                <div class="modal-body">
+                    <select class="form-control" data-live-search="true" data-live-search-placeholder="Search Client" id="clientselect"></select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/jqueryval")
     @Scripts.Render("~/bundles/cljs")
@@ -162,8 +196,9 @@
         $(document).ready(function () {
             init();
             GetClientNameById();
-            
+            if ($('#clientmenu').length != 0) {
                 GetClientMenu();
+            }
             jQuery.validator.addMethod("lettersonly", function(value, element) {
                 return this.optional(element) || /^[A-z\s]+$/i.test(value);
             }, "Letters only please");
@@ -234,9 +269,12 @@
             //setInterval(function(){AMHealth();},(1000*60*5));
         });
 
-        function RefreshDataByClientId(obj) {
-            var clientId=$(obj).data("clientid");
-            if (clientId!="") {
+        function ClientSelectEvent() {
+
+            $('#clientselect').unbind('change');
+            $('#clientselect').bind('change', function (e) {
+                var clientId = $(this).val();
+                 if (clientId!="") {
                 $.ajax({
                     type: "POST",
                     url: baseUrl + "Common/RefreshDataByClientId",
@@ -274,8 +312,16 @@
                     timeout: 5000
                 });
             }
+            });
+
+
+
         }
         function GetClientMenu() {
+
+            $('#clientmenu').unbind('click');
+            $('#clientmenu').bind('click', function (e) {
+            $('#clientmodal').modal('show');
             $.ajax({
                 type: "GET",
                 url: baseUrl + "Common/GetClientMenu",
@@ -283,13 +329,14 @@
                 success: function (response) {
                     if (response.Success) {
                         if (response.Object != null) {
+                            $("#clientselect").empty();
                             var data = response.Object;
-                            var lihtml = "";
-                            for (var i = 0; i < data.length; i++) {
-                                lihtml = lihtml + '<li onclick="RefreshDataByClientId(this)" class="client" data-clientid="' + data[i].Id + '"><a href="#">' + data[i].Name + '</a></li>';
-                            }
-                            $("#clientmenu").empty();
-                            $("#clientmenu").html(lihtml);
+                            $.each(data, function (i, v) {
+                                var sel = $("#ClientName").text() == v.Name ? "selected" : "";
+                                $("#clientselect").append('<option value="' + v.Id + '" ' + sel+'>'+v.Name+'</option>');
+                            });
+                            $("#clientselect").selectpicker();
+                            ClientSelectEvent();
                         }
                     }
 
@@ -303,9 +350,10 @@
                 }
 
             });
+            });
         }
         function GetClientNameById() {
-            $("#ClientName").text("")
+            $("#ClientName").text("");
             $.ajax({
                 type: "GET",
                 url: baseUrl + "Common/GetClientNameById",
