@@ -15,7 +15,7 @@ namespace AM.Entities
     public class BatchAPIResponse
     {
         public int MBId { get; set; }
-        public MailAPIResponse resp { get; set; }
+        public MailAPIResponse APIResponse { get; set; }
     }
 
     public class MailAPIResponse

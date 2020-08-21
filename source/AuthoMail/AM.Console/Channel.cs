@@ -2,11 +2,13 @@
 using AM.Lib;
 using AM.Services;
 using AM.USPSLib;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -136,7 +138,7 @@ namespace AM.Console
             {
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
 
-                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.ReportPrepped).Where(ch => ch.SFTChannelId == sftChannelDetails.Id).Take(100).ToList();
+                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.ReportPrepped).Where(ch => ch.SFTChannelId == sftChannelDetails.Id).ToList();
 
                 if (reportPreppedBatches == null || reportPreppedBatches.Count == 0)
                 {
@@ -147,9 +149,6 @@ namespace AM.Console
                 HttpResponseMessage responseResult = null;
                 foreach (var mailBatch in reportPreppedBatches)
                 {
-                    //take all the MP of that batch and generate List<MailResponseAPI> (Max:100)
-                    //Based on response update MailBatch Status to ReportedBack
-
                     try
                     {
                         Client client = clientSvc.GetClientById(mailBatch.ClientId);
@@ -157,18 +156,20 @@ namespace AM.Console
                         MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
                         List<MailPieces> mailPieces;
+                        List<string> jsonResponses = new List<string>();
                         using (IReportService reportSvc = new ReportService())
                         {
                             mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
                         }
-                        var responses = genSvc.GeneralJsonAPIResponse(mailPieces, mailBatch, client.AppCode);
 
-                        if (responses.Count == 0)
+                        var response = genSvc.GenerateMailAPIResponse(mailPieces.SingleOrDefault().UniqueId.ToString());
+
+                        if (response == null)
                         {
                             continue;
                         }
 
-                        batchApiResponses.AddRange(responses);
+                        batchApiResponses.Add(new BatchAPIResponse() { MBId = mailBatch.Id, APIResponse = response });
                     }
                     catch (Exception ex)
                     {
@@ -182,50 +183,55 @@ namespace AM.Console
                 switch (sftChannelDetails.Code.Split('_')[0].ToUpper())
                 {
                     case "ELLIEMAE":
-                        try
+
+                        int responseCount = batchApiResponses.Count;
+                        int maxResponse = Config.EllieMae_MaxResponseCount;
+                        int submittedResponse = 0;
+                        double loopCount = Math.Ceiling(responseCount / (float)maxResponse);
+                        var token = GenerateToken().Result;
+                        for (double i = 0; i < loopCount; i++)
                         {
-                            responseResult = genSvc.SendEllieMaeResponse(batchApiResponses.Select(b => b.resp).ToList()).Result;
-                        }
-                        catch (Exception ex)
-                        {
-                            var msg = "Unexpected error occured while sending response to EllieMae endpoint with Error : {0}".Fill(ex.Message);
-                            log.Error(msg, ex);
-                            MailUtility.SendUnexpectedExceptionEmail(msg);
-                            break;
-                        }
-                        if (responseResult.StatusCode.ToString() == "OK")
-                        {
-                            //LIST<Response> one by check with uniqueId (check All MPs NOT IN "INPROGRESS"--> check ALL PrintBatches NOT IN "INPROGRESS" Then Execute below.
-                            foreach (var batchResponse in batchApiResponses)
+                            var takenResponse = batchApiResponses.Skip(submittedResponse).Take(maxResponse).ToList();
+                            try
                             {
-                                try
+                                responseResult = genSvc.SendEllieMaeResponse(takenResponse.Select(c => c.APIResponse).ToList(), token).Result;
+                                submittedResponse += maxResponse;
+                            }
+                            catch (Exception ex)
+                            {
+                                var msg = "Unexpected error occured while sending response to EllieMae endpoint with Error : {0}".Fill(ex.Message);
+                                log.Error(msg, ex);
+                                MailUtility.SendUnexpectedExceptionEmail(msg);
+                                break;
+                            }
+                            if (responseResult.StatusCode.ToString() == HttpStatusCode.OK.ToString())
+                            {
+                                foreach (var batchResponse in batchApiResponses)
                                 {
-                                    var mailPieceInfo = mailPieceSvc.GetMailPiecesByMailBatchId(batchResponse.MBId).Where(m => m.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
-                                    if (mailPieceInfo.Count > 0)
+                                    try
+                                    {
+                                        var mailPieceInfo = mailPieceSvc.GetMailPiecesByMailBatchId(batchResponse.MBId).Where(m => m.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+
+                                        if (mailPieceInfo.Count > 0)
+                                            continue;
+
+                                        commonSvc.UpdateBatchPipeLineStatus(batchResponse.MBId, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        var msg = "Error occured in API ReportedBack Method For Mail Batch Id: {0} with Error : {1}".Fill(batchResponse.MBId, ex.Message);
+                                        log.Error(msg, ex);
+                                        MailUtility.SendUnexpectedExceptionEmail(msg);
                                         continue;
-
-                                    //int remainingPrintBatchReportedBackCount = 0;
-
-                                    //remainingPrintBatchReportedBackCount = mailBatchSvc.RemainingPrintBatchesReportedBackCount(batchResponse.MBId);
-                                    //if (remainingPrintBatchReportedBackCount > 0)
-                                    //    continue;
-
-                                    commonSvc.UpdateBatchPipeLineStatus(batchResponse.MBId, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
-                                }
-                                catch (Exception ex)
-                                {
-                                    var msg = "Error occured in API ReportedBack Method For Mail Batch Id: {0} with Error : {1}".Fill(batchResponse.MBId, ex.Message);
-                                    log.Error(msg, ex);
-                                    MailUtility.SendUnexpectedExceptionEmail(msg);
-                                    continue;
+                                    }
                                 }
                             }
-                        }
-                        else
-                        {
-                            var msg = "Error occured while sending response to EllieMae endpoint with Status Code : {0}, Error : {1}".Fill(responseResult.StatusCode, responseResult.RequestMessage);
-                            log.Error(msg);
-                            MailUtility.SendUnexpectedExceptionEmail(msg);
+                            else
+                            {
+                                var msg = "Error occured while sending response to EllieMae endpoint with Status Code : {0}, Error : {1}".Fill(responseResult.StatusCode, responseResult.RequestMessage);
+                                log.Error(msg);
+                                MailUtility.SendUnexpectedExceptionEmail(msg);
+                            }
                         }
                         break;
                     default:
@@ -233,6 +239,31 @@ namespace AM.Console
                         break;
                 }
             }
+        }
+
+        public static async Task<string> GenerateToken()
+        {
+            HttpClient client = new HttpClient();
+            string baseAddress = Path.Combine(Config.EllieMae_BaseURL, Config.EllieMae_TokenUrl);
+
+            string grant_type = Config.EllieMae_GrantType;
+            string client_id = Config.EllieMae_UserId;
+            string client_secret = Config.EllieMae_UserPass;
+            string scope = Config.EllieMae_Scope;
+
+            var form = new Dictionary<string, string>
+                    {
+                        {"grant_type", grant_type},
+                        {"client_id", client_id},
+                        {"client_secret", client_secret},
+                        {"scope", scope}
+                    };
+
+            HttpResponseMessage tokenResponse = await client.PostAsync(baseAddress, new FormUrlEncodedContent(form));
+            var jsonContent = await tokenResponse.Content.ReadAsStringAsync();
+            var jObj = JObject.Parse(jsonContent);
+
+            return jObj.GetValue("access_token").ToString();
         }
 
         private static void ProcessGeneralReportedBack(string channelCode)

@@ -152,6 +152,7 @@ namespace AM.Services
         public int? DocTypeId { get; set; }
         public int? PnSConfigDetailId { get; set; }
         public string PrintLocation { get; set; }
+        public string Inserts { get; set; }
         public DateTime? StdSubmissionTime { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }
         public bool IsEDeliveryRequested { get; set; }
@@ -359,7 +360,7 @@ namespace AM.Services
         public string PrintFormat { get; set; }
         public decimal QCPercent { get; set; }
         public string ShippingCarrier { get; set; }
-        public string ShippingServiceType { get; set; }        
+        public string ShippingServiceType { get; set; }
         public string ShippingAccountCode { get; set; }
         public string BizdayCutOff { get; set; }
         public string BizdaySLAType { get; set; }
@@ -370,7 +371,7 @@ namespace AM.Services
         public string SunCutOff { get; set; }
         public string SunSLAType { get; set; }
         public string SunTimeSpan { get; set; }
-        public string ShippingSpecialService { get; set; }        
+        public string ShippingSpecialService { get; set; }
         public int NoOfCopies { get; set; }
         public int? MinPage { get; set; }
         public int? MaxPage { get; set; }

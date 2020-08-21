@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -21,10 +22,9 @@ namespace AM.Services
         StringBuilder GeneralDeliveryReport(List<MailPieces> mailPieces, string separator);
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatches mailBatch);
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatchDTO mailBatch, string clientCode);
+        MailAPIResponse GenerateMailAPIResponse(string mpUniqueId);
         string GeneralJsonReport(string mpUniqueId);
-        List<BatchAPIResponse> GeneralJsonAPIResponse(List<MailPieces> mailpieces, MailBatchDTO mailBatch, string clientCode);
-        string GeneralJsonReport(MailPieces mp, MailBatches mailBatch);
-        Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport);
+        Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport, string bearerToken);
     }
 
     public class GeneralService : ServiceBase, IGeneralService
@@ -167,8 +167,8 @@ namespace AM.Services
             return serializedString;
         }
 
-        public string GeneralJsonReport(string mpUniqueId)
-        {            
+        public MailAPIResponse GenerateMailAPIResponse(string mpUniqueId)
+        {
             using (IMailPieceService mailPieceService = new MailPieceService())
             {
                 BatchResponse batchResponse = mailPieceService.GetMailPieceDetailsByMailPieceUniqueId(mpUniqueId);
@@ -223,9 +223,7 @@ namespace AM.Services
                         PulledBackOn = batchResponse.PulledBackOn
                     };
 
-                    var serializedString = JsonConvert.SerializeObject(response);
-
-                    return serializedString;
+                    return response;
                 }
                 else
                 {
@@ -236,92 +234,27 @@ namespace AM.Services
                         Message = "The specified package does not exist."
                     };
 
-                    var serializedString = JsonConvert.SerializeObject(response);
-                    return serializedString;
+                    return response;
                 }
             }
         }
 
-        public List<BatchAPIResponse> GeneralJsonAPIResponse(List<MailPieces> mailpieces, MailBatchDTO mailBatch, string clientCode)
+        public string GeneralJsonReport(string mpUniqueId)
         {
-            List<BatchAPIResponse> batchApiResponses = new List<BatchAPIResponse>();
-            foreach (var mp in mailpieces)
-            {
-                batchApiResponses.Add(new BatchAPIResponse()
-                {
-                    MBId = mailBatch.Id,
-                    resp = new MailAPIResponse()
-                    {
-                        BusinessFriendlyIdName = mp.BusinessFriendlyIdName,
-                        BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,
-                        ClientCode = clientCode,
-                        DocumentOrPackage = new DocumentOrPackage() { Name = mp.FileName },
-                        ReceivedOn = mailBatch.ReceivedOn.Value,
-                        RecipientInfo = new RecipientInfo() { Recipient = new Recipient() { FirstName = mp.RcptFirstName, LastName = mp.RcptLastName }, Address = new Entities.Address() { Street = mp.RcptAddressStreet, City = mp.RcptAddressCity, State = mp.RcptAddressState, Zip = mp.RcptAddressZIP } },
-                        ShippingMethod = mp.DocTypes == null ? "" : mp.DocTypes.ShippingCarrier,
-                        ShippingServiceType = mp.DocTypes == null ? "" : mp.DocTypes.ShippingServiceType,
-                        TotalPages = mp.TotalPages,
-                        TrackingNumber = mp.TrackingNo,
-                        ErrorCode = mp.ErrorCode,
-                        ErrorDesc = mp.ErrorDesc,
-                        Id = mp.UniqueId,
-                        MailingStatus = mp.ShippingStatus,
-                        PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue,
-                        ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue,
-                        TotalSheets = mp.TotalPages
-                    }
-                });
-            }
-
-            return batchApiResponses;
-        }
-        public string GeneralJsonReport(MailPieces mp, MailBatches mailBatch)
-        {
-            MailAPIResponse response = new MailAPIResponse()
-            {
-                BusinessFriendlyIdName = mp.BusinessFriendlyIdName,
-                BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,
-                ClientCode = mp.Clients.AppCode,
-                DocumentOrPackage = new DocumentOrPackage() { Name = mp.FileName },
-                ReceivedOn = mailBatch.ReceivedOn.Value,
-                RecipientInfo = new RecipientInfo() { Recipient = new Recipient() { FirstName = mp.RcptFirstName, LastName = mp.RcptLastName }, Address = new Entities.Address() { Street = mp.RcptAddressStreet, City = mp.RcptAddressCity, State = mp.RcptAddressState, Zip = mp.RcptAddressZIP } },
-                ShippingMethod = mp.DocTypes.ShippingCarrier,
-                ShippingServiceType = mp.DocTypes.ShippingServiceType,
-                TotalPages = mp.TotalPages,
-                TrackingNumber = mp.TrackingNo,
-                ErrorCode = mp.ErrorCode,
-                ErrorDesc = mp.ErrorDesc,
-                Id = mp.UniqueId,
-                MailingStatus = mp.ShippingStatus,
-                PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue,
-                ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue,
-                TotalSheets = mp.TotalPages
-            };
-
+            var response = GenerateMailAPIResponse(mpUniqueId);
             var serializedString = JsonConvert.SerializeObject(response);
-
             return serializedString;
         }
-        public string GenerateHashHMAC(string key, string message)
-        {
-            var encoding = new System.Text.ASCIIEncoding();
-            byte[] keyByte = encoding.GetBytes(key);
-            byte[] messageBytes = encoding.GetBytes(message);
 
-            using (var hmacsha256 = new HMACSHA256(keyByte))
+        public async Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport, string bearerToken)
+        {
+            JsonSerializerSettings dateFormatSettings = new JsonSerializerSettings
             {
-                byte[] hashmessage = hmacsha256.ComputeHash(messageBytes);
-                return Convert.ToBase64String(hashmessage);
-            }
-            //return String.Concat(Array.ConvertAll(hash, x => x.ToString("x2")));
-        }
+                DateFormatHandling = DateFormatHandling.IsoDateFormat
+            };
 
-        public async Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport)
-        {
-            string json = JsonConvert.SerializeObject(responseReport);
-            string hashHMAC = GenerateHashHMAC(Config.EllieMae_Secret, json);
-            //var token = await GetToken();
-            using (var client = SetupClient(Config.EllieMae_X_API_Key, hashHMAC))
+            string json = JsonConvert.SerializeObject(responseReport, dateFormatSettings);
+            using (var client = SetupClient(bearerToken))
             {
                 ServicePointManager.Expect100Continue = true;
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
@@ -331,15 +264,13 @@ namespace AM.Services
             }
         }
 
-        private static HttpClient SetupClient(string xAPIKey, string hashHMAC)
+        private static HttpClient SetupClient(string token)
         {
             var client = new HttpClient();
             client.BaseAddress = new Uri(Config.EllieMae_BaseURL);
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            //client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-            client.DefaultRequestHeaders.Add("X-API-KEY", xAPIKey);
-            client.DefaultRequestHeaders.Add("X-Elli-Signature", hashHMAC);
+            client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
             return client;
         }
         public async static Task<string> GetToken()
