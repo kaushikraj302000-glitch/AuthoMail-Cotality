@@ -214,7 +214,7 @@ namespace AM.Core
                                 if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
                                 {
                                     int reTrycnt = 0;
-                                    while (reTrycnt < Config.Core_NoofTime_AttemptFedexService)
+                                    while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                     {
                                         eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>());
 
@@ -225,7 +225,7 @@ namespace AM.Core
                                         {
                                             //NOTE: Here system is check for unusal error like connection issue or timeout issue if occure then system will retry to generate label
                                             log.Error("Priority Express had some unexpected error {0}".Fill(response.ExceptionDetail));
-                                            System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                                            System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
                                             reTrycnt++;
                                         }
                                         else if (response.HasError)
@@ -277,7 +277,7 @@ namespace AM.Core
                                 else if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString())
                                 {
                                     int reTrycnt = 0;
-                                    while (reTrycnt < Config.Core_NoofTime_AttemptFedexService)
+                                    while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                     {
                                         eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
@@ -287,7 +287,7 @@ namespace AM.Core
                                         {
                                             //NOTE: Here system is check for unusal error like connection issue or timeout issue if occure then system will retry to generate label
                                             log.Error("Priority had some unexpected error {0}".Fill(response.ExceptionDetail));
-                                            System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                                            System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
                                             reTrycnt++;
                                         }
                                         else
@@ -353,7 +353,7 @@ namespace AM.Core
                                 FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
                                 ShipperInformation shipperInfo = commonSvc.GetShipperInformationByPrintLocation(mailPiece.PrintLocation, mailPiece.PrintTrailId.Value);
                                 CreateFedExLabel createFedExLabel = new CreateFedExLabel();
-                                while (attemptCount < Config.Core_NoofTime_AttemptFedexService)
+                                while (attemptCount < Config.Core_NoOfAttemptOnFailure)
                                 {
                                     response = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi, shipperInfo);
                                     if (!response.HasError)
@@ -365,7 +365,7 @@ namespace AM.Core
                                     }
                                     else if (response.HasError && (fedExExceptionCodes.Any(code => response.ExceptionCode == code) || fedExExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
                                     {
-                                        System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                                        System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
                                         attemptCount++;
                                         var msg = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, response.ExceptionDetail);
                                         //Setting as an error suppose FedEx is failing continueously then System will consider as an unknown error for that mail piece

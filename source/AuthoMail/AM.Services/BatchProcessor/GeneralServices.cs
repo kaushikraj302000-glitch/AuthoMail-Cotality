@@ -183,7 +183,7 @@ namespace AM.Services
                         BusinessFriendlyIdName = batchResponse.BusinessFriendlyIdName,
                         BusinessFriendlyIdValue = batchResponse.BusinessFriendlyIdValue,
                         DocumentOrPackageType = batchResponse.DocumentOrPackageType,
-                        DocumentOrPackage = new DocumentOrPackage { Name = batchResponse.FileName, Inserts = batchResponse.Inserts },
+                        DocumentOrPackage = new DocumentOrPackage { Name = batchResponse.FileName },
                         RecipientInfo = new RecipientInfo
                         {
                             Recipient = new Recipient

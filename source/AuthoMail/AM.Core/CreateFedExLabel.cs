@@ -36,14 +36,8 @@ namespace AM.Core
             ShipPortTypeClient service = new ShipPortTypeClient();
 
             // For production account we always need to use production URL. Devang sir clarified that until the shipping label barcode is scanned by FedEx we will not get billed. So, if needed for UAT also we can use production URL.
-            if (Config.Common_Environment == Env.Prod)
-            {
-                service.Endpoint.Address = new System.ServiceModel.EndpointAddress(Config.Core_FedExProdService);
-            }
-            else
-            {
-                service.Endpoint.Address = new System.ServiceModel.EndpointAddress(Config.Core_FedExTestService);
-            }
+
+            service.Endpoint.Address = new System.ServiceModel.EndpointAddress(Config.Core_FedExService);
 
             try
             {

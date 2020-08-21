@@ -24,7 +24,6 @@ namespace AM.Services
         public static string Common_Environment { get; private set; }
         public static string Common_EnvironmentInitial { get; private set; }
         public static string Common_AuthoMailRootFolder { get; private set; }
-        public static string Common_EDeliveryRootFolder { get; private set; }
         public static string Common_DocGen_API { get; private set; }
         public static List<Holiday> Common_FederalHolidays { get; private set; }
 
@@ -51,8 +50,6 @@ namespace AM.Services
 
         #region Console & Core
         public static string Monitor_AMCPulledBackDate { get; set; }
-        public static string Monitor_ExpressMailingText { get; set; }
-        public static string Monitor_PriorityMailingText { get; set; }
         public static string Monitor_AMC_ReportDateFormat { get; private set; }
         public static string Monitor_DSEmailTemplate { get; private set; }
         public static string Monitor_PSEmailTemplate { get; private set; }
@@ -63,7 +60,6 @@ namespace AM.Services
         public static string Monitor_ExceptionEmail_Subject { get; private set; }
         public static string Monitor_Exception_Email_To { get; private set; }
         public static string Monitor_Exception_Email_Cc { get; private set; }
-        public static string Monitor_AMCBackupReportUploadPath { get; set; }
         public static string Monitor_CustomTemplateFolder { get; private set; }
 
         //Core
@@ -72,14 +68,10 @@ namespace AM.Services
         public static string Core_Base64Folder { get; private set; }
         public static string Core_CoversheetAPI { get; private set; }
         public static string Core_CountryCode { get; private set; }
-        public static int Core_NoofTime_AttemptFedexService { get; private set; }
-        public static int Core_FedexServiceAttemptInterval { get; private set; }
+        public static int Core_NoOfAttemptOnFailure { get; private set; }
+        public static int Core_FailureAttemptInterval { get; private set; }
         public static string Core_IncrementalReportingChannelCodes { get; private set; }
-
-
-        //FedEx URLs
-        public static string Core_FedExTestService { get; private set; }
-        public static string Core_FedExProdService { get; private set; }
+        public static string Core_FedExService { get; private set; }
         #endregion
 
         #region Reporting_ReadOnly
@@ -247,10 +239,14 @@ namespace AM.Services
 
         #region EllieMae_API
 
-        public static string EllieMae_Secret { get; set; }
-        public static string EllieMae_X_API_Key { get; set; }
+        public static string EllieMae_UserId { get; set; }
+        public static string EllieMae_UserPass { get; set; }
+        public static string EllieMae_GrantType { get; set; }
+        public static string EllieMae_Scope { get; set; }
         public static string EllieMae_BaseURL { get; set; }
+        public static string EllieMae_TokenUrl { get; set; }
         public static string EllieMae_UploadResponseURL { get; set; }
+        public static int EllieMae_MaxResponseCount { get; set; }
         public static string MailRequestAPI_FilesDownloadPath { get; set; }
         public static int MailRequestAPI_MaxRequestSize { get; set; }
 
