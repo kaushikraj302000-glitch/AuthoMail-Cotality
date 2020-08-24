@@ -10,8 +10,10 @@
     [IsSuspended]      AS            (case when [SuspendedOn] IS NULL then (0) else (1) end),
     [ValidationErrors] VARCHAR (MAX) NULL,
     [ZipFileSize]      BIGINT        NULL,
+    [ShipperId] INT NULL, 
     CONSTRAINT [PK_PrintTrailBatches_Id] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
-    CONSTRAINT [FK_PrintTrailBatches_PrintTrails] FOREIGN KEY ([PrintTrailId]) REFERENCES [Common].[PrintTrails] ([Id])
+    CONSTRAINT [FK_PrintTrailBatches_PrintTrails] FOREIGN KEY ([PrintTrailId]) REFERENCES [Common].[PrintTrails] ([Id]),
+    CONSTRAINT [FK_PrintTrailBatches_ShipperId] FOREIGN KEY ([ShipperId]) REFERENCES [Common].[ShipperInformation] ([Id])
 );
 
 

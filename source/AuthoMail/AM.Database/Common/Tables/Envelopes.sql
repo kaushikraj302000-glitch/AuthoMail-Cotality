@@ -3,8 +3,6 @@
     [EnvelopeName]    VARCHAR (255)  NOT NULL,
     [EnvelopeDesc]    VARCHAR (255)  NULL,
     [PartNumber]      VARCHAR (255)  NULL,
-    [ReorderDuration] INT            NULL,
-    [CurrentQuantity] INT            NULL,
     [IsBREEnvelope]   BIT            NOT NULL,
     [CreatedBy]       NVARCHAR (128) NOT NULL,
     [CreatedOn]       DATETIME       NOT NULL,

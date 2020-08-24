@@ -9,10 +9,12 @@
     [ModifiedBy]       NVARCHAR (128) NOT NULL,
     [CreatedOn]        DATETIME       NOT NULL,
     [ModifiedOn]       DATETIME       NOT NULL,
+    [ShipperId] INT NOT NULL, 
     CONSTRAINT [PK_EnvelopeInventory] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
     CONSTRAINT [FK_CreatedBy_EnvelopeInventory_Users] FOREIGN KEY ([CreatedBy]) REFERENCES [Profile].[Users] ([Id]),
     CONSTRAINT [FK_EnvelopeId_EnvelopeInventory] FOREIGN KEY ([EnvelopeId]) REFERENCES [Common].[Envelopes] ([Id]),
-    CONSTRAINT [FK_ModifiedBy_EnvelopeInventory_Users] FOREIGN KEY ([ModifiedBy]) REFERENCES [Profile].[Users] ([Id])
+    CONSTRAINT [FK_ModifiedBy_EnvelopeInventory_Users] FOREIGN KEY ([ModifiedBy]) REFERENCES [Profile].[Users] ([Id]),
+    CONSTRAINT [FK_ShippedId_EnvelopeInventory_ShipperInformation] FOREIGN KEY ([ShipperId]) REFERENCES [Common].[ShipperInformation] ([Id]),
 );
 
 
