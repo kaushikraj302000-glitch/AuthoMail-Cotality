@@ -45,7 +45,7 @@
     <xs:attribute name="OptionalLine2BelowStreet" type="xs:string" use="optional"  />
     <xs:attribute name="City" type="nonEmptyString" use="optional"  />
     <xs:attribute name="State" type="nonEmptyString" use="optional"  />
-    <xs:attribute name="Zip" type="USZIP" use="optional"  />
+    <xs:attribute name="Zip" type="nonEmptyString" use="optional"  />
     <xs:attribute name="Country" type="nonEmptyString" use="optional"  />
   </xs:complexType>
   <xs:complexType name="eDelivery">
