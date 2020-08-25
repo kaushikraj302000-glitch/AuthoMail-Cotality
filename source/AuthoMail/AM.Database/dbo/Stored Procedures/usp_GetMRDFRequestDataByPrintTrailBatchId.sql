@@ -34,7 +34,7 @@ BEGIN
  BEGIN
    SELECT REQ.*,MP.Id AS MailPieceId,MP.EffectiveReceivedOnEst, BS.ClientId,BS.DocTypeId,PCD.ShippingCarrier,
   PCD.ShippingServiceType,C.AppCode,CASE WHEN C.Alias IS NULL OR C.Alias='' THEN C.AppCode ELSE C.Alias END AS Alias,MP.DueDate AS MailPieceDueDate,PCD.EnvelopeId,d.BREEnvelopeId,E.EnvelopeName,BE.EnvelopeName AS BREEnvelopeName
-  ,E.PartNumber AS EnvelopePartNo,BE.PartNumber AS BREPartNo,E.EnvelopeName AS EnvelopeDesc,BE.EnvelopeName AS BREDesc,PCD.PrintFormat,PCD.PrintSize,E.EnvelopeDesc AS PackageCode,(SELECT [Value] FROM AM.MailPieceCustomInfo MPC WHERE MPC.[Key]='CustomerId' AND MPC.MailPieceId=MP.Id) AS CustomerId,CAST((CASE WHEN LEN(LTRIM(RTRIM(MP.RcptAddressCountry))) >0 THEN 1 ELSE 0 END )AS BIT) AS IsForeignAddress
+  ,E.PartNumber AS EnvelopePartNo,BE.PartNumber AS BREPartNo,E.EnvelopeName AS EnvelopeDesc,BE.EnvelopeName AS BREDesc,PCD.PrintFormat,PCD.PrintSize,E.EnvelopeDesc AS PackageCode,(SELECT [Value] FROM AM.MailPieceCustomInfo MPC WHERE MPC.[Key]='CustomerId' AND MPC.MailPieceId=MP.Id) AS CustomerId,CAST((CASE WHEN LEN(LTRIM(RTRIM(MP.RcptAddressCountry))) >0 THEN 1 ELSE 0 END )AS BIT) AS IsForeignAddress,MP.ShipperId
   FROM PnS.MRDFRequest REQ
   INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
   LEFT OUTER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
