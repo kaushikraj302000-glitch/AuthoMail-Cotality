@@ -984,7 +984,6 @@ namespace AM.Console
 
         private MailPieceValidationResult ValidateCommonValidation(MailPieceDTO mailPieceDTO, MailBatchInfo mbi)
         {
-
             bool allowInsertsOnly;
             using (IDocTypeService docSvc = new DocTypeService())
             {
@@ -1181,6 +1180,23 @@ namespace AM.Console
 
             if (mailPiece.FileName.IsNullOrWhiteSpace() && mailPiece.FilePattern.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not provided in package." };
+
+
+            if (!mailPiece.RcptAddressZIP.IsNullOrWhiteSpace() && (mailPiece.RcptAddressCountry.IsNullOrWhiteSpace() || (!mailPiece.RcptAddressCountry.IsNullOrWhiteSpace() && (mailPiece.RcptAddressCountry == "USA" || mailPiece.RcptAddressCountry == "US" || mailPiece.RcptAddressCountry == "The United States of America" || mailPiece.RcptAddressCountry == "United States of America" || mailPiece.RcptAddressCountry == "United States"))))
+            {
+                if (!Regex.Match(mailPiece.RcptAddressZIP, @"^(?(^00000(|-0000))|\d{5}(?:|[-\s]+\d{4}))$").Success)
+                {
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Zipcode is in invalid format." };
+                }
+            }
+
+            if (!mailPiece.RetRcptAddressZIP.IsNullOrWhiteSpace() && (mailPiece.RetRcptAddressCountry.IsNullOrWhiteSpace() || (!mailPiece.RetRcptAddressCountry.IsNullOrWhiteSpace() && (mailPiece.RetRcptAddressCountry == "USA" || mailPiece.RetRcptAddressCountry == "US" || mailPiece.RetRcptAddressCountry == "The United States of America" || mailPiece.RetRcptAddressCountry == "United States of America" || mailPiece.RetRcptAddressCountry == "United States"))))
+            {
+                if (!Regex.Match(mailPiece.RetRcptAddressCountry, @"^(?(^00000(|-0000))|\d{5}(?:|[-\s]+\d{4}))$").Success)
+                {
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return Zipcode is in invalid format." };
+                }
+            }
 
             using (IClientService clientSvc = new ClientService())
             {

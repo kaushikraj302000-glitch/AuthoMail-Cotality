@@ -460,8 +460,8 @@ namespace AM.Services
             //Calculate Due Date for Mail Pieces doc type wise
             mailPiece.DueDate = GetDueDate(client.Id, docType, mailPiece.EffectiveReceivedOnEst.Value);
             //Set print location where mail piece will go for print and ship
-            //mailPiece.PrintTrailId = GetPrintTrail(mailPiece.PnSConfigDetailId.Value, mailPiece.EffectiveReceivedOnEst.Value);
             var printVendorDetails = GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value, mailPiece.EffectiveReceivedOnEst);
+            mailPiece.ShipperId = printVendorDetails.ShipperId;
             mailPiece.PrintLocation = GetShipperInformation(printVendorDetails.ShipperId).PrintLocation;
             mailPiece.StdSubmissionTime = GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, receivedOn, GetSweepTimings());
             mailPiece.MaxSubmissionTime = GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
@@ -476,7 +476,7 @@ namespace AM.Services
 
         public bool CheckForDuplicateMailPieceUniqueId(Guid mpUniqueId)
         {
-            string query = "select case when exists(select 1 from AM.MailPieces where UniqueId = @UniqueId) then 1 else 0 end";            
+            string query = "select case when exists(select 1 from AM.MailPieces where UniqueId = @UniqueId) then 1 else 0 end";
             return db.ExecuteScalar<bool>(query, new { UniqueId = mpUniqueId });
         }
 
