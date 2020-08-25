@@ -134,6 +134,7 @@ namespace PCI.Service
         public string BREDesc { get; set; }
         public string PrintSize { get; set; }
         public string PrintFormat { get; set; }
+        public int ShipperId { get; set; }
 
         //Extra fields which will be used for generating MRDF Request
         public string InputWeight { get; set; }
@@ -207,6 +208,7 @@ namespace PCI.Service
     public class PrintTrailBatch
     {
         public int Id { get; set; }
+        public int ShipperId { get; set; }
         public int PrintTrailId { get; set; }
         public string PrintBatchName { get; set; }
         public bool IsSubmitted { get; set; }

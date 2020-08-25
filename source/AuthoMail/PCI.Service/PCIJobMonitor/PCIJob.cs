@@ -210,20 +210,25 @@ namespace PCI.Service
 
             if (ptDetail.VendorCode == "NORDIS")
             {
-                var mpByDueDate = mpDetails.GroupBy(mp => Common.UtcToEst(mp.MailPieceDueDate).Date).ToList();
-
-                foreach (var dueDate in mpByDueDate)
+                var mpDetailsGroupByShipperId = mpDetails.GroupBy(mp => mp.ShipperId);
+                foreach (var mailPieces in mpDetailsGroupByShipperId)
                 {
-                    InsertPrintTrailBatchDetails(dueDate.ToList(), ptDetail, dueDate.Key);
+                    var mpByDueDate = mailPieces.GroupBy(mp => Common.UtcToEst(mp.MailPieceDueDate).Date).ToList();
+
+                    foreach (var dueDate in mpByDueDate)
+                    {
+                        InsertPrintTrailBatchDetails(dueDate.ToList(), ptDetail, dueDate.Key, mailPieces.Key);
+                    }
                 }
             }
             else
             {
-                InsertPrintTrailBatchDetails(mpDetails, ptDetail, null);
+                int shipperId = mpDetails.Select(x => x.ShipperId).Distinct().Single();
+                InsertPrintTrailBatchDetails(mpDetails, ptDetail, null, shipperId);
             }
         }
 
-        private static void InsertPrintTrailBatchDetails(List<MailPieceDetail> mpDetails, PrintTrailDetail ptDetail, DateTime? dueDate)
+        private static void InsertPrintTrailBatchDetails(List<MailPieceDetail> mpDetails, PrintTrailDetail ptDetail, DateTime? dueDate, int shipperId)
         {
             //For divert primary key issue we are using starting number as 90001
             int sequenceNo = 90001;
@@ -231,7 +236,8 @@ namespace PCI.Service
 
             ptBatchDetail = new PrintTrailBatch()
             {
-                PrintTrailId = ptDetail.PrintTrailId
+                PrintTrailId = ptDetail.PrintTrailId,
+                ShipperId = shipperId
             };
 
 

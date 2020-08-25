@@ -145,7 +145,7 @@ namespace PCI.Service
             foreach (var envelope in envelopeInventory)
             {
                 db.ExecuteSqlNonQuery("INSERT INTO [PnS].[EnvelopeUsage]([PrintTrailBatchId],[EnvelopeId],[Quantity],[InsertedOn])VALUES(@p1,@p2,@p3,@p4)", printTrailBatch.Id, envelope.Key, envelope.Value, Common.GetCurrentTime());
-                db.ExecuteSqlNonQuery("UPDATE [Common].[Envelopes] SET CurrentQuantity = CurrentQuantity-{0} WHERE Id IN (@p1)".Fill(envelope.Value), envelope.Key);
+                db.ExecuteSqlNonQuery("UPDATE [Common].[EnvelopeStock] SET CurrentQuantity = CurrentQuantity-{0} WHERE EnvelopeId = @p1 AND ShipperId= @p2".Fill(envelope.Value), envelope.Key, printTrailBatch.ShipperId);
             }
             return 1;
         }
