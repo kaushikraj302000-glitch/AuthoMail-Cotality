@@ -94,7 +94,7 @@ namespace AM.Web.Controllers
             return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
         }
 
-        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client)]
         [HttpPost]
         public ActionResult RefreshDataByClientId(int clientId)
         {
