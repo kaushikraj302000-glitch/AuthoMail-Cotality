@@ -30,6 +30,7 @@ namespace AM.Services
         string GetAppcodeByClientid(int clientId);
         List<string> GetMonthlyReconDate(int clientId);
         List<GOSMailPieceData> GetGOSDailyReconReport(DateTime currentDate);
+        List<FedExReport> GetFedExDataForTracking(DateTime startDueDate, DateTime endDueDate);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -528,6 +529,19 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
         {
             string query = @"SELECT C.AppCode,B.BatchName,dbo.ufn_UTCToEST(B.ReceivedOn)AS ReceivedOnEst,P.BusinessfriendlyIdValue AS LoanNumber,P.DocumentOrPackageType,P.FileName,P.TrackingNo,P.ShippingStatus,P.TotalPages ,dbo.ufn_UTCToEST(ShippedOn) AS ShippedOnEst, P.PrintLocation, P.ErrorDesc FROM AM.MailPieces P INNER JOIN AM.MailBatches B ON P.MailBatchId=B.Id INNER JOIN Common.Clients C ON P.ClientId=C.Id WHERE B.ClientId IN (SELECT Id FROM Common.Clients WHERE Alias='GOS') AND CAST(P.EffectiveReceivedOnEst AS DATE)=@EffectiveReceivedOn";
             return db.Query<GOSMailPieceData>(query, new { EffectiveReceivedOn = currentDate }).ToList();
+        }
+
+        public List<FedExReport> GetFedExDataForTracking(DateTime startDueDate, DateTime endDueDate)
+        {
+            string query = "SELECT * FROM [dbo].[view_FedExData] WHERE DueDate BETWEEN @startDueDate AND @endDueDate AND (ShipmentStatus NOT LIKE '%delivered%' OR ShipmentStatus NOT LIKE '%Delivered%')";
+
+            //This will provide previous and today's not picked up records
+            var data = db.Query<FedExReport>(query, new
+            {
+                startDueDate,
+                endDueDate
+            }).ToList();
+            return data;
         }
     }
 }
