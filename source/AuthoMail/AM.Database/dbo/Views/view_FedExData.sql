@@ -1,6 +1,6 @@
 ﻿CREATE VIEW [dbo].[view_FedExData]
 AS
-SELECT MP.Id, MP.UniqueId, C.AppCode, MB.PipelineStatus, MP.ShippingStatus, D.DocTypeName AS DocTypeCode, PCD.ShippingCarrier, PCD.ShippingServiceType, MP.ClientId, MP.PrintLocation, MB.BatchName, MP.BusinessFriendlyIdValue AS LoanNumber, MP.RcptFirstName, MP.RcptLastName, MP.RcptAddressStreet, MP.RcptAddressAptOrSuiteOrOther,MP.RcptAddressCity, MP.RcptAddressState, MP.RcptAddressZIP, MP.TrackingNo, MB.ReceivedOn, MP.DocumentOrPackageType, MP.IsPickedUp, MP.PickedUpOn, MP.DueDate, MP.ShippedOn, MP.EffectiveReceivedOnEst 
+SELECT MP.Id, MP.UniqueId, C.AppCode, MB.PipelineStatus, MP.ShippingStatus, D.DocTypeName AS DocTypeCode, PCD.ShippingCarrier, PCD.ShippingServiceType, MP.ClientId, MP.PrintLocation, MB.BatchName, MP.BusinessFriendlyIdValue AS LoanNumber, MP.RcptFirstName, MP.RcptLastName, MP.RcptAddressStreet, MP.RcptAddressAptOrSuiteOrOther,MP.RcptAddressCity, MP.RcptAddressState, MP.RcptAddressZIP, MP.TrackingNo, MB.ReceivedOn, MP.DocumentOrPackageType, MP.IsPickedUp, MP.PickedUpOn, MP.DueDate, MP.ShippedOn, MP.EffectiveReceivedOnEst,MP.ShipmentStatus,MP.ShipmentStatusUpdatedOn 
 FROM AM.MailPieces AS MP 
 INNER JOIN AM.MailBatches AS MB ON MB.Id = MP.MailBatchId 
 INNER JOIN [AM].[DocTypes] d ON MP.DocTypeId=d.Id 
