@@ -10,19 +10,23 @@ using System.Web.Hosting;
 using AM.Lib;
 using System.ComponentModel;
 using AM.Entities;
+using System.Text.RegularExpressions;
 
 namespace AM.Services
 {
     public class Config
     {
+        private static Dictionary<int, int> clientGroupMap;
+        private static Dictionary<int, List<Holiday>> groupHolidays;
+
         #region General
         [Description("To indicate on which environment job is running.")]
         public static string Common_Environment { get; private set; }
         public static string Common_EnvironmentInitial { get; private set; }
         public static string Common_AuthoMailRootFolder { get; private set; }
-        public static string Common_EDeliveryRootFolder { get; private set; }
-        public static List<Holiday> Common_Holidays { get; private set; }
+        public static string Common_DocGen_API { get; private set; }
         public static List<Holiday> Common_FederalHolidays { get; private set; }
+
         public static int Common_ProcessingBufferTime { get; private set; }
         public static string Common_FedExTrackingAccountCode { get; private set; }
         public static string Common_FedExTrackingUrl { get; private set; }
@@ -30,12 +34,22 @@ namespace AM.Services
         public static string Common_ErrorSubscribedEmailCc { get; private set; }
         public static string Common_ErrorSubscribedEmailTemplate { get; private set; }
 
+        public static List<Holiday> GetHolidaysByClientId(int clientId)
+        {
+            int groupId;
+
+            if (!clientGroupMap.TryGetValue(clientId, out groupId))
+            {
+                groupId = 1;
+            }
+
+            return groupHolidays[groupId];
+        }
+
         #endregion
 
         #region Console & Core
         public static string Monitor_AMCPulledBackDate { get; set; }
-        public static string Monitor_ExpressMailingText { get; set; }
-        public static string Monitor_PriorityMailingText { get; set; }
         public static string Monitor_AMC_ReportDateFormat { get; private set; }
         public static string Monitor_DSEmailTemplate { get; private set; }
         public static string Monitor_PSEmailTemplate { get; private set; }
@@ -46,7 +60,6 @@ namespace AM.Services
         public static string Monitor_ExceptionEmail_Subject { get; private set; }
         public static string Monitor_Exception_Email_To { get; private set; }
         public static string Monitor_Exception_Email_Cc { get; private set; }
-        public static string Monitor_AMCBackupReportUploadPath { get; set; }
         public static string Monitor_CustomTemplateFolder { get; private set; }
 
         //Core
@@ -55,14 +68,10 @@ namespace AM.Services
         public static string Core_Base64Folder { get; private set; }
         public static string Core_CoversheetAPI { get; private set; }
         public static string Core_CountryCode { get; private set; }
-        public static int Core_NoofTime_AttemptFedexService { get; private set; }
-        public static int Core_FedexServiceAttemptInterval { get; private set; }
+        public static int Core_NoOfAttemptOnFailure { get; private set; }
+        public static int Core_FailureAttemptInterval { get; private set; }
         public static string Core_IncrementalReportingChannelCodes { get; private set; }
-
-
-        //FedEx URLs
-        public static string Core_FedExTestService { get; private set; }
-        public static string Core_FedExProdService { get; private set; }
+        public static string Core_FedExService { get; private set; }
         #endregion
 
         #region Reporting_ReadOnly
@@ -116,7 +125,7 @@ namespace AM.Services
         public static string Web_API_PB_Email_Subject { get; private set; }
         public static string Web_API_PB_Email_BodyMsg { get; private set; }
         [Description("Define client's local timezone.")]
-        public static string Web_API_PB_ClientTimeZone { get; private set; }        
+        public static string Web_API_PB_ClientTimeZone { get; private set; }
         [Description("Path of PCI pdf template which is used to send when pullback is requested.")]
         public static string Web_API_PB_PullBackForm_PCI { get; private set; }
         [Description("Path of NORDIS pdf template which is used to send when pullback is requested.")]
@@ -183,6 +192,11 @@ namespace AM.Services
 
         #endregion
 
+        #region Web Delfus Template
+        [Description("Web Delfus API Url")]
+        public static string Web_Delfus_API_Url { get; private set; }
+        #endregion
+
         #region USPSIntegration
 
         public static bool Web_API_USPS_IsDbLoggingEnabled { get; private set; }
@@ -225,10 +239,16 @@ namespace AM.Services
 
         #region EllieMae_API
 
-        public static string EllieMae_Secret { get; set; }
-        public static string EllieMae_X_API_Key { get; set; }
+        public static string EllieMae_UserId { get; set; }
+        public static string EllieMae_UserPass { get; set; }
+        public static string EllieMae_GrantType { get; set; }
+        public static string EllieMae_Scope { get; set; }
         public static string EllieMae_BaseURL { get; set; }
+        public static string EllieMae_TokenUrl { get; set; }
         public static string EllieMae_UploadResponseURL { get; set; }
+        public static int EllieMae_MaxResponseCount { get; set; }
+        public static string MailRequestAPI_FilesDownloadPath { get; set; }
+        public static int MailRequestAPI_MaxRequestSize { get; set; }
 
         #endregion
 
@@ -256,8 +276,10 @@ namespace AM.Services
             InitializeProperties<Config>();
             using (ICommonService commonSvc = new CommonService())
             {
-                Common_Holidays = commonSvc.GetHolidayList();
+                //Common_Holidays = commonSvc.GetHolidayList();
                 Common_FederalHolidays = commonSvc.GetFederalHolidayList();
+                clientGroupMap = commonSvc.GetClientHolidayGroup();
+                groupHolidays = commonSvc.GetHolidayList();
             }
         }
 

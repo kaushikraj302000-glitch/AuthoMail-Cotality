@@ -122,7 +122,7 @@ namespace AM.Entities
     }
 
     [Serializable]
-    [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]    
+    [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
     public class DocumentOrPackage
     {
         [XmlAttribute]
@@ -134,7 +134,13 @@ namespace AM.Entities
         [XmlIgnore]
         public string Base64String { get; set; }
         [XmlAttribute]
+        [XmlIgnore]
+        public List<string> Files { get; set; }
+        [XmlAttribute]
         public string Inserts { get; set; }
+        [XmlAttribute]
+        [XmlIgnore]
+        public string Path { get; set; }
 
         public bool ShouldSerializePattern()
         {
@@ -146,13 +152,18 @@ namespace AM.Entities
             return this.IncludePatternBaseString;
         }
 
+        public bool ShouldSerializePath()
+        {
+            return this.IncludePatternBaseString;
+        }
+
         [JsonIgnore]
         [XmlIgnore]
         public bool IncludePatternBaseString { get; set; }
     }
 
     [Serializable]
-    [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]    
+    [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
     public class RecipientInfo
     {
         [XmlElement(ElementName = "Recipient")]
@@ -215,7 +226,7 @@ namespace AM.Entities
         public string EmailAddress { get; set; }
         public bool ShouldSerializeEmailAddress()
         {
-            return !string.IsNullOrWhiteSpace(EmailAddress);
+            return !(EmailAddress == null);
         }
     }
 
@@ -273,7 +284,7 @@ namespace AM.Entities
         public string Country { get; set; }
         public bool ShouldSerializeCountry()
         {
-            return !string.IsNullOrWhiteSpace(Country);
+            return !(Country == null);
         }
     }
 

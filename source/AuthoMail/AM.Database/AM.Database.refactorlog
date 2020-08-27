@@ -14,4 +14,39 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="ClientId" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="9b298b72-4bbf-4e0b-9c7b-58896c069fcf" ChangeDateTime="07/02/2020 08:44:50">
+    <Property Name="ElementName" Value="[Delfus].[Templates].[UploadedById]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Delfus].[Templates]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ModifiedById" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="7cf6f58e-2c00-4bbe-b3aa-b3210d7c1eac" ChangeDateTime="07/02/2020 08:44:59">
+    <Property Name="ElementName" Value="[Delfus].[Templates].[UploadedOn]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Delfus].[Templates]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ModifiedOn" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="3e359b05-55d2-47d0-b3c5-a2d8c2fa949c" ChangeDateTime="07/29/2020 05:16:33">
+    <Property Name="ElementName" Value="[AM].[DocTypes].[IsInsertsOnly]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[AM].[DocTypes]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="AllowInsertsOnly" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="3c7473f2-f116-41c6-9e37-e8bd5b92c9fa" ChangeDateTime="08/21/2020 11:47:50">
+    <Property Name="ElementName" Value="[Common].[EnvelopeStock].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Common].[EnvelopeStock]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="EnvelopeId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="fc9685a7-30be-4c35-ad75-f1b308e43c3f" ChangeDateTime="08/21/2020 12:17:02">
+    <Property Name="ElementName" Value="[Common].[EnvelopeInventory].[ShippedId]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Common].[EnvelopeInventory]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ShipperId" />
+  </Operation>
 </Operations>

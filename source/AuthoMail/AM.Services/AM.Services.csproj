@@ -87,6 +87,7 @@
     <Compile Include="BatchProcessor\MailPieceServices.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Core\DelfusServiceBase.cs" />
     <Compile Include="Core\Handlers.cs" />
     <Compile Include="IdentityManage\AppRole.cs" />
     <Compile Include="IdentityManage\AppUser.cs" />
@@ -102,6 +103,7 @@
     <Compile Include="Models\AlertPendingBatchesViewModel.cs" />
     <Compile Include="Models\BatchReportInfo.cs" />
     <Compile Include="Models\ChartModels.cs" />
+    <Compile Include="Models\DelfusTemplate.cs" />
     <Compile Include="Models\eVSCancelRequest.cs" />
     <Compile Include="Models\eVSRequest.cs" />
     <Compile Include="Models\eVSCancelResponse.cs" />
@@ -147,6 +149,7 @@
     <Compile Include="Services\AccountManageService.cs" />
     <Compile Include="Services\ChartDataService.cs" />
     <Compile Include="Services\ConfigService.cs" />
+    <Compile Include="Services\DelfusTemplateService.cs" />
     <Compile Include="Services\EDeliveryAPIService.cs" />
     <Compile Include="Services\HomeService.cs" />
     <Compile Include="Services\InventoryService.cs" />

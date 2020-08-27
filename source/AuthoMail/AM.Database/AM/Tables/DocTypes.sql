@@ -29,6 +29,7 @@
     [CreatedBy]                           NVARCHAR (128) NULL,
     [ModifiedBy]                          NVARCHAR (128) NULL,
     [DocTypeName]                         VARCHAR (512)  DEFAULT ('desc') NOT NULL,
+    [AllowInsertsOnly]                       BIT            CONSTRAINT [DF_DocTypes_AllowInsertsOnly] DEFAULT ((0)) NOT NULL,
     [IsBRE]                               BIT            CONSTRAINT [DF_DocTypes_IsBRE] DEFAULT ((0)) NOT NULL,
     [NoOfCopies]                          INT            NOT NULL,
     [BREEnvelopeId]                       INT            NULL,

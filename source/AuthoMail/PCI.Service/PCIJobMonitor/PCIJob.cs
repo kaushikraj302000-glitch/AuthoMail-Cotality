@@ -210,20 +210,25 @@ namespace PCI.Service
 
             if (ptDetail.VendorCode == "NORDIS")
             {
-                var mpByDueDate = mpDetails.GroupBy(mp => Common.UtcToEst(mp.MailPieceDueDate).Date).ToList();
-
-                foreach (var dueDate in mpByDueDate)
+                var mpDetailsGroupByShipperId = mpDetails.GroupBy(mp => mp.ShipperId);
+                foreach (var mailPieces in mpDetailsGroupByShipperId)
                 {
-                    InsertPrintTrailBatchDetails(dueDate.ToList(), ptDetail, dueDate.Key);
+                    var mpByDueDate = mailPieces.GroupBy(mp => Common.UtcToEst(mp.MailPieceDueDate).Date).ToList();
+
+                    foreach (var dueDate in mpByDueDate)
+                    {
+                        InsertPrintTrailBatchDetails(dueDate.ToList(), ptDetail, dueDate.Key, mailPieces.Key);
+                    }
                 }
             }
             else
             {
-                InsertPrintTrailBatchDetails(mpDetails, ptDetail, null);
+                int shipperId = mpDetails.Select(x => x.ShipperId).Distinct().Single();
+                InsertPrintTrailBatchDetails(mpDetails, ptDetail, null, shipperId);
             }
         }
 
-        private static void InsertPrintTrailBatchDetails(List<MailPieceDetail> mpDetails, PrintTrailDetail ptDetail, DateTime? dueDate)
+        private static void InsertPrintTrailBatchDetails(List<MailPieceDetail> mpDetails, PrintTrailDetail ptDetail, DateTime? dueDate, int shipperId)
         {
             //For divert primary key issue we are using starting number as 90001
             int sequenceNo = 90001;
@@ -231,7 +236,8 @@ namespace PCI.Service
 
             ptBatchDetail = new PrintTrailBatch()
             {
-                PrintTrailId = ptDetail.PrintTrailId
+                PrintTrailId = ptDetail.PrintTrailId,
+                ShipperId = shipperId
             };
 
 
@@ -462,7 +468,10 @@ namespace PCI.Service
                             TotalImages = package.TotalPages,
                             PaperSize = package.PrintSize,
                             PrintFormat = package.PrintFormat.ParseEnum<PrintFormat>(),
-                            BREPartNo = package.BREPartNo,
+                            //Here if BREPartNo and InsertPartNo both exist then both will go with pipeline separate, if only InsertPartNos is there then that will go in BREPartNo
+                            BREPartNo = 
+                            !package.InsertsPartNos.IsNullOrWhiteSpace() && !package.BREPartNo.IsNullOrWhiteSpace() ? $"{package.BREPartNo}|{package.InsertsPartNos}" : 
+                            !package.InsertsPartNos.IsNullOrWhiteSpace() && package.BREPartNo.IsNullOrWhiteSpace() ? package.InsertsPartNos : package.BREPartNo,
                             BREDesc = package.BREDesc,
                             EnvelopePartNumber = package.EnvelopePartNo,
                             QCReqd = package.DivertVS3 == 1 ? true : false,

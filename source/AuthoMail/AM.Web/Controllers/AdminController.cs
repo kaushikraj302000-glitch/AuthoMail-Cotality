@@ -21,6 +21,11 @@ using System.Collections.Specialized;
 using System.Net.Http;
 using System.Configuration;
 using System.Net.Http.Headers;
+using AM.Services.Services;
+using Newtonsoft.Json;
+using System.Threading;
+using DELFUS.TemplateImporter;
+
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager)]
@@ -32,6 +37,7 @@ namespace AM.Web.Controllers
         IConfigService confSvc;
         IInventoryService inventorySvc;
         IProjectRequestService projectRequestSvc;
+        
         public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc, IProjectRequestService projectRequestSvc)
         {
             UserManager = userManager;
@@ -40,6 +46,7 @@ namespace AM.Web.Controllers
             this.confSvc = confSvc;
             this.inventorySvc = inventorySvc;
             this.projectRequestSvc = projectRequestSvc;
+            
         }
         // GET: Admin
         #region SignUp Request
@@ -1174,5 +1181,7 @@ namespace AM.Web.Controllers
         }
 
         #endregion
+
+       
     }
 }

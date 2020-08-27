@@ -889,7 +889,7 @@ namespace AM.Console
                             log.Error(msg, ex);
 
                             mailPieceDTO.ErrorCode = OutComeCodes.Unknown_Error;
-                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.ToString();
+                            mailPieceDTO.ErrorDesc = "Error occured while processing package with error {0}".Fill(ex.Message);
                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                         }
 
@@ -984,26 +984,45 @@ namespace AM.Console
 
         private MailPieceValidationResult ValidateCommonValidation(MailPieceDTO mailPieceDTO, MailBatchInfo mbi)
         {
+            bool allowInsertsOnly;
+            using (IDocTypeService docSvc = new DocTypeService())
+            {
+                allowInsertsOnly = docSvc.AllowInsertsOnlyDocumentType(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType);
+            }
+
             //in last system will check for general validations
             string localFilePath = Path.Combine(mbi.AMRequestPath, mailPieceDTO.FileName);
 
-            if (!File.Exists(localFilePath))
+            if (!File.Exists(localFilePath) && !allowInsertsOnly)
             {
                 return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not available for this package." };
             }
 
-            int pageCount = 0;
-            List<int> blankPageNos = new List<int>();
-            using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
+            if (mailPieceDTO.DocumentOrPackageType == "E-Delivery")
             {
-                pageCount = reader.NumberOfPages;
-                mailPieceDTO.TotalPages = pageCount;//System is going to store TotalPages only for AM.EDMailPieces table from here
-                blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
+                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages) };
             }
 
-            //NOTE : Here system is storing file size of received pdf in KB
-            FileInfo fileInfo = new FileInfo(localFilePath);
-            mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
+            int pageCount = 0;
+            List<int> blankPageNos = new List<int>();
+
+            if (File.Exists(localFilePath))
+            {
+                using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
+                {
+                    pageCount = reader.NumberOfPages;
+                    mailPieceDTO.TotalPages = pageCount;//System is going to store TotalPages only for AM.EDMailPieces table from here
+                    blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
+                }
+
+                //NOTE : Here system is storing file size of received pdf in KB
+                FileInfo fileInfo = new FileInfo(localFilePath);
+                mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
+            }
+            else if (allowInsertsOnly)
+            {
+                mailPieceDTO.TotalPages = 0;
+            }
 
             if (mailPieceDTO.IsFallBackRequested || !mailPieceDTO.IsEDeliveryRequested)
             {
@@ -1021,7 +1040,7 @@ namespace AM.Console
                 {
                     return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages) };
                 }
-                else if (pageCount == blankPageNos.Count())
+                else if (pageCount != 0 && pageCount == blankPageNos.Count)
                 {
                     mailPieceDTO.TotalBlankPages = blankPageNos.Count;
                     mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);
@@ -1157,10 +1176,27 @@ namespace AM.Console
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Document type is not specified in package." };
 
             if (mailPiece.BusinessFriendlyIdName.IsNullOrWhiteSpace() || mailPiece.BusinessFriendlyIdValue.IsNullOrWhiteSpace())
-                yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_ShippingDetail, ErrorMessage = "Business friendly Id or value is not specified in package." };
+                yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_BusinessIdentifier, ErrorMessage = "Business friendly Id or value is not specified in package." };
 
             if (mailPiece.FileName.IsNullOrWhiteSpace() && mailPiece.FilePattern.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not provided in package." };
+
+
+            if (!mailPiece.RcptAddressZIP.IsNullOrWhiteSpace() && (mailPiece.RcptAddressCountry.IsNullOrWhiteSpace() || (!mailPiece.RcptAddressCountry.IsNullOrWhiteSpace() && (mailPiece.RcptAddressCountry == "USA" || mailPiece.RcptAddressCountry == "US" || mailPiece.RcptAddressCountry == "The United States of America" || mailPiece.RcptAddressCountry == "United States of America" || mailPiece.RcptAddressCountry == "United States"))))
+            {
+                if (!Regex.Match(mailPiece.RcptAddressZIP, @"^(?(^00000(|-0000))|\d{5}(?:|[-\s]+\d{4}))$").Success)
+                {
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Zipcode is in invalid format." };
+                }
+            }
+
+            if (!mailPiece.RetRcptAddressZIP.IsNullOrWhiteSpace() && (mailPiece.RetRcptAddressCountry.IsNullOrWhiteSpace() || (!mailPiece.RetRcptAddressCountry.IsNullOrWhiteSpace() && (mailPiece.RetRcptAddressCountry == "USA" || mailPiece.RetRcptAddressCountry == "US" || mailPiece.RetRcptAddressCountry == "The United States of America" || mailPiece.RetRcptAddressCountry == "United States of America" || mailPiece.RetRcptAddressCountry == "United States"))))
+            {
+                if (!Regex.Match(mailPiece.RetRcptAddressCountry, @"^(?(^00000(|-0000))|\d{5}(?:|[-\s]+\d{4}))$").Success)
+                {
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return Zipcode is in invalid format." };
+                }
+            }
 
             using (IClientService clientSvc = new ClientService())
             {
@@ -1268,7 +1304,7 @@ namespace AM.Console
                         //NOTE : Reason to use FirstOrDefault : AM will get only single request using API
                         errorReportFileName = "{0}-{1}-{2}.json".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
                         errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                        errorData = generalSvc.GeneralJsonReport(erroredMPs.FirstOrDefault(), mbi.MailBatch, mbi.Client.AppCode);
+                        errorData = generalSvc.GeneralJsonReport(erroredMPs.FirstOrDefault().UniqueId.ToString());
                         if (!string.IsNullOrWhiteSpace(errorData))
                         {
                             File.WriteAllText(errorReportPath, errorData.ToString());

@@ -193,14 +193,11 @@ namespace AM.Core
                             mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
                             #endregion
 
-                            List<PnSConfigDetailCoverLetter> docTypeLetters = docTypeSvc.GetDocumentCoverLetterTemplates(mailPiece.PnSConfigDetailId.Value).OrderBy(o => o.SeqId).ToList();
-
-                            var frontCoverLetters = docTypeLetters.Where(seq => seq.SeqId <= 100);
-                            var rearCoverLetters = docTypeLetters.Where(seq => seq.SeqId > 100);
+                            List<PnSConfigDetailCoverLetter> coverLetters = docTypeSvc.GetDocumentCoverLetterTemplates(mailPiece.PnSConfigDetailId.Value);
 
                             SmartDocs doc = new SmartDocs();
 
-                            var docTypeLetter = frontCoverLetters.SingleOrDefault();
+                            var docTypeLetter = coverLetters.SingleOrDefault();
                             //foreach (var docTypeLetter in frontCoverLetters)
                             //{
                             //Folder structure and file naming convention should be Root/AppCode/AppCode_DocTypeCode_SeqNo.pdf
@@ -217,18 +214,18 @@ namespace AM.Core
                                 if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
                                 {
                                     int reTrycnt = 0;
-                                    while (reTrycnt < Config.Core_NoofTime_AttemptFedexService)
+                                    while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                     {
                                         eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>());
 
                                         response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
 
 
-                                        if (response.HasError && (uspsExceptionCodes.Any(code => response.ExceptionCode.Contains(code)) || uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
+                                        if (response.HasError && (uspsExceptionCodes.Any(code => response.ExceptionCode.Contains(code)) && uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
                                         {
                                             //NOTE: Here system is check for unusal error like connection issue or timeout issue if occure then system will retry to generate label
                                             log.Error("Priority Express had some unexpected error {0}".Fill(response.ExceptionDetail));
-                                            System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                                            System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
                                             reTrycnt++;
                                         }
                                         else if (response.HasError)
@@ -247,7 +244,7 @@ namespace AM.Core
                                             //NOTE :Need to update Document Type level details like DueDate, PrintLocation, PrintTrailId because system is changing document type and if may have vary configurations.
                                             docType = fbPriority;
 
-                                            commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client.AppCode);
+                                            commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
                                             eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
@@ -280,7 +277,7 @@ namespace AM.Core
                                 else if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString())
                                 {
                                     int reTrycnt = 0;
-                                    while (reTrycnt < Config.Core_NoofTime_AttemptFedexService)
+                                    while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                     {
                                         eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
@@ -290,7 +287,7 @@ namespace AM.Core
                                         {
                                             //NOTE: Here system is check for unusal error like connection issue or timeout issue if occure then system will retry to generate label
                                             log.Error("Priority had some unexpected error {0}".Fill(response.ExceptionDetail));
-                                            System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                                            System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
                                             reTrycnt++;
                                         }
                                         else
@@ -356,7 +353,7 @@ namespace AM.Core
                                 FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
                                 ShipperInformation shipperInfo = commonSvc.GetShipperInformationByPrintLocation(mailPiece.PrintLocation, mailPiece.PrintTrailId.Value);
                                 CreateFedExLabel createFedExLabel = new CreateFedExLabel();
-                                while (attemptCount < Config.Core_NoofTime_AttemptFedexService)
+                                while (attemptCount < Config.Core_NoOfAttemptOnFailure)
                                 {
                                     response = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi, shipperInfo);
                                     if (!response.HasError)
@@ -368,7 +365,7 @@ namespace AM.Core
                                     }
                                     else if (response.HasError && (fedExExceptionCodes.Any(code => response.ExceptionCode == code) || fedExExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
                                     {
-                                        System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                                        System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
                                         attemptCount++;
                                         var msg = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, response.ExceptionDetail);
                                         //Setting as an error suppose FedEx is failing continueously then System will consider as an unknown error for that mail piece
@@ -393,7 +390,7 @@ namespace AM.Core
 
                                                 mailPiece.DocTypeId = docType.Id;
                                                 //Update Due Date and its other calculation based on updated document type.
-                                                commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client.AppCode);
+                                                commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
                                                 eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>());
 
@@ -416,7 +413,7 @@ namespace AM.Core
                                                     mailPiece.DocTypeId = docType.Id;
 
                                                     //Update Due Date and its other calculation based on updated document type.
-                                                    commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client.AppCode);
+                                                    commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
                                                     eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
@@ -438,7 +435,7 @@ namespace AM.Core
                                                 mailPiece.DocTypeId = docType.Id;
 
                                                 //Update Due Date and its other calculation based on updated document type.
-                                                commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client.AppCode);
+                                                commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
                                                 eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
@@ -505,47 +502,54 @@ namespace AM.Core
                             //}
 
                             //Here system will add rear cover page only when print location is Dallas CL
-                            if (mailPiece.PrintLocation == "Dallas CL")
+                            List<PnSConfigDetailCoverLetter> rearCoverLetters = docTypeSvc.GetDocumentRearLetterTemplates(mailPiece.PnSConfigDetailId.Value);
+
+                            foreach (var rearCoverLetter in rearCoverLetters)
                             {
-                                foreach (var rearCoverLetter in rearCoverLetters)
+                                endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, rearCoverLetter.CoverLetterTemplatePath);
+                                //For now reverse barcoding will be mail piece id
+                                mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
+
+                                response = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
+
+                                if (response.HasError)
                                 {
-                                    endPageTemplatePath = Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, rearCoverLetter.CoverLetterTemplatePath);
-                                    //For now reverse barcoding will be mail piece id
-                                    mailPieceData.Add("Free3OF9ReverseBarcode", "*" + new string((mailPiece.TrackingNo).Reverse().ToArray()) + "*");
-
-                                    response = doc.GenerateLastPageWithBarcode(endPageTemplatePath, mbi.PnSRequestPath, mailPieceData);
-
-                                    if (response.HasError)
-                                    {
-                                        mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                        mailPiece.TotalPages = 0;
-                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                        mailPiece.ErrorDesc = response.ExceptionDetail;
-                                        mailPiece.DueDate = null;
-                                        mailPiece.PrintLocation = null;
-                                        mailPiece.PrintTrailId = null;
-                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                        continue;
-                                    }
-
-                                    endLetterPdfPaths.Add(response.CoverLetterPath);
+                                    mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                    mailPiece.TotalPages = 0;
+                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                    mailPiece.ErrorDesc = response.ExceptionDetail;
+                                    mailPiece.DueDate = null;
+                                    mailPiece.PrintLocation = null;
+                                    mailPiece.PrintTrailId = null;
+                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                    continue;
                                 }
+
+                                endLetterPdfPaths.Add(response.CoverLetterPath);
                             }
 
-                            response = doc.GenerateDoc(coverLetterPdfPaths, pdfFilePath, outputFilePath, docType.ContentScalePercent, docType.NoOfCopies, endLetterPdfPaths);
-
-                            if (response.HasError)
+                            if (!File.Exists(pdfFilePath) && docType.AllowInsertsOnly)
                             {
-                                mailPiece.ErrorCode = OutComeCodes.Invalid_PDF_File;
-                                mailPiece.TotalPages = 0;
-                                mailPiece.DueDate = null;
-                                mailPiece.PrintTrailId = null;
-                                mailPiece.PrintLocation = null;
-                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                mailPiece.ErrorDesc = response.ExceptionDetail;
+                                File.Move(coverLetterPdfPaths.First(), outputFilePath);
+                                mailPiece.TotalPages = PdfUtil.GetPageCount(outputFilePath);
+                            }
+                            else
+                            {
+                                response = doc.GenerateDoc(coverLetterPdfPaths, pdfFilePath, outputFilePath, docType.ContentScalePercent, docType.NoOfCopies, endLetterPdfPaths);
+
+                                if (response.HasError)
+                                {
+                                    mailPiece.ErrorCode = OutComeCodes.Invalid_PDF_File;
+                                    mailPiece.TotalPages = 0;
+                                    mailPiece.DueDate = null;
+                                    mailPiece.PrintTrailId = null;
+                                    mailPiece.PrintLocation = null;
+                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                    mailPiece.ErrorDesc = response.ExceptionDetail;
+                                }
+                                mailPiece.TotalPages = response.TotalPages;
                             }
 
-                            mailPiece.TotalPages = response.TotalPages;
                             mailPiece.TotalSheets = docType.PrintFormat == "Duplex" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;
 
                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
@@ -1640,7 +1644,7 @@ namespace AM.Core
                             using (IGeneralService generalSvc = new GeneralService())
                             {
                                 //NOTE : Reason to use FirstOrDefault : AM will get only single request using API
-                                string responseReport = generalSvc.GeneralJsonReport(mailPieces.FirstOrDefault(), mbi.MailBatch, mbi.Client.AppCode);
+                                string responseReport = generalSvc.GeneralJsonReport(mailPieces.FirstOrDefault().UniqueId.ToString());
 
                                 if (!string.IsNullOrWhiteSpace(responseReport))
                                 {

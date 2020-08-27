@@ -15,18 +15,19 @@ namespace AM.Entities
     public class BatchAPIResponse
     {
         public int MBId { get; set; }
-        public MailAPIResponse resp { get; set; }
+        public MailAPIResponse APIResponse { get; set; }
     }
 
     public class MailAPIResponse
     {
         public Guid Id { get; set; }
-        public Guid UniqueId { get; set; }
+        //public Guid UniqueId { get; set; }
         public string Message { get; set; }
         public DateTime ReceivedOn { get; set; }
         public string ClientCode { get; set; }
         public string BusinessFriendlyIdName { get; set; }
         public string BusinessFriendlyIdValue { get; set; }
+        public string DocumentOrPackageType { get; set; }
         public DocumentOrPackage DocumentOrPackage { get; set; }
         public RecipientInfo RecipientInfo { get; set; }
         public string MailingStatus { get; set; }
@@ -40,14 +41,14 @@ namespace AM.Entities
         public int TotalSheets { get; set; }
         public DateTime? PulledBackOn { get; set; }
 
-        public bool ShouldSerializeId()
-        {
-            return this.MailingStatus != ShippingStatus.Acknowledgement.ToString() && this.Id != Guid.Empty;
-        }
-        public bool ShouldSerializeUniqueId()
-        {
-            return this.MailingStatus == ShippingStatus.Acknowledgement.ToString();
-        }
+        //public bool ShouldSerializeId()
+        //{
+        //    return this.MailingStatus != ShippingStatus.Acknowledgement.ToString() && this.Id != Guid.Empty;
+        //}
+        //public bool ShouldSerializeUniqueId()
+        //{
+        //    return this.MailingStatus == ShippingStatus.Acknowledgement.ToString();
+        //}
         public bool ShouldSerializeMessage()
         {
             return this.MailingStatus == ShippingStatus.Acknowledgement.ToString() || this.MailingStatus == ShippingStatus.NotFound.ToString();
@@ -68,6 +69,11 @@ namespace AM.Entities
             return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
         }
         public bool ShouldSerializeBusinessFriendlyIdValue()
+        {
+            if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
+            return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
+        }
+        public bool ShouldSerializeDocumentOrPackageType()
         {
             if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
             return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();

@@ -84,6 +84,9 @@ namespace PCI.Service
                     BREEnvelopeId = row.Field<int?>("BREEnvelopeId"),
                     CustomerId = row.Field<string>("CustomerId"),
                     IsForeignAddress = row.Field<bool>("IsForeignAddress"),
+                    ShipperId = row.Field<int>("ShipperId"),
+                    Inserts = row.Field<string>("Inserts"),
+                    InsertsPartNos = row.Field<string>("InsertsPartNos"),
                     //Extra Properties to map for MRDF Request
                     InputWeight = row.Field<string>("InputWeight"),
                     Feeder3_Sel = row.Field<string>("Feeder3_Sel"),
@@ -118,7 +121,7 @@ namespace PCI.Service
 
         public static int InsertPrintTrailBatchDetail(PrintTrailBatch printTrailBatchDetail)
         {
-            var printTrailBatchId = db.ExecuteSqlScalar<int>(@"INSERT INTO [PnS].[PrintTrailBatches]([PrintBatchName],[SubmittedOn],[MRDFReceivedOn],[PrintTrailId]) OUTPUT INSERTED.Id VALUES(@p1,@p2,@p3,@p4)", printTrailBatchDetail.PrintBatchName, printTrailBatchDetail.SubmittedOn, printTrailBatchDetail.MRDFReceivedOn, printTrailBatchDetail.PrintTrailId);
+            var printTrailBatchId = db.ExecuteSqlScalar<int>(@"INSERT INTO [PnS].[PrintTrailBatches]([PrintBatchName],[ShipperId],[SubmittedOn],[MRDFReceivedOn],[PrintTrailId]) OUTPUT INSERTED.Id VALUES(@p1,@p2,@p3,@p4,@p5)", printTrailBatchDetail.PrintBatchName, printTrailBatchDetail.ShipperId, printTrailBatchDetail.SubmittedOn, printTrailBatchDetail.MRDFReceivedOn, printTrailBatchDetail.PrintTrailId);
 
             return printTrailBatchId;
         }
