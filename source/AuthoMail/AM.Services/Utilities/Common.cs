@@ -29,11 +29,14 @@ namespace AM.Services
             SFT_ProtocolType SFT_Protocol;
             switch (protocolType.ToLower())
             {
-                case "ftp": SFT_Protocol = SFT_ProtocolType.ftp;
+                case "ftp":
+                    SFT_Protocol = SFT_ProtocolType.ftp;
                     break;
-                case "sftp": SFT_Protocol = SFT_ProtocolType.sftp;
+                case "sftp":
+                    SFT_Protocol = SFT_ProtocolType.sftp;
                     break;
-                case "unc": SFT_Protocol = SFT_ProtocolType.unc;
+                case "unc":
+                    SFT_Protocol = SFT_ProtocolType.unc;
                     break;
                 default: throw new Exception("Please provide valid protocol for 'SFT_Protocol_Value'.");
             }
@@ -47,5 +50,11 @@ namespace AM.Services
         public static string Staging = "Staging";
         public static string QA = "QA";
         public static string Internal = "Internal";
+    }
+    public static class ClientUserMappingStatusTypes
+    {
+        public static string Pending = "Pending";
+        public static string Approved = "Approved";
+        public static string Declined = "Declined";
     }
 }

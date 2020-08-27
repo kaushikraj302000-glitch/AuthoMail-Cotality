@@ -12,11 +12,13 @@ namespace AM.Services
     public interface ISupportService : IDisposable
     {
         List<ClientDomains> FindDomainByClientId(int clientId);
-        ClientDomains FingByDomainName(string domainName);
+        ClientDomains FindByDomainName(string domainName);
+        ClientDomains FindByDomainNameAndClientId(string domainName, int clientId);
+        bool IsDomainExists(string domainName);
         List<ClientDomains> GetClientDomains();
         bool HasClientDomain(int clientId, string domainName);
         int CreateClientDomain(int clientId, string domainName);
-        int UpdateClientDomain(string domainName, string existingDomainName);
+        int UpdateClientDomain(string domainName, int clientId, string existingDomainName);
         List<UserRequestSignUp> GetUsersRequestSignUp(string userId);
         KeyValuePair<bool, string> UpdateUsersRequestSignUp(string Id, string status, string closedBy);
         //DocTypes
@@ -74,12 +76,22 @@ namespace AM.Services
             return db.Query<ClientDomains>(query, new { clientId = clientId }).ToList();
         }
 
-        public ClientDomains FingByDomainName(string domainName)
+        public ClientDomains FindByDomainName(string domainName)
         {
             string query = "SELECT cd.*,c.Name as [ClientName] FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE [AllowedDomain] = @domainName AND cd.ClientId=c.Id";
             return db.QuerySingleOrDefault<ClientDomains>(query, new { domainName = domainName });
         }
-
+        public ClientDomains FindByDomainNameAndClientId(string domainName, int clientId)
+        {
+            string query = "SELECT cd.*,c.Name as [ClientName] FROM [Common].[ClientDomains] cd inner join [Common].[Clients] c on cd.clientid=c.Id WHERE [AllowedDomain] = @domainName AND cd.ClientId=@clientId";
+            return db.QuerySingleOrDefault<ClientDomains>(query, new { domainName = domainName, clientId = clientId });
+        }
+        public bool IsDomainExists(string domainName)
+        {
+            string query = "SELECT top 1 1 FROM [Common].[ClientDomains] WHERE [AllowedDomain] = @domainName";
+            int? output = db.QuerySingleOrDefault<int?>(query, new { domainName = domainName });
+            return output.HasValue;
+        }
         public List<ClientDomains> GetClientDomains()
         {
             string query = "SELECT cd.*,c.Name as [ClientName] FROM [Common].[ClientDomains] cd,[Common].[Clients] c WHERE cd.ClientId=c.Id";
@@ -97,24 +109,24 @@ namespace AM.Services
         public int CreateClientDomain(int clientId, string domainName)
         {
             if (domainName.IsNullOrWhiteSpace()) throw new Exception("Domain name cannot be null.");
-            if (FingByDomainName(domainName) != null) throw new Exception("Domain name already exists.");
+            if (FindByDomainNameAndClientId(domainName, clientId) != null) throw new Exception("Domain name already exists with this client.");
             if (Uri.CheckHostName(domainName) != UriHostNameType.Dns) throw new Exception("Invalid domain name.");
             string query = "INSERT INTO [Common].[ClientDomains] ([ClientId],[AllowedDomain]) VALUES (@clientId,@domainName)";
             return db.Execute(query, new { clientId = clientId, domainName = domainName });
         }
-        public int UpdateClientDomain(string domainName, string existingDomainName)
+        public int UpdateClientDomain(string domainName, int clientId, string existingDomainName)
         {
             if (domainName.IsNullOrWhiteSpace()) throw new Exception("Domain name cannot be null.");
             if (Uri.CheckHostName(domainName) != UriHostNameType.Dns) throw new Exception("Invalid domain name.");
-            if (FingByDomainName(domainName) != null) throw new Exception("Domain name already exists.");
-            if (FingByDomainName(existingDomainName) == null) throw new Exception("Existing domain name not found.");
+            if (FindByDomainNameAndClientId(domainName, clientId) != null) throw new Exception("Domain name already exists.");
+            if (!IsDomainExists(existingDomainName)) throw new Exception("Existing domain name not found.");
 
             var usersCountQ = "SELECT TOP 1 Email FROM [Profile].[Users] WHERE Email Like @domain";
             string userEmail = db.QueryFirstOrDefault<string>(usersCountQ, new { domain = string.Format("%{0}", existingDomainName) });
             if (userEmail != null) throw new Exception("Domain name couldn't change because users are registered with this domain.");
 
-            string query = "UPDATE [Common].[ClientDomains] SET AllowedDomain=@domainName WHERE AllowedDomain=@existingDomainName";
-            return db.Execute(query, new { domainName = domainName, existingDomainName = existingDomainName });
+            string query = "UPDATE [Common].[ClientDomains] SET AllowedDomain=@domainName WHERE AllowedDomain=@existingDomainName and ClientId=@clientId";
+            return db.Execute(query, new { domainName = domainName, existingDomainName = existingDomainName, clientId = clientId });
         }
         public List<UserRequestSignUp> GetUsersRequestSignUp(string userId)
         {
@@ -173,6 +185,20 @@ namespace AM.Services
             {
                 string setClientToUser = "UPDATE [Profile].[Users] SET Status=@status,ClosedOn=@closedOn,ClosedBy=@closedBy WHERE Id=@userId";
                 int result = db.Execute(setClientToUser, new { status = AMUserStatus.Rejected, closedOn = DateTime.UtcNow, closedBy = closedBy, userId = Id });
+                //Decline client request
+                string sql = @"update Common.ClientUserMapping
+                set Status=@status,
+                ModifiedOn=@now,
+                ModifiedById=@ModifiedById
+                where UserId=@userId and Status=@pendingStatus";
+                db.Execute(sql, new
+                {
+                    userId = Id,
+                    status = ClientUserMappingStatusTypes.Declined,
+                    ModifiedById = closedBy,
+                    now = DateTime.UtcNow,
+                    pendingStatus = ClientUserMappingStatusTypes.Pending
+                });
                 return result > 0 ? GetKeyValue(true, "User request has been rejected") : GetKeyValue(false, "User request not yet processed");
             }
             return GetKeyValue(false, "Invalid action performed.");
@@ -669,11 +695,11 @@ inner join Common.Clients c on d.ClientId=c.Id";
             //}
             //else
             //{
-            var client = db.QuerySingle<ClientDomains>("SELECT * FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain", new { domain = mailAddress.Host });
-            if (client != null)
+            var clientIds = db.Query<int>("SELECT ClientId FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain", new { domain = mailAddress.Host });
+            if (clientIds != null && clientIds.Count() > 0)
             {
-                string queryOther = "SELECT Email FROM [Profile].[Users] u,[Profile].[UserRoles] ur WHERE u.Id=ur.UserId AND ur.RoleId=@roleId AND u.ClientId = @clientId";
-                var emailsOther = db.Query<string>(queryOther, new { roleId = roles.Single(r => r.Name == AMRoles.ClientUserManager).Id, clientId = client.ClientId }).ToList();
+                string queryOther = "SELECT Email FROM [Profile].[Users] u,[Profile].[UserRoles] ur WHERE u.Id=ur.UserId AND ur.RoleId=@roleId AND u.ClientId in @clientId";
+                var emailsOther = db.Query<string>(queryOther, new { roleId = roles.Single(r => r.Name == AMRoles.ClientUserManager).Id, clientId = clientIds }).ToList();
                 emailList.AddRange(emailsOther);
             }
             //}
@@ -681,7 +707,7 @@ inner join Common.Clients c on d.ClientId=c.Id";
             {
                 return Config.Web_RegistrationDefaultEmails;
             }
-            return string.Join(",", emailList);
+            return string.Join(",", emailList.Distinct());
         }
 
 

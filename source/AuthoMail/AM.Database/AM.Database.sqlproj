@@ -226,6 +226,7 @@
     <Build Include="dbo\Stored Procedures\SP_GetScanStats_Temp.sql" />
     <Build Include="dbo\Stored Procedures\SP_GetRecentBatchesStats_Temp.sql" />
     <Build Include="Common\Tables\EnvelopeStock.sql" />
+    <Build Include="Common\Tables\ClientUserMapping.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AM.Database.refactorlog" />

@@ -54,4 +54,27 @@ namespace AM.Services
         public int SeqId { get; set; }
         public string CoverLetterTemplatePath { get; set; }
     }
+    public class ClientIdNameVM
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string AppCode { get; set; }
+        public string NameAppCode
+        {
+            get
+            {
+                return $"{this.Name} ({AppCode})";
+            }
+        }
+    }
+    public class ClientUserMapping
+    {
+        public int ClientId { get; set; }
+        public string ClientName { get; set; }
+        public string UserId { get; set; }
+        public string Status { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public DateTime ModifiedOn { get; set; }
+        public string ModifiedById { get; set; }
+    }
 }
