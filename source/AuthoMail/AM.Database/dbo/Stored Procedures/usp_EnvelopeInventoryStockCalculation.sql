@@ -35,7 +35,7 @@ mergeAvg as
 )
 select c.*,es.CurrentQuantity,es.ReorderDuration,CEILING(cast(TotalQuantityUsed as float)/TotalDays) as AvgRate,CEILING(cast(es.CurrentQuantity as float)/(TotalQuantityUsed/TotalDays)) as EnvDays
 from mergeAvg c
-inner join Common.Envelopes e 
+inner join Common.Envelopes e on c.EnvelopeId=e.Id
 inner join Common.EnvelopeStock es ON es.EnvelopeId=e.Id
-on c.EnvelopeId=e.Id
+
 END
