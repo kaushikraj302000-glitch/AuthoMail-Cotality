@@ -404,7 +404,7 @@ bufferSize: 4096, useAsync: true)) { }
             List<MailAPIResponse> mailAPIResponses = new List<MailAPIResponse>();
 
             foreach (var mailPieceId in uniqueIds)
-            {              
+            {
                 using (IGeneralService generalSvc = new GeneralService())
                 {
                     string deliveryReport = generalSvc.GeneralJsonReport(mailPieceId);
@@ -479,7 +479,7 @@ bufferSize: 4096, useAsync: true)) { }
                             yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient zipcode is in invalid format." };
                         }
                     }
-                }               
+                }
                 else
                 {
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient Address is mandatory." };
@@ -495,7 +495,7 @@ bufferSize: 4096, useAsync: true)) { }
                 {
                     if (mailPiece.ReturnInfo.Address.Street.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.City.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.State.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Address.Zip.IsNullOrWhiteSpace())
                         yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return recipient address is mandatory." };
-                    
+
                     if (!mailPiece.ReturnInfo.Address.Zip.IsNullOrWhiteSpace() && (mailPiece.ReturnInfo.Address.Country.IsNullOrWhiteSpace() || (!mailPiece.ReturnInfo.Address.Country.IsNullOrWhiteSpace() && (mailPiece.ReturnInfo.Address.Country == "USA" || mailPiece.ReturnInfo.Address.Country == "US" || mailPiece.ReturnInfo.Address.Country == "The United States of America" || mailPiece.ReturnInfo.Address.Country == "United States of America" || mailPiece.ReturnInfo.Address.Country == "United States"))))
                     {
                         if (!Regex.Match(mailPiece.ReturnInfo.Address.Zip, @"^(?(^00000(|-0000))|\d{5}(?:|[-\s]+\d{4}))$").Success)
@@ -558,6 +558,24 @@ bufferSize: 4096, useAsync: true)) { }
             {
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Request cannot proceed further without Files or Inserts value." };
             }
+            else if (!mailPiece.DocumentOrPackage.Inserts.IsNullOrWhiteSpace())
+            {
+                if (mailPiece.DocumentOrPackage.Inserts.Contains("|"))
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Inserts  is not in a valid format." };
+                else
+                {
+                    //TODO:
+                    // check if insert is BRE                            
+                    using (IMailPieceService mailPieceService = new MailPieceService())
+                    {
+                        var invalidInserts = mailPieceService.GetInvalidInserts(mailPiece.DocumentOrPackage.Inserts);
+                        if (invalidInserts.Count > 0)
+                        {
+                            yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = $"Following specified inserts are invalid or not BRE: {string.Join(",", invalidInserts)}" };
+                        }
+                    }
+                }
+            }
 
             if (mailPiece.CustomInfo != null)
             {
@@ -574,7 +592,7 @@ bufferSize: 4096, useAsync: true)) { }
                     }
                 }
             }
-           
+
             yield break;
         }
 

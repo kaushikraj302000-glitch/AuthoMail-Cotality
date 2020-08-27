@@ -157,6 +157,16 @@ namespace AM.Entities
             return this.IncludePatternBaseString;
         }
 
+        public bool ShouldSerializeFiles()
+        {
+            return this.IncludePatternBaseString;
+        }
+
+        public bool ShouldSerializeInserts()
+        {
+            return this.IncludePatternBaseString;
+        }
+
         [JsonIgnore]
         [XmlIgnore]
         public bool IncludePatternBaseString { get; set; }
