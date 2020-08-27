@@ -2,6 +2,7 @@
 using AM.Lib;
 using AM.Services;
 using AM.USPSLib;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -204,27 +205,48 @@ namespace AM.Console
                                 MailUtility.SendUnexpectedExceptionEmail(msg);
                                 break;
                             }
-                            if (responseResult.StatusCode.ToString() == HttpStatusCode.OK.ToString())
+                            if (responseResult.StatusCode.ToString() == HttpStatusCode.OK.ToString() || responseResult.StatusCode.ToString() == "MultiStatus")
                             {
-                                foreach (var batchResponse in batchApiResponses)
+
+                                var responseJson = responseResult.Content.ReadAsStringAsync().Result;
+                                List<EllieMaeResponse> ellieMaeResponses = JsonConvert.DeserializeObject<List<EllieMaeResponse>>(responseJson);
+
+                                if (ellieMaeResponses.Count != takenResponse.Count)
                                 {
-                                    try
-                                    {
-                                        var mailPieceInfo = mailPieceSvc.GetMailPiecesByMailBatchId(batchResponse.MBId).Where(m => m.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
+                                    log.Error(responseJson);
+                                    var notReceivedList = takenResponse.Where(f => !ellieMaeResponses.Select(x => x.Id).Contains(f.APIResponse.Id));
+                                    var msg = $"Following responses not received : {string.Join(",", notReceivedList.Select(u => u.APIResponse.Id))}";
+                                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                                }
 
-                                        if (mailPieceInfo.Count > 0)
+                                List<string> errors = new List<string>();
+
+                                foreach (var ellieMaeResponse in ellieMaeResponses)
+                                {
+                                    if (ellieMaeResponse.Status == "SUCCESS")
+                                    {
+                                        var mpInfo = mailPieceSvc.GetMailPieceDetailsByMailPieceUniqueId(ellieMaeResponse.Id.ToString());
+
+                                        if (mpInfo.ShippingStatus == ShippingStatus.InProgress.ToString())
+                                        {
                                             continue;
+                                        }
 
-                                        commonSvc.UpdateBatchPipeLineStatus(batchResponse.MBId, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
+                                        commonSvc.UpdateBatchPipeLineStatus(mpInfo.MailBatchId, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
                                     }
-                                    catch (Exception ex)
+                                    else
                                     {
-                                        var msg = "Error occured in API ReportedBack Method For Mail Batch Id: {0} with Error : {1}".Fill(batchResponse.MBId, ex.Message);
-                                        log.Error(msg, ex);
-                                        MailUtility.SendUnexpectedExceptionEmail(msg);
-                                        continue;
+                                        var msg = "Received error response for MailPiece UniqueId : {0}, Code : {1} , Summary : {2}, Error details: {3}".Fill(ellieMaeResponse.Id, ellieMaeResponse.Errors.Code, ellieMaeResponse.Errors.Summary, ellieMaeResponse.Errors.Details);
+                                        log.Error(msg);
+                                        errors.Add(msg);
                                     }
                                 }
+
+                                if (errors.Count > 0)
+                                {
+                                    MailUtility.SendUnexpectedExceptionEmail(string.Join(Environment.NewLine, errors));
+                                }
+
                             }
                             else
                             {

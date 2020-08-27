@@ -24,7 +24,7 @@ namespace AM.Services
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatchDTO mailBatch, string clientCode);
         MailAPIResponse GenerateMailAPIResponse(string mpUniqueId);
         string GeneralJsonReport(string mpUniqueId);
-        Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport, string bearerToken);
+        Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport, string bearerToken);        
     }
 
     public class GeneralService : ServiceBase, IGeneralService
@@ -308,6 +308,6 @@ namespace AM.Services
             {
                 return ex.ToString();
             }
-        }
+        }        
     }
 }
