@@ -9,9 +9,9 @@
         filter: alpha(opacity=75);
     }
 
-    .bootstrap-select {
+    /*.bootstrap-select {
         width: 165px !important;
-    }
+    }*/
 
     .popover-content {
         word-wrap: break-word;
@@ -109,11 +109,10 @@
                             else
                             {
                                 <style>
-    #pullback {
-        display: none;
-    }
-
-    </style>
+                                    #pullback {
+                                        display: none;
+                                    }
+                                </style>
                                 <div class='alert alert-yellow'><span>No business friendly id found!</span></div>
                             }
 
@@ -597,7 +596,7 @@
                         var pulledBackCount = parseInt(response[cnt].PulledBack == 0 ? null : response[cnt].PulledBack);
                         var shippedAllCount = parseInt(response[cnt].ShippedAll == 0 ? null : response[cnt].ShippedAll);
                         var shippedPartialCount = parseInt(response[cnt].ShippedPartial == 0 ? null : response[cnt].ShippedPartial);
-                        
+
                         chartData.push([response[cnt].Weekday, inProgressCount, failedCount, pulledBackCount, shippedAllCount, shippedPartialCount, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
                         sumArr.push(response[cnt].InProgress + response[cnt].Failed + response[cnt].PulledBack + response[cnt].ShippedAll + response[cnt].ShippedPartial);
 

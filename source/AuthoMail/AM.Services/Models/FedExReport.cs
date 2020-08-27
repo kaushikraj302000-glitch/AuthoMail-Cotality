@@ -35,5 +35,7 @@ namespace AM.Services
         public int IsPickedUp { get; set; }
         public DateTime? PickedUpOn { get; set; }
         public string PickUpStatus { get; set; }
+        public DateTime? ShipmentStatusUpdatedOn { get; set; }
+        public string ShipmentStatus { get; set; }
     }
 }

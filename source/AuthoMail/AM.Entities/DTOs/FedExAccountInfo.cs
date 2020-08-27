@@ -33,6 +33,7 @@ namespace AM.Entities
     {
         public DateTime PickedTimeStamp { get; set; }
         public string TrackingNo { get; set; }
+        public string ShipmentStatus { get; set; }
     }
 
     public class FedExNotPickedPackagesDetail

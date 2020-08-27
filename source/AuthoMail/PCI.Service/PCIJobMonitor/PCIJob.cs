@@ -468,7 +468,10 @@ namespace PCI.Service
                             TotalImages = package.TotalPages,
                             PaperSize = package.PrintSize,
                             PrintFormat = package.PrintFormat.ParseEnum<PrintFormat>(),
-                            BREPartNo = package.BREPartNo,
+                            //Here if BREPartNo and InsertPartNo both exist then both will go with pipeline separate, if only InsertPartNos is there then that will go in BREPartNo
+                            BREPartNo = 
+                            !package.InsertsPartNos.IsNullOrWhiteSpace() && !package.BREPartNo.IsNullOrWhiteSpace() ? $"{package.BREPartNo}|{package.InsertsPartNos}" : 
+                            !package.InsertsPartNos.IsNullOrWhiteSpace() && package.BREPartNo.IsNullOrWhiteSpace() ? package.InsertsPartNos : package.BREPartNo,
                             BREDesc = package.BREDesc,
                             EnvelopePartNumber = package.EnvelopePartNo,
                             QCReqd = package.DivertVS3 == 1 ? true : false,

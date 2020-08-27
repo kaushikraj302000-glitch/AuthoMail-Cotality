@@ -14,6 +14,8 @@ namespace AM.Services
     {
         FedExAccountInfo GetFedExAccountDetailsByAccountCode(string accountCode);
         void UpdateFedExTrackingInfo();
+
+        void UpdateFedExShipmentInfo(DateTime dueDateStartTime, DateTime dueDateEndTime);
     }
     public class FedExService : ServiceBase, IFedExService
     {
@@ -98,6 +100,38 @@ namespace AM.Services
             }
         }
 
+        private void GetTrackReplyAndUpdateValue(TrackReply reply, DateTime jobRunTime)
+        {
+            List<FedExPickedPackagesDetail> fedExPickedPackageDetails = new List<FedExPickedPackagesDetail>();
+            // Track details for each package
+            foreach (CompletedTrackDetail completedTrackDetail in reply.CompletedTrackDetails)
+            {
+                foreach (TrackDetail trackDetail in completedTrackDetail.TrackDetails)
+                {
+                    if (trackDetail.Events != null)
+                    {
+                        var trackEvent = trackDetail.Events.FirstOrDefault();
+                        if (trackEvent != null)
+                        {
+                            FedExPickedPackagesDetail pickupDetail = new FedExPickedPackagesDetail();
+                            pickupDetail.TrackingNo = trackDetail.TrackingNumber;
+                            pickupDetail.PickedTimeStamp = trackEvent.Timestamp.ToUniversalTime();
+                            pickupDetail.ShipmentStatus = $"{trackEvent.EventDescription} on {trackEvent.Timestamp.ToUniversalTime()} UTC at ( {trackEvent.Address.City}, { trackEvent.Address.StateOrProvinceCode} )";
+                            fedExPickedPackageDetails.Add(pickupDetail);
+                        }
+                    }
+                }
+            }
+
+            using (IMailPieceService mailPieceSvc = new MailPieceService())
+            {
+                foreach (var pickedUpDetail in fedExPickedPackageDetails)
+                {
+                    mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(pickedUpDetail, jobRunTime);
+                }
+            }
+        }
+
         private static TrackRequest CreateTrackRequest(List<FedExReport> takenMailPieces, FedExAccountInfo fedExAccountDetails)
         {
             TrackRequest request = new TrackRequest();
@@ -130,6 +164,49 @@ namespace AM.Services
             request.ProcessingOptions = new TrackRequestProcessingOptionType[1];
             request.ProcessingOptions[0] = TrackRequestProcessingOptionType.INCLUDE_DETAILED_SCANS;
             return request;
+        }
+
+        public void UpdateFedExShipmentInfo(DateTime dueDateStartTime, DateTime dueDateEndTime)
+        {
+            List<FedExReport> mailPieces;
+            using (IReportService reportSvc = new ReportService())
+            {
+                mailPieces = reportSvc.GetFedExDataForTracking(dueDateStartTime, dueDateEndTime);
+            }
+
+            if (mailPieces == null || mailPieces.Count == 0)
+                return;
+
+            DateTime jobRunTime = Common.Now;
+            int totalMailPieceCount = mailPieces.Count;
+            int checkedMailPieceCount = 0;
+            double loopCount = Math.Ceiling(mailPieces.Count / 30.0f);
+
+            using (IFedExService fedExSvc = new FedExService())
+            {
+                FedExAccountInfo fedExAccountDetails = fedExSvc.GetFedExAccountDetailsByAccountCode(Config.Common_FedExTrackingAccountCode);
+                if (fedExAccountDetails != null)
+                {
+                    for (double i = 0; i < loopCount; i++)
+                    {
+                        var takenMailPieces = mailPieces.Skip(checkedMailPieceCount).Take(30).ToList();
+                        checkedMailPieceCount += 30;
+
+                        TrackRequest request = CreateTrackRequest(takenMailPieces, fedExAccountDetails);
+                        TrackPortTypeClient service = new TrackPortTypeClient();
+                        service.Endpoint.Address = new System.ServiceModel.EndpointAddress(Config.Common_FedExTrackingUrl);
+
+                        ServicePointManager.Expect100Continue = true;
+                        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                        // Call the Track web service passing in a TrackRequest and returning a TrackReply
+                        TrackReply reply = service.track(request);
+                        if (reply.HighestSeverity == NotificationSeverityType.SUCCESS || reply.HighestSeverity == NotificationSeverityType.NOTE || reply.HighestSeverity == NotificationSeverityType.WARNING)
+                        {
+                            GetTrackReplyAndUpdateValue(reply, jobRunTime);
+                        }
+                    }
+                }
+            }
         }
     }
 }

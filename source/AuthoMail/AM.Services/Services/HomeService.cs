@@ -19,6 +19,7 @@ namespace AM.Services
         int SetClientIdToUser(string userId, int clientId);
         List<ErrorNotifications> GetErrorNotificationList(int? LastId);
         List<MailPiece> GetErrorMailPieces(DateTime startDate, DateTime endDate, int? clientId);
+        Task<IEnumerable<ClientIdName>> GetAllActiveAppCodeForClientRole(string userId);
     }
     public class HomeService : ServiceBase, IHomeService //It implements Interfaces 
     {
@@ -96,6 +97,14 @@ namespace AM.Services
                 return db.Query<MailPiece>(q, new { startDate = startDate, endDate = endDate, clientId = clientId }).ToList();
             }
             return db.Query<MailPiece>(q, new { startDate = startDate, endDate = endDate }).ToList();
+        }
+
+        public async Task<IEnumerable<ClientIdName>> GetAllActiveAppCodeForClientRole(string userId)
+        {
+            string sql = @"SELECT c.Id, c.Name FROM Common.Clients c 
+inner join Common.ClientUserMapping cu on c.Id = cu.ClientId
+WHERE c.IsAMActive = 1 and cu.UserId = @userId";
+            return await db.QueryAsync<ClientIdName>(sql, new { userId = userId });
         }
     }
     public static class HomeServiceQuery
