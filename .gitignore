@@ -200,3 +200,4 @@ ModelManifest.xml
 /source/AuthoMail/AM.ProductionToUATBridge/Packages
 /docs/WebApiClient
 /source/AuthoMail/AM.Web/Properties/PublishProfiles
+*.jfm
