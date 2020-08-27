@@ -164,6 +164,7 @@ namespace AM.Services
         public string Description { get; set; }
         public DateTime ReceivedOn { get; set; }
         public int ReceivedQuantity { get; set; }
+        public int ReorderDuration { get; set; }
         public decimal UnitPrice { get; set; }
         public Envelopes Envelopes { get; set; }
         public int StockUsed { get; set; }
