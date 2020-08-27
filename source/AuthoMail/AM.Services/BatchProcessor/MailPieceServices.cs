@@ -83,7 +83,7 @@ namespace AM.Services
 
         public int InsertBatchMailPieceCustomDetails(List<MailPieceCustomInfo> mailPieceCustomInfos)
         {
-            string query = "INSERT INTO [AM].[MailPieceCustomInfo](MailPieceId, [Key],[DataType], [Value]) VALUES (@MailPieceId, SUBSTRING(@Key,1,128), SUBSTRING(@DataType,1,128) ,SUBSTRING(@Value,1,2048))";
+            string query = "INSERT INTO [AM].[MailPieceCustomInfo](MailPieceId, [Key],[DataType], [Value]) VALUES (@MailPieceId, SUBSTRING(@Key,1,128), @DataType ,SUBSTRING(@Value,1,2048))";
 
             return db.Execute(query, mailPieceCustomInfos);
         }

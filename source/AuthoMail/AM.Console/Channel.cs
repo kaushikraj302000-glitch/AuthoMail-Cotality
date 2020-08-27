@@ -246,11 +246,10 @@ namespace AM.Console
                                 {
                                     MailUtility.SendUnexpectedExceptionEmail(string.Join(Environment.NewLine, errors));
                                 }
-
                             }
                             else
                             {
-                                var msg = "Error occured while sending response to EllieMae endpoint with Status Code : {0}, Error : {1}".Fill(responseResult.StatusCode, responseResult.RequestMessage);
+                                var msg = "Error occured while sending response to EllieMae endpoint with Status Code : {0},RequestMessage {1}, Error : {2}".Fill(responseResult.StatusCode, responseResult.RequestMessage, responseResult.Content == null ? null : responseResult.Content.ReadAsStringAsync().Result);
                                 log.Error(msg);
                                 MailUtility.SendUnexpectedExceptionEmail(msg);
                             }
@@ -280,7 +279,8 @@ namespace AM.Console
                         {"client_secret", client_secret},
                         {"scope", scope}
                     };
-
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
             HttpResponseMessage tokenResponse = await client.PostAsync(baseAddress, new FormUrlEncodedContent(form));
             var jsonContent = await tokenResponse.Content.ReadAsStringAsync();
             var jObj = JObject.Parse(jsonContent);
