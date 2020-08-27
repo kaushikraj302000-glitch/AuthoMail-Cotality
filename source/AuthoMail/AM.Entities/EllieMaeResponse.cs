@@ -10,13 +10,13 @@ namespace AM.Entities
     {
         public Guid Id { get; set; }
         public string Status { get; set; }
-        public Error Errors { get; set; }
+        public Error Error { get; set; }
     }
 
     public class Error
     {
-        public string Code { get; set; }
-        public string Summary { get; set; }
-        public string Details { get; set; }
+        public string code { get; set; }
+        public string summary { get; set; }
+        public string details { get; set; }
     }
 }
