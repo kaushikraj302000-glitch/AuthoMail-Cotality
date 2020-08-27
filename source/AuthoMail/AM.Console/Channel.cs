@@ -246,11 +246,10 @@ namespace AM.Console
                                 {
                                     MailUtility.SendUnexpectedExceptionEmail(string.Join(Environment.NewLine, errors));
                                 }
-
                             }
                             else
                             {
-                                var msg = "Error occured while sending response to EllieMae endpoint with Status Code : {0}, Error : {1}".Fill(responseResult.StatusCode, responseResult.RequestMessage);
+                                var msg = "Error occured while sending response to EllieMae endpoint with Status Code : {0},RequestMessage {1}, Error : {2}".Fill(responseResult.StatusCode, responseResult.RequestMessage, responseResult.Content == null ? null : responseResult.Content.ReadAsStringAsync().Result);
                                 log.Error(msg);
                                 MailUtility.SendUnexpectedExceptionEmail(msg);
                             }
