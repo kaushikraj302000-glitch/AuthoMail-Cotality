@@ -258,7 +258,8 @@ namespace AM.Console
                         {"client_secret", client_secret},
                         {"scope", scope}
                     };
-
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
             HttpResponseMessage tokenResponse = await client.PostAsync(baseAddress, new FormUrlEncodedContent(form));
             var jsonContent = await tokenResponse.Content.ReadAsStringAsync();
             var jObj = JObject.Parse(jsonContent);
