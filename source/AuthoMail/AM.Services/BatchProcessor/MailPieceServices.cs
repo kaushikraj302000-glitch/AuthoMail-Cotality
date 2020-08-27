@@ -337,7 +337,7 @@ where MP.UniqueId = @UniqueId
         public List<string> GetInvalidInserts(string inserts)
         {
             var insertLst = inserts.Split(',').Select(ins => ins.Trim()).Where(ins => !string.IsNullOrEmpty(ins)).ToList();
-            string query = "Select EnvelopName FROM Common.Envelopes WHERE EnvelopeName IN (select value FROM string_split(@Inserts,',')) and IsBRE = 1";
+            string query = "Select EnvelopeName FROM Common.Envelopes WHERE EnvelopeName IN (select value FROM string_split(@Inserts,',')) and IsBREEnvelope = 1";
 
             var data = db.Query<string>(query, new { Inserts = inserts }).ToList();
 
