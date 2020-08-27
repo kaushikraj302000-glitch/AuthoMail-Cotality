@@ -171,6 +171,8 @@ namespace AM.Services
         public DateTime CreatedOn { get; set; }
         public string ModifiedBy { get; set; }
         public DateTime ModifiedOn { get; set; }
+        public int ShipperId { get; set; }
+        public string Shipper { get; set; }
     }
     public class EnvelopeInventoryStockCalculation
     {
@@ -193,6 +195,13 @@ namespace AM.Services
                 return 2;
             }
         }
+    }
+    public class ShipperInfoSelectListVM
+    {
+        public int Id { get; set; }
+        public int PrintVendorId { get; set; }
+        public string PrintVendor { get; set; }
+        public string PrintLocation { get; set; }
     }
     //public class EnvelopeIdCQuantity
     //{

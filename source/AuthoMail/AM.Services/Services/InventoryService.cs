@@ -20,6 +20,7 @@ namespace AM.Services
         KeyValuePair<int, Dictionary<string, float>> InventoryStockAlertLevel(Dictionary<string, float> envelopeAvgRate);
         Tuple<List<StockDetails>, List<StockDetails>> GetEnvelopeStockDetails(string id);
 
+        IEnumerable<ShipperInfoSelectListVM> ShipperSelectList();
 
     }
     public class InventoryService : ServiceBase, IInventoryService
@@ -72,7 +73,7 @@ inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
                 {
                     var envelope = FindByCodeEnvelope(envelopes.EnvelopeName);
                     if (envelope != null) return new KeyValuePair<bool, string>(false, "Envelope name already exists.");
-                    string sql = "INSERT INTO [Common].[Envelopes] ([EnvelopeName],[CurrentQuantity] ,[IsBREEnvelope],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn],[ReorderDuration]) VALUES(@EnvelopeName ,0 ,@IsBREEnvelope,@CreatedBy,@ModifiedBy,@CreatedOn,@ModifiedOn,@ReorderDuration)";
+                    string sql = "INSERT INTO [Common].[Envelopes] ([EnvelopeName],[EnvelopeDesc],[PartNumber] ,[IsBREEnvelope],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn]) VALUES(@EnvelopeName ,@EnvelopeDesc,@PartNumber ,@IsBREEnvelope,@CreatedBy,@ModifiedBy,@CreatedOn,@ModifiedOn)";
                     envelopes.CreatedBy = envelopes.ModifiedBy = userId;
                     envelopes.CreatedOn = envelopes.ModifiedOn = DateTime.UtcNow;
                     db.Execute(sql, envelopes);
@@ -80,7 +81,7 @@ inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
                 }
                 else
                 {
-                    string sql = "UPDATE [Common].[Envelopes]  SET [EnvelopeName]=@EnvelopeName, [IsBREEnvelope] = @IsBREEnvelope,[ModifiedBy]=@ModifiedBy,[ModifiedOn]=@ModifiedOn,[ReorderDuration]=@ReorderDuration WHERE Id=@Id";
+                    string sql = "UPDATE [Common].[Envelopes]  SET [EnvelopeName]=@EnvelopeName, [IsBREEnvelope] = @IsBREEnvelope,[ModifiedBy]=@ModifiedBy,[ModifiedOn]=@ModifiedOn,EnvelopeDesc=@EnvelopeDesc,PartNumber=@PartNumber WHERE Id=@Id";
                     envelopes.ModifiedBy = userId;
                     envelopes.ModifiedOn = DateTime.UtcNow;
                     db.Execute(sql, envelopes);
@@ -117,15 +118,24 @@ where e.Id=@Id";
                 {
                     if (envtran.Id == 0)
                     {
-                        string query = @"INSERT INTO [Common].[EnvelopeInventory] ([EnvelopeId] ,[Description] ,[ReceivedOn] ,[ReceivedQuantity] ,[UnitPrice],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn]) 
-VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQuantity ,@UnitPrice,@CreatedBy,@ModifiedBy,@CreatedOn,@ModifiedOn);";
+                        string query = @"INSERT INTO [Common].[EnvelopeInventory] ([EnvelopeId] ,[Description] ,[ReceivedOn] ,[ReceivedQuantity] ,[UnitPrice],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn],[ShipperId]) 
+VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQuantity ,@UnitPrice,@CreatedBy,@ModifiedBy,@CreatedOn,@ModifiedOn,@ShipperId);";
                         envtran.ReceivedOn = DateTime.UtcNow;
                         envtran.CreatedBy = envtran.ModifiedBy = userId;
                         envtran.CreatedOn = envtran.ModifiedOn = DateTime.UtcNow;
                         db.Execute(query, envtran, transaction: t);
 
-                        query = "UPDATE [Common].[Envelopes]  SET [CurrentQuantity] = [CurrentQuantity] + (@CurrentQuantity) WHERE Id=@Id";
-                        db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, Id = envtran.EnvelopeId }, transaction: t);
+                        var isExists = db.QuerySingleOrDefault<int?>("select top 1 1 from Common.EnvelopeStock WHERE EnvelopeId=@Id and ShippedId=@ShippedId", new { EnvelopeId = envtran.EnvelopeId, ShippedId = envtran.ShipperId }, transaction: t);
+                        if (isExists.HasValue)
+                        {
+                            query = "UPDATE [Common].[EnvelopeStock]  SET [CurrentQuantity] = [CurrentQuantity] + (@CurrentQuantity) WHERE EnvelopeId=@Id and ShippedId=@ShippedId";
+                            db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, EnvelopeId = envtran.EnvelopeId, ShippedId = envtran.ShipperId }, transaction: t);
+                        }
+                        else
+                        {
+                            query = @"insert into [Common].[EnvelopeStock] (EnvelopeId,ShippedId,CurrentQuantity,ReOrderDuration) values (@EnvelopeId,@ShipperId,@CurrentQuantity,@ReOrderDuration)";
+                            db.Execute(query, envtran, transaction: t);
+                        }
                     }
                     else
                     {
@@ -213,5 +223,10 @@ inner join Profile.Users m on e.ModifiedBy=m.Id order by e.ReceivedOn desc";
 
         }
 
+        public IEnumerable<ShipperInfoSelectListVM> ShipperSelectList()
+        {
+            return db.Query<ShipperInfoSelectListVM>(@"select s.Id,s.PrintVendorId,s.PrintLocation,p.Name as PrintVendor from Common.ShipperInformation s
+inner join Common.PrintVendors p on s.PrintVendorId = p.Id");
+        }
     }
 }
