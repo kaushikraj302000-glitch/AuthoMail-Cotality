@@ -24,7 +24,7 @@ namespace AM.Services
         IEnumerable<ShipperInfoSelectListVM> ShipperSelectList();
         void RemoveEnvelopeInventoryById(int id);
         KeyValuePair<bool, string> IsPartNumberExists(int Id, string partNumber);
-
+        IEnumerable<EnvelopeInventory> GetLast3MonthsInventoryEnvelopes();
     }
     public class InventoryService : ServiceBase, IInventoryService
     {
@@ -276,6 +276,16 @@ inner join Common.PrintVendors p on s.PrintVendorId = p.Id");
                 }
                 return new KeyValuePair<bool, string>(false, "Part Number already exists.");
             }
+        }
+
+        public IEnumerable<EnvelopeInventory> GetLast3MonthsInventoryEnvelopes()
+        {
+            return db.Query<EnvelopeInventory>(@"select ei.*,e.*,s.PrintLocation as Shipper,c.DisplayName as CreatedBy, m.DisplayName as ModifiedBy from Common.EnvelopeInventory ei
+inner join Common.Envelopes e on ei.EnvelopeId=e.Id
+inner join Common.ShipperInformation s on ei.ShipperId=s.Id
+inner join Profile.Users c on ei.CreatedBy=c.Id
+inner join Profile.Users m on ei.ModifiedBy=m.Id
+where ei.ModifiedOn>=@modifiedOn", new { modifiedOn = DateTime.UtcNow.AddMonths(-3) });
         }
     }
 }
