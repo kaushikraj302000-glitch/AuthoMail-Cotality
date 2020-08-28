@@ -123,7 +123,7 @@ namespace AM.Core
             #endregion
         }
 
-        public SmartDocResponse GenerateeVSPriorityExpressCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string rcptAddressTypes)
+        public SmartDocResponse GenerateeVSPriorityExpressCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName)
         {
             SmartDocResponse response = new SmartDocResponse();
 
@@ -218,7 +218,7 @@ namespace AM.Core
             File.Move(newCoverLetterPath, coverLetterPDFPath);
         }
 
-        public SmartDocResponse GenerateeVSPriorityCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string rcptAddressTypes)
+        public SmartDocResponse GenerateeVSPriorityCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName)
         {
             SmartDocResponse response = new SmartDocResponse();
 
@@ -247,10 +247,10 @@ namespace AM.Core
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
                     //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
-                    //if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
-                    //{
-                    ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
-                    //}
+                    if (!Config.Common_LandScapUSPSLabels.Contains(envelopeName))
+                    {
+                        ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
+                    }
 
                     response.CoverLetterPath = coverLetterPDFPath;
                 }

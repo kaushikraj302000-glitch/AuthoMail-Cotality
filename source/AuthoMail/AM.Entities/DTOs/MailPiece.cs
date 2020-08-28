@@ -107,6 +107,7 @@ namespace AM.Entities
         public int? ShipperId { get; set; }
         public DateTime ReceivedOn { get; set; }
         public List<MailPieceCustomInfo> MailPieceCustomInfo { get; set; }
+        public string EnvelopeName { get; set; }
     }
 
     public class MailPieceCustomInfo

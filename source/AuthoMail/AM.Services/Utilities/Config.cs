@@ -33,6 +33,7 @@ namespace AM.Services
         public static string Common_ErrorSubscribedEmailSubject { get; private set; }
         public static string Common_ErrorSubscribedEmailCc { get; private set; }
         public static string Common_ErrorSubscribedEmailTemplate { get; private set; }
+        public static string Common_LandScapUSPSLabels { get; private set; }
 
         public static List<Holiday> GetHolidaysByClientId(int clientId)
         {
