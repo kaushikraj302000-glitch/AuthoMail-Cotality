@@ -21,6 +21,7 @@ namespace AM.Services
         Tuple<List<StockDetails>, List<StockDetails>> GetEnvelopeStockDetails(string id);
 
         IEnumerable<ShipperInfoSelectListVM> ShipperSelectList();
+        void RemoveEnvelopeInventoryById(int id);
 
     }
     public class InventoryService : ServiceBase, IInventoryService
@@ -229,6 +230,28 @@ inner join Profile.Users m on e.ModifiedBy=m.Id order by e.ReceivedOn desc";
         {
             return db.Query<ShipperInfoSelectListVM>(@"select s.Id,s.PrintVendorId,s.PrintLocation,p.Name as PrintVendor from Common.ShipperInformation s
 inner join Common.PrintVendors p on s.PrintVendorId = p.Id");
+        }
+
+        public void RemoveEnvelopeInventoryById(int id)
+        {
+            var envelopeInventory = db.QuerySingle<EnvelopeInventory>("select * from Common.EnvelopeInventory where Id=@id", new { Id = id });
+            db.Open();
+            using (var t = db.BeginTransaction())
+            {
+                try
+                {
+                    string query = "UPDATE [Common].[EnvelopeStock]  SET [CurrentQuantity] =[CurrentQuantity]-(@CurrentQuantity),ReOrderDuration=@ReOrderDuration WHERE EnvelopeId=@EnvelopeId and ShipperId=@ShipperId";
+                    db.Execute(query, new { CurrentQuantity = envelopeInventory.ReceivedQuantity, EnvelopeId = envelopeInventory.EnvelopeId, ShipperId = envelopeInventory.ShipperId }, transaction: t);
+
+                    db.Execute("delete from Common.EnvelopeInventory where Id=@id", new { Id = id });
+                    t.Commit();
+                }
+                catch (Exception ex)
+                {
+                    t.Rollback();
+                    throw ex;
+                }
+            }
         }
     }
 }
