@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AM.Lib;
 using Dapper;
 
 namespace AM.Services
@@ -22,6 +23,7 @@ namespace AM.Services
 
         IEnumerable<ShipperInfoSelectListVM> ShipperSelectList();
         void RemoveEnvelopeInventoryById(int id);
+        KeyValuePair<bool, string> IsPartNumberExists(int Id, string partNumber);
 
     }
     public class InventoryService : ServiceBase, IInventoryService
@@ -234,7 +236,7 @@ inner join Common.PrintVendors p on s.PrintVendorId = p.Id");
 
         public void RemoveEnvelopeInventoryById(int id)
         {
-            var envelopeInventory = db.QuerySingle<EnvelopeInventory>("select * from Common.EnvelopeInventory where Id=@id", new { Id = id });
+            var envelopeInventory = db.QuerySingle<EnvelopeInventory>("select * from Common.EnvelopeInventory where Id=@Id", new { Id = id });
             db.Open();
             using (var t = db.BeginTransaction())
             {
@@ -243,7 +245,7 @@ inner join Common.PrintVendors p on s.PrintVendorId = p.Id");
                     string query = "UPDATE [Common].[EnvelopeStock]  SET [CurrentQuantity] =[CurrentQuantity]-(@CurrentQuantity),ReOrderDuration=@ReOrderDuration WHERE EnvelopeId=@EnvelopeId and ShipperId=@ShipperId";
                     db.Execute(query, new { CurrentQuantity = envelopeInventory.ReceivedQuantity, EnvelopeId = envelopeInventory.EnvelopeId, ShipperId = envelopeInventory.ShipperId }, transaction: t);
 
-                    db.Execute("delete from Common.EnvelopeInventory where Id=@id", new { Id = id });
+                    db.Execute("delete from Common.EnvelopeInventory where Id=@Id", new { Id = id });
                     t.Commit();
                 }
                 catch (Exception ex)
@@ -251,6 +253,28 @@ inner join Common.PrintVendors p on s.PrintVendorId = p.Id");
                     t.Rollback();
                     throw ex;
                 }
+            }
+        }
+
+        public KeyValuePair<bool, string> IsPartNumberExists(int Id, string partNumber)
+        {
+            if (Id == 0)
+            {
+                var output = db.QuerySingleOrDefault<string>("select PartNumber from Common.Envelopes where Id <> @id and PartNumber = @partNumber", new { id = Id, partNumber = partNumber });
+                if (output.IsNullOrWhiteSpace())
+                {
+                    return new KeyValuePair<bool, string>(true, null);
+                }
+                return new KeyValuePair<bool, string>(false, "Part Number already exists.");
+            }
+            else
+            {
+                var output = db.QuerySingleOrDefault<string>("select PartNumber from Common.Envelopes where PartNumber = @partNumber", new { id = Id, partNumber = partNumber });
+                if (output.IsNullOrWhiteSpace())
+                {
+                    return new KeyValuePair<bool, string>(true, null);
+                }
+                return new KeyValuePair<bool, string>(false, "Part Number already exists.");
             }
         }
     }
