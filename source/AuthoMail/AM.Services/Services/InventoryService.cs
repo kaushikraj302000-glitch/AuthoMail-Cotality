@@ -136,7 +136,7 @@ VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQuantity ,@UnitPrice,@C
                         }
                         else
                         {
-                            query = @"insert into [Common].[EnvelopeStock] (EnvelopeId,ShippedId,CurrentQuantity,ReOrderDuration) values (@EnvelopeId,@ShipperId,@CurrentQuantity,@ReOrderDuration)";
+                            query = @"insert into [Common].[EnvelopeStock] (EnvelopeId,ShipperId,CurrentQuantity,ReOrderDuration) values (@EnvelopeId,@ShipperId,@CurrentQuantity,@ReOrderDuration)";
                             db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, ReOrderDuration = envtran.ReorderDuration, EnvelopeId = envtran.GetEnvelopeId(), ShipperId = envtran.ShipperId }, transaction: t);
                         }
                     }
