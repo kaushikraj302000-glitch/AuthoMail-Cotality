@@ -162,7 +162,7 @@ namespace AM.Services
         public int Id { get; set; }
 
         public int EnvelopeId { get; set; }
-        public string EnvelopName { get; set; }
+        public string EnvelopeName { get; set; }
 
         public int GetEnvelopeId()
         {
