@@ -242,7 +242,7 @@ inner join Common.PrintVendors p on s.PrintVendorId = p.Id");
             {
                 try
                 {
-                    string query = "UPDATE [Common].[EnvelopeStock]  SET [CurrentQuantity] =[CurrentQuantity]-(@CurrentQuantity),ReOrderDuration=@ReOrderDuration WHERE EnvelopeId=@EnvelopeId and ShipperId=@ShipperId";
+                    string query = "UPDATE [Common].[EnvelopeStock]  SET [CurrentQuantity] =[CurrentQuantity]-(@CurrentQuantity) WHERE EnvelopeId=@EnvelopeId and ShipperId=@ShipperId";
                     db.Execute(query, new { CurrentQuantity = envelopeInventory.ReceivedQuantity, EnvelopeId = envelopeInventory.GetEnvelopeId(), ShipperId = envelopeInventory.ShipperId }, transaction: t);
 
                     db.Execute("delete from Common.EnvelopeInventory where Id=@Id", new { Id = id });
