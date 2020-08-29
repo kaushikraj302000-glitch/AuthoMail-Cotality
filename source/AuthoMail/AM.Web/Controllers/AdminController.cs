@@ -1192,8 +1192,58 @@ namespace AM.Web.Controllers
             }
         }
 
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult IsPartNumberExists(int id,string partNumber)
+        {
+            return Json(inventorySvc.IsPartNumberExists(id, partNumber),JsonRequestBehavior.AllowGet);
+           // return Json(true, JsonRequestBehavior.AllowGet);
+        }
         #endregion
 
+        #region Manage Envelopes Inventory
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult ManageEnvelopesInventory()
+        {
+            return View();
+        }
+        public ActionResult GetEnvelopsInventory()
+        {
+            try
+            {
+                var model = inventorySvc.GetLast3MonthsInventoryEnvelopes();
+
+                return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+            
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult AddEnvelopInventory()
+        {
+            var envelopes = inventorySvc.GetEnvelopes().OrderBy(e => e.Order);
+            var shippers = inventorySvc.ShipperSelectList();
+            ViewBag.Envelops= new SelectList(envelopes, "Id", "EnvelopeName");
+            ViewBag.Shippers= new SelectList(shippers, "Id", "Name");
+            return PartialView("_AddEnvelopeInventory");
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult SaveEnvelopeInventory(EnvelopeInventory envelopeInventory)
+        {
+            try
+            {
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopeInventory(envelopeInventory, User.Identity.GetUserId())), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
+        #endregion
         #region Manage Envelope Transactions
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetEnvelopeTransactions()
