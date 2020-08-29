@@ -280,7 +280,7 @@ inner join Common.PrintVendors p on s.PrintVendorId = p.Id");
 
         public IEnumerable<EnvelopeInventory> GetLast3MonthsInventoryEnvelopes()
         {
-            return db.Query<EnvelopeInventory>(@"select ei.*,e.*,s.PrintLocation as Shipper,c.DisplayName as CreatedBy, m.DisplayName as ModifiedBy from Common.EnvelopeInventory ei
+            return db.Query<EnvelopeInventory>(@"select ei.*,e.EnvelopeName,s.PrintLocation as Shipper,c.DisplayName as CreatedBy, m.DisplayName as ModifiedBy from Common.EnvelopeInventory ei
 inner join Common.Envelopes e on ei.EnvelopeId=e.Id
 inner join Common.ShipperInformation s on ei.ShipperId=s.Id
 inner join Profile.Users c on ei.CreatedBy=c.Id
