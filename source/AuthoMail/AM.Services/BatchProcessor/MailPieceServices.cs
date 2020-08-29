@@ -36,7 +36,7 @@ namespace AM.Services
         List<MBInfo> GetReportedBackPnSRecordsFromUATBridge();
         int DeletePrintBatchDetails(int printBatchId);
         dynamic GetCoversheetData(int mailPieceId);
-        List<string> GetInvalidInserts(string inserts);
+        List<string> GetInvalidInserts(List<string> inserts);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -335,14 +335,12 @@ where MP.UniqueId = @UniqueId
         {
             return db.QuerySingle<dynamic>("usp_GetCoversheetData", new { MailPieceId = mailPieceId }, commandType: System.Data.CommandType.StoredProcedure);
         }
-        public List<string> GetInvalidInserts(string inserts)
+        public List<string> GetInvalidInserts(List<string> inserts)
         {
-            var insertLst = inserts.Split(',').Select(ins => ins.Trim()).Where(ins => !string.IsNullOrEmpty(ins)).ToList();
-            string query = "Select EnvelopeName FROM Common.Envelopes WHERE EnvelopeName IN (select value FROM string_split(@Inserts,',')) and IsBREEnvelope = 1";
+            string query = "Select EnvelopeName FROM Common.Envelopes WHERE UPPER(EnvelopeName) IN @Inserts and IsBREEnvelope = 1";
+            var data = db.Query<string>(query, new { Inserts = inserts.ToArray() }).ToList();
 
-            var data = db.Query<string>(query, new { Inserts = string.Join(",", insertLst) }).ToList();
-
-            var invalidInserts = insertLst.Except(data).ToList();
+            var invalidInserts = inserts.Except(data).ToList();
 
             return invalidInserts;
         }

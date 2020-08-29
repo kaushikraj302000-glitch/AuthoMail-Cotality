@@ -552,7 +552,7 @@ bufferSize: 4096, useAsync: true)) { }
             // TODO : check DocumentOrPackage is not empty and DocumentOrPackage.Files property is not empty
             if (mailPiece.DocumentOrPackage == null)
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_DocumentOrPackage, ErrorMessage = "DocumentOrPackage is mandatory." };
-            else if ((mailPiece.DocumentOrPackage.Files == null || mailPiece.DocumentOrPackage.Files.Count == 0) && !allowInsertsOnly)
+            else if ((mailPiece.DocumentOrPackage.Files == null || mailPiece.DocumentOrPackage.Files.Count == 0) && !allowInsertsOnly && !mailPiece.DocumentOrPackageType.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Files property must be populated for non-inserts only packages." };
             else if ((mailPiece.DocumentOrPackage.Files == null || mailPiece.DocumentOrPackage.Files.Count == 0) && mailPiece.DocumentOrPackage.Inserts.IsNullOrWhiteSpace())
             {
@@ -564,14 +564,26 @@ bufferSize: 4096, useAsync: true)) { }
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Inserts  is not in a valid format." };
                 else
                 {
-                    //TODO:
-                    // check if insert is BRE                            
-                    using (IMailPieceService mailPieceService = new MailPieceService())
+                    var insertLst = mailPiece.DocumentOrPackage.Inserts.ToUpper().Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+                    if ((mailPiece.DocumentOrPackage.Files == null || mailPiece.DocumentOrPackage.Files.Count == 0) && insertLst.Count == 0)
                     {
-                        var invalidInserts = mailPieceService.GetInvalidInserts(mailPiece.DocumentOrPackage.Inserts);
-                        if (invalidInserts.Count > 0)
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Request cannot proceed further without Files or Inserts value." };
+                    }
+                    else if (insertLst.Count != insertLst.Distinct().Count())
+                    {
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Multiple occurrence of an insert value is not allowed." };
+                    }
+                    else
+                    {
+                        // check if insert is BRE                            
+                        using (IMailPieceService mailPieceService = new MailPieceService())
                         {
-                            yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = $"Following specified inserts are invalid or not BRE: {string.Join(",", invalidInserts)}" };
+                            var invalidInserts = mailPieceService.GetInvalidInserts(insertLst);
+                            if (invalidInserts.Count > 0)
+                            {
+                                yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = $"Following specified inserts are invalid or not BRE: {string.Join(",", invalidInserts)}" };
+                            }
                         }
                     }
                 }
