@@ -515,6 +515,8 @@ namespace AM.Services
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
         public string PrintLocation { get; set; }
+        public string ShipmentStatus { get; set; }
+        public DateTime? ShipmentStatusUpdatedOn { get; set; }
 
     }
 

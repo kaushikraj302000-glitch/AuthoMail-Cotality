@@ -36,7 +36,7 @@ namespace AM.Services
 	 WHERE m.ClientId=@clientId";
             string fields = @"m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
-	 m.RcptAddressState as [State],m.PickedUpOn,m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.IsEDeliveryRequested,
+	 m.RcptAddressState as [State],m.PickedUpOn,m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.IsEDeliveryRequested,m.ShipmentStatus,m.ShipmentStatusUpdatedOn
 	 b.ReceivedOn,m.DocTypeId,
 	 d.DocTypeName as DocType,pcd.ShippingServiceType as ShippingMethod,pcd.ShippingCarrier,
 	 ch.Title as Channel";
@@ -115,9 +115,9 @@ namespace AM.Services
         }
 
         public MailPieces GetMailPieceByUniqueId(Guid uniqueId)
-        {            
+        {
             string query = "SELECT * FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND b.ClientId=c.Id AND m.[UniqueId] = @uniqueId";
-            var mp = db.Query<MailBatches, SFTChannels, Clients, MailPieces, Users, DocTypes,PnSConfigDetail, MailPieces>(query,
+            var mp = db.Query<MailBatches, SFTChannels, Clients, MailPieces, Users, DocTypes, PnSConfigDetail, MailPieces>(query,
                  (b, s, c, m, u, d, p) =>
                  {
                      m.Clients = c;
