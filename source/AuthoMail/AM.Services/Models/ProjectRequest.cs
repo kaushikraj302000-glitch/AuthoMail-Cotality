@@ -215,7 +215,7 @@ namespace AM.Services
         {
             get
             {
-                return $"{PrintVendor}-{PrintLocation}";
+                return $"{PrintVendor}({PrintLocation})";
             }
         }
     }

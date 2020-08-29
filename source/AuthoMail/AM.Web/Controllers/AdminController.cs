@@ -1241,7 +1241,19 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
             }
         }
-
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult RemoveEnvelopeInventoryById(int id)
+        {
+            try
+            {
+                inventorySvc.RemoveEnvelopeInventoryById(id);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = true }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
 
         #endregion
         #region Manage Envelope Transactions
