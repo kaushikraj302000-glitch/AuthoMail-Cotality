@@ -203,6 +203,13 @@ namespace AM.Services
         public int PrintVendorId { get; set; }
         public string PrintVendor { get; set; }
         public string PrintLocation { get; set; }
+        public string Name
+        {
+            get
+            {
+                return $"{PrintVendor}-{PrintLocation}";
+            }
+        }
     }
     //public class EnvelopeIdCQuantity
     //{

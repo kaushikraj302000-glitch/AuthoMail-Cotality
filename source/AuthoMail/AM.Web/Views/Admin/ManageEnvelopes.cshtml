@@ -146,7 +146,7 @@
                         </table>
                     </div>
 
-            </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
@@ -189,6 +189,31 @@
                         required: true,
                         maxlength: 255
 
+                    },
+                    EnvelopeName: {
+                        required:true
+                    },
+                    PartNumber: {
+                        required: true,
+                        remote: {
+                            onkeyup: false,
+                            type: 'post',
+                            url: baseUrl + "Admin/IsPartNumberExists",
+                            data: {
+                                id: parseInt($("#Id").val()),
+                                partNumber: $("#PartNumber").val()
+                            },
+                            dataType: 'json',
+                            dataFilter: function (response) {
+                                var result = JSON.parse(response);
+                                return result.Key;
+                            },
+                        }
+                    }
+                },
+                messages: {
+                    PartNumber: {
+                        remote: function () { return jQuery.format("{0} is already exists.", $("#PartNumber").val()) }
                     }
                 },
                 submitHandler: function (form) {
@@ -428,7 +453,7 @@
                 }
             });
         }
-        
+
         function ViewDetails(obj) {
             var id = $(obj).data("id");
             $("#stockDetails").modal("show");
@@ -457,17 +482,17 @@
                                 tr += "<tr><td class='text-center'>" + moment(envelopeArrival[i].Date).format("MM/DD/YYYY") + "</td>" + "<td class='text-center'>" + envelopeArrival[i].UsageStock + "</td></tr>";
                             }
                             $("#tbodyIn").html(tr);
-                           
+
                         } else {
                             $("#tbodyIn").html("<tr><td colspan='2'><div class='alert alert-red'><span>" + msg + "</span></div></td></tr>");
                         }
-                        
+
                     } else {
                         var msg = '@AM.Services.Config.Web_Msg_NoRecordFound';
                         $("#tbodyOut").html("<tr><td colspan='2'><div class='alert alert-red'><span>" + msg + "</span></div></td></tr>");
                         $("#tbodyIn").html("<tr><td colspan='2'><div class='alert alert-red'><span>" + msg + "</span></div></td></tr>");
                     }
-                    
+
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
 
@@ -479,18 +504,19 @@
             });
         }
         //end transcation code
-        function Envelopes(Id,EnvelopeName, CurrentQuantity, IsBREEnvelope, ReorderDuration) {
+        function Envelopes(Id, EnvelopeName, EnvelopeDesc, CurrentQuantity, IsBREEnvelope, PartNumber) {
             this.Id = Id;
             this.EnvelopeName = EnvelopeName;
+            this.EnvelopeDesc = EnvelopeDesc;
             this.CurrentQuantity = CurrentQuantity;
             this.IsBREEnvelope = IsBREEnvelope;
-            this.ReorderDuration = ReorderDuration;
+            this.PartNumber = PartNumber;
         }
         function SaveEnvelope() {
 
             var isBRE = $("#IsBREEnvelope").is(':checked') ? true : false;
             var ReorderDuration = $('#ReorderDuration').val();
-            var envelopes = new Envelopes($("#Id").val(), $("#EnvelopeName").val(), $("#CurrentQuantity").val(), isBRE, ReorderDuration);
+            var envelopes = new Envelopes($("#Id").val(), $("#EnvelopeName").val(), $("#EnvelopeDesc").val(), $("#CurrentQuantity").val(), isBRE, $("#PartNumber").val());
             //console.log(envelopes);
             var el = $("#myModal").find(".modal-body");
             el.empty();
