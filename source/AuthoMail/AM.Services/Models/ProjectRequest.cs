@@ -161,16 +161,11 @@ namespace AM.Services
     {
         public int Id { get; set; }
 
-        private int envelopeId;
+        public int EnvelopeId { get; set; }
 
         public int GetEnvelopeId()
         {
-            return envelopeId;
-        }
-
-        public void SetEnvelopeId(int value)
-        {
-            envelopeId = value;
+            return EnvelopeId;
         }
 
         public string Description { get; set; }

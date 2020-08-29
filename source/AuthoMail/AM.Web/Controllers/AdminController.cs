@@ -1262,9 +1262,7 @@ namespace AM.Web.Controllers
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetEnvelopeTransactionsByName(int id, int envelopeId)
         {
-            var envelope = new EnvelopeInventory() { Id = envelopeId };
-            envelope.SetEnvelopeId(envelopeId);
-            return PartialView("_AddOrEditEnvelopeTransactions", envelope);
+            return PartialView("_AddOrEditEnvelopeTransactions", new EnvelopeInventory() { EnvelopeId = envelopeId });
         }
         //[Authorize(Roles = AMRoles.Admin)]
         //public ActionResult ManageEnvelopeTransactions()
