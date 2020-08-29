@@ -572,7 +572,7 @@ bufferSize: 4096, useAsync: true)) { }
                     }
                     else if (insertLst.Count != insertLst.Distinct().Count())
                     {
-                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Multiple occurrence of an insert value is not allowed." };
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Multiple occurrences of an insert value are not allowed." };
                     }
                     else
                     {
