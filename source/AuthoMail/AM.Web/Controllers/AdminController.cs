@@ -230,7 +230,7 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
             }
             if (clientIds != null)
-                clientIds.RemoveAll(c=>c==0);
+                clientIds.RemoveAll(c => c == 0);
             if (role == AMRoles.Client && (clientIds == null || clientIds.Count == 0))
             {
                 return Json(JsonResponseFactory.ErrorResponse("Please select AppCode(s)."), JsonRequestBehavior.AllowGet);
@@ -1193,10 +1193,10 @@ namespace AM.Web.Controllers
         }
 
         [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult IsPartNumberExists(int id,string partNumber)
+        public ActionResult IsPartNumberExists(int id, string partNumber)
         {
-            return Json(inventorySvc.IsPartNumberExists(id, partNumber),JsonRequestBehavior.AllowGet);
-           // return Json(true, JsonRequestBehavior.AllowGet);
+            return Json(inventorySvc.IsPartNumberExists(id, partNumber), JsonRequestBehavior.AllowGet);
+            // return Json(true, JsonRequestBehavior.AllowGet);
         }
         #endregion
 
@@ -1218,15 +1218,15 @@ namespace AM.Web.Controllers
             {
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
-            
+
         }
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult AddEnvelopInventory()
         {
             var envelopes = inventorySvc.GetEnvelopes().OrderBy(e => e.Order);
             var shippers = inventorySvc.ShipperSelectList();
-            ViewBag.Envelops= new SelectList(envelopes, "Id", "EnvelopeName");
-            ViewBag.Shippers= new SelectList(shippers, "Id", "Name");
+            ViewBag.Envelops = new SelectList(envelopes, "Id", "EnvelopeName");
+            ViewBag.Shippers = new SelectList(shippers, "Id", "Name");
             return PartialView("_AddEnvelopeInventory");
         }
         [Authorize(Roles = AMRoles.Admin), HttpPost]
@@ -1260,9 +1260,11 @@ namespace AM.Web.Controllers
             }
         }
         [Authorize(Roles = AMRoles.Admin), HttpGet]
-        public ActionResult GetEnvelopeTransactionsByName(int id, string envelopeId)
+        public ActionResult GetEnvelopeTransactionsByName(int id, int envelopeId)
         {
-            return PartialView("_AddOrEditEnvelopeTransactions", new EnvelopeInventory() { EnvelopeId = envelopeId });
+            var envelope = new EnvelopeInventory() { Id = envelopeId };
+            envelope.SetEnvelopeId(envelopeId);
+            return PartialView("_AddOrEditEnvelopeTransactions", envelope);
         }
         //[Authorize(Roles = AMRoles.Admin)]
         //public ActionResult ManageEnvelopeTransactions()
@@ -1366,6 +1368,6 @@ namespace AM.Web.Controllers
 
         #endregion
 
-       
+
     }
 }

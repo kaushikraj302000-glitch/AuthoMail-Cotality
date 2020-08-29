@@ -112,7 +112,7 @@ where e.Id=@Id";
             if (envtran.Id != 0)
             {
                 oldEnvelopeInventory = FindByIdEnvelopeInventory(envtran.Id);
-                oldEnvelope = FindByCodeEnvelope(envtran.EnvelopeId);
+                oldEnvelope = FindEnvelopeById(envtran.GetEnvelopeId());
             }
             db.Open();
             using (var t = db.BeginTransaction())
@@ -128,11 +128,11 @@ VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQuantity ,@UnitPrice,@C
                         envtran.CreatedOn = envtran.ModifiedOn = DateTime.UtcNow;
                         db.Execute(query, envtran, transaction: t);
 
-                        var isExists = db.QuerySingleOrDefault<int?>("select top 1 1 from Common.EnvelopeStock WHERE EnvelopeId=@EnvelopeId and ShipperId=@ShipperId", new { EnvelopeId = envtran.EnvelopeId, ShipperId = envtran.ShipperId }, transaction: t);
+                        var isExists = db.QuerySingleOrDefault<int?>("select top 1 1 from Common.EnvelopeStock WHERE EnvelopeId=@EnvelopeId and ShipperId=@ShipperId", new { EnvelopeId = envtran.GetEnvelopeId(), ShipperId = envtran.ShipperId }, transaction: t);
                         if (isExists.HasValue)
                         {
                             query = "UPDATE [Common].[EnvelopeStock]  SET [CurrentQuantity] = [CurrentQuantity] + (@CurrentQuantity), ReOrderDuration=@ReOrderDuration WHERE EnvelopeId=@EnvelopeId and ShipperId=@ShipperId";
-                            db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, ReOrderDuration = envtran.ReorderDuration, EnvelopeId = envtran.EnvelopeId, ShipperId = envtran.ShipperId }, transaction: t);
+                            db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, ReOrderDuration = envtran.ReorderDuration, EnvelopeId = envtran.GetEnvelopeId(), ShipperId = envtran.ShipperId }, transaction: t);
                         }
                         else
                         {
@@ -147,11 +147,11 @@ VALUES (@EnvelopeId ,@Description ,@ReceivedOn ,@ReceivedQuantity ,@UnitPrice,@C
                         envtran.ModifiedOn = DateTime.UtcNow;
                         db.Execute(query, envtran, transaction: t);
 
-                        var oldCurrentQuantity = db.QuerySingle<int>("select CurrentQuantity from [Common].[EnvelopeStock] where EnvelopeId=@EnvelopeId and ShipperId=@ShipperId", new { EnvelopeId = envtran.EnvelopeId, ShipperId = envtran.ShipperId }, transaction: t);
+                        var oldCurrentQuantity = db.QuerySingle<int>("select CurrentQuantity from [Common].[EnvelopeStock] where EnvelopeId=@EnvelopeId and ShipperId=@ShipperId", new { EnvelopeId = envtran.GetEnvelopeId(), ShipperId = envtran.ShipperId }, transaction: t);
 
                         envtran.ReceivedQuantity = oldCurrentQuantity - oldEnvelopeInventory.ReceivedQuantity + envtran.ReceivedQuantity;
                         query = "UPDATE [Common].[EnvelopeStock]  SET [CurrentQuantity] =@CurrentQuantity,ReOrderDuration=@ReOrderDuration WHERE EnvelopeId=@EnvelopeId and ShipperId=@ShipperId";
-                        db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, ReOrderDuration = envtran.ReorderDuration, EnvelopeId = envtran.EnvelopeId, ShipperId = envtran.ShipperId }, transaction: t);
+                        db.Execute(query, new { CurrentQuantity = envtran.ReceivedQuantity, ReOrderDuration = envtran.ReorderDuration, EnvelopeId = envtran.GetEnvelopeId(), ShipperId = envtran.ShipperId }, transaction: t);
                     }
                     t.Commit();
                     return new KeyValuePair<bool, string>(true, "Saved successfully");
@@ -243,7 +243,7 @@ inner join Common.PrintVendors p on s.PrintVendorId = p.Id");
                 try
                 {
                     string query = "UPDATE [Common].[EnvelopeStock]  SET [CurrentQuantity] =[CurrentQuantity]-(@CurrentQuantity),ReOrderDuration=@ReOrderDuration WHERE EnvelopeId=@EnvelopeId and ShipperId=@ShipperId";
-                    db.Execute(query, new { CurrentQuantity = envelopeInventory.ReceivedQuantity, EnvelopeId = envelopeInventory.EnvelopeId, ShipperId = envelopeInventory.ShipperId }, transaction: t);
+                    db.Execute(query, new { CurrentQuantity = envelopeInventory.ReceivedQuantity, EnvelopeId = envelopeInventory.GetEnvelopeId(), ShipperId = envelopeInventory.ShipperId }, transaction: t);
 
                     db.Execute("delete from Common.EnvelopeInventory where Id=@Id", new { Id = id });
                     t.Commit();

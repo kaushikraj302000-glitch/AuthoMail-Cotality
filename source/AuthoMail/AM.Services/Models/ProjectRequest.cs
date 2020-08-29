@@ -160,7 +160,19 @@ namespace AM.Services
     public class EnvelopeInventory
     {
         public int Id { get; set; }
-        public string EnvelopeId { get; set; }
+
+        private int envelopeId;
+
+        public int GetEnvelopeId()
+        {
+            return envelopeId;
+        }
+
+        public void SetEnvelopeId(int value)
+        {
+            envelopeId = value;
+        }
+
         public string Description { get; set; }
         public DateTime ReceivedOn { get; set; }
         public int ReceivedQuantity { get; set; }
