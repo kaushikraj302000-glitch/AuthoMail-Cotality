@@ -8,7 +8,6 @@ namespace AM.Entities
 {
     public class BatchResponse : MailPieceDTO
     {
-        public DateTime ReceivedOn { get; set; }
         public string AppCode { get; set; }
     }
 

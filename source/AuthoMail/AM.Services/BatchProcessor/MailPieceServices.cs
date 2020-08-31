@@ -29,13 +29,14 @@ namespace AM.Services
         List<MailPieceDTO> GetMailPiecesForUATBridge(DateTime utcStartDate, int clientId);
         List<MailPieceCustomInfo> GetMailPieceCustomInfos(int mailPieceId);
         BatchResponse GetMailPieceDetailsByMailPieceUniqueId(string uniqueId);
+        List<BatchResponse> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId);
         List<MBInfo> GetReportedBackRecordsFromUATBridge();
         List<MBInfo> GetPnSReportedBackRecordsFromUATBridge();
         List<MBInfo> GetReportedBackAMRecordsFromUATBridge();
         List<MBInfo> GetReportedBackPnSRecordsFromUATBridge();
         int DeletePrintBatchDetails(int printBatchId);
         dynamic GetCoversheetData(int mailPieceId);
-        List<string> GetInvalidInserts(string inserts);
+        List<string> GetInvalidInserts(List<string> inserts);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -334,16 +335,28 @@ where MP.UniqueId = @UniqueId
         {
             return db.QuerySingle<dynamic>("usp_GetCoversheetData", new { MailPieceId = mailPieceId }, commandType: System.Data.CommandType.StoredProcedure);
         }
-        public List<string> GetInvalidInserts(string inserts)
+        public List<string> GetInvalidInserts(List<string> inserts)
         {
-            var insertLst = inserts.Split(',').Select(ins => ins.Trim()).Where(ins => !string.IsNullOrEmpty(ins)).ToList();
-            string query = "Select EnvelopeName FROM Common.Envelopes WHERE EnvelopeName IN (select value FROM string_split(@Inserts,',')) and IsBREEnvelope = 1";
+            string query = "Select EnvelopeName FROM Common.Envelopes WHERE UPPER(EnvelopeName) IN @Inserts and IsBREEnvelope = 1";
+            var data = db.Query<string>(query, new { Inserts = inserts.ToArray() }).ToList();
 
-            var data = db.Query<string>(query, new { Inserts = inserts }).ToList();
-
-            var invalidInserts = insertLst.Except(data).ToList();
+            var invalidInserts = inserts.Except(data).ToList();
 
             return invalidInserts;
+        }
+
+        public List<BatchResponse> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId)
+        {
+            string query = @"SELECT MP.*,MB.ReceivedOn,CC.AppCode,PCD.ShippingCarrier,PCD.ShippingServiceType from AM.MailPieces MP
+inner join AM.MailBatches MB ON MP.MailBatchId = MB.Id
+inner join Common.Clients CC ON MP.ClientId = CC.Id
+left outer join [AM].[DocTypes] D ON MP.DocTypeId=D.Id 
+left outer join [Common].[PnSConfigDetail] PCD ON MP.PnSConfigDetailId = PCD.Id
+where MB.PipelineStatus=@PipelineStatus AND IsReportPrepped=1 AND IsReportedBack=0 AND MB.SFTChannelId=@SFTChannelId
+";
+
+            return db.Query<BatchResponse>(query, new { SFTChannelId = sftChannelId, PipelineStatus = BatchPipelineStatus.ReportPrepped }).ToList();
+
         }
     }
 }

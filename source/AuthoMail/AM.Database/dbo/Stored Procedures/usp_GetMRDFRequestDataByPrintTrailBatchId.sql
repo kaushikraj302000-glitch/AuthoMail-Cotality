@@ -42,7 +42,7 @@ BEGIN
     (  
       SELECT DISTINCT '|'+ CAST([PartNumber] AS VARCHAR(MAX))  
       FROM Common.Envelopes   
-      WHERE EnvelopeName IN (select value FROM string_split((MP.Inserts),','))   
+      WHERE UPPER(EnvelopeName) IN (SELECT  UPPER(RTRIM(LTRIM(value))) FROM string_split((MP.Inserts),',') WHERE RTRIM(LTRIM(value)) <>'')   
       FOR XMl PATH('')  
     ),1,1,'')
   FROM PnS.MRDFRequest REQ

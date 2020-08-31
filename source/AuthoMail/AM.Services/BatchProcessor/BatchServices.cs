@@ -178,7 +178,7 @@ namespace AM.Services
             BatchData data = null;
             string query = @"SELECT * FROM [AM].[MailBatches] WHERE Id=@mailBatchId 
                             SELECT * FROM [AM].[MailBatchCustomInfo] WHERE MailBatchId=@mailBatchId
-                            SELECT P.*,D.IsPrintReady FROM [AM].[MailPieces] P LEFT OUTER JOIN AM.DocTypes D ON P.DocTypeId=D.Id WHERE MailBatchId=@mailBatchId
+                            SELECT P.*,D.IsPrintReady,E.EnvelopeName FROM [AM].[MailPieces] P LEFT OUTER JOIN AM.DocTypes D ON P.DocTypeId=D.Id LEFT OUTER JOIN Common.PnSConfigDetail PCD ON P.PnSConfigDetailId=PCD.Id INNER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id WHERE MailBatchId=@mailBatchId
                             SELECT * FROM [AM].[MailPieceCustomInfo] WHERE MailPieceId IN (SELECT Id FROM [AM].[MailPieces] WHERE MailBatchId=@mailBatchId)";
 
             using (var multi = db.QueryMultiple(query, new { mailBatchId = mailBatchId }))

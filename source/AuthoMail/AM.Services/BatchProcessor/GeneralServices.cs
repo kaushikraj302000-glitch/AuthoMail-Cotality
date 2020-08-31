@@ -23,8 +23,10 @@ namespace AM.Services
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatches mailBatch);
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatchDTO mailBatch, string clientCode);
         MailAPIResponse GenerateMailAPIResponse(string mpUniqueId);
+        MailAPIResponse GenerateMailAPIResponse(BatchResponse batchResponse);
+        List<MailAPIResponse> GenerateMailAPIResponse(List<BatchResponse> batchResponses);
         string GeneralJsonReport(string mpUniqueId);
-        Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport, string bearerToken);        
+        Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport, string bearerToken);
     }
 
     public class GeneralService : ServiceBase, IGeneralService
@@ -173,59 +175,7 @@ namespace AM.Services
             {
                 BatchResponse batchResponse = mailPieceService.GetMailPieceDetailsByMailPieceUniqueId(mpUniqueId);
 
-                if (batchResponse != null)
-                {
-                    MailAPIResponse response = new MailAPIResponse()
-                    {
-                        Id = batchResponse.UniqueId,
-                        ReceivedOn = batchResponse.ReceivedOn,
-                        ClientCode = batchResponse.AppCode,
-                        BusinessFriendlyIdName = batchResponse.BusinessFriendlyIdName,
-                        BusinessFriendlyIdValue = batchResponse.BusinessFriendlyIdValue,
-                        DocumentOrPackageType = batchResponse.DocumentOrPackageType,
-                        DocumentOrPackage = new DocumentOrPackage { Name = batchResponse.FileName },
-                        RecipientInfo = new RecipientInfo
-                        {
-                            Recipient = new Recipient
-                            {
-                                Organization = batchResponse.RcptOrganization,
-                                Prefix = batchResponse.RcptPrefix,
-                                Suffix = batchResponse.RcptSuffix,
-                                FirstName = batchResponse.RcptFirstName,
-                                MiddleName = batchResponse.RcptMiddleName,
-                                LastName = batchResponse.RcptLastName,
-                                Phone = batchResponse.RcptPhone,
-                                EmailAddress = batchResponse.RcptEmailId
-                            },
-                            Address = new Entities.Address
-                            {
-                                OptionalLine1AboveStreet = batchResponse.RcptAddrOptionalLine1AboveStreet,
-                                OptionalLine1BelowStreet = batchResponse.RcptAddrOptionalLine1BelowStreet,
-                                OptionalLine2AboveStreet = batchResponse.RcptAddrOptionalLine2AboveStreet,
-                                OptionalLine2BelowStreet = batchResponse.RcptAddrOptionalLine2BelowStreet,
-                                AptOrSuiteOrOther = batchResponse.RcptAddressAptOrSuiteOrOther,
-                                Street = batchResponse.RcptAddressStreet,
-                                City = batchResponse.RcptAddressCity,
-                                State = batchResponse.RcptAddressState,
-                                Zip = batchResponse.RcptAddressZIP,
-                                Country = batchResponse.RcptAddressCountry
-                            }
-                        },
-                        MailingStatus = batchResponse.ShippingStatus,
-                        ErrorCode = batchResponse.ErrorCode,
-                        ErrorDesc = batchResponse.ErrorDesc,
-                        ShippedOn = batchResponse.ShippedOn,
-                        ShippingMethod = batchResponse.ShippingCarrier,
-                        ShippingServiceType = batchResponse.ShippingServiceType,
-                        TrackingNumber = batchResponse.TrackingNo,
-                        TotalPages = batchResponse.TotalPages,
-                        TotalSheets = batchResponse.TotalSheets,
-                        PulledBackOn = batchResponse.PulledBackOn
-                    };
-
-                    return response;
-                }
-                else
+                if (batchResponse == null)
                 {
                     MailAPIResponse response = new MailAPIResponse()
                     {
@@ -236,7 +186,73 @@ namespace AM.Services
 
                     return response;
                 }
+
+                return GenerateMailAPIResponse(batchResponse);
             }
+        }
+
+        public List<MailAPIResponse> GenerateMailAPIResponse(List<BatchResponse> batchResponses)
+        {
+            List<MailAPIResponse> mailAPIResponses = new List<MailAPIResponse>();
+
+            foreach (var response in batchResponses)
+            {
+                mailAPIResponses.Add(GenerateMailAPIResponse(response));
+            }
+            return mailAPIResponses;
+        }
+
+        public MailAPIResponse GenerateMailAPIResponse(BatchResponse batchResponse)
+        {
+            MailAPIResponse response = new MailAPIResponse()
+            {
+                Id = batchResponse.UniqueId,
+                ReceivedOn = batchResponse.ReceivedOn,
+                ClientCode = batchResponse.AppCode,
+                BusinessFriendlyIdName = batchResponse.BusinessFriendlyIdName,
+                BusinessFriendlyIdValue = batchResponse.BusinessFriendlyIdValue,
+                DocumentOrPackageType = batchResponse.DocumentOrPackageType,
+                DocumentOrPackage = new DocumentOrPackage { Name = batchResponse.FileName },
+                RecipientInfo = new RecipientInfo
+                {
+                    Recipient = new Recipient
+                    {
+                        Organization = batchResponse.RcptOrganization,
+                        Prefix = batchResponse.RcptPrefix,
+                        Suffix = batchResponse.RcptSuffix,
+                        FirstName = batchResponse.RcptFirstName,
+                        MiddleName = batchResponse.RcptMiddleName,
+                        LastName = batchResponse.RcptLastName,
+                        Phone = batchResponse.RcptPhone,
+                        EmailAddress = batchResponse.RcptEmailId
+                    },
+                    Address = new Entities.Address
+                    {
+                        OptionalLine1AboveStreet = batchResponse.RcptAddrOptionalLine1AboveStreet,
+                        OptionalLine1BelowStreet = batchResponse.RcptAddrOptionalLine1BelowStreet,
+                        OptionalLine2AboveStreet = batchResponse.RcptAddrOptionalLine2AboveStreet,
+                        OptionalLine2BelowStreet = batchResponse.RcptAddrOptionalLine2BelowStreet,
+                        AptOrSuiteOrOther = batchResponse.RcptAddressAptOrSuiteOrOther,
+                        Street = batchResponse.RcptAddressStreet,
+                        City = batchResponse.RcptAddressCity,
+                        State = batchResponse.RcptAddressState,
+                        Zip = batchResponse.RcptAddressZIP,
+                        Country = batchResponse.RcptAddressCountry
+                    }
+                },
+                MailingStatus = batchResponse.ShippingStatus,
+                ErrorCode = batchResponse.ErrorCode,
+                ErrorDesc = batchResponse.ErrorDesc,
+                ShippedOn = batchResponse.ShippedOn,
+                ShippingMethod = batchResponse.ShippingCarrier,
+                ShippingServiceType = batchResponse.ShippingServiceType,
+                TrackingNumber = batchResponse.TrackingNo,
+                TotalPages = batchResponse.TotalPages,
+                TotalSheets = batchResponse.TotalSheets,
+                PulledBackOn = batchResponse.PulledBackOn
+            };
+
+            return response;
         }
 
         public string GeneralJsonReport(string mpUniqueId)
@@ -308,6 +324,6 @@ namespace AM.Services
             {
                 return ex.ToString();
             }
-        }        
+        }
     }
 }
