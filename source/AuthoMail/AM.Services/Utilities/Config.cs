@@ -250,6 +250,7 @@ namespace AM.Services
         public static int EllieMae_MaxResponseCount { get; set; }
         public static string MailRequestAPI_FilesDownloadPath { get; set; }
         public static int MailRequestAPI_MaxRequestSize { get; set; }
+        public static int PGP_Passphrase { get; set; }
 
         #endregion
 
