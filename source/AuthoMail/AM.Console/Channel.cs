@@ -244,14 +244,14 @@ namespace AM.Console
 
                                 if (errors.Count > 0)
                                 {
-                                    MailUtility.SendUnexpectedExceptionEmail(string.Join(Environment.NewLine, errors));
+                                    MailUtility.SendAPIUnexpectedExceptionEmail(string.Join(Environment.NewLine, errors));
                                 }
                             }
                             else
                             {
                                 var msg = "Error occured while sending response to EllieMae endpoint with Status Code : {0},RequestMessage {1}, Error : {2}".Fill(responseResult.StatusCode, responseResult.RequestMessage, responseResult.Content == null ? null : responseResult.Content.ReadAsStringAsync().Result);
                                 log.Error(msg);
-                                MailUtility.SendUnexpectedExceptionEmail(msg);
+                                MailUtility.SendAPIUnexpectedExceptionEmail(msg);
                             }
                         }
                         break;
