@@ -76,6 +76,30 @@ namespace AM.Console
             }
         }
 
+        public static void SendAPIUnexpectedExceptionEmail(string exception)
+        {
+            try
+            {
+                using (SmtpClient smtpClient = new SmtpClient())
+                {
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = true;
+                        msg.To.Add(Config.Monitor_Exception_Email_To);
+                        msg.CC.Add(Config.Monitor_Exception_Email_Cc);
+                        msg.Subject = "API_{0} : {1}".Fill(Config.Common_Environment, Config.Monitor_ExceptionEmail_Subject);
+                        msg.Priority = MailPriority.High;
+                        msg.Body = "Unexpected exception occured during execution." + Environment.NewLine + exception;
+                        smtpClient.Send(msg);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
+        }
+
         public static bool SendDownloadNotificationEmail(MailBatchInfo mbi, List<MailPieces> mailPieces, string errorReportPath, EmailChannel emailChannel)
         {
             bool isEmailSent = false;
