@@ -185,7 +185,7 @@ namespace AM.Console
                                 {
                                     var msg = "Error occured while sending response to EllieMae endpoint with Status Code : {0},RequestMessage {1}, Error : {2}".Fill(responseResult.StatusCode, responseResult.RequestMessage, responseResult.Content == null ? null : responseResult.Content.ReadAsStringAsync().Result);
                                     log.Error(msg);
-                                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                                    MailUtility.SendAPIUnexpectedExceptionEmail(msg);
                                     continue;
                                 }
 
@@ -201,7 +201,7 @@ namespace AM.Console
                                 if (notContainInAM.Count > 0 || notContainInAM.Count > 0)
                                 {
                                     var msg = $"Following responses not received From EM : {Environment.NewLine + string.Join(",", notReceivedInEM)} " + Environment.NewLine + $"Following responses not contains in AM :{Environment.NewLine + string.Join(",", notContainInAM)}";
-                                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                                    MailUtility.SendAPIUnexpectedExceptionEmail(msg);
                                 }
 
                                 List<string> errors = new List<string>();
@@ -229,7 +229,7 @@ namespace AM.Console
 
                                 if (errors.Count > 0)
                                 {
-                                    MailUtility.SendUnexpectedExceptionEmail(string.Join(Environment.NewLine, errors));
+                                    MailUtility.SendAPIUnexpectedExceptionEmail(string.Join(Environment.NewLine, errors));
                                 }
                             }
                         }
