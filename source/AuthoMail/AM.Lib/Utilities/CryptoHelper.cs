@@ -26,11 +26,11 @@ namespace AM.Lib
             PrivateKey = Resources.PGP_Private_Key_UAT;
         }
 
-        public static LiteralData DecryptFile(string cipherFilePath, string passPhrase)
+        public static async Task<LiteralData> DecryptFileAsync(string cipherFilePath, string passPhrase)
         {
             using (var inputStream = File.OpenRead(cipherFilePath))
             {
-                using (Stream keyIn = IOHelper.GetStream(PrivateKey))
+                using (Stream keyIn = await IOHelper.GetStreamAsync(PrivateKey))
                 {
                     return DecryptPgpData(inputStream, keyIn, passPhrase);
                 }
@@ -178,10 +178,10 @@ namespace AM.Lib
             throw new ArgumentException("Can't find encryption key in key ring.");
         }
 
-        public static void EncryptPgpFile(string inputFile, string outputFile)
+        public static async Task EncryptPgpFile(string inputFile, string outputFile)
         {
             // use armor: yes, use integrity check? yes?
-            using (var publicKeyStream = IOHelper.GetStream(PublicKey))
+            using (var publicKeyStream = await IOHelper.GetStreamAsync(PublicKey))
             {
                 EncryptPgpFile(inputFile, outputFile, publicKeyStream, true, true);
             }

@@ -9,13 +9,13 @@ namespace AM.Lib
 {
     public static class IOHelper
     {
-        public static Stream GetStream(string stringData)
+        public static async Task<Stream> GetStreamAsync(string stringData)
         {
             MemoryStream ms = new MemoryStream();
             using (StreamWriter writer = new StreamWriter(ms, Encoding.UTF8, 512, true))
             {
-                writer.Write(stringData);
-                writer.Flush();
+                await writer.WriteAsync(stringData);
+                await writer.FlushAsync();
                 ms.Position = 0;
             }
             return ms;
