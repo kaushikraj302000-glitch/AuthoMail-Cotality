@@ -9,7 +9,18 @@ namespace AM.Lib
 {
     public static class IOHelper
     {
-        public static Stream GetStream(string stringData)
+        public static Stream GetASCIIStream(string stringData)
+        {
+            MemoryStream ms = new MemoryStream();
+            using (StreamWriter writer = new StreamWriter(ms, Encoding.ASCII, 512, true))
+            {
+                writer.Write(stringData);
+                writer.Flush();
+                ms.Position = 0;
+            }
+            return ms;
+        }
+        public static Stream GetUTF8Stream(string stringData)
         {
             MemoryStream ms = new MemoryStream();
             using (StreamWriter writer = new StreamWriter(ms, Encoding.UTF8, 512, true))

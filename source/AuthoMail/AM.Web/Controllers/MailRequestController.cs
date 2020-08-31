@@ -277,14 +277,14 @@ bufferSize: 4096, useAsync: true)) { }
                             {
                                 #region decrypt pdf files
 
-                                //LiteralData literalData = null;
-                                
-                                
+                                LiteralData literalData = CryptoHelper.DecryptFile(file.Value.LocalFileName, Config.PGP_Passphrase);
+                                await literalData.SaveAsFile(Path.Combine(root, "test.pdf"));
+
                                 #endregion
 
-                                using (var reader = new PdfReader(file.Value.LocalFileName))
+                                using (var reader = new PdfReader(literalData.FileName))
                                 {
-                                    mailPiece.CustomInfo.Add(new Metadata { Key = file.Key, Value = "EncryptedFileName:{0} |DecryptedFileName:{1} | PageCount: {2}".Fill(file.Value.Headers.ContentDisposition.FileName.Replace("\"", ""), "", reader.NumberOfPages) });
+                                    mailPiece.CustomInfo.Add(new Metadata { Key = file.Key, Value = "EncryptedFileName:{0} |DecryptedFileName:{1} | PageCount: {2}".Fill(file.Value.Headers.ContentDisposition.FileName.Replace("\"", ""), literalData.FileName, reader.NumberOfPages) });
                                     //Add the entire document
                                     copy.AddDocument(reader);
                                     reader.Close();

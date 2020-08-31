@@ -21,13 +21,13 @@ namespace AM.Lib
             Stream = pgpLiterlData.GetInputStream();
         }
 
-        public void SaveAsFile(string filePath = null)
+        public async Task SaveAsFile(string filePath = null)
         {
             var destFile = filePath ?? FileName;
 
             using (var os = File.Open(destFile, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
             {
-                Stream.CopyTo(os);
+                await Stream.CopyToAsync(os);
             }
         }
 

@@ -30,7 +30,7 @@ namespace AM.Lib
         {
             using (var inputStream = File.OpenRead(cipherFilePath))
             {
-                using (Stream keyIn = IOHelper.GetStream(PrivateKey))
+                using (Stream keyIn = IOHelper.GetASCIIStream(PrivateKey))
                 {
                     return DecryptPgpData(inputStream, keyIn, passPhrase);
                 }
@@ -181,7 +181,7 @@ namespace AM.Lib
         public static void EncryptPgpFile(string inputFile, string outputFile)
         {
             // use armor: yes, use integrity check? yes?
-            using (var publicKeyStream = IOHelper.GetStream(PublicKey))
+            using (var publicKeyStream = IOHelper.GetASCIIStream(PublicKey))
             {
                 EncryptPgpFile(inputFile, outputFile, publicKeyStream, true, true);
             }
