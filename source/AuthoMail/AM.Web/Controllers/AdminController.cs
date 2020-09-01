@@ -95,7 +95,7 @@ namespace AM.Web.Controllers
             if (IsCL) roles.Add(AMRoles.BA);
 
             //var appCodes = await clientPermissionSvc.GetAppCodeByUserIdORall(IsCL ? null : userId);
-            var domainAppCode = await clientPermissionSvc.GetClientDomainByDomainName(new MailAddress(user.Email).Host);
+            var domainAppCode = IsCL ? await clientPermissionSvc.GetClientDomainForCL() : await clientPermissionSvc.GetClientDomainByDomainName(new MailAddress(user.Email).Host);
             var userRole = await UserManager.GetRolesAsync(user.Id);
             var approveAppCode = await clientPermissionSvc.GetApproveAppCodesByUserId(user.Id);
             var data = new
@@ -103,7 +103,7 @@ namespace AM.Web.Controllers
                 roles = roles,
                 isCL = IsCL,
                 domainAppCode = domainAppCode,
-                userRole = userRole.Select(u => u == AMRoles.BA || u == AMRoles.Client).FirstOrDefault(),
+                userRole = userRole.Where(u => u == AMRoles.BA || u == AMRoles.Client).FirstOrDefault(),
                 approveAppCode = approveAppCode
             };
             return Json(JsonResponseFactory.SuccessResponse(data), JsonRequestBehavior.AllowGet);
