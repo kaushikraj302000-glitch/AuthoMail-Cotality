@@ -12,6 +12,7 @@ namespace AM.Services
     public interface IClientPermissionService : IDisposable
     {
         Task<IEnumerable<ClientIdNameVM>> GetClientDomainByDomainName(string domainName);
+        Task<IEnumerable<ClientIdNameVM>> GetClientDomainForCL();
         Task<IEnumerable<ClientIdNameVM>> GetAppCodeByUserIdORall(string userId);
         Task InsertClientIdAndUserId(ClientUserMapping clientUserMapping);
         Task<IEnumerable<ClientUserMapping>> ApproveOrDeclinedClientsForUser(string userId, List<int> approveclientIds, string modifiedById);
@@ -75,6 +76,14 @@ where AllowedDomain=@domainName order by c.Name";
             return output;
         }
 
+        public async Task<IEnumerable<ClientIdNameVM>> GetClientDomainForCL()
+        {
+            string sql = @"SELECT distinct c.Id,c.Name,c.AppCode FROM Common.ClientDomains cd
+inner join Common.Clients c on cd.ClientId=c.Id
+order by c.Name";
+            var output = await db.QueryAsync<ClientIdNameVM>(sql);
+            return output;
+        }
         public async Task InsertClientIdAndUserId(ClientUserMapping clientUserMapping)
         {
             string isExistSql = "select top 1 1 from Common.ClientUserMapping where UserId=@userId and ClientId=@clientId";
