@@ -1,4 +1,5 @@
-﻿using Refit;
+﻿using AM.USPSLib.TrackV2;
+using Refit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,5 +21,9 @@ namespace AM.USPSLib
         [Post("/api/usps/eVSCancel")]
         [Headers("Authorization: Bearer")]
         Task<eVSCancelLabelResponse> RequesteVSCancelLabelAsync([Body(BodySerializationMethod.Json)] eVSCancelLabelRequest request);
+
+        [Post("/api/usps/gettrackingdetails")]
+        [Headers("Authorization: Bearer")]
+        Task<TrackAPIResponse> GetTrackingDetailsAsync([Body(BodySerializationMethod.Json)] TrackFieldAPIRequest request);
     }
 }

@@ -130,6 +130,10 @@
     <Compile Include="Models\AuthoMailSettings.cs" />
     <Compile Include="Models\SupportVM.cs" />
     <Compile Include="Models\USPSAddressVerify.cs" />
+    <Compile Include="Models\USPS\TrackV2\ITrackFieldRequest.cs" />
+    <Compile Include="Models\USPS\TrackV2\ITrackResponse.cs" />
+    <Compile Include="Models\USPS\TrackV2\TrackFieldRequest.cs" />
+    <Compile Include="Models\USPS\TrackV2\TrackResponse.cs" />
     <Compile Include="Models\WeeklyChartDTO.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\PullBackInfo.cs" />
@@ -166,6 +170,7 @@
     <Compile Include="Services\SupportService.cs" />
     <Compile Include="Services\USPSService.cs" />
     <Compile Include="Services\USPSService.eVS.cs" />
+    <Compile Include="Services\USPS\USPSService.TrackV2.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\Config.cs" />
     <Compile Include="Utilities\Helper.cs" />

@@ -211,7 +211,10 @@ namespace AM.Services
         public static string Web_API_USPS_MainlandStates { get; private set; }
         public static string Web_API_USPS_eVSAPIName { get; private set; }
         public static string Web_API_USPS_eVSCancelAPIName { get; private set; }
-
+        public static int Web_API_USPS_TrackingCount { get; private set; }
+        public static string Web_API_USPS_TrackingAPIName { get; private set; }
+        public static string Web_API_USPS_TrackingSourseZipCode { get; private set; }
+        public static bool Web_API_USPS_Tracking_IsDbLoggingEnabled { get; private set; }
         #endregion
 
         #region E-DeliveryAPI

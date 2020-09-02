@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AM.USPSLib;
+using AM.USPSLib.TrackV2;
 
 namespace AM.Services
 {
@@ -14,5 +15,7 @@ namespace AM.Services
         Task<eVSLabelResponse> RequesteVSLabelAsync(string userId, eVSLabelRequest request);
 
         Task<eVSCancelLabelResponse> RequesteVSCancelLabelAsync(string userId, eVSCancelLabelRequest request);
+
+        Task<TrackAPIResponse> GetTrackingDetailsAsync(string userId, TrackFieldAPIRequest verifyRequest);
     }
 }
