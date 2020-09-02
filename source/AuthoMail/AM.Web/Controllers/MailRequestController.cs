@@ -22,6 +22,7 @@ using System.Xml;
 using System.Web.UI.WebControls;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using iTextSharp.text.exceptions;
 
 namespace AM.Web.Controllers
 {
@@ -267,7 +268,7 @@ bufferSize: 4096, useAsync: true)) { }
                     using (var doc = new Document())
                     using (var copy = new PdfSmartCopy(doc, ds))
                     {
-                        doc.Open();
+                        
                         // This is done to open and merge (Secured) PDFs which allow printing but not copying or merging
                         PdfReader.unethicalreading = true;
                         //Loop through each input file                        
@@ -276,19 +277,31 @@ bufferSize: 4096, useAsync: true)) { }
                             try
                             {
                                 #region decrypt pdf files
-
-                                LiteralData literalData = CryptoHelper.DecryptFile(file.Value.LocalFileName, Config.PGP_Passphrase);
-                                await literalData.SaveAsFile(Path.Combine(root, "test.pdf"));
-
+                                var decryptedFilePath = Path.Combine(root, string.Format("Literal_{0}.pdf", Path.GetFileNameWithoutExtension(file.Value.LocalFileName)));
+                                try
+                                {
+                                    await CryptoHelper.DecryptFileAsync(file.Value.LocalFileName, Config.PGP_Passphrase, decryptedFilePath);
+                                }
+                                catch (Exception e)
+                                {
+                                    log.Error(e.Message, e);
+                                    // if there are any exceptions while decrypting pdf, don't delete files and send bad reqeust with mailresponse object, it should contain file names
+                                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "Unable to decrypt file : {0}.".Fill(file.Key) }, receivedOn);
+                                    return Request.CreateResponse(HttpStatusCode.BadRequest, res);
+                                }
                                 #endregion
 
-                                using (var reader = new PdfReader(literalData.FileName))
+                                using (var reader = new PdfReader(decryptedFilePath))
                                 {
-                                    mailPiece.CustomInfo.Add(new Metadata { Key = file.Key, Value = "EncryptedFileName:{0} |DecryptedFileName:{1} | PageCount: {2}".Fill(file.Value.Headers.ContentDisposition.FileName.Replace("\"", ""), literalData.FileName, reader.NumberOfPages) });
+                                    mailPiece.CustomInfo.Add(new Metadata { Key = file.Key, Value = "FileName:{0} | PageCount: {1}".Fill(file.Value.Headers.ContentDisposition.FileName.Replace("\"", ""), reader.NumberOfPages) });
+                                    
+                                    //open document
+                                    if (!doc.IsOpen()) doc.Open();
                                     //Add the entire document
                                     copy.AddDocument(reader);
                                     reader.Close();
                                 }
+                                downloadedFiles.Add(decryptedFilePath);
                             }
                             catch (Exception e)
                             {

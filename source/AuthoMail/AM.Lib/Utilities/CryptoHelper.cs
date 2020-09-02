@@ -1,7 +1,9 @@
-﻿using AM.Lib.Properties;
-using Org.BouncyCastle.Bcpg;
-using Org.BouncyCastle.Bcpg.OpenPgp;
-using Org.BouncyCastle.Security;
+﻿extern alias bc;
+
+using AM.Lib.Properties;
+using bc::Org.BouncyCastle.Bcpg;
+using bc::Org.BouncyCastle.Bcpg.OpenPgp;
+using bc::Org.BouncyCastle.Security;
 using System;
 using System.CodeDom;
 using System.Collections.Generic;
@@ -26,13 +28,13 @@ namespace AM.Lib
             PrivateKey = Resources.PGP_Private_Key_UAT;
         }
 
-        public static async Task<LiteralData> DecryptFileAsync(string cipherFilePath, string passPhrase)
+        public static async Task DecryptFileAsync(string cipherFilePath, string passPhrase, string decryptedFilePath)
         {
             using (var inputStream = File.OpenRead(cipherFilePath))
             {
-                using (Stream keyIn = IOHelper.GetASCIIStream(PrivateKey))
+                using (Stream keyIn = await IOHelper.GetASCIIStreamAsync(PrivateKey))
                 {
-                    return DecryptPgpData(inputStream, keyIn, passPhrase);
+                    await DecryptPgpData(inputStream, keyIn, passPhrase, decryptedFilePath);                
                 }
             }
         }
@@ -61,7 +63,7 @@ namespace AM.Lib
         //    return output;
         //}
 
-        public static LiteralData DecryptPgpData(Stream inputStream, Stream privateKeyStream, string passPhrase)
+        public static async Task DecryptPgpData(Stream inputStream, Stream privateKeyStream, string passPhrase, string decryptedFilePath)
         {
             LiteralData output;
 
@@ -124,18 +126,25 @@ namespace AM.Lib
                 }
 
                 message = pgpCompressedFactory.NextPgpObject();
-                PgpLiteralData literalData = null;
                 if (message is PgpOnePassSignatureList)
                 {
                     message = pgpCompressedFactory.NextPgpObject();
                 }
 
-                //literalData = (PgpLiteralData)message;
+                var literalData = (PgpLiteralData)message;
+                using (var os = File.Open(decryptedFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+                {
+                    using (var @is = literalData.GetInputStream())
+                    {
+                        await @is.CopyToAsync(os);
+                    }
+                }
                 //using (Stream unc = literalData.GetInputStream())
                 //{
                 //    output = IoHelper.GetString(unc);
                 //}
-                output = new LiteralData((PgpLiteralData)message);
+                //output = new LiteralData((PgpLiteralData)message);
+                
             }
             else if (message is PgpLiteralData)
             {
@@ -145,7 +154,15 @@ namespace AM.Lib
                 //    output = IoHelper.GetString(unc);
                 //}
 
-                output = new LiteralData((PgpLiteralData)message);
+                //output = new LiteralData((PgpLiteralData)message);
+                var literalData = (PgpLiteralData)message;
+                using (var os = File.Open(decryptedFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+                {
+                    using (var @is = literalData.GetInputStream())
+                    {
+                        await @is.CopyToAsync(os);
+                    }
+                }
             }
             else if (message is PgpOnePassSignatureList)
             {
@@ -156,7 +173,7 @@ namespace AM.Lib
                 throw new PgpException("Message is not a simple encrypted file - type unknown.");
             }
 
-            return output;
+            //return output;
         }
 
         private static PgpPublicKey ReadPublicKey(Stream inputStream)
@@ -181,7 +198,7 @@ namespace AM.Lib
         public static async Task EncryptPgpFile(string inputFile, string outputFile)
         {
             // use armor: yes, use integrity check? yes?
-            using (var publicKeyStream = IOHelper.GetASCIIStream(PublicKey))
+            using (var publicKeyStream = await IOHelper.GetASCIIStreamAsync(PublicKey))
             {
                 EncryptPgpFile(inputFile, outputFile, publicKeyStream, true, true);
             }
