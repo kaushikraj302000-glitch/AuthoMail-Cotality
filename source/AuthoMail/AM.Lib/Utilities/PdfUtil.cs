@@ -1,5 +1,7 @@
-﻿using iTextSharp.text;
-using iTextSharp.text.pdf;
+﻿extern alias iText;
+
+using iText::iTextSharp.text;
+using iText::iTextSharp.text.pdf;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -133,7 +135,7 @@ namespace AM.Lib
 
                 if (i == 0)
                 {
-                    document = new iTextSharp.text.Document(reader.GetPageSizeWithRotation(1));
+                    document = new Document(reader.GetPageSizeWithRotation(1));
                     pdfCpy = new PdfCopy(document, new FileStream(outputPdf, FileMode.Create));
                     document.Open();
                     PdfReader.unethicalreading = true;

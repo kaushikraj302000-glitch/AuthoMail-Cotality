@@ -256,6 +256,7 @@ bufferSize: 4096, useAsync: true)) { }
                     log.DebugFormat("Validation complete: {0}", sw.Elapsed.TotalSeconds);
 
                     sw.Restart();
+
                     string finalPdfPath = null;
 
                     if (mailPiece.CustomInfo == null) mailPiece.CustomInfo = new List<Metadata>();
@@ -274,9 +275,16 @@ bufferSize: 4096, useAsync: true)) { }
                         {
                             try
                             {
-                                using (var reader = new PdfReader(file.Value.LocalFileName))
+                                #region decrypt pdf files
+
+                                LiteralData literalData = CryptoHelper.DecryptFile(file.Value.LocalFileName, Config.PGP_Passphrase);
+                                await literalData.SaveAsFile(Path.Combine(root, "test.pdf"));
+
+                                #endregion
+
+                                using (var reader = new PdfReader(literalData.FileName))
                                 {
-                                    mailPiece.CustomInfo.Add(new Metadata { Key = file.Key, Value = "FileName:{0} | PageCount: {1}".Fill(file.Value.Headers.ContentDisposition.FileName.Replace("\"", ""), reader.NumberOfPages) });
+                                    mailPiece.CustomInfo.Add(new Metadata { Key = file.Key, Value = "EncryptedFileName:{0} |DecryptedFileName:{1} | PageCount: {2}".Fill(file.Value.Headers.ContentDisposition.FileName.Replace("\"", ""), literalData.FileName, reader.NumberOfPages) });
                                     //Add the entire document
                                     copy.AddDocument(reader);
                                     reader.Close();
