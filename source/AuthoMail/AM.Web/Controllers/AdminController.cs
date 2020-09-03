@@ -144,7 +144,7 @@ namespace AM.Web.Controllers
                     return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
                 }
 
-
+                var user = await UserManager.FindByIdAsync(userId);
                 var model = new KeyValuePair<bool, string>();
                 string partiallyApproveRequest = null;
                 if (role == AMRoles.Client && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
@@ -157,7 +157,14 @@ namespace AM.Web.Controllers
                     {
                         return Json(JsonResponseFactory.ErrorResponse("Please select AppCode(s)."), JsonRequestBehavior.AllowGet);
                     }
-                    var output = await clientPermissionSvc.ApproveOrDeclinedClientsForUser(userId, clientIds, User.Identity.GetUserId());
+                    //CL user Remove BA role and add Client role
+                    if (CLAuthentication.HasCorelogicAccount(user.Email))
+                    {
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
+                        await UserManager.AddToRoleAsync(userId, AMRoles.Client);
+                    }
+                    var output = await clientPermissionSvc.ApproveOrDeclinedClientsForUser(userId, clientIds, User.Identity.GetUserId(), CLAuthentication.HasCorelogicAccount(user.Email));
 
                     if (output.Any(o => o.Status == ClientUserMappingStatusTypes.Declined))
                     {
@@ -177,9 +184,15 @@ namespace AM.Web.Controllers
                 }
                 else
                 {
+                    if (CLAuthentication.HasCorelogicAccount(user.Email))
+                    {
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
+                        await UserManager.AddToRoleAsync(userId, AMRoles.BA);
+                    }
                     model = supportSvc.UpdateUsersRequestSignUp(userId, status, User.Identity.GetUserId());
                 }
-                var user = UserManager.FindById(userId);
+
 
                 string template = status.Equals(AMUserStatus.Approved) ? "ApproveRegistration.html" : "RejectRegistration.html";
                 if (!(partiallyApproveRequest.IsNullOrWhiteSpace()))
