@@ -230,7 +230,7 @@ inner join Profile.Users m on e.ModifiedBy=m.Id order by e.ReceivedOn desc";
 
         public IEnumerable<ShipperInfoSelectListVM> ShipperSelectList()
         {
-            return db.Query<ShipperInfoSelectListVM>(@"select s.Id,s.PrintVendorId,s.PrintLocation,p.Name as PrintVendor from Common.ShipperInformation s
+            return db.Query<ShipperInfoSelectListVM>(@"select s.Id,s.PrintVendorId,s.PrintLocation,s.PrintVendorCode,p.Name as PrintVendor from Common.ShipperInformation s
 inner join Common.PrintVendors p on s.PrintVendorId = p.Id");
         }
 

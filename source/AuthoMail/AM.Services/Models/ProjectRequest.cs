@@ -211,11 +211,12 @@ namespace AM.Services
         public int PrintVendorId { get; set; }
         public string PrintVendor { get; set; }
         public string PrintLocation { get; set; }
+        public string PrintVendorCode { get; set; }
         public string Name
         {
             get
             {
-                return $"{PrintVendor}({PrintLocation})";
+                return $"{PrintLocation} ( {PrintVendorCode} )";
             }
         }
     }
@@ -244,4 +245,25 @@ namespace AM.Services
     //        }
     //    }
     //}
+
+    public class EnvelopesVM : Envelopes
+    {
+        public List<EnvelopeInventoryStockVM> EnvelopeInventoryStockVMs { get; set; }
+        public EnvelopesVM()
+        {
+            this.EnvelopeInventoryStockVMs = new List<EnvelopeInventoryStockVM>();
+        }
+    }
+    public class EnvelopeInventoryStockVM
+    {
+        public int? EnvelopeId { get; set; }
+        public int ShipperId { get; set; }
+        public string ShipperName { get; set; }
+        public string Description { get; set; }
+        public int? ReceivedQuantity { get; set; }
+        public decimal? UnitPrice { get; set; }
+        public int ReorderDuration { get; set; }
+
+
+    }
 }

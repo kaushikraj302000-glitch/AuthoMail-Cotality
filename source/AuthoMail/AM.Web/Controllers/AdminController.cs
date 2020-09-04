@@ -1173,7 +1173,23 @@ namespace AM.Web.Controllers
             return View();
         }
 
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult CreateOrEditEnvelope(int? id)
+        {
+            if (id.HasValue)
+            {
+                return View(new EnvelopesVM());
+            }
+            var shippers = inventorySvc.ShipperSelectList();
+            ViewBag.Shippers = new SelectList(shippers, "Id", "Name");
+            return View(new EnvelopesVM());
+        }
         [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult ShipperWiseStock(int ShipperId,string ShipperName)
+        {
+            return PartialView("_ShipperWiseStockDetails", new EnvelopeInventoryStockVM { ShipperName = ShipperName, ShipperId = ShipperId });
+        }
+               [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult CreateOrEditEnvelope(Envelopes envelopes)
         {
             try
