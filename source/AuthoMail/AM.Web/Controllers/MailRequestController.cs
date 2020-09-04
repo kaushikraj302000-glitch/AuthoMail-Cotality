@@ -277,17 +277,21 @@ bufferSize: 4096, useAsync: true)) { }
                             try
                             {
                                 #region decrypt pdf files
-                                var decryptedFilePath = Path.Combine(root, string.Format("Literal_{0}.pdf", Path.GetFileNameWithoutExtension(file.Value.LocalFileName)));
-                                try
+                                var decryptedFilePath = file.Value.LocalFileName;
+                                if (client.IsEncrypted)
                                 {
-                                    await CryptoHelper.DecryptFileAsync(file.Value.LocalFileName, Config.PGP_Passphrase, decryptedFilePath);
-                                }
-                                catch (Exception e)
-                                {
-                                    log.Error(e.Message, e);
-                                    // if there are any exceptions while decrypting pdf, don't delete files and send bad reqeust with mailresponse object, it should contain file names
-                                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "Unable to decrypt file : {0}.".Fill(file.Key) }, receivedOn);
-                                    return Request.CreateResponse(HttpStatusCode.BadRequest, res);
+                                    try
+                                    {
+                                        decryptedFilePath = Path.Combine(root, string.Format("Literal_{0}.pdf", Path.GetFileNameWithoutExtension(file.Value.LocalFileName)));
+                                        await CryptoHelper.DecryptFileAsync(file.Value.LocalFileName, Config.PGP_Passphrase, decryptedFilePath);
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        log.Error(e.Message, e);
+                                        // if there are any exceptions while decrypting pdf, don't delete files and send bad reqeust with mailresponse object, it should contain file names
+                                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "Unable to decrypt file : {0}.".Fill(file.Key) }, receivedOn);
+                                        return Request.CreateResponse(HttpStatusCode.BadRequest, res);
+                                    } 
                                 }
                                 #endregion
 

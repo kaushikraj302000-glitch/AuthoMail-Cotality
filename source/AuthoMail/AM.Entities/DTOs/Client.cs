@@ -16,6 +16,7 @@ namespace AM.Entities
         public bool IsPnSActive { get; set; }
         public string TimeZone { get; set; }
         public int SigningRoomExpiryDays { get; set; }
+        public bool IsEncrypted { get; set; }
     }
 
     public class ClientSFTChannel
