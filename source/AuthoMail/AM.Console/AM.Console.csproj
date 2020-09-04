@@ -83,7 +83,10 @@
     <Compile Include="AlaskaChannel.cs" />
     <Compile Include="AlaskaSchema.cs" />
     <Compile Include="AMCChannel.cs" />
+    <Compile Include="IChannel.cs" />
+    <Compile Include="PAMSchemaChannel.cs" />
     <Compile Include="CalcStdPrepStartTime.cs" />
+    <Compile Include="PChannel.cs" />
     <Compile Include="DELFUSChannel.cs" />
     <Compile Include="Channel.cs" />
     <Compile Include="ChannelFactory.cs" />

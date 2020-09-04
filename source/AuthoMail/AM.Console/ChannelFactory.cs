@@ -9,7 +9,7 @@ namespace AM.Console
 {
     static class ChannelFactory
     {
-        public static Channel Create(string[] channelCommands)
+        public static IChannel Create(string[] channelCommands)
         {
             string channelPrefix = channelCommands[0];
             string channelType = channelCommands[1];
@@ -43,6 +43,10 @@ namespace AM.Console
                 case "DELFUS":
                     return new DELFUSChannel(channelCode, channelType);
 
+                case "ELLIEMAE":
+                    return new PAMSchemaChannel(channelCode, channelType);
+
+
                 // AuthoMail XML schema
                 //Parameter for Print Ready Client should be like PRINTREADY|AppCode Sweep/Trigger
                 //Parameter for regular Client should be like AppCode Sweep/Trigger
@@ -52,6 +56,6 @@ namespace AM.Console
                     else
                         return new AMSchemaChannel(channelCode, channelType);
             }
-        }
+        }        
     }
 }

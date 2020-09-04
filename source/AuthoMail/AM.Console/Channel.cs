@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace AM.Console
 {
-    abstract class Channel : Disposable
+    abstract class Channel : Disposable, IChannel
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
