@@ -688,12 +688,7 @@ namespace AM.Console
                                 return;
                             }
 
-                            if (clientBusinessIdNames.ContainsKey(client.Id))
-                            {
-                                clientBusinessIdNames.TryAdd(client.Id, new HashSet<string>());
-                            }
-
-                            var businessIdNames = clientBusinessIdNames[client.Id];
+                            var businessIdNames = clientBusinessIdNames.GetOrAdd(client.Id, new HashSet<string>());
 
                             foreach (XmlNode mailPieceNode in mailPieceNodes)
                             {
