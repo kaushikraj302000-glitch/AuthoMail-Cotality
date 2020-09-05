@@ -642,16 +642,19 @@ namespace AM.Console
 
                 Parallel.ForEach(downloadBatches, (mailBatch) =>
                 {
-                    using (var mailBatchSvc = new MailBatchService())
-                    using (var mailPieceSvc = new MailPieceService())
+                    //using (var mailBatchSvc = new MailBatchService())
+                    //using (var mailPieceSvc = new MailPieceService())
                     using (var commonSvc = new CommonService())
                     using (var clientSvc = new ClientService())
                     using (var docTypeSvc = new DocTypeService())
                     {
                         try
                         {
-                            //NOTE: Here system will delete if any existing records are there with MailBatchId in mail pieces table
-                            mailBatchSvc.DeleteMailPiecesDetailsByMailBatchId(mailBatch.Id);
+                            using (var mailBatchSvc = new MailBatchService())
+                            {
+                                //NOTE: Here system will delete if any existing records are there with MailBatchId in mail pieces table
+                                mailBatchSvc.DeleteMailPiecesDetailsByMailBatchId(mailBatch.Id);
+                            }
 
                             Client client = clientSvc.GetClientById(mailBatch.ClientId);
 
@@ -710,10 +713,13 @@ namespace AM.Console
                                     //Here we are inserting BusinessIdentifier for Client if not exist.
                                     if (!businessIdNames.Contains(mailPieceDTO.BusinessFriendlyIdName))
                                     {
-                                        ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.CheckBusinessIdNameAlreadyExist(client.Id, mailPieceDTO.BusinessFriendlyIdName);
-                                        if (clientBusinessIdDetails == null)
+                                        using (ICommonService commonService = new CommonService())
                                         {
-                                            commonSvc.InsertBusinessIdentifierName(client.Id, mailPieceDTO.BusinessFriendlyIdName.TrimIfNotNull());
+                                            ClientBusinessIdentifier clientBusinessIdDetails = commonService.CheckBusinessIdNameAlreadyExist(client.Id, mailPieceDTO.BusinessFriendlyIdName);
+                                            if (clientBusinessIdDetails == null)
+                                            {
+                                                commonService.InsertBusinessIdentifierName(client.Id, mailPieceDTO.BusinessFriendlyIdName.TrimIfNotNull());
+                                            }
                                         }
 
                                         businessIdNames.Add(mailPieceDTO.BusinessFriendlyIdName);
@@ -927,71 +933,78 @@ namespace AM.Console
                                     mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                 }
 
-                                try
+                                using (var mailPieceSvc = new MailPieceService())
                                 {
-                                    mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo, mbi.MailBatch.ReceivedOn, mbi.MailBatch.DownloadedOn);
-                                }
-                                catch (SqlException ex)
-                                {
-                                    log.Error("Error occcured while inserting MailPiece details :", ex);
-                                    MailUtility.SendUnexpectedExceptionEmail("Error occcured while inserting MailPiece details :" + ex.Message);
-                                    //2601 error code used for duplicate unique key insert 
-                                    if (ex.Number == 2601)
+                                    try
                                     {
-                                        var msg = "{0} key id is duplicate in package info node.".Fill(mailPieceDTO.UniqueId);
+                                        mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo, mbi.MailBatch.ReceivedOn, mbi.MailBatch.DownloadedOn);
+                                    }
+                                    catch (SqlException ex)
+                                    {
+                                        log.Error("Error occcured while inserting MailPiece details :", ex);
+                                        MailUtility.SendUnexpectedExceptionEmail("Error occcured while inserting MailPiece details :" + ex.Message);
+                                        //2601 error code used for duplicate unique key insert 
+                                        if (ex.Number == 2601)
+                                        {
+                                            var msg = "{0} key id is duplicate in package info node.".Fill(mailPieceDTO.UniqueId);
 
-                                        log.Error(msg, ex);
-                                        mailPieceDTO.UniqueId = Guid.NewGuid();
-                                        mailPieceDTO.ErrorCode = OutComeCodes.Invalid_DuplicateKey;
-                                        mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
-                                        mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
-                                        mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
+                                            log.Error(msg, ex);
+                                            mailPieceDTO.UniqueId = Guid.NewGuid();
+                                            mailPieceDTO.ErrorCode = OutComeCodes.Invalid_DuplicateKey;
+                                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
+                                            mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
+                                            mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
+                                        }
                                     }
                                 }
                             }
 
                             //TODO: Do we need to check all mail pieces are valid, partially valid or failed and update batch status according to that?
 
-                            var mailPieceList = mailPieceSvc.GetMailPiecesByMailBatchId(mbi.MailBatch.Id);
-                            if (mailPieceList != null)
+                            using (var commonService = new CommonService())
+                            using (var mailPieceSvc = new MailPieceService())
                             {
-                                var validMailPieces = mailPieceList.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
-
-                                //Here System will validate Addresses for valid mail pieces
-                                if (validMailPieces.Count > 0)
-                                    PChannel.ValidateAddressType(commonSvc, docTypeSvc, mailPieceSvc, mailBatch, validMailPieces);
-
-                                if (validMailPieces.Count == 0)
+                                var mailPieceList = mailPieceSvc.GetMailPiecesByMailBatchId(mbi.MailBatch.Id);
+                                if (mailPieceList != null)
                                 {
-                                    mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
-                                    mbi.MailBatch.ValidationErrors = "Xml does not contain any valid mail piece nodes.";
-                                    commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString()).Wait();
+                                    var validMailPieces = mailPieceList.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
+
+                                    //Here System will validate Addresses for valid mail pieces
+                                    if (validMailPieces.Count > 0)
+                                        PChannel.ValidateAddressType(commonSvc, docTypeSvc, mailPieceSvc, mailBatch, validMailPieces);
+
+                                    if (validMailPieces.Count == 0)
+                                    {
+                                        mbi.MailBatch.ValidationStatus = BatchValidationStatus.Invalid.ToString();
+                                        mbi.MailBatch.ValidationErrors = "Xml does not contain any valid mail piece nodes.";
+                                        commonSvc.UpdateBatchStatus(mbi.MailBatch.Id, BatchStatus.Failed.ToString()).Wait();
+                                    }
+                                    else if (validMailPieces.Count < mailPieceList.Count)
+                                    {
+                                        mbi.MailBatch.ValidationStatus = BatchValidationStatus.PartiallyValid.ToString();
+                                    }
+                                    else
+                                    {
+                                        mbi.MailBatch.ValidationStatus = BatchValidationStatus.Valid.ToString();
+                                    }
+
+                                    commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
                                 }
-                                else if (validMailPieces.Count < mailPieceList.Count)
+
+                                if (totalNodes != mailPieceList.Count)
                                 {
-                                    mbi.MailBatch.ValidationStatus = BatchValidationStatus.PartiallyValid.ToString();
+                                    throw new Exception("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceList.Count, totalNodes));
+                                }
+                                PChannel.CalculateDueDateAndPrintLocation(commonService, docTypeSvc, mailPieceSvc, client, mailBatch, mailPieceList);
+
+                                if (mailPieceList.All(mp => mp.IsEDeliveryRequested && mp.ShippingStatus != ShippingStatus.Error.ToString()))
+                                {
+                                    commonService.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToEDelivery, Common.Now).Wait();
+                                    commonService.UpdateEDeliveryPipelineStatus(mbi.MailBatch.Id, EDPipelineStatus.Validated, Common.Now);
                                 }
                                 else
-                                {
-                                    mbi.MailBatch.ValidationStatus = BatchValidationStatus.Valid.ToString();
-                                }
-
-                                commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
+                                    commonService.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now).Wait();
                             }
-
-                            if (totalNodes != mailPieceList.Count)
-                            {
-                                throw new Exception("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceList.Count, totalNodes));
-                            }
-                            PChannel.CalculateDueDateAndPrintLocation(commonSvc, docTypeSvc, mailPieceSvc, client, mailBatch, mailPieceList);
-
-                            if (mailPieceList.All(mp => mp.IsEDeliveryRequested && mp.ShippingStatus != ShippingStatus.Error.ToString()))
-                            {
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.SubmittedToEDelivery, Common.Now).Wait();
-                                commonSvc.UpdateEDeliveryPipelineStatus(mbi.MailBatch.Id, EDPipelineStatus.Validated, Common.Now);
-                            }
-                            else
-                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now).Wait();
                         }
                         catch (Exception ex)
                         {

@@ -1194,6 +1194,8 @@ namespace AM.Core
 
         internal static bool GetSubmittedPnSResponses()
         {
+            var processedCount = 0;
+
             using (IMailBatchService mailBatchService = new MailBatchService())
             {
                 log.Debug("Get submitted job started.");
@@ -1234,6 +1236,8 @@ namespace AM.Core
                             File.Delete(responseFilePath);
 
                             commonSvc.UpdatePrintBatchPipeLineStatus(printBatch.PrintBatchId, BatchPipelineStatus.ShippingResponseReceived, responseReceivedOn);
+
+                            Interlocked.Increment(ref processedCount);
                         }
                         catch (Exception ex)
                         {
@@ -1245,7 +1249,7 @@ namespace AM.Core
                 });
                 log.Debug("Get submitted job completed.");
             }
-            return true;
+            return processedCount > 0;
         }
 
         internal static bool ProcessPnSResponses()

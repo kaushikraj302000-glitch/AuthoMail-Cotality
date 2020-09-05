@@ -23,9 +23,6 @@ namespace AM.Core
                 submittedResFlag = AMCore.GetSubmittedPnSResponses();
                 parseResFlag = AMCore.ProcessPnSResponses();
                 reportPrepResFlag = AMCore.ReportPreppedProcess();
-
-                System.Threading.Thread.Sleep(60000);
-
             } while (prepFlag || submitFlag || submittedResFlag || parseResFlag || reportPrepResFlag);
         }
     }
