@@ -36,11 +36,18 @@ namespace AM.Console
         {
             try
             {
-                this.EnumerateBatches();
-                this.DownloadBatches();
-                this.ValidateBatches();
-                //this.CalculateDueDateAndPrintLocation();
-                this.AcknowledgeBatches();
+                bool enumFlag = false;
+                bool downloadFlag = false;
+                bool validateFlag = false;
+                bool acknowledgeFlag = false;
+                do
+                {
+                    enumFlag = this.EnumerateBatches();
+                    downloadFlag = this.DownloadBatches();
+                    validateFlag = this.ValidateBatches();
+                    acknowledgeFlag = this.AcknowledgeBatches();
+
+                } while (enumFlag || downloadFlag || validateFlag || acknowledgeFlag);
             }
             catch (Exception ex)
             {
@@ -55,15 +62,15 @@ namespace AM.Console
         /// <summary>
         /// Checks for available batches and marks them as Received.
         /// </summary>
-        protected abstract void EnumerateBatches();
+        protected abstract bool EnumerateBatches();
         /// <summary>
         /// Downloads all batches which are queued as Received
         /// </summary>
-        protected abstract void DownloadBatches();
+        protected abstract bool DownloadBatches();
         /// <summary>
         /// Validates all batches which are queued as Downloaded
         /// </summary>
-        protected abstract void ValidateBatches();
+        protected abstract bool ValidateBatches();
         ///// <summary>
         ///// Calculate effective receivedon date, printlocation and due date all valid batches which are queued as ValidateBatches
         ///// </summary>
@@ -71,7 +78,7 @@ namespace AM.Console
         /// <summary>
         /// Acknowledge all batches which are queued as Validated
         /// </summary>
-        protected abstract void AcknowledgeBatches();
+        protected abstract bool AcknowledgeBatches();
 
         #region Reported Back logic
         /// <summary>
@@ -827,7 +834,7 @@ namespace AM.Console
 
                     var addressResponse = addressResponses.Single(c => c.Id.ToLower() == mailPiece.UniqueId.ToString().ToLower());
 
-                    mailPiece.RcptAddressTypes = string.Join(",", addressResponse.AddressTypes);
+                    mailPiece.RcptAddressTypes = AddressType.DHAM.ToString();// string.Join(",", addressResponse.AddressTypes);
 
 
                     if (addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))

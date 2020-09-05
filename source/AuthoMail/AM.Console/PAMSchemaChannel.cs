@@ -40,7 +40,7 @@ namespace AM.Console
         }
 
         #region EnumarateBatches
-        protected override void EnumerateBatches()
+        protected override bool EnumerateBatches()
         {
             log.Debug("Enumerate Batches job queue for " + SFTChannel.Code + " is started.");
 
@@ -50,8 +50,11 @@ namespace AM.Console
 
             List<string> triggerFilePaths = GetTriggerFilePaths(sftSite);
 
+            if (triggerFilePaths.Count == 0)
+                return false;
 
-            Parallel.ForEach(triggerFilePaths, (triggerFile) =>
+
+            Parallel.ForEach(triggerFilePaths.Take(Config.Common_MaxProcessingLimit), (triggerFile) =>
             {
                 string channelDownloadPath = Path.Combine(Config.Common_AuthoMailRootFolder, "GENERAL", SFTChannel.Code.Split('_')[0], triggerFile);
                 using (var mailBatchSvc = new MailBatchService())
@@ -144,6 +147,9 @@ namespace AM.Console
                     }
                 }
             });
+
+            log.Debug("Enumerate Batches job queue for " + SFTChannel.Code + " is completed.");
+            return true;
         }
 
         private void SeparatePackages(ClientService clientSvc, MailBatchService mailBatchSvc, CommonService commonSvc, string xmlFilePath, string extractedZipDirPath, string localZipFilePath, string batchName, string channelDownloadPath, DateTime receivedOnDateTime, SFTUtil sftSite)
@@ -610,13 +616,13 @@ namespace AM.Console
         }
         #endregion
 
-        protected override void DownloadBatches()
+        protected override bool DownloadBatches()
         {
-
+            return false;
         }
 
         #region Validate Batches
-        protected override void ValidateBatches()
+        protected override bool ValidateBatches()
         {
             log.Debug("Validate job queue is started.");
 
@@ -625,10 +631,10 @@ namespace AM.Console
 
                 List<MailBatchDTO> downloadBatches = mailBatchService.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.Downloaded, SFTChannel.Id);
 
-                if (downloadBatches == null)
+                if (downloadBatches.Count == 0)
                 {
                     log.Debug("Validate job queue is empty.");
-                    return;
+                    return false;
                 }
 
                 Parallel.ForEach(downloadBatches, (mailBatch) =>
@@ -986,8 +992,10 @@ namespace AM.Console
                         }
                     }
                 });
+
             }
             log.Debug("Validate job queue is completed.");
+            return true;
         }
 
         private DateTime GetDefaultExpiryDate(CommonService commonSvc, DateTime receivedOnEst, int expiryDays)
@@ -1239,7 +1247,7 @@ namespace AM.Console
         }
         #endregion
 
-        protected override void AcknowledgeBatches()
+        protected override bool AcknowledgeBatches()
         {
             log.Debug("Acknowledge job queue is started.");
 
@@ -1247,67 +1255,67 @@ namespace AM.Console
             {
                 List<MailBatchDTO> validatedBatches = mailBatchService.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.Validated, SFTChannel.Id);
 
-                if (validatedBatches == null)
+                if (validatedBatches.Count == 0)
                 {
                     log.Debug("Acknowledge job queue is empty.");
-                    return;
+                    return false;
                 }
 
                 Parallel.ForEach(validatedBatches, (mailBatch) =>
-               {
-                   {
-                       using (var mailBatchSvc = new MailBatchService())
-                       using (var mailPieceSvc = new MailPieceService())
-                       using (var commonSvc = new CommonService())
-                       using (var clientSvc = new ClientService())
-                       using (var docTypeSvc = new DocTypeService())
-                       using (var generalSvc = new GeneralService())
-                       {
-                           try
-                           {
-                               Client client = clientSvc.GetClientById(mailBatch.ClientId);
+                {
+                    using (var mailBatchSvc = new MailBatchService())
+                    using (var mailPieceSvc = new MailPieceService())
+                    using (var commonSvc = new CommonService())
+                    using (var clientSvc = new ClientService())
+                    using (var docTypeSvc = new DocTypeService())
+                    using (var generalSvc = new GeneralService())
+                    {
+                        try
+                        {
+                            Client client = clientSvc.GetClientById(mailBatch.ClientId);
 
-                               Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
+                            Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.Error);
 
-                               MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
+                            MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
-                               List<MailPieces> mailPieces;
-                               using (IReportService reportSvc = new ReportService())
-                               {
-                                   mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
-                               }
+                            List<MailPieces> mailPieces;
+                            using (IReportService reportSvc = new ReportService())
+                            {
+                                mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
+                            }
 
-                               if (mailPieces != null)
-                               {
-                                   try
-                                   {
-                                       var emailErrorReportPath = UploadBaseReportToClient(commonSvc, generalSvc, mbi, mailPieces, deliverable);
+                            if (mailPieces != null)
+                            {
+                                try
+                                {
+                                    var emailErrorReportPath = UploadBaseReportToClient(commonSvc, generalSvc, mbi, mailPieces, deliverable);
 
-                                       MailUtility.SendDownloadNotificationEmail(mbi, mailPieces, emailErrorReportPath, deliverable.EmailChannel);
-                                       //After upload change extension of local file Path
-                                       if (File.Exists(emailErrorReportPath) && mbi.MailBatch.ValidationStatus != BatchValidationStatus.Invalid)
-                                           File.Move(emailErrorReportPath, Path.ChangeExtension(emailErrorReportPath, ".Complete"));
-                                   }
-                                   catch (Exception ex)
-                                   {
-                                       var msg = "Error occured in AcknowledgeBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
-                                       log.Error(msg, ex);
-                                       MailUtility.SendUnexpectedExceptionEmail(msg);
-                                   }
-                               }
-                           }
-                           catch (Exception ex)
-                           {
-                               var msg = "Error occured in AcknowledgeBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
-                               log.Error(msg, ex);
-                               MailUtility.SendUnexpectedExceptionEmail(msg);
-                           }
-                       }
-                   }
-               });
+                                    MailUtility.SendDownloadNotificationEmail(mbi, mailPieces, emailErrorReportPath, deliverable.EmailChannel);
+                                    //After upload change extension of local file Path
+                                    if (File.Exists(emailErrorReportPath) && mbi.MailBatch.ValidationStatus != BatchValidationStatus.Invalid)
+                                        File.Move(emailErrorReportPath, Path.ChangeExtension(emailErrorReportPath, ".Complete"));
+                                }
+                                catch (Exception ex)
+                                {
+                                    var msg = "Error occured in AcknowledgeBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
+                                    log.Error(msg, ex);
+                                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            var msg = "Error occured in AcknowledgeBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
+                            log.Error(msg, ex);
+                            MailUtility.SendUnexpectedExceptionEmail(msg);
+                        }
+                    }
+                });
             }
 
             log.Debug("Acknowledge job queue is completed.");
+
+            return true;
         }
 
         private string UploadBaseReportToClient(CommonService commonSvc, GeneralService generalSvc, MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)

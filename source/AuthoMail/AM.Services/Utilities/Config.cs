@@ -25,6 +25,7 @@ namespace AM.Services
         public static string Common_EnvironmentInitial { get; private set; }
         public static string Common_AuthoMailRootFolder { get; private set; }
         public static string Common_DocGen_API { get; private set; }
+        public static int Common_MaxProcessingLimit { get; private set; }
         public static List<Holiday> Common_FederalHolidays { get; private set; }
 
         public static int Common_ProcessingBufferTime { get; private set; }
