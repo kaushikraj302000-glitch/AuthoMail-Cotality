@@ -8,13 +8,14 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Services.Description;
 
 namespace AM.Services
 {
     public class ServiceBase : Disposable
     {
-        //public static ConcurrentDictionary<string, int> connections;
-        //public static ConcurrentDictionary<string, int> maxConnections;
+        public static ConcurrentDictionary<string, int> connections;
+        public static ConcurrentDictionary<string, int> maxConnections;
 
         private string serviceType;
 
@@ -24,8 +25,8 @@ namespace AM.Services
         {
             Handlers.Register();
 
-            //connections = new ConcurrentDictionary<string, int>(Environment.ProcessorCount * 2, 16);
-            //maxConnections = new ConcurrentDictionary<string, int>(Environment.ProcessorCount * 2, 16);
+            connections = new ConcurrentDictionary<string, int>(Environment.ProcessorCount * 2, 16);
+            maxConnections = new ConcurrentDictionary<string, int>(Environment.ProcessorCount * 2, 16);
             //connections.TryAdd(typeof(CommonService).FullName, 0);
             //maxConnections.TryAdd(typeof(CommonService).FullName, 0);
         }
@@ -34,24 +35,10 @@ namespace AM.Services
         {
             db = DbFactory.Create("AuthoMail");
 
-            //serviceType = this.GetType().FullName;
+            serviceType = this.GetType().FullName;
 
-            //if (connections.ContainsKey(serviceType))
-            //{
-            //    connections[serviceType] += 1;
-            //    maxConnections[serviceType] = Math.Max(connections[serviceType], maxConnections[serviceType]);
-            //}
-            //else
-            //{
-            //    var val = connections.TryAdd(serviceType, 1);
-            //    maxConnections.TryAdd(serviceType, 1);
-
-            //    if (!val)
-            //    {
-            //        Thread.Sleep(100);
-            //        val = connections.TryAdd(serviceType, 1);
-            //    }
-            //}            
+            connections.AddOrUpdate(serviceType, 1, (_, val) => val + 1);
+            maxConnections.AddOrUpdate(serviceType, 1, (key, val) => Math.Max(connections[key], maxConnections[key]));
         }
 
         /// <summary>
