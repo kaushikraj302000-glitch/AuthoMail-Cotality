@@ -3,6 +3,7 @@ using AM.Entities;
 using AM.Lib;
 using AM.Services;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.IO;
@@ -637,6 +638,8 @@ namespace AM.Console
                     return false;
                 }
 
+                var clientBusinessIdNames = new ConcurrentDictionary<int, HashSet<string>>(Environment.ProcessorCount * 2, 60);
+
                 Parallel.ForEach(downloadBatches, (mailBatch) =>
                 {
                     using (var mailBatchSvc = new MailBatchService())
@@ -685,6 +688,13 @@ namespace AM.Console
                                 return;
                             }
 
+                            if (clientBusinessIdNames.ContainsKey(client.Id))
+                            {
+                                clientBusinessIdNames.TryAdd(client.Id, new HashSet<string>());
+                            }
+
+                            var businessIdNames = clientBusinessIdNames[client.Id];
+
                             foreach (XmlNode mailPieceNode in mailPieceNodes)
                             {
                                 //mailPieceNode.Normalize();
@@ -703,10 +713,15 @@ namespace AM.Console
                                     mailPieceDTO.BusinessFriendlyIdName = requests.BusinessFriendlyIdName.TrimIfNotNull();
 
                                     //Here we are inserting BusinessIdentifier for Client if not exist.
-                                    ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.CheckBusinessIdNameAlreadyExist(client.Id, mailPieceDTO.BusinessFriendlyIdName);
-                                    if (clientBusinessIdDetails == null)
+                                    if (!businessIdNames.Contains(mailPieceDTO.BusinessFriendlyIdName))
                                     {
-                                        commonSvc.InsertBusinessIdentifierName(client.Id, mailPieceDTO.BusinessFriendlyIdName.TrimIfNotNull());
+                                        ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.CheckBusinessIdNameAlreadyExist(client.Id, mailPieceDTO.BusinessFriendlyIdName);
+                                        if (clientBusinessIdDetails == null)
+                                        {
+                                            commonSvc.InsertBusinessIdentifierName(client.Id, mailPieceDTO.BusinessFriendlyIdName.TrimIfNotNull());
+                                        }
+
+                                        businessIdNames.Add(mailPieceDTO.BusinessFriendlyIdName);
                                     }
 
                                     mailPieceDTO.BusinessFriendlyIdValue = requests.BusinessFriendlyIdValue.TrimIfNotNull();
@@ -879,7 +894,7 @@ namespace AM.Console
                                         MailPieceValidationResult commonValidationResult = ValidateCommonValidation(docTypeSvc, mailPieceDTO, mbi);
                                         if (commonValidationResult.Code == OutComeCodes.No_Error)
                                         { // System will check for client specific validations
-                                            MailPieceValidationResult clientSpecificValidationResult = ValidateClientSpecificRules(clientSvc, mailPieceDTO);
+                                            MailPieceValidationResult clientSpecificValidationResult = ValidateClientSpecificRules(client, mailPieceDTO);
                                             if (clientSpecificValidationResult.Code == OutComeCodes.No_Error)
                                             {
                                                 mailPieceDTO.ErrorCode = OutComeCodes.No_Error;
@@ -973,7 +988,7 @@ namespace AM.Console
                             {
                                 throw new Exception("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceList.Count, totalNodes));
                             }
-                            PChannel.CalculateDueDateAndPrintLocation(commonSvc, docTypeSvc, mailPieceSvc, clientSvc, mailBatch, mailPieceList);
+                            PChannel.CalculateDueDateAndPrintLocation(commonSvc, docTypeSvc, mailPieceSvc, client, mailBatch, mailPieceList);
 
                             if (mailPieceList.All(mp => mp.IsEDeliveryRequested && mp.ShippingStatus != ShippingStatus.Error.ToString()))
                             {
@@ -1137,9 +1152,9 @@ namespace AM.Console
             return new MailPieceValidationResult() { Code = OutComeCodes.No_Error };
         }
 
-        private MailPieceValidationResult ValidateClientSpecificRules(ClientService clientSvc, MailPieceDTO mailPiece)
+        private MailPieceValidationResult ValidateClientSpecificRules(Client client, MailPieceDTO mailPiece)
         {
-            var errors = GetAllMailPieceBasicErrors(clientSvc, mailPiece).ToList();
+            var errors = GetAllMailPieceBasicErrors(client, mailPiece).ToList();
 
             if (errors.Count > 0)
             {
@@ -1185,7 +1200,7 @@ namespace AM.Console
             yield break;
         }
 
-        private IEnumerable<MailPieceValidationResult> GetAllMailPieceBasicErrors(ClientService clientSvc, MailPieceDTO mailPiece)
+        private IEnumerable<MailPieceValidationResult> GetAllMailPieceBasicErrors(Client client, MailPieceDTO mailPiece)
         {
             if (mailPiece.RcptAddressStreet.IsNullOrWhiteSpace() || mailPiece.RcptAddressCity.IsNullOrWhiteSpace() || mailPiece.RcptAddressState.IsNullOrWhiteSpace() || mailPiece.RcptAddressZIP.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient address details are missing or invalid in package." };
@@ -1221,9 +1236,6 @@ namespace AM.Console
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return Zipcode is in invalid format." };
                 }
             }
-
-
-            Client client = clientSvc.GetClientById(mailPiece.ClientId);
 
             if (client.AppCode == "CAPONE" || client.AppCode == "MTBANK")
             {

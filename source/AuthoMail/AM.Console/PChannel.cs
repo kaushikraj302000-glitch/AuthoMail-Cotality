@@ -724,13 +724,11 @@ namespace AM.Console
         #endregion
 
         #region EffectiveReceivedOn DueDate PrintLocation Logic
-        public static void CalculateDueDateAndPrintLocation(CommonService commonSvc, DocTypeService docTypeSvc, MailPieceService mailPieceSvc, ClientService clientSvc, MailBatchDTO mailBatch, List<MailPieceDTO> mailPieces)
+        public static void CalculateDueDateAndPrintLocation(CommonService commonSvc, DocTypeService docTypeSvc, MailPieceService mailPieceSvc, Client client, MailBatchDTO mailBatch, List<MailPieceDTO> mailPieces)
         {
             log.Debug("Calculation of Due Date and Print location job is started.");
 
             var sweepTimings = commonSvc.GetSweepTimings();
-
-            Client client = clientSvc.GetClientById(mailBatch.ClientId);
 
             foreach (MailPieceDTO mailPiece in mailPieces)
             {
@@ -834,7 +832,7 @@ namespace AM.Console
 
                     var addressResponse = addressResponses.Single(c => c.Id.ToLower() == mailPiece.UniqueId.ToString().ToLower());
 
-                    mailPiece.RcptAddressTypes = AddressType.DHAM.ToString();// string.Join(",", addressResponse.AddressTypes);
+                    mailPiece.RcptAddressTypes = string.Join(",", addressResponse.AddressTypes);
 
 
                     if (addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
