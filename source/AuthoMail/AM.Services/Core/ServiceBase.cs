@@ -54,7 +54,7 @@ namespace AM.Services
                 db.Dispose();
                 db = null;
 
-                //connections[serviceType] -= 1;
+                connections.AddOrUpdate(serviceType, 1, (_, val) => val - 1);
             }
         }
 
