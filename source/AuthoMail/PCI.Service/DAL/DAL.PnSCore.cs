@@ -276,7 +276,10 @@ namespace PCI.Service
                 foreach (var pageCount in pageSizewiseCounts)
                 {
                     //try to delete if any record then try to insert
-                    var sqlDelete = @"DELETE FROM [Common].[MailPiecePageInfo] Where MailPieceId=@p1 AND PageSize=@p2";
+                    var sqlDelete = @"IF EXISTS (SELECT 1 FROM [Common].[MailPiecePageInfo] Where MailPieceId=@p1 AND PageSize=@p2) 
+                                    BEGIN 
+                                        DELETE FROM [Common].[MailPiecePageInfo] Where MailPieceId=@p1 AND PageSize=@p2
+                                    END";
                     db.ExecuteSqlNonQuery(sqlDelete, mailPieceId.Value, pageCount.Key);
 
                     var sqlInsert = @"INSERT INTO [Common].[MailPiecePageInfo]([MailPieceId],[PageSize],[PageCount]) VALUES(@p1,@p2,@p3)";
