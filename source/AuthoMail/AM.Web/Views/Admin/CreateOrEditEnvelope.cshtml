@@ -8,6 +8,7 @@
         margin-bottom: 10px;
         margin-top: 10px;
     }
+
     .tdpadding {
         padding-right: 8px !important;
         padding-left: 8px !important;
@@ -27,7 +28,7 @@
                 <input type="hidden" id="Id" name="Id" value="@Model.Id" />
 
                 <div class="row">
-                    
+
                     <div class="col-md-5">
                         <h3>Envelope Details</h3>
                         <hr />
@@ -59,7 +60,7 @@
                         </div>
                     </div>
                     <div class="col-md-7">
-                        <h3>Shippers Details</h3>
+                        <h3>Shippers Details <span class="text-info" style="font-size: 14px; font-weight: bold;">( You must add at least one shipper.)</span></h3>
                         <hr />
                         <div class="form-group">
                             <label for="Description">Select Shipper</label>
@@ -75,16 +76,16 @@
                                     <tr>
                                         <th>Shipper</th>
                                         <th>Quantity</th>
-                                        <th>Unit Price</th>
+                                        @*<th>Unit Price</th>*@
                                         <th>Reorder Duration</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="shippertBody">
 
-                                    @if (Model.EnvelopeInventoryStockVMs.Count > 0)
+                                    @if (Model.EnvelopeStockVMs.Count > 0)
                                     {
-                                        foreach (var item in Model.EnvelopeInventoryStockVMs)
+                                        foreach (var item in Model.EnvelopeStockVMs)
                                         {
                                             @Html.Partial("_ShipperWiseStockDetails", item)
                                         }
@@ -97,10 +98,15 @@
                                     }
                                 </tbody>
                             </table>
+                            <input type="text" name="Shippers" id="Shippers" style="display:none" />
+                            <div>
+
+                                <span for="Shippers" id="Shippers_Error" class="error" style="display:none">You must add atlest on Shipper of envelop.</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-12 text-center">
                         <button type="submit" class="btn btn-primary" id="Save"><i class="fa fa-save"></i> Save</button>
@@ -113,112 +119,22 @@
     </div>
 
 </div>
-<div class="row">
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <div class="panel-title">
-                <i class="fa fa-envelope"></i> @((Model.Id == 0) ? Html.Raw("Add Envelope Details") : Html.Raw("Edit Envelope Details")) <span class="pull-right">
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header">
+                <h1 id="myModalLabel">Envelope Management</h1>
+            </div>
+            <div class="modal-body">
 
-                </span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
             </div>
         </div>
-        <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;min-height: 107px;">
-            <form id="envelopeform" action="#">
-                <input type="hidden" id="Id" name="Id" value="@Model.Id" />
-                
-                <div class="row">
-                    <h3>Envelope Details</h3>
-                    <hr />
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="Name">Name</label>
-                            <div class="input-group">
-                                <input type="text" id="EnvelopeName" class="form-control" name="EnvelopeName" value="@Model.EnvelopeName" />
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="EnvelopeDesc">Description</label>
-                            <div class="input-group">
-                                <input type="text" id="EnvelopeDesc" class="form-control" name="EnvelopeDesc" value="@Model.EnvelopeDesc" />
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="IsBREEnvelope">Is BRE Envelope?</label>
-                            <div class="input-group">
-                                <div class="toggle-container">
-                                    <input id="IsBREEnvelope" class="cl-toggle toggle-orange" type="checkbox" @(Model.IsBREEnvelope ? "checked" : "") name="toggle-demo" /><label for="IsBREEnvelope">IsBREEnvelope</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="PartNumber">Part Number</label>
-                            <div class="input-group">
-                                <input type="text" id="PartNumber" class="form-control" name="PartNumber" value="@Model.PartNumber" />
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-                <div class="row">
-                    <h3>Shippers Details</h3>
-                    <hr />
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="Description">Select Shipper</label>
-                            <div class="input-group">
-                                @Html.DropDownList("Shipper", ViewBag.Shippers as SelectList, "", new { @class = " form-control selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Shipper" })
-                                <span class="input-group-addon" style="padding: 0px 0px;"> <button type="button" style="    font-size:24px;padding: 0px 67px" id="addShipper" class="btn btn-primary"><i class="fa fa-plus"></i></button></span>
-                            </div>
-                            <span for="ShipperId" class="error" style="display:none;">This field is required.</span>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <div id="shipperStock">
-                            <table class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Shipper</th>
-                                        <th>Quantity</th>
-                                        <th>Unit Price</th>
-                                        <th>Reorder Duration</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="shippertBody">
-
-                                    @if (Model.EnvelopeInventoryStockVMs.Count > 0)
-                                    {
-                                        foreach (var item in Model.EnvelopeInventoryStockVMs)
-                                        {
-                                            @Html.Partial("_ShipperWiseStockDetails", item)
-                                        }
-                                    }
-                                    
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12 text-center">
-                        <button type="submit" class="btn btn-primary" id="Save"><i class="fa fa-save"></i> Save</button>
-                        <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
-
-                    </div>
-                </div>
-            </form>
-        </div>
     </div>
-
 </div>
-<table  style="display:none" id="emptyTrHtml">
-    <tr class="emptyTrHtml">
-        <td colspan="5" class="tdpadding"><div class="alert alert-yellow">No record found.</div></td>
-    </tr>
-</table>
 @section Scripts{
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
@@ -226,28 +142,55 @@
     <script type="text/javascript">
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
+            //$("#Shippers").val(0);
+            //jQuery.validator.addMethod("shippersRequired", function (value, element) {
+            //    console.log(this.optional(element) || (parseFloat(value) > 0) )
+            //    return this.optional(element) || (parseFloat(value) > 0) ;
+            //}, "You must add atlest on Shipper of envelop.");
             ValidateForm();
             // JSON.useDateParser(false);
-            if ($("#shippertBody").length==0)
-            $("#shippertBody").append(`<tr id="emptyTr">
+            if ($("#shippertBody").find('tr').length == 0) {
+                $("#shippertBody").find('tr').append(`<tr id="emptyTr">
                     <td colspan="5" class="tdpadding"><div class="alert alert-yellow">No record found.</div></td>
                 </tr>`);
+            }
+            $.each($("#shippertBody").find('tr.old'), function (index, value) {
+                $('#Shipper option[value="' + $(this).find('[name^=ShipperId]').val() + '"]').attr('disabled', true);
+            });
+            $('.selectpicker').selectpicker('refresh');
         });
 
-
+        
         function ValidateForm() {
             window.clui.selectInit();
             init();
             $('#envelopeform').validate({ // initialize the plugin
                 errorElement: "span",
+                ignore: [],
                 rules: {
                     Id: {
                         required: true,
-                        maxlength: 255
-
+                        maxlength: 255,
+                        
                     },
                     EnvelopeName: {
-                        required:true
+                        required: true,
+                        remote: {
+                            onkeyup: false,
+                            type: 'post',
+                            url: baseUrl + "Admin/IsEnvelopeNameExists",
+                            data: {
+                                envelopeName: $("#EnvelopeName").val().trim()
+                            },
+                            dataType: 'json',
+                            dataFilter: function (response) {
+                                var result = JSON.parse(response);
+                                return result.Key;
+                            },
+                        }
+                    },
+                    Shippers: {
+                        required: true
                     },
                     PartNumber: {
                         required: true,
@@ -270,13 +213,19 @@
                 messages: {
                     PartNumber: {
                         remote: function () { return jQuery.format("{0} is already exists.", $("#PartNumber").val()) }
-                    }
+                    },
+                    EnvelopeName: {
+                        remote: function () { return jQuery.format("{0} is already exists.", $("#EnvelopeName").val()) }
+                    },
+                    Shippers: {
+                        required: "You must add atlest on Shipper of envelop."
+                        }
                 },
                 submitHandler: function (form) {
-                    $("#AddEditModal").modal("hide");
                     SaveEnvelope();
                 }
             });
+
         }
 
         function AddEditEnvelope(obj) {
@@ -304,19 +253,30 @@
 
         }
 
-      
+
         function DeleteShipper(obj) {
             $(obj).closest('tr').remove();
             $('#Shipper option[value="' + $(obj).data("shipperid") + '"]').prop('disabled', false);
             $('#Shipper').val('');
             $('.selectpicker').selectpicker('refresh');
-            if ($(obj).closest('tbody').length == 0) {
+            if ($("#shippertBody").find('tr').length == 0) {
+                $("#Shippers").val("");
                 $("#shippertBody").append(`<tr id="emptyTr">
                     <td colspan="5" class="tdpadding"><div class="alert alert-yellow">No record found.</div></td>
                 </tr>`);
             }
         }
+        
         $(document).on("click", "#addShipper", function () {
+            var shipper = $("#Shipper").val();
+            if (shipper == "") {
+                window.clui.globalAlert({
+                    message: "Select Shipper.",
+                    alertType: 'red',
+                    timeout: 5000
+                });
+                return false;
+            }
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Admin/ShipperWiseStock",
@@ -327,168 +287,77 @@
                     $('#Shipper option[value="' + $("#Shipper").val()+'"]').prop('disabled', true);
                     $('#Shipper').val('');
                     $('.selectpicker').selectpicker('refresh');
+                    if ($("#shippertBody").find('tr').length > 0) {
+                        $("#Shippers").val("1");
+                        $("#Shippers_Error").hide();
+                        //ValidateMultiFields("ReceivedQuantity");
+                        //ValidateMultiFields("UnitPrice");
+                        //ValidateMultiFields("ReorderDuration");
+                        
+                        $("[name^=ReceivedQuantity]").each(function () {
+                            $(this).rules("add", {
+                                required: true,
+                                digits: true,
+                                messages: {
+                                    required: "This field is required.",
+                                    digits: "Please enter only digits."
+                                }
+                            });
+                        });
+                        $("[name^=UnitPrice]").each(function () {
+                            $(this).rules("add", {
+                                required: true,
+                                number: true,
+                                messages: {
+                                    required: "This field is required.",
+                                    number: "Please enter only number."
+                                }
+                            });
+                        });
+                        $("[name^=ReorderDuration]").each(function () {
+                            $(this).rules("add", {
+                                required: true,
+                                digits: true,
+                                messages: {
+                                    required: "This field is required.",
+                                    digits: "Please enter only digits."
+                                }
+                            });
+                        });
+                    }
+
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     //console.log()
                 }
             });
         });
-        //Transaction code added
-        function AddEditEnvelopeTransaction(obj) {
-            var id = $(obj).data("id");
-            var envelopeId = $(obj).data("envelopeid");
-            var envelopeName = $(obj).data("envelopename");
-            var el = $("#AddEditModal").find(".modal-header");
-            //console.log(envelopeName);
-            el.empty();
-            $.ajax({
-                type: "GET",
-                url: baseUrl + "Admin/GetEnvelopeTransactionsByName",
-                data: { id: id, envelopeId: envelopeId },
-                success: function (response) {
-                    el.html(response);
-                    $("#AddEditModal").modal("show");
-                    $("#AddEditModal").find("#envelopeName").text(envelopeName);
-                    ValidateFormET();
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-
-                    //Spinners(".spinnericon", "faspinner");
-                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    $("#AddEditModal").modal("show");
-                }
-            });
-
-        }
-        function EnvelopeTransactions(Id, EnvelopeId, ReceivedQuantity, UnitPrice, Description) {
-            this.Id = Id;
-            this.EnvelopeId = EnvelopeId;
-            this.ReceivedQuantity = ReceivedQuantity;
-            this.UnitPrice = UnitPrice;
-            this.Description = Description;
-        }
-        function SaveEnvelopeTransactions() {
-            //console.log("SaveET");
-            var isBRE = $("#IsBREEnvelope").is(':checked') ? true : false;
-            var envelopeTransactions = new EnvelopeTransactions($("#Id").val(), $("#EnvelopeId").val(), $("#ReceivedQuantity").val(), $("#UnitPrice").val(), $("#Description").val());
-            var el = $("#myModal").find(".modal-body");
-            el.empty();
-            $.ajax({
-                type: "POST",
-                url: baseUrl + "Admin/CreateOrEditEnvelopeTransactions",
-                data: { envelopeInventory: envelopeTransactions },
-                success: function (response) {
-                    if (response.Success) {
-                        if (response.Object != null) {
-                            //console.log(response.Object)
-                            if (response.Object.Key) {
-                                el.html("<div class='alert alert-green'>" + response.Object.Value + "</div>");
-                            }
-                            else {
-                                el.html("<div class='alert alert-red'>" + response.Object.Value + "</div>");
-                            }
-                        }
-                    }
-                    else {
-
-                        el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
-                    }
-                    $("#myModal").modal("show");
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
-                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
-                    $("#myModal").modal("show");
-                }
-            });
-        }
-        function ValidateFormET() {
-            window.clui.selectInit();
-            init();
-            $('#envelopetransactionsform').validate({ // initialize the plugin
-                errorElement: "span",
-                rules: {
-                    ReceivedQuantity: {
-                        required: true,
-                        min: 1,
-                    },
-                    UnitPrice: {
-                        required: true,
-                        min: 1,
-                    }
-                },
-                submitHandler: function (form) {
-                    $("#AddEditModal").modal("hide");
-                    SaveEnvelopeTransactions();
-                }
-            });
-        }
-
-        function ViewDetails(obj) {
-            var id = $(obj).data("id");
-            $("#stockDetails").modal("show");
-            $.ajax({
-                type: "POST",
-                url: baseUrl + "Admin/GetEnvelopeStockDetails",
-                data: { id: id },
-                success: function (response) {
-                    //console.log(response);
-                    if (response.Success) {
-                        var envelopeInventoryUsage = response.Object.Item1;
-                        var envelopeArrival = response.Object.Item2;
-                        if (envelopeArrival.length > 0) {
-                            var tr = "";
-                            for (var i = 0; i < envelopeInventoryUsage.length; i++) {
-                                tr += "<tr><td class='text-center'>" + moment(envelopeInventoryUsage[i].Date).format("MM/DD/YYYY") + "</td>" + "<td class='text-center'>" + envelopeInventoryUsage[i].UsageStock + "</td></tr>";
-                            }
-                            $("#tbodyOut").html(tr);
-                        } else {
-                            $("#tbodyOut").html("<tr><td colspan='2'><div class='alert alert-red'><span>" + msg + "</span></div></td></tr>");
-                        }
-
-                        if (envelopeArrival.length > 0) {
-                            var tr = "";
-                            for (var i = 0; i < envelopeArrival.length; i++) {
-                                tr += "<tr><td class='text-center'>" + moment(envelopeArrival[i].Date).format("MM/DD/YYYY") + "</td>" + "<td class='text-center'>" + envelopeArrival[i].UsageStock + "</td></tr>";
-                            }
-                            $("#tbodyIn").html(tr);
-
-                        } else {
-                            $("#tbodyIn").html("<tr><td colspan='2'><div class='alert alert-red'><span>" + msg + "</span></div></td></tr>");
-                        }
-
-                    } else {
-                        var msg = '@AM.Services.Config.Web_Msg_NoRecordFound';
-                        $("#tbodyOut").html("<tr><td colspan='2'><div class='alert alert-red'><span>" + msg + "</span></div></td></tr>");
-                        $("#tbodyIn").html("<tr><td colspan='2'><div class='alert alert-red'><span>" + msg + "</span></div></td></tr>");
-                    }
-
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-
-                    //Spinners(".spinnericon", "faspinner");
-                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
-                    $("#tbodyOut").html("<tr><td colspan='2'><div class='alert alert-red'><span>" + msg + "</span></div></td></tr>");
-                    $("#tbodyIn").html("<tr><td colspan='2'><div class='alert alert-red'><span>" + msg + "</span></div></td></tr>");
-                }
-            });
-        }
-        //end transcation code
-        function Envelopes(Id, EnvelopeName, EnvelopeDesc, CurrentQuantity, IsBREEnvelope, PartNumber) {
-            this.Id = Id;
+        
+        function EnvelopesVM(Id, EnvelopeName, EnvelopeDesc, CurrentQuantity, IsBREEnvelope, PartNumber) {
+            this.Id = parseInt(Id);
             this.EnvelopeName = EnvelopeName;
             this.EnvelopeDesc = EnvelopeDesc;
             this.CurrentQuantity = CurrentQuantity;
             this.IsBREEnvelope = IsBREEnvelope;
             this.PartNumber = PartNumber;
+            this.EnvelopeStockVMs = [];
+        }
+        function EnvelopeStockVM(EnvelopeId, ShipperId, ReceivedQuantity, UnitPrice, ReorderDuration) {
+            this.EnvelopeId = parseInt(EnvelopeId);
+            this.ShipperId = parseInt(ShipperId);
+            this.ReceivedQuantity = parseInt(ReceivedQuantity);
+            this.UnitPrice = parseFloat(UnitPrice);
+            this.ReorderDuration = parseInt(ReorderDuration);
         }
         function SaveEnvelope() {
 
             var isBRE = $("#IsBREEnvelope").is(':checked') ? true : false;
-            var ReorderDuration = $('#ReorderDuration').val();
-            var envelopes = new Envelopes($("#Id").val(), $("#EnvelopeName").val(), $("#EnvelopeDesc").val(), $("#CurrentQuantity").val(), isBRE, $("#PartNumber").val());
-            //console.log(envelopes);
+            var envelopes = new EnvelopesVM($("#Id").val(), $("#EnvelopeName").val().trim(), $("#EnvelopeDesc").val().trim(), $("#CurrentQuantity").val(), isBRE, $("#PartNumber").val().trim());
+
+            $.each($("#shippertBody").find('tr.newadded'), function (index, value) {
+                envelopes.EnvelopeStockVMs.push(new EnvelopeStockVM($("#Id").val(), $(this).find('[name^=ShipperId]').val().trim(), $(this).find('[name^=ReceivedQuantity]').val().trim(), $(this).find('[name^=UnitPrice]').val().trim(), $(this).find('[name^=ReorderDuration]').val().trim()));
+            });
+            
             var el = $("#myModal").find(".modal-body");
             el.empty();
             $.ajax({
@@ -519,6 +388,8 @@
                 }
             });
         }
-
+        $('#myModal').on('hidden.bs.modal', function () {
+            window.location.href = baseUrl + 'Admin/ManageEnvelopes';
+        })
     </script>
 }

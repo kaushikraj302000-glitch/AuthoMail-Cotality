@@ -186,6 +186,9 @@ namespace AM.Services
     public class EnvelopeInventoryStockCalculation
     {
         public int EnvelopeId { get; set; }
+        public string EnvelopeName { get; set; }
+        public int ShipperId { get; set; }
+        public string ShipperName { get; set; }
         public int TotalDays { get; set; }
         public int TotalQuantityUsed { get; set; }
         public float AvgRate { get; set; }
@@ -248,13 +251,13 @@ namespace AM.Services
 
     public class EnvelopesVM : Envelopes
     {
-        public List<EnvelopeInventoryStockVM> EnvelopeInventoryStockVMs { get; set; }
+        public List<EnvelopeStockVM> EnvelopeStockVMs { get; set; }
         public EnvelopesVM()
         {
-            this.EnvelopeInventoryStockVMs = new List<EnvelopeInventoryStockVM>();
+            this.EnvelopeStockVMs = new List<EnvelopeStockVM>();
         }
     }
-    public class EnvelopeInventoryStockVM
+    public class EnvelopeStockVM
     {
         public int? EnvelopeId { get; set; }
         public int ShipperId { get; set; }
@@ -262,7 +265,14 @@ namespace AM.Services
         public string Description { get; set; }
         public int? ReceivedQuantity { get; set; }
         public decimal? UnitPrice { get; set; }
-        public int ReorderDuration { get; set; }
+        public int? ReorderDuration { get; set; }
+        public int CurrentQuantity
+        {
+            get
+            {
+                return ReceivedQuantity.HasValue ? ReceivedQuantity.Value : 0;
+            }
+        }
 
 
     }
