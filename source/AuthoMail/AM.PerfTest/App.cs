@@ -1,8 +1,8 @@
-﻿using AM.Entities;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MoreLinq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -27,11 +27,11 @@ namespace AM.PerfTest
 
         public async Task RunAsync(string[] args)
         {
-            int total_requests = int.Parse(args[0]);
-            int batch_size = int.Parse(args[1]);
+            int total_requests = int.Parse(args[1]);
+            int batch_size = int.Parse(args[2]);
 
             var batches = Enumerable.Range(0, total_requests)
-                .GroupBy(i => (i / batch_size)).ToList();
+                .Batch(batch_size);
 
             //var batchJob = new List<Task>(batch_size);
             var count = 0;

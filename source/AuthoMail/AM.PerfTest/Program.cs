@@ -1,6 +1,4 @@
-﻿using AM.Entities;
-using AM.Lib;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
@@ -47,36 +45,7 @@ namespace AM.PerfTest
             await app.RunAsync(args);
 
             await host.WaitForShutdownAsync();
-            
+
         }
-
-       
-
-        private static void ExtractBatchAndSendRequest()
-        {
-            string batchPath = @"Batches";
-            string extractLocation = @"ExtractedBatches";
-            foreach (var zipFilePath in Directory.GetFiles(batchPath, "*.zip"))
-            {
-                string extractBatchPath = Path.Combine(extractLocation, Path.GetFileNameWithoutExtension(zipFilePath));
-                ZipFile.ExtractToDirectory(zipFilePath, extractBatchPath, true);
-
-                string xmlString = File.ReadAllText(Directory.GetFiles(extractBatchPath, "*.xml").First());
-                try
-                {
-                    var mailPiece = XmlUtil.Deserialize<MailPiece>(xmlString);
-                    mailPiece.Id = Guid.NewGuid();
-                    //var response = await SendMailRequest(mailPiece);
-                }
-                catch (Exception)
-                {
-
-                    throw;
-                }
-
-
-            }
-        }
-
     }
 }
