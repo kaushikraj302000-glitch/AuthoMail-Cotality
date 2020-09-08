@@ -18,6 +18,9 @@ namespace AM.Console
             string[] channelPrefixData = channelPrefix.Split('~');
 
             bool isPrintReady = channelPrefixData[0] == "PRINTREADY" ? true : false;
+            
+            bool isAPI = channelPrefixData[0].StartsWith("API_");
+
             if (isPrintReady)
             {
                 channelCode = channelPrefixData[1] + "_" + Config.Common_Environment;
@@ -43,22 +46,17 @@ namespace AM.Console
                 case "DELFUS":
                     return new DELFUSChannel(channelCode, channelType);
 
-                case "ELLIEMAE":
-                    return new PAMSchemaChannel(channelCode, channelType);
-
-                case "AMAPITEST":
-                    return new PAMSchemaChannel(channelCode, channelType);
-
-
                 // AuthoMail XML schema
                 //Parameter for Print Ready Client should be like PRINTREADY|AppCode Sweep/Trigger
                 //Parameter for regular Client should be like AppCode Sweep/Trigger
                 default:
                     if (isPrintReady)
                         return new PrintReadyChannel(channelCode, channelType);
+                    if (isAPI)
+                        return new PAMSchemaChannel(channelCode, channelType);
                     else
                         return new AMSchemaChannel(channelCode, channelType);
             }
-        }        
+        }
     }
 }

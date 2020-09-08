@@ -73,7 +73,14 @@ namespace AM.Console
 
                     string[] channelList = args[2].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-                    Channel.ReportBack(channelList, reportType);
+                    if (reportType == "API")
+                    {
+                        PChannel.ReportBack(channelList, reportType);
+                    }
+                    else
+                    {
+                        Channel.ReportBack(channelList, reportType);
+                    }
                 }
                 else if (args[0] == "Purging")
                 {

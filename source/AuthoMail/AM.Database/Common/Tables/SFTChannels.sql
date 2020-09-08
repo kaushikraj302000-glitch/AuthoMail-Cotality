@@ -12,6 +12,10 @@
     [ArchiveDir]         VARCHAR (1024) NULL,
     [PostDownloadAction] VARCHAR (255)  NULL,
     [IsActive]           BIT            CONSTRAINT [DF_SFTChannels_IsActive] DEFAULT ((0)) NULL,
+    [APITokenURL] VARCHAR(255) NULL, 
+    [APIResponseURL] VARCHAR(255) NULL, 
+    [APIMaxResponseCount] INT NULL, 
+    [APITokenHeaders] VARCHAR(2048) NULL, 
     CONSTRAINT [PK_SFTChannel] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [UQ_SFTChannel] UNIQUE NONCLUSTERED ([Code] ASC)
 );
