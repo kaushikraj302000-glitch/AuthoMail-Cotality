@@ -142,7 +142,7 @@
     <script type="text/javascript">
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
-            if (parseInt($("#Id").val())!=0)
+            if (parseInt($("#Id").val()) != 0 && $("#shippertBody").find('tr#emptyTr').length !=1)
             $("#Shippers").val(1);
             //jQuery.validator.addMethod("shippersRequired", function (value, element) {
             //    console.log(this.optional(element) || (parseFloat(value) > 0) )
