@@ -46,6 +46,9 @@ namespace AM.Console
                 case "ELLIEMAE":
                     return new PAMSchemaChannel(channelCode, channelType);
 
+                case "AMAPITEST":
+                    return new PAMSchemaChannel(channelCode, channelType);
+
 
                 // AuthoMail XML schema
                 //Parameter for Print Ready Client should be like PRINTREADY|AppCode Sweep/Trigger
