@@ -39,6 +39,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.ProductionToUATBridge", 
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "AM.Database", "AM.Database\AM.Database.sqlproj", "{18F7FB8D-BDA2-4109-A82D-909A2E6569F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.PerfTest", "AM.PerfTest\AM.PerfTest.csproj", "{62EAE346-2C03-47B1-A47B-D38B27C3500B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -111,12 +113,16 @@ Global
 		{18F7FB8D-BDA2-4109-A82D-909A2E6569F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18F7FB8D-BDA2-4109-A82D-909A2E6569F5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{18F7FB8D-BDA2-4109-A82D-909A2E6569F5}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{62EAE346-2C03-47B1-A47B-D38B27C3500B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62EAE346-2C03-47B1-A47B-D38B27C3500B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62EAE346-2C03-47B1-A47B-D38B27C3500B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62EAE346-2C03-47B1-A47B-D38B27C3500B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.Common.6.0.1304.0\lib\NET45;packages\EnterpriseLibrary.Data.6.0.1304.0\lib\NET45
 		SolutionGuid = {B2EB8168-EB28-40A6-9C95-DB9114637768}
+		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.Common.6.0.1304.0\lib\NET45;packages\EnterpriseLibrary.Data.6.0.1304.0\lib\NET45
 	EndGlobalSection
 EndGlobal
