@@ -27,6 +27,7 @@ namespace AM.Services
         List<MailAPIResponse> GenerateMailAPIResponse(List<BatchResponse> batchResponses);
         string GeneralJsonReport(string mpUniqueId);
         Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport, string bearerToken);
+        Task<HttpResponseMessage> SendAPIResponse(IEnumerable<MailAPIResponse> responseReport, string bearerToken, SFTChannel sftChannelDetails);
     }
 
     public class GeneralService : ServiceBase, IGeneralService
@@ -273,9 +274,27 @@ namespace AM.Services
             using (var client = SetupClient(bearerToken))
             {
                 ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
                 StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
-                HttpResponseMessage response = await client.PostAsync(Config.EllieMae_UploadResponseURL, content);
+                HttpResponseMessage response = await client.PostAsync(Path.Combine(Config.EllieMae_BaseURL, Config.EllieMae_UploadResponseURL), content);
+                return response;
+            }
+        }
+
+        public async Task<HttpResponseMessage> SendAPIResponse(IEnumerable<MailAPIResponse> responseReport, string bearerToken, SFTChannel sftChannelDetails)
+        {
+            JsonSerializerSettings dateFormatSettings = new JsonSerializerSettings
+            {
+                DateFormatHandling = DateFormatHandling.IsoDateFormat
+            };
+
+            string json = JsonConvert.SerializeObject(responseReport, dateFormatSettings);
+            using (var client = SetupClient(bearerToken))
+            {
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+                StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await client.PostAsync(sftChannelDetails.APIResponseURL, content);
                 return response;
             }
         }

@@ -63,4 +63,18 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="ShipperId" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="c1dec0f2-bfc2-4355-b63b-9ca0775c2747" ChangeDateTime="09/08/2020 07:45:45">
+    <Property Name="ElementName" Value="[Common].[SFTChannels].[APIHeaders]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Common].[SFTChannels]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="APIGrantType" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="3fc1c29e-e7d8-47a1-8f2c-e977bdb5e39a" ChangeDateTime="09/08/2020 07:49:47">
+    <Property Name="ElementName" Value="[Common].[SFTChannels].[APIGrantType]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Common].[SFTChannels]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="APITokenHeaders" />
+  </Operation>
 </Operations>

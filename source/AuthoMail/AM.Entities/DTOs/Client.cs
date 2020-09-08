@@ -37,6 +37,17 @@ namespace AM.Entities
         public string ToADEDir { get; set; }
         public string ArchiveDir { get; set; }
         public string PostDownloadAction { get; set; }
+        public string APITokenURL { get; set; }
+        public string APIResponseURL { get; set; }
+        public int APIMaxResponseCount { get; set; }
+        public string APITokenHeaders { get; set; }
+        public Dictionary<string, string> GetHeaders()
+        {
+            return APITokenHeaders
+                    .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(line => line.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries))
+                    .ToDictionary(pair => pair[0].Trim(), pair => pair[1].Trim());
+        }
     }
 
     public class ClientBusinessIdentifier

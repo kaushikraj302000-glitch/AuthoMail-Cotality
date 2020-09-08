@@ -787,7 +787,8 @@ namespace AM.Core
             eVSReq.CustomerRefNo = mailPiece.Id.ToString();
             eVSReq.FromName = (mailPiece.RetRcptFirstName + " " + mailPiece.RetRcptLastName).Trim();
             eVSReq.FromFirm = mailPiece.RetRcptOrganization ?? clientName;
-            eVSReq.FromStreetAddress = (mailPiece.RetRcptAddressStreet + " " + mailPiece.RetRcptAddressAptOrSuiteOrOther + " " + mailPiece.RetRcptAddrOptionalLine1BelowStreet).Trim();
+            eVSReq.FromAptOrSuiteorOther = mailPiece.RetRcptAddressAptOrSuiteOrOther;
+            eVSReq.FromStreetAddress = (mailPiece.RetRcptAddressStreet + " " + mailPiece.RetRcptAddrOptionalLine1BelowStreet).Trim();
             eVSReq.FromCity = mailPiece.RetRcptAddressCity;
             eVSReq.FromState = mailPiece.RetRcptAddressState;
             eVSReq.FromZip4 = mailPiece.RetRcptAddressZIP.SeparateZip4And5(4);
@@ -797,7 +798,8 @@ namespace AM.Core
             // To Address
             eVSReq.ToFirm = string.IsNullOrEmpty(mailPiece.RcptOrganization) ? string.Empty : mailPiece.RcptOrganization;
             eVSReq.ToName = (mailPiece.RcptFirstName + " " + mailPiece.RcptLastName).Trim();
-            eVSReq.ToStreetAddress = (mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddressAptOrSuiteOrOther + " " + mailPiece.RcptAddrOptionalLine1BelowStreet).Trim();
+            eVSReq.ToAptOrSuiteorOther = mailPiece.RcptAddressAptOrSuiteOrOther;
+            eVSReq.ToStreetAddress = (mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet).Trim();
             eVSReq.ToCity = mailPiece.RcptAddressCity;
             eVSReq.ToState = mailPiece.RcptAddressState;
             eVSReq.ToZip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4);

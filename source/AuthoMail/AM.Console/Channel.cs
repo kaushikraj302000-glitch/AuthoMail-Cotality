@@ -112,12 +112,6 @@ namespace AM.Console
                         ProcessGeneralReportedBack(channelCode);
                     }
                     break;
-                case "API":
-                    foreach (var channelCode in channelCodes)
-                    {
-                        ProcessAPIReportedBack(channelCode);
-                    }
-                    break;
                 default:
                     foreach (var channelCode in channelCodes)
                     {
@@ -127,124 +121,6 @@ namespace AM.Console
             }
 
             log.Debug("ReportedBack job is completed.");
-        }
-
-        private static void ProcessAPIReportedBack(string channelCode)
-        {
-            using (IMailBatchService mailBatchSvc = new MailBatchService())
-            using (IMailPieceService mailPieceSvc = new MailPieceService())
-            using (IClientService clientSvc = new ClientService())
-            using (ICommonService commonSvc = new CommonService())
-            using (IGeneralService genSvc = new GeneralService())
-            {
-                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
-
-                List<BatchResponse> reportPreppedMailPieces = mailPieceSvc.GetMailPieceResponsesListForReportPreppedBatches(sftChannelDetails.Id);
-
-                log.Debug("Total Reported Backcount {0}".Fill(reportPreppedMailPieces.Count));
-                if (reportPreppedMailPieces == null || reportPreppedMailPieces.Count == 0)
-                {
-                    log.Debug("Uploading report job queue is empty.");
-                    return;
-                }
-
-
-                HttpResponseMessage responseResult = null;
-                List<MailAPIResponse> mailAPIResponses = genSvc.GenerateMailAPIResponse(reportPreppedMailPieces);
-
-                switch (sftChannelDetails.Code.Split('_')[0].ToUpper())
-                {
-                    case "ELLIEMAE":
-                        log.Debug("Going to EM");
-                        try
-                        {
-                            int responseCount = mailAPIResponses.Count;
-                            int maxResponse = Config.EllieMae_MaxResponseCount;
-                            int submittedResponse = 0;
-                            double loopCount = Math.Ceiling(responseCount / (float)maxResponse);
-                            var token = GenerateToken().Result;
-                            log.Debug("Token Generated");
-                            for (double i = 0; i < loopCount; i++)
-                            {
-                                log.Debug("Total Submitted Response :{0}".Fill(submittedResponse));
-                                var takenResponse = mailAPIResponses.Skip(submittedResponse).Take(maxResponse).ToList();
-                                try
-                                {
-                                    responseResult = genSvc.SendEllieMaeResponse(takenResponse, token).Result;
-                                    submittedResponse += maxResponse;
-                                }
-                                catch (Exception ex)
-                                {
-                                    var msg = "Unexpected error occured while sending response to EllieMae endpoint with Error : {0}".Fill(ex.Message);
-                                    log.Error(msg, ex);
-                                    MailUtility.SendUnexpectedExceptionEmail(msg);
-                                    break;
-                                }
-
-                                if (!responseResult.IsSuccessStatusCode)
-                                {
-                                    var msg = "Error occured while sending response to EllieMae endpoint with Status Code : {0},RequestMessage {1}, Error : {2}".Fill(responseResult.StatusCode, responseResult.RequestMessage, responseResult.Content == null ? null : responseResult.Content.ReadAsStringAsync().Result);
-                                    log.Error(msg);
-                                    MailUtility.SendUnexpectedExceptionEmail(msg);
-                                    continue;
-                                }
-
-                                var responseJson = responseResult.Content.ReadAsStringAsync().Result;
-                                List<EllieMaeResponse> ellieMaeResponses = JsonConvert.DeserializeObject<List<EllieMaeResponse>>(responseJson);
-
-                                log.Debug(responseJson);
-
-                                var emResponseIds = ellieMaeResponses.Select(x => x.Id);
-                                var takenRequestIds = takenResponse.Select(x => x.Id);
-                                var notReceivedInEM = takenRequestIds.Except(emResponseIds).ToList();
-                                var notContainInAM = emResponseIds.Except(takenRequestIds).ToList();
-                                if (notContainInAM.Count > 0 || notContainInAM.Count > 0)
-                                {
-                                    var msg = $"Following responses not received From EM : {Environment.NewLine + string.Join(",", notReceivedInEM)} " + Environment.NewLine + $"Following responses not contains in AM :{Environment.NewLine + string.Join(",", notContainInAM)}";
-                                    MailUtility.SendUnexpectedExceptionEmail(msg);
-                                }
-
-                                List<string> errors = new List<string>();
-
-                                foreach (var ellieMaeResponse in ellieMaeResponses)
-                                {
-                                    if (ellieMaeResponse.Status == "SUCCESS")
-                                    {
-                                        var mpInfo = mailPieceSvc.GetMailPieceDetailsByMailPieceUniqueId(ellieMaeResponse.Id.ToString());
-
-                                        if (mpInfo.ShippingStatus == ShippingStatus.InProgress.ToString())
-                                        {
-                                            continue;
-                                        }
-
-                                        commonSvc.UpdateBatchPipeLineStatus(mpInfo.MailBatchId, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
-                                    }
-                                    else
-                                    {
-                                        var msg = "Received error response for MailPiece UniqueId : {0}, Code : {1} , Summary : {2}, Error details: {3}".Fill(ellieMaeResponse.Id, ellieMaeResponse.Error.code, ellieMaeResponse.Error.summary, ellieMaeResponse.Error.details);
-                                        log.Error(msg);
-                                        errors.Add(msg);
-                                    }
-                                }
-
-                                if (errors.Count > 0)
-                                {
-                                    MailUtility.SendUnexpectedExceptionEmail(string.Join(Environment.NewLine, errors));
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            log.Error(ex);
-                            var msg = $"Exception thrown at the time of calling EllieMae API services {ex.ToString()}";
-                            MailUtility.SendUnexpectedExceptionEmail(msg);
-                        }
-                        break;
-                    default:
-                        log.Error("Invalid SFT channel.");
-                        break;
-                }
-            }
         }
 
         public static async Task<string> GenerateToken()
