@@ -1217,17 +1217,9 @@ namespace AM.Web.Controllers
         }
 
         [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult IsEnvelopeNameExists(string envelopeName)
+        public ActionResult IsEnvelopeNameExists(int id,string envelopeName)
        {
-            var model = inventorySvc.FindByCodeEnvelope(envelopeName);
-            if (model != null)
-            {
-                return Json(new KeyValuePair<bool, string>(false, null), JsonRequestBehavior.AllowGet);
-            }
-            else
-            {
-                return Json(new KeyValuePair<bool, string>(true, null), JsonRequestBehavior.AllowGet);
-            }
+            return Json(inventorySvc.IsEnvelopeNameExists(id, envelopeName), JsonRequestBehavior.AllowGet);
             // return Json(true, JsonRequestBehavior.AllowGet);
         }
         [Authorize(Roles = AMRoles.Admin), HttpPost]

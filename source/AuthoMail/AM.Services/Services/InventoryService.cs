@@ -25,6 +25,7 @@ namespace AM.Services
         IEnumerable<ShipperInfoSelectListVM> ShipperSelectList();
         void RemoveEnvelopeInventoryById(int id);
         KeyValuePair<bool, string> IsPartNumberExists(int Id, string partNumber);
+        KeyValuePair<bool, string> IsEnvelopeNameExists(int Id, string name);
         IEnumerable<EnvelopeInventory> GetLast3MonthsInventoryEnvelopes();
         KeyValuePair<bool, string> UpdateReorderDuration(int id, int reorderDuration);
     }
@@ -297,23 +298,28 @@ inner join Common.PrintVendors p on s.PrintVendorId = p.Id");
 
         public KeyValuePair<bool, string> IsPartNumberExists(int Id, string partNumber)
         {
-            if (Id == 0)
+            if (Id != 0)
             {
-                var output = db.QuerySingleOrDefault<string>("select PartNumber from Common.Envelopes where Id <> @id and PartNumber = @partNumber", new { id = Id, partNumber = partNumber });
-                if (output.IsNullOrWhiteSpace())
+                int? output = db.QuerySingleOrDefault<int?>(@"select top 1 id from Common.Envelopes where Id=@Id and PartNumber=@PartNumber", new { Id = Id, PartNumber = partNumber });
+                if (output != null)
                 {
                     return new KeyValuePair<bool, string>(true, null);
                 }
-                return new KeyValuePair<bool, string>(false, "Part Number already exists.");
+                output = db.QuerySingleOrDefault<int?>(@"select top 1 id from Common.Envelopes where Id<>@Id and PartNumber=@PartNumber", new { Id = Id, PartNumber = partNumber });
+                if (output != null)
+                {
+                    return new KeyValuePair<bool, string>(false, "Part Number already exists.");
+                }
+                return new KeyValuePair<bool, string>(true, null);
             }
             else
             {
-                var output = db.QuerySingleOrDefault<string>("select PartNumber from Common.Envelopes where PartNumber = @partNumber", new { id = Id, partNumber = partNumber });
-                if (!output.IsNullOrWhiteSpace())
+                int? output = db.QuerySingleOrDefault<int?>(@"select top 1 id from Common.Envelopes where  PartNumber=@PartNumber", new { PartNumber = partNumber });
+                if (output != null)
                 {
-                    return new KeyValuePair<bool, string>(true, null);
+                    return new KeyValuePair<bool, string>(false, "Part Number already exists.");
                 }
-                return new KeyValuePair<bool, string>(false, "Part Number already exists.");
+                return new KeyValuePair<bool, string>(true, null);
             }
         }
 
@@ -370,6 +376,33 @@ where ei.ModifiedOn>=@modifiedOn", new { modifiedOn = DateTime.UtcNow.AddMonths(
             .Distinct()
             .SingleOrDefault();
             return envelopeVMs;
+        }
+
+        public KeyValuePair<bool, string> IsEnvelopeNameExists(int id, string name)
+       {
+            if (id != 0)
+            {
+                int? output = db.QuerySingleOrDefault<int?>(@"select top 1 id from Common.Envelopes where Id=@Id and EnvelopeName=@Name",new { Id=id,Name=name });
+                if (output != null)
+                {
+                    return new KeyValuePair<bool, string>(true, null);
+                }
+                output = db.QuerySingleOrDefault<int?>(@"select top 1 id from Common.Envelopes where Id<>@Id and EnvelopeName=@Name", new { Id = id, Name = name });
+                if (output !=null)
+                {
+                    return new KeyValuePair<bool, string>(false, "Envelope Name already exists.");
+                }
+                return new KeyValuePair<bool, string>(true, null);
+            }
+            else
+            {
+                int? output = db.QuerySingleOrDefault<int?>(@"select top 1 id from Common.Envelopes where  EnvelopeName=@Name", new { Name = name });
+                if (output!=null)
+                {
+                    return new KeyValuePair<bool, string>(false, "Envelope Name already exists.");
+                }
+                return new KeyValuePair<bool, string>(true, null);
+            }
         }
     }
 }

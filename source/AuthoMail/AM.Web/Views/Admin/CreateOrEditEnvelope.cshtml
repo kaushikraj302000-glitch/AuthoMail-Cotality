@@ -142,7 +142,8 @@
     <script type="text/javascript">
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
-            //$("#Shippers").val(0);
+            if (parseInt($("#Id").val())!=0)
+            $("#Shippers").val(1);
             //jQuery.validator.addMethod("shippersRequired", function (value, element) {
             //    console.log(this.optional(element) || (parseFloat(value) > 0) )
             //    return this.optional(element) || (parseFloat(value) > 0) ;
@@ -180,6 +181,7 @@
                             type: 'post',
                             url: baseUrl + "Admin/IsEnvelopeNameExists",
                             data: {
+                                id: $("#Id").val(),
                                 envelopeName: $("#EnvelopeName").val().trim()
                             },
                             dataType: 'json',
