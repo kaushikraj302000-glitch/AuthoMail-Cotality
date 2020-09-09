@@ -48,6 +48,7 @@ namespace AM.Services
         CustomTemplate GetCustomTemplateByDocTypeId(int docTypeId, string communityCode);
         ShipperInformation GetShipperInformation(int shipperId);
         ShipperInformation GetShipperInformationByPrintLocation(string printLocation, int printTrailId);
+        Task<int> UpdateBatchPipeLineStatusByMailPieceId(Guid mailPieceId, string pipeLineStatus, DateTime timestamp);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -511,6 +512,13 @@ namespace AM.Services
             string query = "SELECT * FROM Common.ShipperInformation WHERE PrintVendorCode = (SELECT PrintVendorCode FROM Common.PrintTrails WHERE Id=@PrintTrailId) AND PrintLocation=@PrintLocation";
 
             return db.QuerySingleOrDefault<ShipperInformation>(query, new { PrintLocation = printLocation, PrintTrailId = printTrailId });
+        }
+
+        public Task<int> UpdateBatchPipeLineStatusByMailPieceId(Guid mailPieceId, string pipeLineStatus, DateTime timestamp)
+        {
+            string query = $"UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {pipeLineStatus}On = @timestamp WHERE Id = (SELECT TOP 1 MailBatchId FROM AM.MailPieces WHERE UniqueId = @mailPieceId)";
+
+            return db.ExecuteAsync(query, new { pipeLineStatus, timestamp, mailPieceId });
         }
     }
 }
