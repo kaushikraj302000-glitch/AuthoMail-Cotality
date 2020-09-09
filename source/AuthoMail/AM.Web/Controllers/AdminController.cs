@@ -1304,11 +1304,11 @@ namespace AM.Web.Controllers
 
         }
         [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult UpdateReorderDuration(int id, int reorderDuration)
+        public ActionResult UpdateReorderDuration(int envelopeId, int shipperId, int reorderDuration)
         {
             try
             {
-                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.UpdateReorderDuration(id, reorderDuration)), JsonRequestBehavior.AllowGet);
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.UpdateReorderDuration(envelopeId, shipperId, reorderDuration)), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {

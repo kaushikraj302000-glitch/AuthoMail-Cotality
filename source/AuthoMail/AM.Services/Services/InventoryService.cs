@@ -27,7 +27,7 @@ namespace AM.Services
         KeyValuePair<bool, string> IsPartNumberExists(int Id, string partNumber);
         KeyValuePair<bool, string> IsEnvelopeNameExists(int Id, string name);
         IEnumerable<EnvelopeInventory> GetLast3MonthsInventoryEnvelopes();
-        KeyValuePair<bool, string> UpdateReorderDuration(int id, int reorderDuration);
+        KeyValuePair<bool, string> UpdateReorderDuration(int envelopeId, int shipperId, int reorderDuration);
     }
     public class InventoryService : ServiceBase, IInventoryService
     {
@@ -333,12 +333,12 @@ inner join Profile.Users m on ei.ModifiedBy=m.Id
 where ei.ModifiedOn>=@modifiedOn", new { modifiedOn = DateTime.UtcNow.AddMonths(-3) });
         }
 
-        public KeyValuePair<bool, string> UpdateReorderDuration(int id, int reorderDuration)
+        public KeyValuePair<bool, string> UpdateReorderDuration(int envelopeId, int shipperId, int reorderDuration)
         {
             try
             {
-                string sql = "UPDATE [Common].[EnvelopeStock]  SET ReOrderDuration=@ReOrderDuration WHERE Id=@Id";
-                db.Execute(sql, new { Id = id, ReOrderDuration = reorderDuration });
+                string sql = "UPDATE [Common].[EnvelopeStock]  SET ReOrderDuration=@ReOrderDuration WHERE EnvelopeId=@EnvelopeId and ShipperId=@ShipperId";
+                db.Execute(sql, new { EnvelopeId = envelopeId, ShipperId=shipperId, ReOrderDuration = reorderDuration });
                 return new KeyValuePair<bool, string>(true, "Saved successfully");
             }
             catch (Exception ex)
@@ -350,8 +350,8 @@ where ei.ModifiedOn>=@modifiedOn", new { modifiedOn = DateTime.UtcNow.AddMonths(
         public EnvelopesVM GetEnvelopeWithShippers(int id)
         {
             string sql = @"Select E.*,ES.*,ES.CurrentQuantity as ReceivedQuantity,CONCAT(SI.PrintLocation, CONCAT(' ( ', SI.PrintVendorCode, ' ) ')) as ShipperName,ES.EnvelopeId,0 as UnitPrice from [Common].[Envelopes] E 
-                            left Join [Common].[EnvelopeStock] ES ON E.Id=ES.EnvelopeId
-                            left Join [Common].[ShipperInformation] SI ON ES.ShipperId=SI.Id
+                            left outer Join [Common].[EnvelopeStock] ES ON E.Id=ES.EnvelopeId
+                            left outer Join [Common].[ShipperInformation] SI ON ES.ShipperId=SI.Id
                             Where E.Id=@Id";
             var orderDictionary = new Dictionary<int, EnvelopesVM>();
 

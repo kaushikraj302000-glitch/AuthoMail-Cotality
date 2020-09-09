@@ -82,7 +82,8 @@
                 <h2 id="myModalLabel">Edit Reorder Duration</h2>
                 <hr />
                 <form id="envelopeform" action="#">
-                    <input type="hidden" id="Id" name="Id"  />
+                    <input type="hidden" id="shipperId" name="shipperId" />
+                    <input type="hidden" id="envelopeId" name="envelopeId" />
                     <div class="form-group">
                         <label for="Name">Envelope Name</label>
                         <div class="input-group">
@@ -98,10 +99,10 @@
                     <div class="form-group">
                         <label for="ReorderDuration">Reorder Duration</label>
                         <div class="input-group">
-                            <input type="number" id="ReorderDuration" class="form-control" name="ReorderDuration"  />
+                            <input type="number" id="ReorderDuration" class="form-control" name="ReorderDuration" />
                         </div>
                     </div>
-                    
+
                     <hr />
                     <button type="submit" class="btn btn-primary" id="Save"><i class="fa fa-save"></i> Save</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> Cancel</button>
@@ -140,7 +141,7 @@
             $(Model).each(function () {
                 this.EnvelopeNameFormated = '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-id="' + this.Id + '">' + this.EnvelopeName + '</a>';
                 this.IsBREEnvelope = this.IsBREEnvelope ? '<span  class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
-                this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="EditReorderDuration(this)" data-id="' + this.Id + '" data-envelopename="' + this.EnvelopeName + '" data-shippername="' + this.ShipperName + '"><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
+                this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="EditReorderDuration(this)" data-shipperid="' + this.ShipperId + '" data-envelopeid="' + this.EnvelopeId + '" data-envelopename="' + this.EnvelopeName + '" data-duration="' + this.ReorderDuration + '" data-shippername="' + this.ShipperName + '"><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
                 this.LastUpdated = this.ModifiedBy + " <br />on " + moment(this.ModifiedOn).format("MM/DD/YY HH:mm:ss");
                 this.ReorderDuration = (this.ReorderDuration == null || this.ReorderDuration == "") ? "--" : this.ReorderDuration;
                 this.EnvDays = (this.EnvDays == null || this.EnvDays == "") ? "-" : this.EnvDays;
@@ -157,11 +158,11 @@
             rules: {
                 ReorderDuration: {
                     required: true,
-                    digit: true,
+                    digits: true,
                 }
             },
             submitHandler: function (form) {
-                $("#AddEditModal").modal("hide");
+                $("#EditReorderModal").modal("hide");
                 SaveReduration();
             }
         });
@@ -173,12 +174,13 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Admin/UpdateReorderDuration",
-                data: { id: $("#Id").val(), reorderDuration: $("#ReorderDuration").val() },
+                data: { envelopeId: $("#envelopeId").val(), shipperId: $("#shipperId").val(), reorderDuration: $("#ReorderDuration").val() },
                 success: function (response) {
                     if (response.Success) {
                         if (response.Object != null) {
                             if (response.Object.Key) {
                                 el.html("<div class='alert alert-green'>" + response.Object.Value + "</div>");
+                                GetData();
                             }
                             else {
                                 el.html("<div class='alert alert-red'>" + response.Object.Value + "</div>");
@@ -199,14 +201,18 @@
             });
     }
     function EditReorderDuration(obj) {
-            var id = $(obj).data("id");
+        var shipperId = $(obj).data("shipperid");
+        var envelopeId = $(obj).data("envelopeid");
         var envelopeName = $(obj).data("envelopename");
         var shipperName = $(obj).data("shippername");
+        var duration = $(obj).data("duration");
             //console.log(envelopeName);
         $("#EditReorderModal").modal("show");
         $("#EditReorderModal").find("#envelopeName").text(envelopeName);
         $("#EditReorderModal").find("#shipperName").text(shipperName);
-        $("#EditReorderModal").find("#Id").text(id);
+        $("#EditReorderModal").find("#envelopeId").val(envelopeId);
+        $("#EditReorderModal").find("#shipperId").val(shipperId);
+        $("#EditReorderModal").find("#ReorderDuration").val(duration);
         ValidateForm();
         }
 
