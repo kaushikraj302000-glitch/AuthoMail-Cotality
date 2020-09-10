@@ -603,6 +603,9 @@
     <Content Include="Views\DelfusTemplate\TemplateSummary.cshtml" />
     <Content Include="Views\Admin\ManageEnvelopesInventory.cshtml" />
     <Content Include="Views\Admin\_AddEnvelopeInventory.cshtml" />
+    <Content Include="Views\Admin\CreateOrEditEnvelope.cshtml" />
+    <Content Include="Views\Admin\_ShipperWiseStockDetails.cshtml" />
+    <Content Include="Views\Admin\ManageEnvelopesInventoryStock.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

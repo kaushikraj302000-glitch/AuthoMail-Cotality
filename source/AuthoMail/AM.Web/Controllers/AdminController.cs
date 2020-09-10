@@ -1186,17 +1186,28 @@ namespace AM.Web.Controllers
             return View();
         }
 
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult CreateOrEditEnvelope(int? id)
+        {
+            var shippers = inventorySvc.ShipperSelectList();
+            ViewBag.Shippers = new SelectList(shippers, "Id", "Name");
+            if (id.HasValue)
+            {
+                return View(inventorySvc.GetEnvelopeWithShippers(id.Value));
+            }
+            
+            return View(new EnvelopesVM());
+        }
         [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult CreateOrEditEnvelope(Envelopes envelopes)
+        public ActionResult ShipperWiseStock(int ShipperId, string ShipperName)
+        {
+            return PartialView("_ShipperWiseStockDetails", new EnvelopeStockVM { ShipperName = ShipperName, ShipperId = ShipperId });
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult CreateOrEditEnvelope(EnvelopesVM envelopes)
         {
             try
             {
-                if (envelopes.Id == 0)
-                {
-                    var env = inventorySvc.FindEnvelopeById(envelopes.Id);
-                    if (env != null) return Json(JsonResponseFactory.ErrorResponse("Envelope already exists."), JsonRequestBehavior.AllowGet);
-                }
-
                 return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopes(envelopes, User.Identity.GetUserId())), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
@@ -1205,6 +1216,12 @@ namespace AM.Web.Controllers
             }
         }
 
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult IsEnvelopeNameExists(int id,string envelopeName)
+       {
+            return Json(inventorySvc.IsEnvelopeNameExists(id, envelopeName), JsonRequestBehavior.AllowGet);
+            // return Json(true, JsonRequestBehavior.AllowGet);
+        }
         [Authorize(Roles = AMRoles.Admin), HttpPost]
         public ActionResult IsPartNumberExists(int id, string partNumber)
         {
@@ -1267,8 +1284,40 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
             }
         }
+        public ActionResult ManageEnvelopesInventoryStock()
+        {
+            return View();
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetEnvelopeInventoryStock()
+        {
+            try
+            {
+                var model = inventorySvc.GetEnvelopeInventoryStockCalculation();
+
+                return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult UpdateReorderDuration(int envelopeId, int shipperId, int reorderDuration)
+        {
+            try
+            {
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.UpdateReorderDuration(envelopeId, shipperId, reorderDuration)), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
 
         #endregion
+
         #region Manage Envelope Transactions
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult GetEnvelopeTransactions()

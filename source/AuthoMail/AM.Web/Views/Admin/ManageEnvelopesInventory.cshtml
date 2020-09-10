@@ -47,12 +47,12 @@
         <thead>
             <tr>
                 <th>Action</th>
+                <th>Stock Added By & On</th>
                 <th>Envelope Name</th>
                 <th>Shipper Name</th>
-                <th>Unit Price </th>
+                @*<th>Unit Price </th>*@
                 <th>Quantity</th>
                 <th>Description</th>
-                <th>Last Updated</th>
             </tr>
         </thead>
         <tbody id="EnvelopebodyContent"></tbody>
@@ -63,12 +63,12 @@
         <tbody id="EnvelopeBody">
             <tr class="row-small">
                 <td>{Action}</td>
+                <td><span>{LastUpdated}</span></td>
                 <td><span>{EnvelopeName}</span></td>
                 <td><span>{Shipper}</span></td>
-                <td><span>{UnitPrice}</span></td>
+                @*<td><span>{UnitPrice}</span></td>*@
                 <td><span>{ReceivedQuantity}</span></td>
                 <td><span>{Description}</span></td>
-                <td><span>{LastUpdated}</span></td>
             </tr>
         </tbody>
     </table>
@@ -361,7 +361,7 @@
         function EnvelopeInventory(EnvelopeId, ReceivedQuantity, UnitPrice, Description,ShipperId) {
             this.EnvelopeId = EnvelopeId;
             this.ReceivedQuantity = ReceivedQuantity;
-            this.UnitPrice = UnitPrice;
+            this.UnitPrice = 0;//UnitPrice;
             this.Description = Description;
             this.ShipperId = ShipperId;
         }
