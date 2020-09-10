@@ -38,6 +38,14 @@ namespace AM.Entities
         public string ToADEDir { get; set; }
         public string ArchiveDir { get; set; }
         public string PostDownloadAction { get; set; }
+
+        public string GetChannelCode()
+        {
+            if (!string.IsNullOrWhiteSpace(Code))
+                return Code.Substring(0, Code.LastIndexOf("_"));
+            
+            return null;
+        }
     }
 
     public class ClientBusinessIdentifier

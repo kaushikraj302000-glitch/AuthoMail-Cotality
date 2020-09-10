@@ -628,7 +628,7 @@ namespace AM.Core
                 sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId).Result;
                 SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
                 sftSite.Connect();
-                switch (sftChannel.Code.Split('_')[0])
+                switch (sftChannel.GetChannelCode())
                 {
                     case "ALASKA":
                         break;
@@ -923,7 +923,7 @@ namespace AM.Core
             {
                 sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId).Result;
 
-                switch (sftChannel.Code.Split('_')[0])
+                switch (sftChannel.GetChannelCode())
                 {
                     case "AMC":
                         using (IAMCService amcSvc = new AMCService())
@@ -1550,7 +1550,8 @@ namespace AM.Core
 
         private static bool GenerateFinalReports(MailBatchInfo mbi, List<MailPieces> mailPieces, List<Deliverable> deliverables, SFTChannel sftChannel)
         {
-            string sftChannelCode = sftChannel.Code.Split('_')[0].ToUpper();
+            // #ChannelCode
+            string sftChannelCode = sftChannel.GetChannelCode().ToUpper();
             var increamentalReportingChannels = Config.Core_IncrementalReportingChannelCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
             increamentalReportingChannels = increamentalReportingChannels.Select(c => c + "_" + Config.Common_Environment).ToList();
@@ -1644,7 +1645,7 @@ namespace AM.Core
                                 }
                             }
                             break;
-                        case "ELLIEMAE":
+                        case "API_ELLIEMAE":
                             using (ICommonService commonSvc = new CommonService())
                             using (IGeneralService generalSvc = new GeneralService())
                             {

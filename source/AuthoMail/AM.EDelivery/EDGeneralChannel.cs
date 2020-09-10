@@ -253,7 +253,7 @@ namespace AM.EDelivery
         {
             string amResponsePath = mpi.AMResponsePath;
 
-            switch (eDeliveryMP.ChannelCode.Split('_')[0].ToUpper())
+            switch (eDeliveryMP.GetChannelCode().ToUpper())
             {
                 case "AMC":
                     using (IAMCService amcSvc = new AMCService())
@@ -271,7 +271,7 @@ namespace AM.EDelivery
                     }
                     Thread.Sleep(1000);
                     break;
-                case "ELLIEMAE":
+                case "API_ELLIEMAE":
                     using (IGeneralService generalSvc = new GeneralService())
                     {
                         var mailBatch = mp.MailBatches;

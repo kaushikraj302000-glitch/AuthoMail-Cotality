@@ -140,7 +140,7 @@ bufferSize: 4096, useAsync: true)) { }
                 perf.Add(sw.Elapsed.TotalSeconds);
                 log.DebugFormat("Files Downloaded: {0}", sw.Elapsed.TotalSeconds);
                 sw.Restart();
-                SFTChannel sFTChannel;
+                SFTChannel sftChannel;
                 Client client;
                 MailBatch mailBatch = new MailBatch()
                 {
@@ -163,7 +163,7 @@ bufferSize: 4096, useAsync: true)) { }
 
                 using (IClientService clientService = new ClientService())
                 {
-                    sFTChannel = await clientService.GetSFTChannelDetailsBySFTChannelId(User.Identity.SFTChannelId().Value);
+                    sftChannel = await clientService.GetSFTChannelDetailsBySFTChannelId(User.Identity.SFTChannelId().Value);
                 }
 
                 // Validate manifest contents
@@ -192,8 +192,8 @@ bufferSize: 4096, useAsync: true)) { }
                         StoreInvalidOrBadRequest(manifest, downloadedFiles, errorPath, mailPiece.Id);
                         DeleteFiles(downloadedFiles);
                         //Return error response and insert entry of invalid_client                                           
-                        var invalidClient = await clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "_Invalid");
-                        await InsertInvalidBatch(receivedOn, sFTChannel, mailBatch, invalidClient.Id, "Invalid client code specified.");
+                        var invalidClient = await clientService.GetClientByAppCode(sftChannel.GetChannelCode() + "_Invalid");
+                        await InsertInvalidBatch(receivedOn, sftChannel, mailBatch, invalidClient.Id, "Invalid client code specified.");
                         if (mailPiece.DocumentOrPackage != null) mailPiece.DocumentOrPackage.IncludePatternBaseString = false;
                         var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_ClientCode, ErrorMessage = string.Format("Invalid client code specified.") }, receivedOn);
                         return Request.CreateResponse(HttpStatusCode.BadRequest, res);
@@ -202,10 +202,9 @@ bufferSize: 4096, useAsync: true)) { }
                     mailBatch.ClientBatchId = mailBatch.Id.ToString();
 
                 }
-
-                switch (sFTChannel.Code.Split('_')[0].ToUpper())
+                // #ChannelCode
+                switch (sftChannel.GetChannelCode().ToUpper())
                 {
-                    case "ELLIEMAE":
                     default:
                         var result = ValidateClientSpecificRules(mailBatch, client);
                         if (result.Code != OutComeCodes.No_Error)
@@ -218,7 +217,7 @@ bufferSize: 4096, useAsync: true)) { }
                             using (IMailPieceService mailPieceService = new MailPieceService())
                             {
 
-                                int mailBatchId = await mailBatchService.InsertBatchDetails(mailBatch, client.Id, sFTChannel);
+                                int mailBatchId = await mailBatchService.InsertBatchDetails(mailBatch, client.Id, sftChannel);
                                 // insert mailpiece
                                 int mailPieceId = await mailPieceService.InsertBatchMailPieceDetails(mailPiece, client.Id, mailBatchId, result.Code, result.ErrorMessage);
                                 await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.Received, receivedOn);
@@ -343,7 +342,7 @@ bufferSize: 4096, useAsync: true)) { }
                 mailPiece.DocumentOrPackage.Name = mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() ? "{0}.pdf".Fill(mailPiece.BusinessFriendlyIdValue.GetValidFileName()) : mailPiece.DocumentOrPackage.Name;
 
 
-                var response = await CreateAMBatch(mailBatch, mailPiece, sFTChannel, receivedOn);
+                var response = await CreateAMBatch(mailBatch, mailPiece, sftChannel, receivedOn);
                 sw.Stop();
                 perf.Add(sw.Elapsed.TotalSeconds);
                 log.DebugFormat("Batch created: {0}", sw.Elapsed.TotalSeconds);
