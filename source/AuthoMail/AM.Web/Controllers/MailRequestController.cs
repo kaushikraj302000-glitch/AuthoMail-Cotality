@@ -114,6 +114,8 @@ bufferSize: 4096, useAsync: true)) { }
             List<double> perf = new List<double>();
             Stopwatch sw = new Stopwatch();
             sw.Start();
+            string root = Config.MailRequestAPI_FilesDownloadPath;
+            string errorPath = Path.Combine(root, "BadRequests");
             var receivedOn = Common.Now;
             var mailPiece = new MailPiece();
             if (Request.Content.Headers.ContentLength / 1024f / 1024f > Config.MailRequestAPI_MaxRequestSize)
@@ -123,13 +125,14 @@ bufferSize: 4096, useAsync: true)) { }
             }
             //TO DO: create local path and upload
             //.57/d:/UAT/WEB/
-            string root = Config.MailRequestAPI_FilesDownloadPath;
             sw.Stop();
             perf.Add(sw.Elapsed.TotalSeconds);
             log.DebugFormat("Request size check: {0}", sw.Elapsed.TotalSeconds);
             sw.Restart();
             var provider = new MultipartFormDataStreamProvider(root);
 
+            string[] manifest = new string[] { };
+            List<string> downloadedFiles = new List<string>();
             try
             {
                 await Request.Content.ReadAsMultipartAsync(provider);
@@ -144,14 +147,15 @@ bufferSize: 4096, useAsync: true)) { }
                     Id = Guid.NewGuid()
                 };
 
-                var manifest = provider.FormData.GetValues("Manifest");
+                manifest = provider.FormData.GetValues("Manifest");
                 var filekeys = provider.FileData.Select(f => f.Headers.ContentDisposition.Name).ToList();
                 //validation for "Manifest"
                 string manifestErrDesc = ValidateManifestRequest(ref mailPiece, manifest, filekeys);
-                var downloadedFiles = provider.FileData.Select(f => f.LocalFileName).ToList();
+                downloadedFiles = provider.FileData.Select(f => f.LocalFileName).ToList();
                 if (!manifestErrDesc.IsNullOrWhiteSpace())
                 {
                     // delete downloaded files in case of exception, send path, line no, position in bad request
+                    StoreInvalidOrBadRequest(manifest, downloadedFiles, errorPath, mailPiece.Id);
                     DeleteFiles(downloadedFiles);
                     var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = manifestErrDesc }, receivedOn);
                     return Request.CreateResponse(HttpStatusCode.BadRequest, res);
@@ -173,6 +177,7 @@ bufferSize: 4096, useAsync: true)) { }
                     //Check mailpiece id is unique.
                     if (commonSvc.CheckForDuplicateMailPieceUniqueId(mailPiece.Id))
                     {
+                        StoreInvalidOrBadRequest(manifest, downloadedFiles, errorPath, mailPiece.Id);
                         DeleteFiles(downloadedFiles);
                         var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_DuplicateKey, ErrorMessage = string.Format("The specified package id '{0}' conflicts with an existing package. Retry with a new GUID.", mailPiece.Id) }, receivedOn);
                         return Request.CreateResponse(HttpStatusCode.Conflict, res);
@@ -184,6 +189,7 @@ bufferSize: 4096, useAsync: true)) { }
                     client = await clientService.GetClientByAppCode(mailPiece.ClientCode);
                     if (client == null)
                     {
+                        StoreInvalidOrBadRequest(manifest, downloadedFiles, errorPath, mailPiece.Id);
                         DeleteFiles(downloadedFiles);
                         //Return error response and insert entry of invalid_client                                           
                         var invalidClient = await clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "_Invalid");
@@ -204,6 +210,7 @@ bufferSize: 4096, useAsync: true)) { }
                         var result = ValidateClientSpecificRules(mailBatch, client);
                         if (result.Code != OutComeCodes.No_Error)
                         {
+                            StoreInvalidOrBadRequest(manifest, downloadedFiles, errorPath, mailPiece.Id);
                             DeleteFiles(downloadedFiles);
                             //insert error and response
                             using (IMailBatchService mailBatchService = new MailBatchService())
@@ -268,7 +275,7 @@ bufferSize: 4096, useAsync: true)) { }
                     using (var doc = new Document())
                     using (var copy = new PdfSmartCopy(doc, ds))
                     {
-                        
+
                         // This is done to open and merge (Secured) PDFs which allow printing but not copying or merging
                         PdfReader.unethicalreading = true;
                         //Loop through each input file                        
@@ -291,14 +298,14 @@ bufferSize: 4096, useAsync: true)) { }
                                         // if there are any exceptions while decrypting pdf, don't delete files and send bad reqeust with mailresponse object, it should contain file names
                                         var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "Unable to decrypt file : {0}.".Fill(file.Key) }, receivedOn);
                                         return Request.CreateResponse(HttpStatusCode.BadRequest, res);
-                                    } 
+                                    }
                                 }
                                 #endregion
 
                                 using (var reader = new PdfReader(decryptedFilePath))
                                 {
                                     mailPiece.CustomInfo.Add(new Metadata { Key = file.Key, Value = "FileName:{0} | PageCount: {1}".Fill(file.Value.Headers.ContentDisposition.FileName.Replace("\"", ""), reader.NumberOfPages) });
-                                    
+
                                     //open document
                                     if (!doc.IsOpen()) doc.Open();
                                     //Add the entire document
@@ -346,6 +353,7 @@ bufferSize: 4096, useAsync: true)) { }
                 // if get success response then delete files. 
                 if (response.IsSuccessStatusCode)
                 {
+                    StoreInvalidOrBadRequest(manifest, downloadedFiles, errorPath, mailPiece.Id);
                     DeleteFiles(downloadedFiles);
                     sw.Stop();
                     perf.Add(sw.Elapsed.TotalSeconds);
@@ -364,7 +372,45 @@ bufferSize: 4096, useAsync: true)) { }
             {
                 var traceId = Guid.NewGuid();
                 log.Error("TraceId: {0}, Message: {1}".Fill(traceId, e.Message), e);
+                StoreInvalidOrBadRequest(manifest, downloadedFiles, errorPath, traceId);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Unexpected error. TraceId : {0}".Fill(traceId));
+            }
+        }
+
+        private void StoreInvalidOrBadRequest(string[] manifest, List<string> downloadedFiles, string rejectedPath, Guid uniqueId)
+        {
+            if (uniqueId == Guid.Empty)
+                uniqueId = Guid.NewGuid();
+
+            string zipFilePath = Path.Combine(rejectedPath, $"{uniqueId}.zip");
+            using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.OpenOrCreate))
+            {
+                using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
+                {
+                    // ZipFile.CreateFromDirectory("", "", CompressionLevel.Fastest, false);
+                    ZipArchiveEntry xmlEntry = archive.CreateEntry(string.Format("{0}.json", uniqueId.ToString()));
+                    using (StreamWriter writer = new StreamWriter(xmlEntry.Open()))
+                    {
+                        writer.Write(manifest[0]);
+                    }
+                    if (downloadedFiles.Count > 0)
+                    {
+                        foreach (var file in downloadedFiles)
+                        {
+                            if (!File.Exists(file))
+                            {
+                                continue;
+                            }
+
+                            ZipArchiveEntry pdfEntry = archive.CreateEntry(Path.GetFileName(file));
+                            using (var pdfStream = pdfEntry.Open())
+                            using (var payloadStream = new FileStream(file, FileMode.Open, FileAccess.Read))
+                            {
+                                payloadStream.CopyTo(pdfStream, 81920);
+                            }
+                        }
+                    }
+                }
             }
         }
 
