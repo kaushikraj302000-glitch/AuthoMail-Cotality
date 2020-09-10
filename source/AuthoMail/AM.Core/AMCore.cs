@@ -531,6 +531,9 @@ namespace AM.Core
 
                                 if (!File.Exists(pdfFilePath) && docType.AllowInsertsOnly)
                                 {
+                                    if (File.Exists(outputFilePath))
+                                        File.Delete(outputFilePath);
+
                                     File.Move(coverLetterPdfPaths.First(), outputFilePath);
                                     mailPiece.TotalPages = PdfUtil.GetPageCount(outputFilePath);
                                 }
