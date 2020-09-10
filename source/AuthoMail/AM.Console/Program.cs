@@ -23,90 +23,97 @@ namespace AM.Console
 
             log.InfoFormat("Command line arguments : {0}", String.Join(",", args));
 
-            if (args.Length > 0)
+            try
             {
-                if (args[0] == "config")
+                if (args.Length > 0)
                 {
-                    System.Console.WriteLine("Seeding Start");
-
-                    using (var cfgSvc = new ConfigService())
+                    if (args[0] == "config")
                     {
-                        cfgSvc.SeedAMSettings();
-                    }
-                    Config.SaveAllSetting();
-                    System.Console.WriteLine("Seed Completed.");
-                    return;
-                }
-                else if (args[0] == "EffectiveReceivedOnCalculate")
-                {
-                    System.Console.WriteLine("Calculation Start");
+                        System.Console.WriteLine("Seeding Start");
 
-                    ReCalculateDueDate.UpdateErrorEffectiveReceivedOn();
-                    System.Console.WriteLine("Calculation Completed");
-                    return;
-                }
-                else if (args[0] == "VerifyAddress")
-                {
-                    System.Console.WriteLine("Calculation Start");
-
-                    ReCalculateDueDate.VerifyAddressesWithCity();
-                    System.Console.WriteLine("Calculation Completed");
-                    return;
-                }
-                else if (args[0] == "UpdatePnSConfigDetailId")
-                {
-                    System.Console.WriteLine("Update PnSConfigDetailId Start");
-
-                    ReCalculateDueDate.UpdatePnSConfigDetailId();
-
-                    System.Console.WriteLine("Update PnSConfigDetailId Completed");
-                    return;
-                }
-                else if (args[0] == "BatchReporting")
-                {
-                    //This will be used as How system will report back to the client. means based on response of printbatches table or full response so Here user needs to pass "Incremental" Or "Full" then comma separated SFTChannel codes
-                    string reportType = args.Length > 2 ? args[1] : string.Empty;
-
-                    if (string.IsNullOrEmpty(reportType))
+                        using (var cfgSvc = new ConfigService())
+                        {
+                            cfgSvc.SeedAMSettings();
+                        }
+                        Config.SaveAllSetting();
+                        System.Console.WriteLine("Seed Completed.");
                         return;
-
-
-                    string[] channelList = args[2].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
-                    if (reportType == "API")
+                    }
+                    else if (args[0] == "EffectiveReceivedOnCalculate")
                     {
-                        PChannel.ReportBack(channelList, reportType);
+                        System.Console.WriteLine("Calculation Start");
+
+                        ReCalculateDueDate.UpdateErrorEffectiveReceivedOn();
+                        System.Console.WriteLine("Calculation Completed");
+                        return;
+                    }
+                    else if (args[0] == "VerifyAddress")
+                    {
+                        System.Console.WriteLine("Calculation Start");
+
+                        ReCalculateDueDate.VerifyAddressesWithCity();
+                        System.Console.WriteLine("Calculation Completed");
+                        return;
+                    }
+                    else if (args[0] == "UpdatePnSConfigDetailId")
+                    {
+                        System.Console.WriteLine("Update PnSConfigDetailId Start");
+
+                        ReCalculateDueDate.UpdatePnSConfigDetailId();
+
+                        System.Console.WriteLine("Update PnSConfigDetailId Completed");
+                        return;
+                    }
+                    else if (args[0] == "BatchReporting")
+                    {
+                        //This will be used as How system will report back to the client. means based on response of printbatches table or full response so Here user needs to pass "Incremental" Or "Full" then comma separated SFTChannel codes
+                        string reportType = args.Length > 2 ? args[1] : string.Empty;
+
+                        if (string.IsNullOrEmpty(reportType))
+                            return;
+
+
+                        string[] channelList = args[2].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        if (reportType == "API")
+                        {
+                            PChannel.ReportBack(channelList, reportType);
+                        }
+                        else
+                        {
+                            Channel.ReportBack(channelList, reportType);
+                        }
+                    }
+                    else if (args[0] == "Purging")
+                    {
+                        Purging.StartPurging();
+                    }
+                    else if (args[0] == "Delete")
+                    {
+                        Purging.DeleteFiles();
+                    }
+                    else if (args[0] == "PurgeDBRecords")
+                    {
+                        Purging.PurgeDBRecords();
                     }
                     else
                     {
-                        Channel.ReportBack(channelList, reportType);
-                    }
-                }
-                else if (args[0] == "Purging")
-                {
-                    Purging.StartPurging();
-                }
-                else if (args[0] == "Delete")
-                {
-                    Purging.DeleteFiles();
-                }
-                else if (args[0] == "PurgeDBRecords")
-                {
-                    Purging.PurgeDBRecords();
-                }
-                else
-                {
-                    using (var channel = ChannelFactory.Create(args))
-                    {
-                        if (channel == null)
+                        using (var channel = ChannelFactory.Create(args))
                         {
-                            log.Error("Channel prefix '{0}' is invalid.".Fill(args[0]));
-                            return;
-                        }
+                            if (channel == null)
+                            {
+                                log.Error("Channel prefix '{0}' is invalid.".Fill(args[0]));
+                                return;
+                            }
 
-                        channel.ProcessBatches();
+                            channel.ProcessBatches();
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Error occured in Main Program For {string.Join(",", args)}", ex);
             }
         }
     }

@@ -642,6 +642,7 @@ namespace AM.Console
 
                 Parallel.ForEach(downloadBatches, (mailBatch) =>
                 {
+                    log.Debug($"Parallel Process Started For Batch Id {mailBatch.Id}");
                     //using (var mailBatchSvc = new MailBatchService())
                     //using (var mailPieceSvc = new MailPieceService())
                     using (var commonSvc = new CommonService())
@@ -1014,6 +1015,7 @@ namespace AM.Console
                             return;
                         }
                     }
+                    log.Debug($"Parallel Process Completed For Batch Id {mailBatch.Id}");
                 });
 
             }

@@ -139,7 +139,7 @@ namespace AM.Console
                 {
                     int responseCount = mailAPIResponses.Count;
                     int maxResponse = sftChannelDetails.APIMaxResponseCount;
-                    
+
                     using (HttpClient httpClient = new HttpClient())
                     {
                         var token = await GenerateToken(httpClient, sftChannelDetails);
@@ -797,12 +797,12 @@ namespace AM.Console
                     VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = takenAddressesList };
                     verifiedAddressCount += maxAddressVerification;
                     VerifierAddressResponse verifierAddResponse;
-
+                    log.Debug($"USPS Service Call Started For Batch Id :{mailBatch.Id}");
                     using (IUSPSService uspsSvc = new USPSService())
                     {
                         verifierAddResponse = uspsSvc.VerifyAddressAsync(commonSvc.GetSystemUserId(), verifierAddRequest).Result;
                     }
-
+                    log.Debug($"USPS Service Call Completed For Batch Id :{mailBatch.Id}");
                     if (verifierAddResponse != null)
                     {
                         //if any error at VerifierAddressResponse level then throw unexpected error and exit from loop
