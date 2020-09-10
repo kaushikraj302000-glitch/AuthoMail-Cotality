@@ -103,8 +103,8 @@ namespace AM.Services
         {
             string sql = @"SELECT c.Id, c.Name FROM Common.Clients c 
 inner join Common.ClientUserMapping cu on c.Id = cu.ClientId
-WHERE c.IsAMActive = 1 and cu.UserId = @userId";
-            return await db.QueryAsync<ClientIdName>(sql, new { userId = userId });
+WHERE cu.status=@status and c.IsAMActive = 1 and cu.UserId = @userId";
+            return await db.QueryAsync<ClientIdName>(sql, new { userId = userId, status = ClientUserMappingStatusTypes.Approved });
         }
     }
     public static class HomeServiceQuery
