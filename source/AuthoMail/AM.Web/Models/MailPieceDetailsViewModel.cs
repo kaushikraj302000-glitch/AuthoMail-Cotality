@@ -71,5 +71,8 @@ namespace AM.Web.Models
         public string PrintLocation { get; set; }
         public string PrintBatch { get; set; }
         public string PrintFileName { get; set; }
+        public string Inserts { get; set; }
+        public string ShipmentStatus { get; set; }
+        public DateTime? ShipmentStatusUpdatedOn { get; set; }
     }
 }
