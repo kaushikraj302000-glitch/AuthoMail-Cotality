@@ -101,7 +101,7 @@
                             <input type="text" name="Shippers" id="Shippers" style="display:none" />
                             <div>
 
-                                <span for="Shippers" id="Shippers_Error" class="error" style="display:none">You must add atlest on Shipper of envelop.</span>
+                                <span for="Shippers" id="Shippers_Error" class="error" style="display:none">You must add at least one shipper.</span>
                             </div>
                         </div>
                     </div>
@@ -220,7 +220,7 @@
                         remote: function () { return jQuery.format("{0} is already exists.", $("#EnvelopeName").val()) }
                     },
                     Shippers: {
-                        required: "You must add atlest on Shipper of envelop."
+                        required: "You must add at least one shipper."
                         }
                 },
                 submitHandler: function (form) {
