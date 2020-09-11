@@ -100,7 +100,7 @@ namespace AM.Web.Controllers
             if (IsCL) roles.Add(AMRoles.BA);
 
             //var appCodes = await clientPermissionSvc.GetAppCodeByUserIdORall(IsCL ? null : userId);
-            var domainAppCode = await clientPermissionSvc.GetClientDomainByDomainName(new MailAddress(user.Email).Host);
+            var domainAppCode = IsCL ? await clientPermissionSvc.GetClientDomainForCL() : await clientPermissionSvc.GetClientDomainByDomainName(new MailAddress(user.Email).Host);
             var userRole = await UserManager.GetRolesAsync(user.Id);
             var approveAppCode = await clientPermissionSvc.GetApproveAppCodesByUserId(user.Id);
             var data = new
@@ -108,7 +108,7 @@ namespace AM.Web.Controllers
                 roles = roles,
                 isCL = IsCL,
                 domainAppCode = domainAppCode,
-                userRole = userRole.Select(u => u == AMRoles.BA || u == AMRoles.Client).FirstOrDefault(),
+                userRole = userRole.Where(u => u == AMRoles.BA || u == AMRoles.Client).FirstOrDefault(),
                 approveAppCode = approveAppCode
             };
             return Json(JsonResponseFactory.SuccessResponse(data), JsonRequestBehavior.AllowGet);
@@ -139,12 +139,12 @@ namespace AM.Web.Controllers
                 {
                     return Json(JsonResponseFactory.ErrorResponse("Status can't be empty."), JsonRequestBehavior.AllowGet);
                 }
-                if (role.IsNullOrWhiteSpace())
+                if (role.IsNullOrWhiteSpace() && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
                 {
                     return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
                 }
 
-
+                var user = await UserManager.FindByIdAsync(userId);
                 var model = new KeyValuePair<bool, string>();
                 string partiallyApproveRequest = null;
                 if (role == AMRoles.Client && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
@@ -157,7 +157,14 @@ namespace AM.Web.Controllers
                     {
                         return Json(JsonResponseFactory.ErrorResponse("Please select AppCode(s)."), JsonRequestBehavior.AllowGet);
                     }
-                    var output = await clientPermissionSvc.ApproveOrDeclinedClientsForUser(userId, clientIds, User.Identity.GetUserId());
+                    //CL user Remove BA role and add Client role
+                    if (CLAuthentication.HasCorelogicAccount(user.Email))
+                    {
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
+                        await UserManager.AddToRoleAsync(userId, AMRoles.Client);
+                    }
+                    var output = await clientPermissionSvc.ApproveOrDeclinedClientsForUser(userId, clientIds, User.Identity.GetUserId(), CLAuthentication.HasCorelogicAccount(user.Email));
 
                     if (output.Any(o => o.Status == ClientUserMappingStatusTypes.Declined))
                     {
@@ -177,9 +184,15 @@ namespace AM.Web.Controllers
                 }
                 else
                 {
+                    if (status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase) && CLAuthentication.HasCorelogicAccount(user.Email))
+                    {
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
+                        await UserManager.AddToRoleAsync(userId, AMRoles.BA);
+                    }
                     model = supportSvc.UpdateUsersRequestSignUp(userId, status, User.Identity.GetUserId());
                 }
-                var user = UserManager.FindById(userId);
+
 
                 string template = status.Equals(AMUserStatus.Approved) ? "ApproveRegistration.html" : "RejectRegistration.html";
                 if (!(partiallyApproveRequest.IsNullOrWhiteSpace()))
