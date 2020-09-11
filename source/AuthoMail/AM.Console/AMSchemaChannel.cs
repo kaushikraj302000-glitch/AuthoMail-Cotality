@@ -70,7 +70,7 @@ namespace AM.Console
 
                     #region Create General Channel Directory.
                     //Here first we are cleaning AMC folder
-                    string channelDownloadPath = Path.Combine(Config.Common_AuthoMailRootFolder, "GENERAL", SFTChannel.Code.Split('_')[0]);
+                    string channelDownloadPath = Path.Combine(Config.Common_AuthoMailRootFolder, "GENERAL", SFTChannel.GetChannelCode());
 
                     if (Directory.Exists(channelDownloadPath))
                     {
@@ -553,7 +553,7 @@ namespace AM.Console
         {
             MailBatchDTO mailBatch = new MailBatchDTO();
             mailBatch.UniqueId = Guid.NewGuid();
-            mailBatch.ClientId = GetInvalidClient(SFTChannel.Code.Split('_')[0]).Id;
+            mailBatch.ClientId = GetInvalidClient(SFTChannel.GetChannelCode()).Id;
             mailBatch.SFTChannelId = SFTChannel.Id;
             mailBatch.BatchName = batchName;
             mailBatch.ClientBatchId = batchName;
@@ -1298,9 +1298,11 @@ namespace AM.Console
 
             if (erroredMPs.Count() > 0)
             {
-                switch (SFTChannel.Code.Split('_')[0].ToUpper())
+                string sftChannelCode = SFTChannel.GetChannelCode().ToUpper();
+                // #ChannelCode
+                switch (sftChannelCode)
                 {
-                    case "ELLIEMAE":
+                    case "API_ELLIEMAE":
                         //NOTE : Reason to use FirstOrDefault : AM will get only single request using API
                         errorReportFileName = "{0}-{1}-{2}.json".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
                         errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
@@ -1338,7 +1340,8 @@ namespace AM.Console
                 SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
                 sftSite.Connect();
 
-                string sftChannelCode = SFTChannel.Code.Split('_')[0].ToUpper();
+                // #ChannelCode
+                string sftChannelCode = SFTChannel.GetChannelCode().ToUpper();
                 string ftpUploadPath = "";
                 switch (sftChannelCode)
                 {

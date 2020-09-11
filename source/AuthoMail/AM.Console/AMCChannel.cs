@@ -71,7 +71,7 @@ namespace AM.Console
 
                     #region Create AMC Directory.
                     //Here first we are cleaning AMC folder
-                    string amcDownloadPath = Path.Combine(Config.Common_AuthoMailRootFolder, SFTChannel.Code.Split('_')[0]);
+                    string amcDownloadPath = Path.Combine(Config.Common_AuthoMailRootFolder, SFTChannel.GetChannelCode());
 
                     if (Directory.Exists(amcDownloadPath))
                     {

@@ -33,6 +33,7 @@ namespace AM.Services
         public static string Common_ErrorSubscribedEmailSubject { get; private set; }
         public static string Common_ErrorSubscribedEmailCc { get; private set; }
         public static string Common_ErrorSubscribedEmailTemplate { get; private set; }
+        public static string Common_LandScapUSPSLabels { get; private set; }
 
         public static List<Holiday> GetHolidaysByClientId(int clientId)
         {
@@ -210,7 +211,10 @@ namespace AM.Services
         public static string Web_API_USPS_MainlandStates { get; private set; }
         public static string Web_API_USPS_eVSAPIName { get; private set; }
         public static string Web_API_USPS_eVSCancelAPIName { get; private set; }
-
+        public static int Web_API_USPS_TrackingCount { get; private set; }
+        public static string Web_API_USPS_TrackingAPIName { get; private set; }
+        public static string Web_API_USPS_TrackingSourseZipCode { get; private set; }
+        public static bool Web_API_USPS_Tracking_IsDbLoggingEnabled { get; private set; }
         #endregion
 
         #region E-DeliveryAPI
@@ -249,6 +253,7 @@ namespace AM.Services
         public static int EllieMae_MaxResponseCount { get; set; }
         public static string MailRequestAPI_FilesDownloadPath { get; set; }
         public static int MailRequestAPI_MaxRequestSize { get; set; }
+        public static string PGP_Passphrase { get; set; }
 
         #endregion
 

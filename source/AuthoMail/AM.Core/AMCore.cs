@@ -218,7 +218,7 @@ namespace AM.Core
                                     {
                                         eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>());
 
-                                        response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
+                                        response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
 
 
                                         if (response.HasError && (uspsExceptionCodes.Any(code => response.ExceptionCode.Contains(code)) && uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
@@ -248,7 +248,7 @@ namespace AM.Core
 
                                             eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
-                                            response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
+                                            response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
                                             break;
                                         }
                                         else
@@ -281,7 +281,7 @@ namespace AM.Core
                                     {
                                         eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
-                                        response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
+                                        response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
 
                                         if (response.HasError && (uspsExceptionCodes.Any(code => response.ExceptionCode.Contains(code)) || uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
                                         {
@@ -394,7 +394,7 @@ namespace AM.Core
 
                                                 eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>());
 
-                                                response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
+                                                response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
 
                                                 if (response.HasError)
                                                 {
@@ -417,7 +417,7 @@ namespace AM.Core
 
                                                     eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
-                                                    response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
+                                                    response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
                                                 }
                                             }
                                             else
@@ -439,7 +439,7 @@ namespace AM.Core
 
                                                 eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
-                                                response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.RcptAddressTypes);
+                                                response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
                                             }
 
                                             if (response.HasError)
@@ -628,7 +628,7 @@ namespace AM.Core
                 sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId).Result;
                 SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
                 sftSite.Connect();
-                switch (sftChannel.Code.Split('_')[0])
+                switch (sftChannel.GetChannelCode())
                 {
                     case "ALASKA":
                         break;
@@ -771,15 +771,20 @@ namespace AM.Core
             eVSReq.ImageType = ImageType.PDF;
             eVSReq.POZipCode = "75099";
             eVSReq.SenderName = clientName;
-            //if (eVSReq.ServiceType == AM.USPSLib.ServiceType.PRIORITY)
-            //{
-            if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()))
-                eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6L };
+
+            if (Config.Common_LandScapUSPSLabels.Contains(mailPiece.EnvelopeName))
+            {
+                eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.SEPARATECONTINUEPAGE };
+            }
             else
-                eVSReq.LabelParameters = new LabelParameters() { XCoordinate = 450, YCoordinate = 500, Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P };
-            //}
-            //else
-            //    eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.SEPARATECONTINUEPAGE };//TODO : Change if required 50
+            {
+                if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()))
+                    eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6L };
+                else
+                    eVSReq.LabelParameters = new LabelParameters() { XCoordinate = 450, YCoordinate = 500, Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.LABEL4X6P };
+            }
+
+
             // From Address
             eVSReq.CustomerRefNo = mailPiece.Id.ToString();
             eVSReq.FromName = (mailPiece.RetRcptFirstName + " " + mailPiece.RetRcptLastName).Trim();
@@ -918,7 +923,7 @@ namespace AM.Core
             {
                 sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mbi.MailBatch.SFTChannelId).Result;
 
-                switch (sftChannel.Code.Split('_')[0])
+                switch (sftChannel.GetChannelCode())
                 {
                     case "AMC":
                         using (IAMCService amcSvc = new AMCService())
@@ -1545,7 +1550,8 @@ namespace AM.Core
 
         private static bool GenerateFinalReports(MailBatchInfo mbi, List<MailPieces> mailPieces, List<Deliverable> deliverables, SFTChannel sftChannel)
         {
-            string sftChannelCode = sftChannel.Code.Split('_')[0].ToUpper();
+            // #ChannelCode
+            string sftChannelCode = sftChannel.GetChannelCode().ToUpper();
             var increamentalReportingChannels = Config.Core_IncrementalReportingChannelCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
             increamentalReportingChannels = increamentalReportingChannels.Select(c => c + "_" + Config.Common_Environment).ToList();
@@ -1639,7 +1645,7 @@ namespace AM.Core
                                 }
                             }
                             break;
-                        case "ELLIEMAE":
+                        case "API_ELLIEMAE":
                             using (ICommonService commonSvc = new CommonService())
                             using (IGeneralService generalSvc = new GeneralService())
                             {
