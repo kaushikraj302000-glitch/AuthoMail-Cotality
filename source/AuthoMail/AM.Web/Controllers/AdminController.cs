@@ -139,7 +139,7 @@ namespace AM.Web.Controllers
                 {
                     return Json(JsonResponseFactory.ErrorResponse("Status can't be empty."), JsonRequestBehavior.AllowGet);
                 }
-                if (role.IsNullOrWhiteSpace())
+                if (role.IsNullOrWhiteSpace() && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
                 {
                     return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
                 }
@@ -184,7 +184,7 @@ namespace AM.Web.Controllers
                 }
                 else
                 {
-                    if (CLAuthentication.HasCorelogicAccount(user.Email))
+                    if (status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase) && CLAuthentication.HasCorelogicAccount(user.Email))
                     {
                         await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
                         await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
