@@ -151,6 +151,8 @@ namespace AM.Console
                         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                         httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
+
+                        // Parallel submit
                         var responseBatches = mailAPIResponses
                             .Batch(sftChannelDetails.APIMaxResponseCount)
                             .Select(responseBatch => SubmitBatchResponse(httpClient, responseBatch, sftChannelDetails));
@@ -158,6 +160,13 @@ namespace AM.Console
                         var responseTasks = responseBatches.ToArray();
 
                         await Task.WhenAll(responseTasks);
+
+                        //// Sequential submit
+                        //var responseBatches = mailAPIResponses.Batch(sftChannelDetails.APIMaxResponseCount);
+                        //foreach (var responseBatch in responseBatches)
+                        //{
+                        //    await SubmitBatchResponse(httpClient, responseBatch, sftChannelDetails);
+                        //}
                     }
                 }
                 catch (Exception ex)
@@ -378,7 +387,7 @@ namespace AM.Console
             if (deliveryReportDeliverable.EmailChannel == null && errorReportDeliverable.EmailChannel == null)
                 return;
 
-            switch (sftChannelDetail.Code.Split('_')[0].ToUpper())
+            switch (sftChannelDetail.GetChannelCode().ToUpper())
             {
                 case "HSBC":
                     using (IHSBCService hsbcSvc = new HSBCService())
@@ -480,7 +489,7 @@ namespace AM.Console
             string deliveryUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
             string errorUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Error).UploadPath;
             string ftpUploadPath = "";
-            string sftChannelCode = sftChannelDetails.Code.Split('_')[0].ToUpper();
+            string sftChannelCode = sftChannelDetails.GetChannelCode().ToUpper();
             string zipFileName, zipFilePath;
             List<string> resXmlList;
             switch (sftChannelCode)
@@ -612,7 +621,7 @@ namespace AM.Console
 
             increamentalReportingChannels = increamentalReportingChannels.Select(c => c + "_" + Config.Common_Environment).ToList();
 
-            switch (sftChannelDetail.Code.Split('_')[0].ToUpper())
+            switch (sftChannelDetail.GetChannelCode().ToUpper())
             {
                 case "ALASKA":
 

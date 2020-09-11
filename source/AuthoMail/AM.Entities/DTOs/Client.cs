@@ -48,6 +48,13 @@ namespace AM.Entities
                     .Select(line => line.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries))
                     .ToDictionary(pair => pair[0].Trim(), pair => pair[1].Trim());
         }
+
+        public string GetChannelCode()
+        {
+            if (!string.IsNullOrWhiteSpace(Code))
+                return Code.Substring(0, Code.LastIndexOf("_"));
+            return null;
+        }
     }
 
     public class ClientBusinessIdentifier
