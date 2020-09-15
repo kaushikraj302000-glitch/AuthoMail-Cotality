@@ -23,6 +23,7 @@ using System.Web.UI.WebControls;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using iTextSharp.text.exceptions;
+using System.Collections.ObjectModel;
 
 namespace AM.Web.Controllers
 {
@@ -102,6 +103,9 @@ bufferSize: 4096, useAsync: true)) { }
             catch (Exception ex)
             {
                 var traceId = Guid.NewGuid();
+
+                //await StoreInvalidOrBadRequest(JsonConvert.SerializeObject(mailPiece), new List<string>() { mailPiece.DocumentOrPackage.Path }, Path.Combine(Config.MailRequestAPI_FilesDownloadPath, "BadRequests"), traceId, ex.ToString());
+
                 log.Error("TraceId: {0}, Message: {1}".Fill(traceId, ex.Message), ex);
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Unexpected error. TraceId : {0}".Fill(traceId));
             }
@@ -114,6 +118,8 @@ bufferSize: 4096, useAsync: true)) { }
             List<double> perf = new List<double>();
             Stopwatch sw = new Stopwatch();
             sw.Start();
+            string root = Config.MailRequestAPI_FilesDownloadPath;
+            string errorPath = Path.Combine(root, "BadRequests");
             var receivedOn = Common.Now;
             var mailPiece = new MailPiece();
             if (Request.Content.Headers.ContentLength / 1024f / 1024f > Config.MailRequestAPI_MaxRequestSize)
@@ -123,13 +129,14 @@ bufferSize: 4096, useAsync: true)) { }
             }
             //TO DO: create local path and upload
             //.57/d:/UAT/WEB/
-            string root = Config.MailRequestAPI_FilesDownloadPath;
             sw.Stop();
             perf.Add(sw.Elapsed.TotalSeconds);
             log.DebugFormat("Request size check: {0}", sw.Elapsed.TotalSeconds);
             sw.Restart();
             var provider = new MultipartFormDataStreamProvider(root);
 
+            string[] manifest = new string[] { };
+            List<string> downloadedFiles = new List<string>();
             try
             {
                 await Request.Content.ReadAsMultipartAsync(provider);
@@ -137,29 +144,32 @@ bufferSize: 4096, useAsync: true)) { }
                 perf.Add(sw.Elapsed.TotalSeconds);
                 log.DebugFormat("Files Downloaded: {0}", sw.Elapsed.TotalSeconds);
                 sw.Restart();
-                SFTChannel sFTChannel;
+                SFTChannel sftChannel;
                 Client client;
                 MailBatch mailBatch = new MailBatch()
                 {
                     Id = Guid.NewGuid()
                 };
 
-                var manifest = provider.FormData.GetValues("Manifest");
+                manifest = provider.FormData.GetValues("Manifest");
                 var filekeys = provider.FileData.Select(f => f.Headers.ContentDisposition.Name).ToList();
                 //validation for "Manifest"
                 string manifestErrDesc = ValidateManifestRequest(ref mailPiece, manifest, filekeys);
-                var downloadedFiles = provider.FileData.Select(f => f.LocalFileName).ToList();
+                downloadedFiles = provider.FileData.Select(f => f.LocalFileName).ToList();
                 if (!manifestErrDesc.IsNullOrWhiteSpace())
                 {
                     // delete downloaded files in case of exception, send path, line no, position in bad request
+                    await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, manifestErrDesc);
+
                     DeleteFiles(downloadedFiles);
+
                     var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = manifestErrDesc }, receivedOn);
                     return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                 }
 
                 using (IClientService clientService = new ClientService())
                 {
-                    sFTChannel = await clientService.GetSFTChannelDetailsBySFTChannelId(User.Identity.SFTChannelId().Value);
+                    sftChannel = await clientService.GetSFTChannelDetailsBySFTChannelId(User.Identity.SFTChannelId().Value);
                 }
 
                 // Validate manifest contents
@@ -173,8 +183,12 @@ bufferSize: 4096, useAsync: true)) { }
                     //Check mailpiece id is unique.
                     if (commonSvc.CheckForDuplicateMailPieceUniqueId(mailPiece.Id))
                     {
+                        var msg = string.Format("The specified package id '{0}' conflicts with an existing package. Retry with a new GUID.", mailPiece.Id);
+
+                        await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg);
+
                         DeleteFiles(downloadedFiles);
-                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_DuplicateKey, ErrorMessage = string.Format("The specified package id '{0}' conflicts with an existing package. Retry with a new GUID.", mailPiece.Id) }, receivedOn);
+                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_DuplicateKey, ErrorMessage = msg }, receivedOn);
                         return Request.CreateResponse(HttpStatusCode.Conflict, res);
                     }
                 }
@@ -184,34 +198,41 @@ bufferSize: 4096, useAsync: true)) { }
                     client = await clientService.GetClientByAppCode(mailPiece.ClientCode);
                     if (client == null)
                     {
+                        string msg = "Invalid client code specified.";
+
+                        await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg);
+
                         DeleteFiles(downloadedFiles);
+
                         //Return error response and insert entry of invalid_client                                           
-                        var invalidClient = await clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "_Invalid");
-                        await InsertInvalidBatch(receivedOn, sFTChannel, mailBatch, invalidClient.Id, "Invalid client code specified.");
+                        var invalidClient = await clientService.GetClientByAppCode(sftChannel.GetChannelCode() + "_Invalid");
+                        await InsertInvalidBatch(receivedOn, sftChannel, mailBatch, invalidClient.Id, msg);
                         if (mailPiece.DocumentOrPackage != null) mailPiece.DocumentOrPackage.IncludePatternBaseString = false;
-                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_ClientCode, ErrorMessage = string.Format("Invalid client code specified.") }, receivedOn);
+                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_ClientCode, ErrorMessage = msg }, receivedOn);
                         return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                     }
                     mailBatch.ClientCode = client.AppCode;
                     mailBatch.ClientBatchId = mailBatch.Id.ToString();
 
                 }
-
-                switch (sFTChannel.Code.Split('_')[0].ToUpper())
+                // #ChannelCode
+                switch (sftChannel.GetChannelCode().ToUpper())
                 {
-                    case "ELLIEMAE":
                     default:
                         var result = ValidateClientSpecificRules(mailBatch, client);
                         if (result.Code != OutComeCodes.No_Error)
                         {
+                            await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, result.ErrorMessage);
+
                             DeleteFiles(downloadedFiles);
+
                             //insert error and response
                             using (IMailBatchService mailBatchService = new MailBatchService())
                             using (ICommonService commonSvc = new CommonService())
                             using (IMailPieceService mailPieceService = new MailPieceService())
                             {
 
-                                int mailBatchId = await mailBatchService.InsertBatchDetails(mailBatch, client.Id, sFTChannel);
+                                int mailBatchId = await mailBatchService.InsertBatchDetails(mailBatch, client.Id, sftChannel);
                                 // insert mailpiece
                                 int mailPieceId = await mailPieceService.InsertBatchMailPieceDetails(mailPiece, client.Id, mailBatchId, result.Code, result.ErrorMessage);
                                 await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.Received, receivedOn);
@@ -243,13 +264,21 @@ bufferSize: 4096, useAsync: true)) { }
                     // filepath null validation check
                     if (nullFilePathList.Count > 0)
                     {
-                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file not found for the following file key(s): {0}.".Fill(string.Join(",", nullFilePathList.Select(n => n.Key))) }, receivedOn);
+                        var msg = "Pdf file not found for the following file key(s): {0}.".Fill(string.Join(",", nullFilePathList.Select(n => n.Key)));
+
+                        await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg);
+
+                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = msg }, receivedOn);
                         return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                     }
 
                     if (files.Count > 99)
                     {
-                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = "Up to 99 pdf files are supported per mailpiece." }, receivedOn);
+                        var msg = "Up to 99 pdf files are supported per mailpiece.";
+
+                        await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg);
+
+                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Manifest_Missing_Or_Invalid, ErrorMessage = msg }, receivedOn);
                         return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                     }
                     sw.Stop();
@@ -268,7 +297,7 @@ bufferSize: 4096, useAsync: true)) { }
                     using (var doc = new Document())
                     using (var copy = new PdfSmartCopy(doc, ds))
                     {
-                        
+
                         // This is done to open and merge (Secured) PDFs which allow printing but not copying or merging
                         PdfReader.unethicalreading = true;
                         //Loop through each input file                        
@@ -288,17 +317,22 @@ bufferSize: 4096, useAsync: true)) { }
                                     catch (Exception e)
                                     {
                                         log.Error(e.Message, e);
+
+                                        var msg = $"Unable to decrypt file : {file.Key}.";
+
+                                        await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg + Environment.NewLine + e.ToString());
+
                                         // if there are any exceptions while decrypting pdf, don't delete files and send bad reqeust with mailresponse object, it should contain file names
-                                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "Unable to decrypt file : {0}.".Fill(file.Key) }, receivedOn);
+                                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = msg }, receivedOn);
                                         return Request.CreateResponse(HttpStatusCode.BadRequest, res);
-                                    } 
+                                    }
                                 }
                                 #endregion
 
                                 using (var reader = new PdfReader(decryptedFilePath))
                                 {
                                     mailPiece.CustomInfo.Add(new Metadata { Key = file.Key, Value = "FileName:{0} | PageCount: {1}".Fill(file.Value.Headers.ContentDisposition.FileName.Replace("\"", ""), reader.NumberOfPages) });
-                                    
+
                                     //open document
                                     if (!doc.IsOpen()) doc.Open();
                                     //Add the entire document
@@ -310,8 +344,12 @@ bufferSize: 4096, useAsync: true)) { }
                             catch (Exception e)
                             {
                                 log.Error(e.Message, e);
+                                var msg = $"'{file.Key}' pdf file is either corrupt or has no pages.";
+
+                                await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg + Environment.NewLine + e.ToString());
+
                                 // if there are any exceptions while counting pages or merging, don't delete files and send badreqeust with mailresponse object, it should contain file names
-                                var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "'{0}' pdf file is either corrupt or has no pages.".Fill(file.Key) }, receivedOn);
+                                var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = msg }, receivedOn);
                                 return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                             }
                         }
@@ -337,7 +375,7 @@ bufferSize: 4096, useAsync: true)) { }
                 mailPiece.DocumentOrPackage.Name = mailPiece.DocumentOrPackage.Name.IsNullOrWhiteSpace() ? "{0}.pdf".Fill(mailPiece.BusinessFriendlyIdValue.GetValidFileName()) : mailPiece.DocumentOrPackage.Name;
 
 
-                var response = await CreateAMBatch(mailBatch, mailPiece, sFTChannel, receivedOn);
+                var response = await CreateAMBatch(mailBatch, mailPiece, sftChannel, receivedOn);
                 sw.Stop();
                 perf.Add(sw.Elapsed.TotalSeconds);
                 log.DebugFormat("Batch created: {0}", sw.Elapsed.TotalSeconds);
@@ -365,7 +403,54 @@ bufferSize: 4096, useAsync: true)) { }
             {
                 var traceId = Guid.NewGuid();
                 log.Error("TraceId: {0}, Message: {1}".Fill(traceId, e.Message), e);
+
+                await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, traceId, e.ToString());
+
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Unexpected error. TraceId : {0}".Fill(traceId));
+            }
+        }
+
+        private async Task StoreInvalidOrBadRequest(string manifest, Collection<MultipartFileData> fileData, string rejectedPath, Guid uniqueId, string error)
+        {
+            if (uniqueId == Guid.Empty)
+                uniqueId = Guid.NewGuid();
+
+            //Store Error
+            File.WriteAllText(Path.Combine(rejectedPath, $"{uniqueId}.txt"), error);
+
+            string zipFilePath = Path.Combine(rejectedPath, $"{uniqueId}.zip");
+
+            using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.Create))
+            {
+                using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
+                {
+                    ZipArchiveEntry xmlEntry = archive.CreateEntry($"{uniqueId}.json");
+
+                    using (StreamWriter writer = new StreamWriter(xmlEntry.Open()))
+                    {
+                        await writer.WriteAsync(manifest);
+                    }
+
+                    if (fileData.Count > 0)
+                    {
+                        var cnt = 1;
+                        foreach (var file in fileData)
+                        {
+                            if (!File.Exists(file.LocalFileName))
+                            {
+                                continue;
+                            }
+                            string fileName = $"{cnt++}_{file.Headers.ContentDisposition.Name}_{file.Headers.ContentDisposition.FileName}".Replace("\"", "");
+                            ZipArchiveEntry pdfEntry = archive.CreateEntry(fileName);
+                            using (var pdfStream = pdfEntry.Open())
+                            using (var payloadStream = new FileStream(file.LocalFileName, FileMode.Open, FileAccess.Read))
+                            {
+                                await payloadStream.CopyToAsync(pdfStream, 81920);
+                            }
+
+                        }
+                    }
+                }
             }
         }
 

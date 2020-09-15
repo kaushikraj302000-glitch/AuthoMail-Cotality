@@ -100,7 +100,7 @@ namespace AM.Web.Controllers
             if (IsCL) roles.Add(AMRoles.BA);
 
             //var appCodes = await clientPermissionSvc.GetAppCodeByUserIdORall(IsCL ? null : userId);
-            var domainAppCode = await clientPermissionSvc.GetClientDomainByDomainName(new MailAddress(user.Email).Host);
+            var domainAppCode = IsCL ? await clientPermissionSvc.GetClientDomainForCL() : await clientPermissionSvc.GetClientDomainByDomainName(new MailAddress(user.Email).Host);
             var userRole = await UserManager.GetRolesAsync(user.Id);
             var approveAppCode = await clientPermissionSvc.GetApproveAppCodesByUserId(user.Id);
             var data = new
@@ -108,7 +108,7 @@ namespace AM.Web.Controllers
                 roles = roles,
                 isCL = IsCL,
                 domainAppCode = domainAppCode,
-                userRole = userRole.Select(u => u == AMRoles.BA || u == AMRoles.Client).FirstOrDefault(),
+                userRole = userRole.Where(u => u == AMRoles.BA || u == AMRoles.Client).FirstOrDefault(),
                 approveAppCode = approveAppCode
             };
             return Json(JsonResponseFactory.SuccessResponse(data), JsonRequestBehavior.AllowGet);
@@ -139,12 +139,12 @@ namespace AM.Web.Controllers
                 {
                     return Json(JsonResponseFactory.ErrorResponse("Status can't be empty."), JsonRequestBehavior.AllowGet);
                 }
-                if (role.IsNullOrWhiteSpace())
+                if (role.IsNullOrWhiteSpace() && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
                 {
                     return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
                 }
 
-
+                var user = await UserManager.FindByIdAsync(userId);
                 var model = new KeyValuePair<bool, string>();
                 string partiallyApproveRequest = null;
                 if (role == AMRoles.Client && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
@@ -157,7 +157,14 @@ namespace AM.Web.Controllers
                     {
                         return Json(JsonResponseFactory.ErrorResponse("Please select AppCode(s)."), JsonRequestBehavior.AllowGet);
                     }
-                    var output = await clientPermissionSvc.ApproveOrDeclinedClientsForUser(userId, clientIds, User.Identity.GetUserId());
+                    //CL user Remove BA role and add Client role
+                    if (CLAuthentication.HasCorelogicAccount(user.Email))
+                    {
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
+                        await UserManager.AddToRoleAsync(userId, AMRoles.Client);
+                    }
+                    var output = await clientPermissionSvc.ApproveOrDeclinedClientsForUser(userId, clientIds, User.Identity.GetUserId(), CLAuthentication.HasCorelogicAccount(user.Email));
 
                     if (output.Any(o => o.Status == ClientUserMappingStatusTypes.Declined))
                     {
@@ -177,9 +184,15 @@ namespace AM.Web.Controllers
                 }
                 else
                 {
+                    if (status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase) && CLAuthentication.HasCorelogicAccount(user.Email))
+                    {
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
+                        await UserManager.AddToRoleAsync(userId, AMRoles.BA);
+                    }
                     model = supportSvc.UpdateUsersRequestSignUp(userId, status, User.Identity.GetUserId());
                 }
-                var user = UserManager.FindById(userId);
+
 
                 string template = status.Equals(AMUserStatus.Approved) ? "ApproveRegistration.html" : "RejectRegistration.html";
                 if (!(partiallyApproveRequest.IsNullOrWhiteSpace()))
@@ -230,7 +243,7 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
             }
             if (clientIds != null)
-                clientIds.RemoveAll(c=>c==0);
+                clientIds.RemoveAll(c => c == 0);
             if (role == AMRoles.Client && (clientIds == null || clientIds.Count == 0))
             {
                 return Json(JsonResponseFactory.ErrorResponse("Please select AppCode(s)."), JsonRequestBehavior.AllowGet);
@@ -1173,18 +1186,129 @@ namespace AM.Web.Controllers
             return View();
         }
 
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult CreateOrEditEnvelope(int? id)
+        {
+            var shippers = inventorySvc.ShipperSelectList();
+            ViewBag.Shippers = new SelectList(shippers, "Id", "Name");
+            if (id.HasValue)
+            {
+                return View(inventorySvc.GetEnvelopeWithShippers(id.Value));
+            }
+            
+            return View(new EnvelopesVM());
+        }
         [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult CreateOrEditEnvelope(Envelopes envelopes)
+        public ActionResult ShipperWiseStock(int ShipperId, string ShipperName)
+        {
+            return PartialView("_ShipperWiseStockDetails", new EnvelopeStockVM { ShipperName = ShipperName, ShipperId = ShipperId });
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult CreateOrEditEnvelope(EnvelopesVM envelopes)
         {
             try
             {
-                if (envelopes.Id == 0)
-                {
-                    var env = inventorySvc.FindEnvelopeById(envelopes.Id);
-                    if (env != null) return Json(JsonResponseFactory.ErrorResponse("Envelope already exists."), JsonRequestBehavior.AllowGet);
-                }
-
                 return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopes(envelopes, User.Identity.GetUserId())), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult IsEnvelopeNameExists(int id,string envelopeName)
+       {
+            return Json(inventorySvc.IsEnvelopeNameExists(id, envelopeName), JsonRequestBehavior.AllowGet);
+            // return Json(true, JsonRequestBehavior.AllowGet);
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult IsPartNumberExists(int id, string partNumber)
+        {
+            return Json(inventorySvc.IsPartNumberExists(id, partNumber), JsonRequestBehavior.AllowGet);
+            // return Json(true, JsonRequestBehavior.AllowGet);
+        }
+        #endregion
+
+        #region Manage Envelopes Inventory
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult ManageEnvelopesInventory()
+        {
+            return View();
+        }
+        public ActionResult GetEnvelopsInventory()
+        {
+            try
+            {
+                var model = inventorySvc.GetLast3MonthsInventoryEnvelopes();
+
+                return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult AddEnvelopInventory()
+        {
+            var envelopes = inventorySvc.GetEnvelopes().OrderBy(e => e.Order);
+            var shippers = inventorySvc.ShipperSelectList();
+            ViewBag.Envelops = new SelectList(envelopes, "Id", "EnvelopeName");
+            ViewBag.Shippers = new SelectList(shippers, "Id", "Name");
+            return PartialView("_AddEnvelopeInventory");
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult SaveEnvelopeInventory(EnvelopeInventory envelopeInventory)
+        {
+            try
+            {
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopeInventory(envelopeInventory, User.Identity.GetUserId())), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult RemoveEnvelopeInventoryById(int id)
+        {
+            try
+            {
+                inventorySvc.RemoveEnvelopeInventoryById(id);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = true }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+        public ActionResult ManageEnvelopesInventoryStock()
+        {
+            return View();
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetEnvelopeInventoryStock()
+        {
+            try
+            {
+                var model = inventorySvc.GetEnvelopeInventoryStockCalculation();
+
+                return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult UpdateReorderDuration(int envelopeId, int shipperId, int reorderDuration)
+        {
+            try
+            {
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.UpdateReorderDuration(envelopeId, shipperId, reorderDuration)), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
@@ -1210,7 +1334,7 @@ namespace AM.Web.Controllers
             }
         }
         [Authorize(Roles = AMRoles.Admin), HttpGet]
-        public ActionResult GetEnvelopeTransactionsByName(int id, string envelopeId)
+        public ActionResult GetEnvelopeTransactionsByName(int id, int envelopeId)
         {
             return PartialView("_AddOrEditEnvelopeTransactions", new EnvelopeInventory() { EnvelopeId = envelopeId });
         }
@@ -1316,6 +1440,6 @@ namespace AM.Web.Controllers
 
         #endregion
 
-       
+
     }
 }

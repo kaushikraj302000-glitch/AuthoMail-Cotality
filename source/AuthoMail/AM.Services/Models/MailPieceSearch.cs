@@ -182,6 +182,9 @@ namespace AM.Services
                     this.SLADays >= 0 ? this.ShippingStatus == AM.Entities.ShippingStatus.InProgress.ToString() ? this.ShippingStatus : "SLA Met" : "Missed SLA" : this.ShippingStatus;
             }
         }
+
+        public string ShipmentStatus { get; set; }
+        public DateTime? ShipmentStatusUpdatedOn { get; set; }
     }
     public class MailBatches
     {
@@ -515,6 +518,8 @@ namespace AM.Services
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
         public string PrintLocation { get; set; }
+        public string ShipmentStatus { get; set; }
+        public DateTime? ShipmentStatusUpdatedOn { get; set; }
 
     }
 

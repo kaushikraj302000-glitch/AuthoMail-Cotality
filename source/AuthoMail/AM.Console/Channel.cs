@@ -137,9 +137,9 @@ namespace AM.Console
             using (ICommonService commonSvc = new CommonService())
             using (IGeneralService genSvc = new GeneralService())
             {
-                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
+                SFTChannel sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
 
-                List<BatchResponse> reportPreppedMailPieces = mailPieceSvc.GetMailPieceResponsesListForReportPreppedBatches(sftChannelDetails.Id);
+                List<BatchResponse> reportPreppedMailPieces = mailPieceSvc.GetMailPieceResponsesListForReportPreppedBatches(sftChannel.Id);
 
                 log.Debug("Total Reported Backcount {0}".Fill(reportPreppedMailPieces.Count));
                 if (reportPreppedMailPieces == null || reportPreppedMailPieces.Count == 0)
@@ -152,9 +152,9 @@ namespace AM.Console
                 HttpResponseMessage responseResult = null;
                 List<MailAPIResponse> mailAPIResponses = genSvc.GenerateMailAPIResponse(reportPreppedMailPieces);
 
-                switch (sftChannelDetails.Code.Split('_')[0].ToUpper())
+                switch (sftChannel.GetChannelCode().ToUpper())
                 {
-                    case "ELLIEMAE":
+                    case "API_ELLIEMAE":
                         log.Debug("Going to EM");
                         try
                         {
@@ -385,7 +385,7 @@ namespace AM.Console
             }
         }
 
-        private static void GenerateAndSendProductionSummaryNotification(MailBatchInfo mbi, List<MailPieces> mailPieces, List<Deliverable> deliverables, SFTChannel sftChannelDetail)
+        private static void GenerateAndSendProductionSummaryNotification(MailBatchInfo mbi, List<MailPieces> mailPieces, List<Deliverable> deliverables, SFTChannel sftChannel)
         {
             string errorReportPath = string.Empty;
             string errorReportFileName = string.Empty;
@@ -401,7 +401,7 @@ namespace AM.Console
             if (deliveryReportDeliverable.EmailChannel == null && errorReportDeliverable.EmailChannel == null)
                 return;
 
-            switch (sftChannelDetail.Code.Split('_')[0].ToUpper())
+            switch (sftChannel.GetChannelCode().ToUpper())
             {
                 case "HSBC":
                     using (IHSBCService hsbcSvc = new HSBCService())
@@ -456,7 +456,7 @@ namespace AM.Console
                         }
                     }
                     break;
-                case "ELLIEMAE":
+                case "API_ELLIEMAE":
                     using (IGeneralService generalSvc = new GeneralService())
                     using (ICommonService commonSvc = new CommonService())
                     {
@@ -498,12 +498,12 @@ namespace AM.Console
             }
         }
 
-        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite, SFTChannel sftChannelDetails)
+        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite, SFTChannel sftChannel)
         {
             string deliveryUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
             string errorUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Error).UploadPath;
             string ftpUploadPath = "";
-            string sftChannelCode = sftChannelDetails.Code.Split('_')[0].ToUpper();
+            string sftChannelCode = sftChannel.GetChannelCode().ToUpper();
             string zipFileName, zipFilePath;
             List<string> resXmlList;
             switch (sftChannelCode)
@@ -596,7 +596,7 @@ namespace AM.Console
                     File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
                     Thread.Sleep(1000);
                     break;
-                case "ELLIEMAE":
+                case "API_ELLIEMAE":
                     var resJsonList = Directory.EnumerateFiles(localReportPath, "*.json").ToList();
 
                     foreach (string filePath in resJsonList)
@@ -627,7 +627,7 @@ namespace AM.Console
             }
         }
 
-        private static bool UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, List<MailPieces> mailPieceData, SFTChannel sftChannelDetail)
+        private static bool UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, List<MailPieces> mailPieceData, SFTChannel sftChannel)
         {
             bool isUploaded = false;
 
@@ -635,7 +635,7 @@ namespace AM.Console
 
             increamentalReportingChannels = increamentalReportingChannels.Select(c => c + "_" + Config.Common_Environment).ToList();
 
-            switch (sftChannelDetail.Code.Split('_')[0].ToUpper())
+            switch (sftChannel.GetChannelCode().ToUpper())
             {
                 case "ALASKA":
 
@@ -713,7 +713,7 @@ namespace AM.Console
 
                     //NOTE : Here we have to check printbatches table for that MailBatchId because we can not updated reported back status until all print batches status are getting changed to ReportedBack.
                     int remainingPrintBatchReportedBackCount = 0;
-                    if (increamentalReportingChannels.Contains(sftChannelDetail.Code))
+                    if (increamentalReportingChannels.Contains(sftChannel.Code))
                     {
                         using (IMailBatchService mailBatchSvc = new MailBatchService())
                         {
@@ -727,9 +727,9 @@ namespace AM.Console
                     string reportPath = Path.Combine(Config.Common_AuthoMailRootFolder, mbi.Client.AppCode, mbi.MailBatch.Id.ToString(), Util.AMResponseFolderName);
 
                     //Here we are passing localReportPath as MailBatch folder structure AMRoot/USAA/MailBatchId/AMResponses
-                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite, sftChannelDetail);
+                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite, sftChannel);
 
-                    GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverables, sftChannelDetail);
+                    GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverables, sftChannel);
                     isUploaded = true;
                     break;
 

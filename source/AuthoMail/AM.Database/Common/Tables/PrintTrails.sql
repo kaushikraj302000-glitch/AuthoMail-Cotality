@@ -1,4 +1,4 @@
-﻿CREATE TABLE [Common].[PrintTrails] (
+CREATE TABLE [Common].[PrintTrails] (
     [Id]              INT           IDENTITY (1, 1) NOT NULL,
     [TrailName]       VARCHAR (255) NULL,
     [PrintVendorCode] VARCHAR (255) NULL,
@@ -15,6 +15,9 @@
 
 
 
-GO
 
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_PrintVendor_TrailName_ShipperId]
+    ON [Common].[PrintTrails]([TrailName] ASC, [PrintVendorId] ASC, [ShipperId] ASC);
 

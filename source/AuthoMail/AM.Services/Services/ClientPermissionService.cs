@@ -12,9 +12,10 @@ namespace AM.Services
     public interface IClientPermissionService : IDisposable
     {
         Task<IEnumerable<ClientIdNameVM>> GetClientDomainByDomainName(string domainName);
+        Task<IEnumerable<ClientIdNameVM>> GetClientDomainForCL();
         Task<IEnumerable<ClientIdNameVM>> GetAppCodeByUserIdORall(string userId);
         Task InsertClientIdAndUserId(ClientUserMapping clientUserMapping);
-        Task<IEnumerable<ClientUserMapping>> ApproveOrDeclinedClientsForUser(string userId, List<int> approveclientIds, string modifiedById);
+        Task<IEnumerable<ClientUserMapping>> ApproveOrDeclinedClientsForUser(string userId, List<int> approveclientIds, string modifiedById, bool isCLUser);
         Task<IEnumerable<ClientUserMapping>> GetClientDomainByUserId(string userId);
         Task<bool> IsUserClientRequestPending(string userId);
         Task<KeyValuePair<bool, string>> EditSaveRoleClient(ProfileUser user, List<int> clientIds, string role, string modifiedById, bool isCLUser);
@@ -22,8 +23,29 @@ namespace AM.Services
     }
     public class ClientPermissionService : ServiceBase, IClientPermissionService
     {
-        public async Task<IEnumerable<ClientUserMapping>> ApproveOrDeclinedClientsForUser(string userId, List<int> approveclientIds, string modifiedById)
+        public async Task<IEnumerable<ClientUserMapping>> ApproveOrDeclinedClientsForUser(string userId, List<int> approveclientIds, string modifiedById, bool isCLUser)
         {
+            if (isCLUser)
+            {
+                //Remove existing ClientUserMapping request and add new request
+                await db.ExecuteAsync(@"delete from Common.ClientUserMapping where UserId=@userId", new { userId = userId });
+                var now = DateTime.UtcNow;
+                var clientUserMapping = new ClientUserMapping
+                {
+                    CreatedOn = now,
+                    ModifiedOn = now,
+                    ModifiedById = modifiedById,
+                    Status = ClientUserMappingStatusTypes.Pending,
+                    UserId=userId
+                };
+                for (int i = 0; i < approveclientIds.Count; i++)
+                {
+                    clientUserMapping.ClientId = approveclientIds[i];
+                    await db.ExecuteAsync(@"INSERT INTO [Common].[ClientUserMapping]
+           ([ClientId],[UserId],[Status],[CreatedOn],[ModifiedOn],[ModifiedById]) VALUES (@ClientId,@UserId,@Status,@CreatedOn,@ModifiedOn,@ModifiedById)", clientUserMapping);
+                }
+            }
+
             //Approve client request
             string sql = @"update Common.ClientUserMapping
 set Status=@status,
@@ -75,6 +97,13 @@ where AllowedDomain=@domainName order by c.Name";
             return output;
         }
 
+        public async Task<IEnumerable<ClientIdNameVM>> GetClientDomainForCL()
+        {
+            string sql = @"SELECT distinct c.Id,c.Name,c.AppCode FROM Common.Clients c
+order by c.Name";
+            var output = await db.QueryAsync<ClientIdNameVM>(sql);
+            return output;
+        }
         public async Task InsertClientIdAndUserId(ClientUserMapping clientUserMapping)
         {
             string isExistSql = "select top 1 1 from Common.ClientUserMapping where UserId=@userId and ClientId=@clientId";

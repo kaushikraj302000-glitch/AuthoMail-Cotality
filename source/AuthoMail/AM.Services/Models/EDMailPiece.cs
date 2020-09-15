@@ -83,6 +83,14 @@ namespace AM.Services
         public DateTime? ESignedOn { get; set; }
         public bool IsESigned { get; set; }
         public string DownloadedIPAddress { get; set; }
+
+        public string GetChannelCode()
+        {
+            if (!string.IsNullOrWhiteSpace(ChannelCode))
+                return ChannelCode.Substring(0, ChannelCode.LastIndexOf("_"));
+
+            return null;
+        }
     }
 
     public class MailPieceInfo

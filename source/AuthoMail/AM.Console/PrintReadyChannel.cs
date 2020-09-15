@@ -70,7 +70,7 @@ namespace AM.Console
 
                     #region Create General Channel Directory.
                     //Here first we are cleaning AMC folder
-                    string channelDownloadPath = Path.Combine(Config.Common_AuthoMailRootFolder, "GENERAL", SFTChannel.Code.Split('_')[0]);
+                    string channelDownloadPath = Path.Combine(Config.Common_AuthoMailRootFolder, "GENERAL", SFTChannel.GetChannelCode());
 
                     if (Directory.Exists(channelDownloadPath))
                     {
@@ -375,7 +375,7 @@ namespace AM.Console
             MailBatchDTO mailBatch = new MailBatchDTO
             {
                 UniqueId = Guid.NewGuid(),
-                ClientId = GetInvalidClient(SFTChannel.Code.Split('_')[0]).Id,
+                ClientId = GetInvalidClient(SFTChannel.GetChannelCode()).Id,
                 SFTChannelId = SFTChannel.Id,
                 BatchName = batchName,
                 ClientBatchId = batchName,

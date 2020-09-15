@@ -436,25 +436,37 @@
                 data: { userId: userId },
                 dataType: "json",
                 success: function (response) {
+                    console.log(response);
                     $('#RoleAreaDiv').html('');
                     $('#appcodeselect').find('option').remove();
+                    $('#AppCodeAreaDiv').show();
+                    $("#RoleAreaDiv").show();
                     if (response.Success) {
                         var roleRadio = '<div class="form-group"> <label class="control-label" style="margin-right:10px">Select Role</label>';
                         $.each(response.Object.roles, function (i, v) {
-                            var isChecked = response.Object.userRole==v ? '' : 'checked';
+                            var isChecked = response.Object.userRole == v ? 'checked' : '';
                             roleRadio += '<input type="radio" ' + isChecked + ' class="radiobtn roleradiocls" name="roleradio" value=' + v + ' />' + ' <label>' + v + '</label>';
                         });
                         roleRadio += '</div>';
 
                         $('#RoleAreaDiv').html(roleRadio);
-                        if (response.Object.isCL) {
-                            $('#appcodeselect').append('<option value="all">All</option>');
+
+                        //else {
+                        //    $("#RoleAreaDiv").hide();
+                        //}
+                        if (response.Object.userRole == 'BA') {
+                            $('#AppCodeAreaDiv').hide();
                         }
                         else {
+                            $('#AppCodeAreaDiv').show();
                             $("#RoleAreaDiv").hide();
                         }
+                        if (response.Object.isCL) {
+                            //$('#appcodeselect').append('<option value="all">All</option>');
+                            $("#RoleAreaDiv").show();
+                        }
                         var selectedAppcodeArr = $(response.Object.approveAppCode).toArray();
-                        console.log(selectedAppcodeArr);
+
                 $.each(response.Object.domainAppCode, function (i, v) {
                     var sel = selectedAppcodeArr.indexOf(v.Id) == -1 ? "" : "selected";
                             $('#appcodeselect').append('<option value="' + v.Id + '" '+sel+'>' + v.NameAppCode + '</option>');
@@ -498,8 +510,9 @@
                     data: { userId: userId, clientIds: clientIds, role: role },
                     dataType: "json",
                     success: function (response) {
+                        console.log(response);
                         if (response.Success) {
-                            alertMessage('gree', response.Object);
+                            alertMessage('green', response.Object);
                             window.location.reload();
                         }
                         else {
