@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -639,9 +640,11 @@ namespace AM.Console
                 }
 
                 var clientBusinessIdNames = new ConcurrentDictionary<int, HashSet<string>>(Environment.ProcessorCount * 2, 60);
-
                 Parallel.ForEach(downloadBatches, (mailBatch) =>
                 {
+                    List<double> timeTracker = new List<double>();
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
                     log.Debug($"Parallel Process Started For Batch Id {mailBatch.Id}");
                     //using (var mailBatchSvc = new MailBatchService())
                     //using (var mailPieceSvc = new MailPieceService())
@@ -694,6 +697,9 @@ namespace AM.Console
 
                             var businessIdNames = clientBusinessIdNames.GetOrAdd(client.Id, new HashSet<string>());
 
+                            sw.Stop();
+                            timeTracker.Add(sw.Elapsed.TotalSeconds);
+                            sw.Restart();
                             foreach (XmlNode mailPieceNode in mailPieceNodes)
                             {
                                 //mailPieceNode.Normalize();
@@ -959,7 +965,9 @@ namespace AM.Console
                                     }
                                 }
                             }
-
+                            sw.Stop();
+                            timeTracker.Add(sw.Elapsed.TotalSeconds);
+                            sw.Restart();
                             //TODO: Do we need to check all mail pieces are valid, partially valid or failed and update batch status according to that?
 
                             using (var commonService = new CommonService())
@@ -969,7 +977,9 @@ namespace AM.Console
                                 if (mailPieceList != null)
                                 {
                                     var validMailPieces = mailPieceList.Where(c => c.ErrorCode == OutComeCodes.No_Error).ToList();
-
+                                    sw.Stop();
+                                    timeTracker.Add(sw.Elapsed.TotalSeconds);
+                                    sw.Restart();
                                     //Here System will validate Addresses for valid mail pieces
                                     if (validMailPieces.Count > 0)
                                         PChannel.ValidateAddressType(commonSvc, docTypeSvc, mailPieceSvc, mailBatch, validMailPieces);
@@ -1006,6 +1016,7 @@ namespace AM.Console
                                 else
                                     commonService.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now).Wait();
                             }
+
                         }
                         catch (Exception ex)
                         {
@@ -1015,6 +1026,9 @@ namespace AM.Console
                             return;
                         }
                     }
+                    sw.Stop();
+                    timeTracker.Add(sw.Elapsed.TotalSeconds);
+                    log.Debug($"Time Tracker For Parallel Foreach {string.Join(",", timeTracker)}");
                     log.Debug($"Parallel Process Completed For Batch Id {mailBatch.Id}");
                 });
 
@@ -1061,7 +1075,7 @@ namespace AM.Console
                 {
                     pageCount = reader.NumberOfPages;
                     mailPieceDTO.TotalPages = pageCount;//System is going to store TotalPages only for AM.EDMailPieces table from here
-                    blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
+                    blankPageNos = PChannel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
                 }
 
                 //NOTE : Here system is storing file size of received pdf in KB
