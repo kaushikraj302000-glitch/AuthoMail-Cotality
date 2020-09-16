@@ -77,4 +77,18 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="APITokenHeaders" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="1b138684-532e-4907-bfcd-e9f9551e3867" ChangeDateTime="09/16/2020 10:25:44">
+    <Property Name="ElementName" Value="[Common].[Clients].[ValidateBlankPages]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Common].[Clients]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CheckBlankPages" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="cdf2fb69-6033-499f-8944-5381a2ed0cf0" ChangeDateTime="09/16/2020 10:26:46">
+    <Property Name="ElementName" Value="[Common].[Clients].[CheckBlankPages]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Common].[Clients]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="IsReqBlankPageValidation" />
+  </Operation>
 </Operations>
