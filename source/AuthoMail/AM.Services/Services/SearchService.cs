@@ -49,8 +49,8 @@ namespace AM.Services
             }
             if (!string.IsNullOrWhiteSpace(businessFriendlyIdValue))
             {
-                query = string.Format("{0} and m.businessFriendlyIdValue=@businessFriendlyIdValue", query);
-                parameter.Add("@businessFriendlyIdValue", businessFriendlyIdValue);
+                query = string.Format("{0} and m.businessFriendlyIdValue like @businessFriendlyIdValue", query);
+                parameter.Add("@businessFriendlyIdValue", $"%{businessFriendlyIdValue}%");
             }
             if (!string.IsNullOrWhiteSpace(status))
             {
