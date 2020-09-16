@@ -361,6 +361,7 @@ bufferSize: 4096, useAsync: true)) { }
                     sw.Stop();
                     perf.Add(sw.Elapsed.TotalSeconds);
                     log.DebugFormat("Merge pdfs completed: {0}", sw.Elapsed.TotalSeconds);
+                    sw.Restart();
                 }
                 else
                 {
