@@ -788,7 +788,7 @@ namespace AM.Core
             // From Address
             eVSReq.CustomerRefNo = mailPiece.Id.ToString();
             eVSReq.FromName = (mailPiece.RetRcptFirstName + " " + mailPiece.RetRcptLastName).Trim();
-            eVSReq.FromFirm = mailPiece.RetRcptOrganization ?? clientName;
+            eVSReq.FromFirm = mailPiece.RetRcptOrganization;
             eVSReq.FromStreetAddress = (mailPiece.RetRcptAddressStreet + " " + mailPiece.RetRcptAddressAptOrSuiteOrOther + " " + mailPiece.RetRcptAddrOptionalLine1BelowStreet).Trim();
             eVSReq.FromCity = mailPiece.RetRcptAddressCity;
             eVSReq.FromState = mailPiece.RetRcptAddressState;
