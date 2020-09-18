@@ -16,6 +16,7 @@ namespace AM.HealthAPI
         //}
         public string ConnectionString { get; set; }
         public string AMRootPath { get; set; }
+        public long MinFreeMB { get; set; }
         public string AccessCheckPath { get; set; }
     }
 }

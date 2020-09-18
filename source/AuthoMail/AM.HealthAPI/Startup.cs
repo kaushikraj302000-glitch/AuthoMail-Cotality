@@ -66,7 +66,7 @@ namespace AM.HealthAPI
 
             services.AddHealthChecks()
                             .AddSqlServer(config.ConnectionString, name: $"{env}_SqlServer", tags: new[] { env })
-                            .AddDiskStorageHealthCheck(s => s.AddDrive(config.AMRootPath, 10240), name: $"{env}_DiskStorage", tags: new[] { env })
+                            .AddDiskStorageHealthCheck(s => s.AddDrive(config.AMRootPath, config.MinFreeMB), name: $"{env}_DiskStorage", tags: new[] { env })
                             .AddTypeActivatedCheck<AMHealthCheck>($"{env}_AMHealthCheck", HealthStatus.Unhealthy, args: new object[] { config.AccessCheckPath }, tags: new[] { env });
         }
         //
@@ -117,12 +117,15 @@ namespace AM.HealthAPI
                 //DiskStorageHealthCheck diskStorageHealthCheck = new DiskStorageHealthCheck(diskStorageOptions);
 
                 string textWritten = "Writing process is working";
+
+                string tempFilePath = Path.Combine(AccessCheckPath, Path.GetRandomFileName());
                 //Write Access
-                await File.WriteAllTextAsync(AccessCheckPath, textWritten);
+                await File.WriteAllTextAsync(tempFilePath, textWritten);
 
                 //Read Access
-                var text = await File.ReadAllTextAsync(AccessCheckPath);
+                var text = await File.ReadAllTextAsync(tempFilePath);
 
+                if (File.Exists(tempFilePath)) File.Delete(tempFilePath);
                 //if (HealthCheckResult.Healthy().Status.ToString() == "Healthy")
                 //    return HealthCheckResult.Healthy();
                 //return HealthCheckResult.Unhealthy();
