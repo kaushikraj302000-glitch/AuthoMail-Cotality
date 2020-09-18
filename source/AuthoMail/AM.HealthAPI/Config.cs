@@ -15,8 +15,8 @@ namespace AM.HealthAPI
         //    AccessCheckPath = configuration[$"{env}:{nameof(AccessCheckPath)}"];
         //}
         public string ConnectionString { get; set; }
-        public string AMRootPath { get; set; }
+        public string APIDownloadPath { get; set; }
         public long MinFreeMB { get; set; }
-        public string AccessCheckPath { get; set; }
+        public string AMRootFagosFTP { get; set; }
     }
 }
