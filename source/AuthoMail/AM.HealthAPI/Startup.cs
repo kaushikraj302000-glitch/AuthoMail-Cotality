@@ -64,7 +64,7 @@ namespace AM.HealthAPI
 
                     services.AddHealthChecks()
                                     .AddSqlServer(config.ConnectionString, name: $"{env}_SqlServer", tags: new[] { env })
-                                    .AddDiskStorageHealthCheck(s => s.AddDrive(config.APIDownloadPath, config.MinFreeMB), name: $"{env}_DiskStorage", tags: new[] { env })
+                                    .AddDiskStorageHealthCheck(s => s.AddDrive(config.APIDownloadPath, config.MinFreeGB * 1024), name: $"{env}_DiskStorage", tags: new[] { env })
                                     .AddTypeActivatedCheck<AMHealthCheck>($"{env}_AMHealthCheck", HealthStatus.Unhealthy, args: new object[] { config.AMRootFagosFTP }, tags: new[] { env });
                 });
         }

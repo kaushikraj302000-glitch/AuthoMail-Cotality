@@ -16,7 +16,7 @@ namespace AM.HealthAPI
         //}
         public string ConnectionString { get; set; }
         public string APIDownloadPath { get; set; }
-        public long MinFreeMB { get; set; }
+        public long MinFreeGB { get; set; }
         public string AMRootFagosFTP { get; set; }
     }
 }
