@@ -160,6 +160,7 @@
     <Compile Include="Services\InventoryService.cs" />
     <Compile Include="Services\MonitorBatchesService.cs" />
     <Compile Include="Services\MRDFResponseService.cs" />
+    <Compile Include="Services\PnSAPIService.cs" />
     <Compile Include="Services\ProjectRequestService.cs" />
     <Compile Include="Services\PullBackService.cs" />
     <Compile Include="Services\ReCalculateDueDateService.cs" />

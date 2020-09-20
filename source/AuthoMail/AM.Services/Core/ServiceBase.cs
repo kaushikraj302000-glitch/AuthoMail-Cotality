@@ -18,6 +18,11 @@ namespace AM.Services
             Handlers.Register();
         }
 
+        protected ServiceBase(string connectionStringName)
+        {
+            db = DbFactory.Create(connectionStringName);
+        }
+
         protected ServiceBase()
         {
             db = DbFactory.Create("AuthoMail");
