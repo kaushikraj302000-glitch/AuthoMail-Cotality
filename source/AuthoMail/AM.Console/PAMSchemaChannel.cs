@@ -623,6 +623,8 @@ namespace AM.Console
             return false;
         }
 
+        private ConcurrentDictionary<int, ConcurrentDictionary<string, bool>> clientBusinessIdNames = new ConcurrentDictionary<int, ConcurrentDictionary<string, bool>>(Environment.ProcessorCount * 2, 60);
+
         #region Validate Batches
         protected override bool ValidateBatches()
         {
@@ -639,7 +641,6 @@ namespace AM.Console
                     return false;
                 }
 
-                var clientBusinessIdNames = new ConcurrentDictionary<int, HashSet<string>>(Environment.ProcessorCount * 2, 60);
                 Parallel.ForEach(downloadBatches, (mailBatch) =>
                 {
                     List<double> timeTracker = new List<double>();
@@ -695,7 +696,7 @@ namespace AM.Console
                                 return;
                             }
 
-                            var businessIdNames = clientBusinessIdNames.GetOrAdd(client.Id, new HashSet<string>());
+                            var businessIdNames = clientBusinessIdNames.GetOrAdd(client.Id, new ConcurrentDictionary<string, bool>(Environment.ProcessorCount * 2, 60));
 
                             sw.Stop();
                             timeTracker.Add(sw.Elapsed.TotalSeconds);
@@ -718,7 +719,7 @@ namespace AM.Console
                                     mailPieceDTO.BusinessFriendlyIdName = requests.BusinessFriendlyIdName.TrimIfNotNull();
 
                                     //Here we are inserting BusinessIdentifier for Client if not exist.
-                                    if (!businessIdNames.Contains(mailPieceDTO.BusinessFriendlyIdName))
+                                    if (!businessIdNames.ContainsKey(mailPieceDTO.BusinessFriendlyIdName))
                                     {
                                         using (ICommonService commonService = new CommonService())
                                         {
@@ -729,7 +730,7 @@ namespace AM.Console
                                             }
                                         }
 
-                                        businessIdNames.Add(mailPieceDTO.BusinessFriendlyIdName);
+                                        businessIdNames.TryAdd(mailPieceDTO.BusinessFriendlyIdName, true);
                                     }
 
                                     mailPieceDTO.BusinessFriendlyIdValue = requests.BusinessFriendlyIdValue.TrimIfNotNull();
@@ -1075,7 +1076,7 @@ namespace AM.Console
                 {
                     pageCount = reader.NumberOfPages;
                     mailPieceDTO.TotalPages = pageCount;//System is going to store TotalPages only for AM.EDMailPieces table from here
-                    
+
                     if (mbi.Client.IsReqBlankPageValidation)
                     {
                         blankPageNos = PChannel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
