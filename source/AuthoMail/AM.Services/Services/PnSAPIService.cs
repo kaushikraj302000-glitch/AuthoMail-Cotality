@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Dapper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace AM.Services.Services
 {
     public interface IPnSAPIService : IDisposable
     {
-        Task<bool> AddPackage(string id, DateTime receivedOn);
+        Task<bool> TryAddPackage(string id, DateTime receivedOn);
         Task UpdatePackageStatus(PerfLog perfLog);
     }
 
@@ -16,7 +17,7 @@ namespace AM.Services.Services
     {
         public PnSAPIService() : base("AMAPI") { }
 
-        public async Task<bool> AddPackage(string id, DateTime receivedOn)
+        public async Task<bool> TryAddPackage(string id, DateTime receivedOn)
         {
             await db.OpenAsync();
 
@@ -24,21 +25,49 @@ namespace AM.Services.Services
             {
                 // check if the package already received
 
-                // if yes, return false and log request
+                var packageExists = await db.ExecuteScalarAsync<bool>("" +
+                    "select 1 from Packages where Id = @id", new { id });
 
-                // if no, add package and return true
+                if (packageExists)
+                {
+                    // if yes, return false and log request
+                    var processedOn = Common.Now;
+                    var totalTime = processedOn.Subtract(receivedOn).TotalSeconds;
+
+                    await db.ExecuteAsync("" +
+                        "insert into DuplicateRequets (UniqueId, ReceivedOn, ProcessedOn, TotalTime) " +
+                        "values (@id, @receivedOn, @processedOn, @totalTime",
+                        new { id, receivedOn, processedOn, totalTime });
+                }
+                else
+                {
+                    // if no, add package and return true
+                    var status = ReqStatus.Verifying;
+
+                    await db.ExecuteAsync("" +
+                        "insert into Packages (Id, Status, ReceivedOn, ProcessedOn, ErrorLog) " +
+                        "values (@id, @status, @receivedOn, NULL, NULL",
+                        new { id, status, receivedOn });
+                }
 
                 t.Commit();
+                db.Close();
+                return !packageExists;
             }
-
-            db.Close();
-
-            return true;
         }
 
-        public Task UpdatePackageStatus(PerfLog perfLog)
+        public async Task UpdatePackageStatus(PerfLog perfLog)
         {
-            throw new NotImplementedException();
+            // update package status
+            using (var t = db.BeginTransaction())
+            {
+                await db.OpenAsync();
+
+
+
+                t.Commit();
+                db.Close();
+            }
         }
     }
 }
