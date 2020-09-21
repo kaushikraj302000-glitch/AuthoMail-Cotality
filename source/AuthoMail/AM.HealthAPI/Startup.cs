@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using HealthChecks.SqlServer;
@@ -16,6 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace AM.HealthAPI
 {
@@ -63,9 +66,9 @@ namespace AM.HealthAPI
                     Configuration.GetSection(env).Bind(config);
 
                     services.AddHealthChecks()
-                                    .AddSqlServer(config.ConnectionString, name: $"{env}_SqlServer", tags: new[] { env })
+                                    //.AddSqlServer(config.ConnectionString, name: $"{env}_SqlServer", tags: new[] { env })
                                     .AddDiskStorageHealthCheck(s => s.AddDrive(config.APIDownloadPath, config.MinFreeGB * 1024), name: $"{env}_DiskStorage", tags: new[] { env })
-                                    .AddTypeActivatedCheck<AMHealthCheck>($"{env}_AMHealthCheck", HealthStatus.Unhealthy, args: new object[] { config.AMRootFagosFTP }, tags: new[] { env });
+                                    .AddTypeActivatedCheck<AMHealthCheck>($"{env}_AMHealthCheck", HealthStatus.Unhealthy, args: new object[] { config.AMRootFagosFTP, config.Url }, tags: new[] { env });
                 });
         }
         //
@@ -91,42 +94,54 @@ namespace AM.HealthAPI
     public class AMHealthCheck : IHealthCheck
     {
         public string AMRootFagosFTP { get; set; }
+        public string Url { get; set; }
 
-        public AMHealthCheck(string rootPath)
+        public AMHealthCheck(string rootPath, string url)
         {
             AMRootFagosFTP = rootPath;
+            Url = url;
         }
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             try
             {
-                ////Sql Access
-                //SqlServerHealthCheck sqlServerHealthCheck = new SqlServerHealthCheck(ConnectionString, "SELECT * FROM Common.Clients");
-                //await sqlServerHealthCheck.CheckHealthAsync(context);
+                //Token Access 
+                using (HttpClient client = new HttpClient())
+                {
+                    ServicePointManager.Expect100Continue = true;
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
+                    //setup login data
+                    var formContent = new System.Net.Http.FormUrlEncodedContent(new[]
+                    {
+                        new KeyValuePair<string, string>("grant_type", "password"),
+                        new KeyValuePair<string, string>("username", "swami000"),
+                        new KeyValuePair<string, string>("password", "swami000")
+                    });
 
-                ////Disk storage check
-                //DiskStorageOptions diskStorageOptions = new DiskStorageOptions();
-                //diskStorageOptions.AddDrive("f:\\", 60240);
-                //DiskStorageHealthCheck diskStorageHealthCheck = new DiskStorageHealthCheck(diskStorageOptions);
+                    //send request
+                    HttpResponseMessage responseMessage = await client.PostAsync(Url, formContent);
+                    var responseJson = await responseMessage.Content.ReadAsStringAsync();
+                    var jObject = JObject.Parse(responseJson);
 
-                string textWritten = "Writing process is working";
+                    if (responseMessage.StatusCode != HttpStatusCode.BadRequest && jObject.GetValue("error_description").ToString() != "The user name or password is incorrect.")
+                        return new HealthCheckResult(status: context.Registration.FailureStatus);
 
-                string tempFilePath = Path.Combine(AMRootFagosFTP, Path.GetRandomFileName());
-                //Write Access
-                await File.WriteAllTextAsync(tempFilePath, textWritten);
+                    string textWritten = "Writing process is working";
 
-                //Read Access
-                var text = await File.ReadAllTextAsync(tempFilePath);
+                    string tempFilePath = Path.Combine(AMRootFagosFTP, Path.GetRandomFileName());
+                    //Write Access
+                    await File.WriteAllTextAsync(tempFilePath, textWritten);
 
-                if (File.Exists(tempFilePath)) File.Delete(tempFilePath);
-                //if (HealthCheckResult.Healthy().Status.ToString() == "Healthy")
-                //    return HealthCheckResult.Healthy();
-                //return HealthCheckResult.Unhealthy();
+                    //Read Access
+                    var text = await File.ReadAllTextAsync(tempFilePath);
 
+                    if (File.Exists(tempFilePath)) File.Delete(tempFilePath);
+
+                }
             }
-            catch (IOException ex)
+            catch (Exception ex)
             {
                 return new HealthCheckResult(status: context.Registration.FailureStatus, exception: ex);
             }
