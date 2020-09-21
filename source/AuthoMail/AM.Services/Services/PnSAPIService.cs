@@ -26,7 +26,7 @@ namespace AM.Services.Services
                 // check if the package already received
 
                 var packageExists = await db.ExecuteScalarAsync<bool>("" +
-                    "select 1 from Packages where Id = @id", new { id });
+                    "select 1 from Packages where Id = @id", new { id }, transaction: t);
 
                 if (packageExists)
                 {
@@ -37,7 +37,7 @@ namespace AM.Services.Services
                     await db.ExecuteAsync("" +
                         "insert into DuplicateRequets (UniqueId, ReceivedOn, ProcessedOn, TotalTime) " +
                         "values (@id, @receivedOn, @processedOn, @totalTime",
-                        new { id, receivedOn, processedOn, totalTime });
+                        new { id, receivedOn, processedOn, totalTime }, transaction: t);
                 }
                 else
                 {
@@ -47,7 +47,7 @@ namespace AM.Services.Services
                     await db.ExecuteAsync("" +
                         "insert into Packages (Id, Status, ReceivedOn, ProcessedOn, ErrorLog) " +
                         "values (@id, @status, @receivedOn, NULL, NULL",
-                        new { id, status, receivedOn });
+                        new { id, status, receivedOn }, transaction: t);
                 }
 
                 t.Commit();
@@ -63,7 +63,17 @@ namespace AM.Services.Services
             {
                 await db.OpenAsync();
 
+                await db.ExecuteAsync("" +
+                    "update Packages set" +
+                    "   Status = @Status, " +
+                    "   ProcessedOn = @ProcessedOn, " +
+                    "   ErrorLog = @ErrorLog " +
+                    "where id = @UniqueId", perfLog, transaction: t);
 
+                await db.ExecuteAsync("" +
+                    "insert into PerfLog (Id, SizeCheck, Download, Validate, Merge, PostBatch, Cleanup, TotalTime) " +
+                    "value (@Id, @SizeCheck, @Download, @Validate, @Merge, @PostBatch, @Cleanup, @TotalTime)"
+                    , perfLog, transaction: t);
 
                 t.Commit();
                 db.Close();
