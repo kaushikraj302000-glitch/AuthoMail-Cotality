@@ -114,6 +114,7 @@
     <Compile Include="Models\IeVSResponse.cs" />
     <Compile Include="Models\IeVSCancelRequest.cs" />
     <Compile Include="Models\EDMailPiece.cs" />
+    <Compile Include="Models\PerfLog.cs" />
     <Compile Include="Models\ProjectRequest.cs" />
     <Compile Include="Models\ScanDetails.cs" />
     <Compile Include="Models\ScannerReportViewModel.cs" />

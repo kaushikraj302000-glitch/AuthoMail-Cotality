@@ -8,15 +8,15 @@ namespace AM.Services.Services
 {
     public interface IPnSAPIService : IDisposable
     {
-        Task<bool> AddPackage(string id);
-        Task UpdatePackageStatus(string id, string status, string log = null);
+        Task<bool> AddPackage(string id, DateTime receivedOn);
+        Task UpdatePackageStatus(PerfLog perfLog);
     }
 
     public class PnSAPIService : ServiceBase, IPnSAPIService
     {
         public PnSAPIService() : base("AMAPI") { }
 
-        public async Task<bool> AddPackage(string id)
+        public async Task<bool> AddPackage(string id, DateTime receivedOn)
         {
             await db.OpenAsync();
 
@@ -36,7 +36,7 @@ namespace AM.Services.Services
             return true;
         }
 
-        public Task UpdatePackageStatus(string id, string status, string log = null)
+        public Task UpdatePackageStatus(PerfLog perfLog)
         {
             throw new NotImplementedException();
         }
