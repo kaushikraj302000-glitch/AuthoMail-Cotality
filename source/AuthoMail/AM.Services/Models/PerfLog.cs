@@ -26,16 +26,16 @@ namespace AM.Services
             get { return Common.Now; }
         }
 
-        public float SizeCheck { get; set; }
-        public float? Download { get; set; }
-        public float? Validate { get; set; }
-        public float? Merge { get; set; }
-        public float? PostBatch { get; set; }
-        public float? Cleanup { get; set; }
+        public double SizeCheck { get; set; }
+        public double? Download { get; set; }
+        public double? Validate { get; set; }
+        public double? Merge { get; set; }
+        public double? PostBatch { get; set; }
+        public double? Cleanup { get; set; }
 
         public double TotalTime
         {
-            get { return (float)ProcessedOn.Subtract(ReceivedOn).TotalSeconds; }
+            get { return (double)ProcessedOn.Subtract(ReceivedOn).TotalSeconds; }
         }
     }
 }
