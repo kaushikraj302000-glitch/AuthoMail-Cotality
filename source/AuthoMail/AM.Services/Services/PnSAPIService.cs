@@ -58,10 +58,10 @@ namespace AM.Services.Services
 
         public async Task UpdatePackageStatus(PerfLog perfLog)
         {
+            await db.OpenAsync();
             // update package status
             using (var t = db.BeginTransaction())
             {
-                await db.OpenAsync();
 
                 await db.ExecuteAsync("" +
                     "update Packages set" +
@@ -72,7 +72,7 @@ namespace AM.Services.Services
 
                 await db.ExecuteAsync("" +
                     "insert into PerfLog (Id, SizeCheck, Download, Validate, Merge, PostBatch, Cleanup, TotalTime) " +
-                    "value (@Id, @SizeCheck, @Download, @Validate, @Merge, @PostBatch, @Cleanup, @TotalTime)"
+                    "values (@UniqueId, @SizeCheck, @Download, @Validate, @Merge, @PostBatch, @Cleanup, @TotalTime)"
                     , perfLog, transaction: t);
 
                 t.Commit();
