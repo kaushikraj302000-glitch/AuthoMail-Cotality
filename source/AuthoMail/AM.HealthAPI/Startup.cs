@@ -68,7 +68,8 @@ namespace AM.HealthAPI
                     services.AddHealthChecks()
                                     //.AddSqlServer(config.ConnectionString, name: $"{env}_SqlServer", tags: new[] { env })
                                     .AddDiskStorageHealthCheck(s => s.AddDrive(config.APIDownloadPath, config.MinFreeGB * 1024), name: $"{env}_DiskStorage", tags: new[] { env })
-                                    .AddTypeActivatedCheck<AMHealthCheck>($"{env}_AMHealthCheck", HealthStatus.Unhealthy, args: new object[] { config.AMRootFagosFTP, config.Url }, tags: new[] { env });
+                                    .AddTypeActivatedCheck<AMRootAccessCheck>($"{env}_AMRootAccessCheck", HealthStatus.Unhealthy, args: new object[] { config.AMRootFagosFTP }, tags: new[] { env })
+                                    .AddTypeActivatedCheck<AMTokenEndpointCheck>($"{env}_AMTokenEndpointCheck", HealthStatus.Unhealthy, args: new object[] { config.Url }, tags: new[] { env });
                 });
         }
         //
@@ -91,14 +92,44 @@ namespace AM.HealthAPI
         }
     }
 
-    public class AMHealthCheck : IHealthCheck
+    public class AMRootAccessCheck : IHealthCheck
     {
         public string AMRootFagosFTP { get; set; }
-        public string Url { get; set; }
-
-        public AMHealthCheck(string rootPath, string url)
+        public AMRootAccessCheck(string rootPath)
         {
             AMRootFagosFTP = rootPath;
+        }
+
+        public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                string textWritten = "Jai Swaminarayan";
+
+                string tempFilePath = Path.Combine(AMRootFagosFTP, Path.GetRandomFileName());
+                //Write Access
+                await File.WriteAllTextAsync(tempFilePath, textWritten);
+
+                //Read Access
+                var text = await File.ReadAllTextAsync(tempFilePath);
+
+                if (File.Exists(tempFilePath)) File.Delete(tempFilePath);
+
+            }
+            catch (Exception ex)
+            {
+                return new HealthCheckResult(status: context.Registration.FailureStatus, exception: ex);
+            }
+            return HealthCheckResult.Healthy();
+        }
+    }
+
+    public class AMTokenEndpointCheck : IHealthCheck
+    {
+        public string Url { get; set; }
+
+        public AMTokenEndpointCheck(string url)
+        {
             Url = url;
         }
 
@@ -125,27 +156,16 @@ namespace AM.HealthAPI
                     var responseJson = await responseMessage.Content.ReadAsStringAsync();
                     var jObject = JObject.Parse(responseJson);
 
-                    if (responseMessage.StatusCode != HttpStatusCode.BadRequest && jObject.GetValue("error_description").ToString() != "The user name or password is incorrect.")
-                        return new HealthCheckResult(status: context.Registration.FailureStatus);
-
-                    string textWritten = "Writing process is working";
-
-                    string tempFilePath = Path.Combine(AMRootFagosFTP, Path.GetRandomFileName());
-                    //Write Access
-                    await File.WriteAllTextAsync(tempFilePath, textWritten);
-
-                    //Read Access
-                    var text = await File.ReadAllTextAsync(tempFilePath);
-
-                    if (File.Exists(tempFilePath)) File.Delete(tempFilePath);
-
+                    if (responseMessage.StatusCode == HttpStatusCode.BadRequest && jObject.GetValue("error_description").ToString() == "The user name or password is incorrect.")
+                        return HealthCheckResult.Healthy();
+                    else
+                        return HealthCheckResult.Unhealthy();
                 }
             }
             catch (Exception ex)
             {
                 return new HealthCheckResult(status: context.Registration.FailureStatus, exception: ex);
             }
-            return HealthCheckResult.Healthy();
         }
     }
 }

@@ -404,7 +404,7 @@ bufferSize: 4096, useAsync: true)) { }
                 var traceId = Guid.NewGuid();
                 log.Error("TraceId: {0}, Message: {1}".Fill(traceId, e.Message), e);
 
-                await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, traceId, e.ToString());
+                await StoreInvalidOrBadRequest(manifest.Length == 0 ? string.Empty : manifest[0], provider.FileData, errorPath, traceId, e.ToString());
 
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Unexpected error. TraceId : {0}".Fill(traceId));
             }
@@ -412,45 +412,52 @@ bufferSize: 4096, useAsync: true)) { }
 
         private async Task StoreInvalidOrBadRequest(string manifest, Collection<MultipartFileData> fileData, string rejectedPath, Guid uniqueId, string error)
         {
-            if (uniqueId == Guid.Empty)
-                uniqueId = Guid.NewGuid();
-
-            //Store Error
-            File.WriteAllText(Path.Combine(rejectedPath, $"{uniqueId}.txt"), error);
-
-            string zipFilePath = Path.Combine(rejectedPath, $"{uniqueId}.zip");
-
-            using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.Create))
+            try
             {
-                using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
+                if (uniqueId == Guid.Empty)
+                    uniqueId = Guid.NewGuid();
+
+                //Store Error
+                File.WriteAllText(Path.Combine(rejectedPath, $"{uniqueId}.txt"), error);
+
+                string zipFilePath = Path.Combine(rejectedPath, $"{uniqueId}.zip");
+
+                using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.Create))
                 {
-                    ZipArchiveEntry xmlEntry = archive.CreateEntry($"{uniqueId}.json");
-
-                    using (StreamWriter writer = new StreamWriter(xmlEntry.Open()))
+                    using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
                     {
-                        await writer.WriteAsync(manifest);
-                    }
+                        ZipArchiveEntry xmlEntry = archive.CreateEntry($"{uniqueId}.json");
 
-                    if (fileData.Count > 0)
-                    {
-                        var cnt = 1;
-                        foreach (var file in fileData)
+                        using (StreamWriter writer = new StreamWriter(xmlEntry.Open()))
                         {
-                            if (!File.Exists(file.LocalFileName))
-                            {
-                                continue;
-                            }
-                            string fileName = $"{cnt++}_{file.Headers.ContentDisposition.Name}_{file.Headers.ContentDisposition.FileName}".Replace("\"", "");
-                            ZipArchiveEntry pdfEntry = archive.CreateEntry(fileName);
-                            using (var pdfStream = pdfEntry.Open())
-                            using (var payloadStream = new FileStream(file.LocalFileName, FileMode.Open, FileAccess.Read))
-                            {
-                                await payloadStream.CopyToAsync(pdfStream, 81920);
-                            }
+                            await writer.WriteAsync(manifest);
+                        }
 
+                        if (fileData.Count > 0)
+                        {
+                            var cnt = 1;
+                            foreach (var file in fileData)
+                            {
+                                if (!File.Exists(file.LocalFileName))
+                                {
+                                    continue;
+                                }
+                                string fileName = $"{cnt++}_{file.Headers.ContentDisposition.Name}_{file.Headers.ContentDisposition.FileName}".Replace("\"", "");
+                                ZipArchiveEntry pdfEntry = archive.CreateEntry(fileName);
+                                using (var pdfStream = pdfEntry.Open())
+                                using (var payloadStream = new FileStream(file.LocalFileName, FileMode.Open, FileAccess.Read))
+                                {
+                                    await payloadStream.CopyToAsync(pdfStream, 81920);
+                                }
+
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                log.Error("TraceId: {0}, Message: {1}".Fill(uniqueId, e.Message), e);
             }
         }
 
