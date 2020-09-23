@@ -126,9 +126,6 @@ bufferSize: 4096, useAsync: true)) { }
             PerfLog perfLog = new PerfLog();
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            string root = Config.MailRequestAPI_FilesDownloadPath;
-            string errorPath = Path.Combine(root, "BadRequests");
-            var receivedOn = Common.Now;
             var mailPiece = new MailPiece();
 
             Request.Headers.TryGetValues("PackageId",out var packageId);
