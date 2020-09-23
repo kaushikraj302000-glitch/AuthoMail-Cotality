@@ -247,7 +247,7 @@ namespace AM.Core
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
                     //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
-                    if (!Config.Common_LandScapUSPSLabels.Contains(envelopeName))
+                    if (!Config.Common_LandscapeUSPSLabels.Contains(envelopeName))
                     {
                         ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
                     }

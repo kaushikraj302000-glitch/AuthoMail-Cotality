@@ -773,7 +773,7 @@ namespace AM.Core
             eVSReq.POZipCode = "75099";
             eVSReq.SenderName = clientName;
 
-            if (Config.Common_LandScapUSPSLabels.Contains(mailPiece.EnvelopeName))
+            if (Config.Common_LandscapeUSPSLabels.Contains(mailPiece.EnvelopeName))
             {
                 eVSReq.LabelParameters = new LabelParameters() { Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }, Size = LabelSize.SEPARATECONTINUEPAGE };
             }
