@@ -120,7 +120,7 @@ bufferSize: 4096, useAsync: true)) { }
             var receivedOn = Common.Now;
             var mailPiece = new MailPiece();
 
-            Request.Headers.TryGetValues("PackageId",out var uniqueId);
+            Request.Headers.TryGetValues("PackageId",out var packageId);
 
             List<double> perf = new List<double>();
             
