@@ -127,10 +127,16 @@ bufferSize: 4096, useAsync: true)) { }
             Stopwatch sw = new Stopwatch();
             sw.Start();
             var mailPiece = new MailPiece();
+            bool isCLPackageId = false;
+            Request.Headers.TryGetValues("PackageId", out var packageId);
 
-            Request.Headers.TryGetValues("PackageId",out var packageId);
+            if (packageId == null)
+            {
+                packageId = new string[] { Guid.NewGuid().ToString() };
+                isCLPackageId = true;
+            }
 
-            List<double> perf = new List<double>();
+            int httpCode = await pnsApiSvc.AddPackage(packageId.First(), receivedOn);
             
             string root = Config.MailRequestAPI_FilesDownloadPath;
             string errorPath = Path.Combine(root, "BadRequests");
@@ -146,14 +152,10 @@ bufferSize: 4096, useAsync: true)) { }
                 var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.RequestTooLarge, ErrorMessage = "Maximum request length exceeded." }, receivedOn);
                 return Request.CreateResponse(HttpStatusCode.RequestEntityTooLarge, res);
             }
-            //TO DO: create local path and upload
-            //.57/d:/UAT/WEB/
+
             sw.Stop();
             perfLog.SizeCheck = sw.Elapsed.TotalSeconds;
             sw.Restart();
-            //perf.Add(sw.Elapsed.TotalSeconds);
-            //log.DebugFormat("Request size check: {0}", sw.Elapsed.TotalSeconds);
-            //sw.Restart();
             var provider = new MultipartFormDataStreamProvider(root);
 
             string[] manifest = new string[] { };
@@ -163,9 +165,8 @@ bufferSize: 4096, useAsync: true)) { }
                 await Request.Content.ReadAsMultipartAsync(provider);
                 sw.Stop();
                 perfLog.Download = sw.Elapsed.TotalSeconds;
-                //perf.Add(sw.Elapsed.TotalSeconds);
-                //log.DebugFormat("Files Downloaded: {0}", sw.Elapsed.TotalSeconds);
                 sw.Restart();
+
                 SFTChannel sftChannel;
                 Client client;
                 MailBatch mailBatch = new MailBatch()
@@ -176,14 +177,14 @@ bufferSize: 4096, useAsync: true)) { }
                 manifest = provider.FormData.GetValues("Manifest");
                 var filekeys = provider.FileData.Select(f => f.Headers.ContentDisposition.Name).ToList();
                 //validation for "Manifest"
-                string manifestErrDesc = ValidateManifestRequest(ref mailPiece, manifest, filekeys);
+                string manifestErrDesc = ValidateManifestRequest(ref mailPiece, packageId.First(), isCLPackageId, manifest, filekeys);
                 downloadedFiles = provider.FileData.Select(f => f.LocalFileName).ToList();
                 if (!manifestErrDesc.IsNullOrWhiteSpace())
-                {                    
+                {
                     // delete downloaded files in case of exception, send path, line no, position in bad request
                     await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, manifestErrDesc);
                     DeleteFiles(downloadedFiles);
-                 
+
                     sw.Stop();
                     perfLog.UniqueId = mailPiece.Id.ToString();
                     perfLog.Status = ReqStatus.BadRequest;
@@ -210,21 +211,12 @@ bufferSize: 4096, useAsync: true)) { }
                 using (ICommonService commonSvc = new CommonService())
                 {
                     //Check mailpiece id is unique.
-                    //if (commonSvc.CheckForDuplicateMailPieceUniqueId(mailPiece.Id))
-                    //{
-                    //    var msg = string.Format("The specified package id '{0}' conflicts with an existing package. Retry with a new GUID.", mailPiece.Id);
-
-                    //    await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg);
-
-                    //    DeleteFiles(downloadedFiles);
-                    //    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_DuplicateKey, ErrorMessage = msg }, receivedOn);
-                    //    return Request.CreateResponse(HttpStatusCode.Conflict, res);
-                    //}
-
-                    if (!await pnsApiSvc.TryAddPackage(mailPiece.Id.ToString(), receivedOn))
+                  
+                    // Check HttpStatusCode == 409 for duplicate package
+                    if (false)
                     {
-                        
-                        var msg = string.Format("The specified package id '{0}' conflicts with an existing package. Retry with a new GUID.", mailPiece.Id);                       
+
+                        var msg = string.Format("The specified package id '{0}' conflicts with an existing package. Retry with a new GUID.", mailPiece.Id);
                         await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg);
                         DeleteFiles(downloadedFiles);
 
@@ -252,11 +244,7 @@ bufferSize: 4096, useAsync: true)) { }
                         await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg);
 
                         DeleteFiles(downloadedFiles);
-
-                        //Return error response and insert entry of invalid_client                                           
-                        var invalidClient = await clientService.GetClientByAppCode(sftChannel.GetChannelCode() + "_Invalid");
-                        await InsertInvalidBatch(receivedOn, sftChannel, mailBatch, invalidClient.Id, msg);
-
+                        
                         sw.Stop();
                         perfLog.UniqueId = mailPiece.Id.ToString();
                         perfLog.Status = ReqStatus.BadRequest;
@@ -279,25 +267,9 @@ bufferSize: 4096, useAsync: true)) { }
                     default:
                         var result = ValidateClientSpecificRules(mailBatch, client);
                         if (result.Code != OutComeCodes.No_Error)
-                        {                           
+                        {
                             await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, result.ErrorMessage);
-                            DeleteFiles(downloadedFiles);
-
-                            //insert error and response
-                            using (IMailBatchService mailBatchService = new MailBatchService())
-                            using (ICommonService commonSvc = new CommonService())
-                            using (IMailPieceService mailPieceService = new MailPieceService())
-                            {
-
-                                int mailBatchId = await mailBatchService.InsertBatchDetails(mailBatch, client.Id, sftChannel);
-                                // insert mailpiece
-                                int mailPieceId = await mailPieceService.InsertBatchMailPieceDetails(mailPiece, client.Id, mailBatchId, result.Code, result.ErrorMessage);
-                                await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.Received, receivedOn);
-                                await mailBatchService.MarkMailBatchAsInvalid(mailBatchId, "Request does not contain valid package info.");
-                                await commonSvc.UpdateBatchStatus(mailBatchId, BatchStatus.Failed.ToString());
-                                await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
-                                await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
-                            }
+                            DeleteFiles(downloadedFiles);                           
 
                             sw.Stop();
                             perfLog.UniqueId = mailPiece.Id.ToString();
@@ -351,7 +323,7 @@ bufferSize: 4096, useAsync: true)) { }
                         var msg = "Up to 99 pdf files are supported per mailpiece.";
                         await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg);
 
-                        sw.Stop();                      
+                        sw.Stop();
                         perfLog.UniqueId = mailPiece.Id.ToString();
                         perfLog.Status = ReqStatus.BadRequest;
                         perfLog.ErrorLog = msg;
@@ -364,8 +336,6 @@ bufferSize: 4096, useAsync: true)) { }
                     }
                     sw.Stop();
                     perfLog.Validate = sw.Elapsed.TotalSeconds;
-                    //perf.Add(sw.Elapsed.TotalSeconds);
-                    //log.DebugFormat("Validation complete: {0}", sw.Elapsed.TotalSeconds);
                     sw.Restart();
 
                     string finalPdfPath = null;
@@ -400,7 +370,7 @@ bufferSize: 4096, useAsync: true)) { }
 
                                         var msg = $"Unable to decrypt file : {file.Key}.";
                                         await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg + Environment.NewLine + e.ToString());
-                                        
+
                                         sw.Stop();
                                         perfLog.UniqueId = mailPiece.Id.ToString();
                                         perfLog.Status = ReqStatus.BadRequest;
@@ -408,7 +378,7 @@ bufferSize: 4096, useAsync: true)) { }
                                         perfLog.ReceivedOn = receivedOn;
                                         perfLog.Merge = sw.Elapsed.TotalSeconds;
                                         await pnsApiSvc.UpdatePackageStatus(perfLog);
-                                        
+
                                         // if there are any exceptions while decrypting pdf, don't delete files and send bad reqeust with mailresponse object, it should contain file names
                                         var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = msg }, receivedOn);
                                         return Request.CreateResponse(HttpStatusCode.BadRequest, res);
@@ -431,9 +401,9 @@ bufferSize: 4096, useAsync: true)) { }
                             catch (Exception e)
                             {
                                 var msg = $"'{file.Key}' pdf file is either corrupt or has no pages.";
-                                log.Error(e.Message, e);                                
+                                log.Error(e.Message, e);
                                 await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg + Environment.NewLine + e.ToString());
-                                
+
                                 sw.Stop();
                                 perfLog.UniqueId = mailPiece.Id.ToString();
                                 perfLog.Status = ReqStatus.BadRequest;
@@ -454,8 +424,6 @@ bufferSize: 4096, useAsync: true)) { }
                     mailPiece.DocumentOrPackage.Path = finalPdfPath;
                     sw.Stop();
                     perfLog.Merge = sw.Elapsed.TotalSeconds;
-                    //perf.Add(sw.Elapsed.TotalSeconds);
-                    //log.DebugFormat("Merge pdfs completed: {0}", sw.Elapsed.TotalSeconds);
                     sw.Restart();
                 }
                 else
@@ -463,8 +431,6 @@ bufferSize: 4096, useAsync: true)) { }
                     sw.Stop();
                     perfLog.Validate = sw.Elapsed.TotalSeconds;
                     perfLog.Merge = sw.Elapsed.TotalSeconds;
-                    //perf.Add(sw.Elapsed.TotalSeconds);
-                    //log.DebugFormat("Validation complete: {0}", sw.Elapsed.TotalSeconds);
                     sw.Restart();
                 }
                 // call method passing mailpiece
@@ -474,20 +440,15 @@ bufferSize: 4096, useAsync: true)) { }
                 var response = await CreateAMBatch(mailBatch, mailPiece, sftChannel, receivedOn);
                 sw.Stop();
                 perfLog.PostBatch = sw.Elapsed.TotalSeconds;
-                //perf.Add(sw.Elapsed.TotalSeconds);
-                //log.DebugFormat("Batch created: {0}", sw.Elapsed.TotalSeconds);
                 sw.Restart();
+
                 var responseContent = await response.Content.ReadAsStringAsync();
                 var mailResponse = JsonConvert.DeserializeObject<MailAPIResponse>(responseContent);
                 // if get success response then delete files. 
                 if (response.IsSuccessStatusCode)
                 {
                     DeleteFiles(downloadedFiles);
-                    sw.Stop();                    
-                    //perf.Add(sw.Elapsed.TotalSeconds);
-                    //log.DebugFormat("Delete files: {0}", sw.Elapsed.TotalSeconds);
-                    //log.DebugFormat("Perf {0} , {1}", mailPiece.Id, String.Join(",", perf));
-                    //sw.Restart();
+                    sw.Stop();
                     perfLog.UniqueId = mailPiece.Id.ToString();
                     perfLog.Status = ReqStatus.Queued;
                     perfLog.ReceivedOn = receivedOn;
@@ -513,7 +474,7 @@ bufferSize: 4096, useAsync: true)) { }
                 log.Error("TraceId: {0}, Message: {1}".Fill(traceId, e.Message), e);
 
                 await StoreInvalidOrBadRequest(manifest.Length == 0 ? string.Empty : manifest[0], provider.FileData, errorPath, traceId, e.ToString());
-                
+
                 sw.Stop();
                 perfLog.UniqueId = traceId.ToString();
                 perfLog.Status = ReqStatus.BadRequest;
@@ -576,7 +537,7 @@ bufferSize: 4096, useAsync: true)) { }
             }
         }
 
-        private static string ValidateManifestRequest(ref MailPiece mailPiece, string[] manifest, List<string> filekeys)
+        private static string ValidateManifestRequest(ref MailPiece mailPiece, string packageId, bool isCLPackageId, string[] manifest, List<string> filekeys)
         {
             string manifestErrDesc = null;
             if (manifest == null)
@@ -598,7 +559,21 @@ bufferSize: 4096, useAsync: true)) { }
                 try
                 {
                     mailPiece = JsonConvert.DeserializeObject<MailPiece>(manifest[0]);
-                    mailPiece.Id = mailPiece.Id == Guid.Empty ? Guid.NewGuid() : mailPiece.Id;
+                    //mailPiece.Id = mailPiece.Id == Guid.Empty ? Guid.NewGuid() : mailPiece.Id;
+                    if (isCLPackageId)
+                    {
+                        if (mailPiece.Id != Guid.Empty)
+                            manifestErrDesc = "Cannot proceed.";
+                    }
+                    else
+                    {
+                        if (mailPiece.Id != Guid.Empty)
+                        {
+                            if (mailPiece.Id.ToString() != packageId)
+                                manifestErrDesc = "PackageId and ManifestId must be same.";
+                        }
+                    }
+
                 }
                 catch (JsonReaderException jrEx)
                 {
@@ -646,24 +621,6 @@ bufferSize: 4096, useAsync: true)) { }
             }
             return mailAPIResponses;
         }
-
-        //[Route("emresponse")]
-        //[HttpPost]
-        //public async Task<string> ReceviedResponse(List<MailAPIResponse> mailResponse)
-        //{
-        //    var re = Request;
-        //    var headers = re.Headers;
-        //    string token = string.Empty;
-        //    if (headers.Contains("X-API-Key"))
-        //    {
-        //        token = headers.GetValues("X-API-Key").First();
-        //    }
-        //    if (headers.Contains("Elli-Signature"))
-        //    {
-        //        token = headers.GetValues("Elli-Signature").First();
-        //    }
-        //    return token;
-        //}
 
         private MailAPIResponse GetErrorResponse(MailPiece mailPiece, MailPieceValidationResult validationResult, DateTime receivedOn)
         {
