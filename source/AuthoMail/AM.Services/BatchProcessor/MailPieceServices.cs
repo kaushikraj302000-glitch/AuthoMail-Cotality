@@ -29,7 +29,7 @@ namespace AM.Services
         List<MailPieceDTO> GetMailPiecesForUATBridge(DateTime utcStartDate, int clientId);
         List<MailPieceCustomInfo> GetMailPieceCustomInfos(int mailPieceId);
         BatchResponse GetMailPieceDetailsByMailPieceUniqueId(string uniqueId);
-        List<BatchResponse> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId);
+        Task<IEnumerable<BatchResponse>> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId);
         List<MBInfo> GetReportedBackRecordsFromUATBridge();
         List<MBInfo> GetPnSReportedBackRecordsFromUATBridge();
         List<MBInfo> GetReportedBackAMRecordsFromUATBridge();
@@ -345,7 +345,7 @@ where MP.UniqueId = @UniqueId
             return invalidInserts;
         }
 
-        public List<BatchResponse> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId)
+        public Task<IEnumerable<BatchResponse>> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId)
         {
             string query = @"SELECT MP.*,MB.ReceivedOn,CC.AppCode,PCD.ShippingCarrier,PCD.ShippingServiceType from AM.MailPieces MP
 inner join AM.MailBatches MB ON MP.MailBatchId = MB.Id
@@ -355,7 +355,7 @@ left outer join [Common].[PnSConfigDetail] PCD ON MP.PnSConfigDetailId = PCD.Id
 where MB.PipelineStatus=@PipelineStatus AND IsReportPrepped=1 AND IsReportedBack=0 AND MB.SFTChannelId=@SFTChannelId
 ";
 
-            return db.Query<BatchResponse>(query, new { SFTChannelId = sftChannelId, PipelineStatus = BatchPipelineStatus.ReportPrepped }).ToList();
+            return db.QueryAsync<BatchResponse>(query, new { SFTChannelId = sftChannelId, PipelineStatus = BatchPipelineStatus.ReportPrepped });
 
         }
     }

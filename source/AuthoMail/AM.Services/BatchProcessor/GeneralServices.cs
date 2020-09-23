@@ -26,7 +26,7 @@ namespace AM.Services
         MailAPIResponse GenerateMailAPIResponse(BatchResponse batchResponse);
         List<MailAPIResponse> GenerateMailAPIResponse(List<BatchResponse> batchResponses);
         string GeneralJsonReport(string mpUniqueId);
-        Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport, string bearerToken);
+        Task<HttpResponseMessage> SendAPIResponse(HttpClient httpClient, string responseURL, IEnumerable<MailAPIResponse> responseReport);
     }
 
     public class GeneralService : ServiceBase, IGeneralService
@@ -262,7 +262,7 @@ namespace AM.Services
             return serializedString;
         }
 
-        public async Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport, string bearerToken)
+        public Task<HttpResponseMessage> SendAPIResponse(HttpClient httpClient, string responseURL, IEnumerable<MailAPIResponse> responseReport)
         {
             JsonSerializerSettings dateFormatSettings = new JsonSerializerSettings
             {
@@ -270,25 +270,14 @@ namespace AM.Services
             };
 
             string json = JsonConvert.SerializeObject(responseReport, dateFormatSettings);
-            using (var client = SetupClient(bearerToken))
-            {
-                ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
-                HttpResponseMessage response = await client.PostAsync(Config.EllieMae_UploadResponseURL, content);
-                return response;
-            }
+
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            return httpClient.PostAsync(responseURL, content);
         }
 
-        private static HttpClient SetupClient(string token)
-        {
-            var client = new HttpClient();
-            client.BaseAddress = new Uri(Config.EllieMae_BaseURL);
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-            return client;
-        }
+
         public async static Task<string> GetToken()
         {
             try

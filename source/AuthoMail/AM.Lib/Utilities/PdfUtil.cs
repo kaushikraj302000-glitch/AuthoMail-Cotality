@@ -206,7 +206,7 @@ namespace AM.Lib
 
         public static void PdfFormFiller(string templatePDFPath, string filledPDFPath, Dictionary<string, string> fieldData)
         {
-            using (var existingFileStream = new FileStream(templatePDFPath, FileMode.Open))
+            using (var existingFileStream = new FileStream(templatePDFPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var newFileStream = new FileStream(filledPDFPath, FileMode.Create))
             {
                 // Open existing PDF

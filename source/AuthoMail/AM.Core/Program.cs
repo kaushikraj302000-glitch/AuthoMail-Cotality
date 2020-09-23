@@ -14,11 +14,16 @@ namespace AM.Core
         /// </summary>
         static void Main(string[] args)
         {
-            AMCore.PrepPnSJobs();
-            AMCore.SubmitBatchesDocTypeWiseToPrintVendor();
-            AMCore.GetSubmittedPnSResponses();
-            AMCore.ProcessPnSResponses();
-            AMCore.ReportPreppedProcess();
+            bool prepFlag, submitFlag, submittedResFlag, parseResFlag, reportPrepResFlag;
+
+            do
+            {
+                prepFlag = AMCore.PrepPnSJobs();
+                submitFlag = AMCore.SubmitBatchesDocTypeWiseToPrintVendor();
+                submittedResFlag = AMCore.GetSubmittedPnSResponses();
+                parseResFlag = AMCore.ProcessPnSResponses();
+                reportPrepResFlag = AMCore.ReportPreppedProcess();
+            } while (prepFlag || submitFlag || submittedResFlag || parseResFlag || reportPrepResFlag);
         }
     }
 }

@@ -91,7 +91,7 @@
     [PnSConfigDetailId]                   INT              NULL,
     [Inserts]                             VARCHAR (255)    NULL,
     [TotalBlankPages]                     INT              NULL,
-    [BlankPageNumbers]                    VARCHAR (255)    NULL,
+    [BlankPageNumbers]                    VARCHAR (MAX)    NULL,
     [ShipmentStatus] VARCHAR(512) NULL, 
     [ShipmentStatusUpdatedOn] DATETIME NULL, 
     [ShipperId] INT NULL, 

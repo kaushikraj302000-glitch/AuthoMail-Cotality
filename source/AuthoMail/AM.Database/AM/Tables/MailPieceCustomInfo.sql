@@ -7,9 +7,6 @@
 );
 
 
-
-
 GO
-CREATE NONCLUSTERED INDEX [IX_MailPieceCustomInfo_MailPieceId]
-    ON [AM].[MailPieceCustomInfo]([MailPieceId] ASC);
 
+CREATE INDEX [IX_MailPieceCustomInfo_MailPieceId] ON [AM].[MailPieceCustomInfo] ([MailPieceId])

@@ -16,6 +16,7 @@ namespace AM.Entities
         public bool IsPnSActive { get; set; }
         public string TimeZone { get; set; }
         public int SigningRoomExpiryDays { get; set; }
+        public bool IsReqBlankPageValidation { get; set; }
         public bool IsEncrypted { get; set; }
     }
 
@@ -38,12 +39,22 @@ namespace AM.Entities
         public string ToADEDir { get; set; }
         public string ArchiveDir { get; set; }
         public string PostDownloadAction { get; set; }
+        public string APITokenURL { get; set; }
+        public string APIResponseURL { get; set; }
+        public int APIMaxResponseCount { get; set; }
+        public string APITokenHeaders { get; set; }
+        public Dictionary<string, string> GetHeaders()
+        {
+            return APITokenHeaders
+                    .Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(line => line.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries))
+                    .ToDictionary(pair => pair[0].Trim(), pair => pair[1].Trim());
+        }
 
         public string GetChannelCode()
         {
             if (!string.IsNullOrWhiteSpace(Code))
                 return Code.Substring(0, Code.LastIndexOf("_"));
-            
             return null;
         }
     }
