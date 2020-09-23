@@ -115,13 +115,17 @@ bufferSize: 4096, useAsync: true)) { }
         [HttpPost]
         public async Task<HttpResponseMessage> CreateMailRequest()
         {
-            List<double> perf = new List<double>();
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            string root = Config.MailRequestAPI_FilesDownloadPath;
-            string errorPath = Path.Combine(root, "BadRequests");
             var receivedOn = Common.Now;
             var mailPiece = new MailPiece();
+
+            Request.Headers.TryGetValues("PackageId",out var uniqueId);
+
+            List<double> perf = new List<double>();
+            
+            string root = Config.MailRequestAPI_FilesDownloadPath;
+            string errorPath = Path.Combine(root, "BadRequests");
             if (Request.Content.Headers.ContentLength / 1024f / 1024f > Config.MailRequestAPI_MaxRequestSize)
             {
                 var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.RequestTooLarge, ErrorMessage = "Maximum request length exceeded." }, receivedOn);
