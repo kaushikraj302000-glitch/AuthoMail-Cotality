@@ -20,4 +20,4 @@
 
 GO
 
-CREATE CLUSTERED INDEX [IX_AMRequestLogs_PackageId] ON [API].[AMRequestLogs] ([PackageId])
+CREATE INDEX [IX_AMRequestLogs_PackageId] ON [API].[AMRequestLogs] ([PackageId])
