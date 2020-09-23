@@ -7,16 +7,10 @@ using System.Threading.Tasks;
 namespace AM.HealthAPI
 {
     public class Config
-    {
-        //public Config(string env, IConfiguration configuration)
-        //{
-        //    ConnectionString = configuration[$"{env}:{nameof(ConnectionString)}"];
-        //    AMRootPath = configuration[$"{env}:{nameof(AMRootPath)}"];
-        //    AccessCheckPath = configuration[$"{env}:{nameof(AccessCheckPath)}"];
-        //}
-        public string ConnectionString { get; set; }
+    {        
         public string APIDownloadPath { get; set; }
         public long MinFreeGB { get; set; }
         public string AMRootFagosFTP { get; set; }
+        public string Url { get; set; }
     }
 }
