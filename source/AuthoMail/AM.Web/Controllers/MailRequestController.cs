@@ -124,7 +124,7 @@ bufferSize: 4096, useAsync: true)) { }
         public async Task<HttpResponseMessage> CreateMailRequest()
         {
             var receivedOn = Common.Now;
-            PerfLog perfLog = new PerfLog();
+            RequestLog perfLog = new RequestLog();
             Stopwatch sw = new Stopwatch();
             sw.Start();
             var mailPiece = new MailPiece();
@@ -155,7 +155,7 @@ bufferSize: 4096, useAsync: true)) { }
                     perfLog.Status = ReqStatus.BadRequest;
                     perfLog.ErrorLog = msg;
                     perfLog.ReceivedOn = receivedOn;
-                    perfLog.InitialCheck = sw.Elapsed.TotalSeconds;
+                    perfLog.InitialChecks = sw.Elapsed.TotalSeconds;
                     await pnsApiSvc.UpdatePackageStatus(perfLog);
 
                     var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = "Invalid_PackageId", ErrorMessage = msg }, receivedOn);
@@ -194,7 +194,7 @@ bufferSize: 4096, useAsync: true)) { }
                     perfLog.Status = ReqStatus.BadRequest;
                     perfLog.ErrorLog = msg;
                     perfLog.ReceivedOn = receivedOn;
-                    perfLog.InitialCheck = sw.Elapsed.TotalSeconds;
+                    perfLog.InitialChecks = sw.Elapsed.TotalSeconds;
                     await pnsApiSvc.UpdatePackageStatus(perfLog);
                     mailPiece.Id = mpId;
                     var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = outcomeCode, ErrorMessage = msg }, receivedOn);
@@ -208,7 +208,7 @@ bufferSize: 4096, useAsync: true)) { }
                     perfLog.Status = ReqStatus.BadRequest;
                     perfLog.ErrorLog = "Maximum request length exceeded.";
                     perfLog.ReceivedOn = receivedOn;
-                    perfLog.InitialCheck = sw.Elapsed.TotalSeconds;
+                    perfLog.InitialChecks = sw.Elapsed.TotalSeconds;
                     await pnsApiSvc.UpdatePackageStatus(perfLog);
                     mailPiece.Id = mpId;
                     var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.RequestTooLarge, ErrorMessage = "Maximum request length exceeded." }, receivedOn);
@@ -216,7 +216,7 @@ bufferSize: 4096, useAsync: true)) { }
                 }
 
                 sw.Stop();
-                perfLog.InitialCheck = sw.Elapsed.TotalSeconds;
+                perfLog.InitialChecks = sw.Elapsed.TotalSeconds;
                 sw.Restart();
 
                 try

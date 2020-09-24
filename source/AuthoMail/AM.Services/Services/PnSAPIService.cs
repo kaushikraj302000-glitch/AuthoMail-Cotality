@@ -10,7 +10,7 @@ namespace AM.Services.Services
     public interface IPnSAPIService : IDisposable
     {
         Task<AddPackageResult> AddPackage(Guid id, DateTime receivedOn);
-        Task UpdatePackageStatus(PerfLog perfLog);
+        Task UpdatePackageStatus(RequestLog perfLog);
     }
 
     public class PnSAPIService : ServiceBase, IPnSAPIService
@@ -56,7 +56,7 @@ namespace AM.Services.Services
             }
         }
 
-        public async Task UpdatePackageStatus(PerfLog perfLog)
+        public async Task UpdatePackageStatus(RequestLog perfLog)
         {
             await db.OpenAsync();
             // update package status
