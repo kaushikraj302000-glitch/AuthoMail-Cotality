@@ -1,7 +1,7 @@
 ﻿CREATE TABLE [API].[AMRequestLogs]
 (
 	[Id] INT NOT NULL PRIMARY KEY IDENTITY, 
-    [PackageId] UNIQUEIDENTIFIER NOT NULL, 
+    [MailPieceId] UNIQUEIDENTIFIER NOT NULL, 
     [IsPrimaryRequest] BIT NOT NULL, 
     [Status] VARCHAR(255) NOT NULL, 
     [HTTPStatus] INT NULL, 
@@ -20,4 +20,4 @@
 
 GO
 
-CREATE INDEX [IX_AMRequestLogs_PackageId] ON [API].[AMRequestLogs] ([PackageId])
+CREATE INDEX [IX_AMRequestLogs_MailPieceId] ON [API].[AMRequestLogs] ([MailPieceId])

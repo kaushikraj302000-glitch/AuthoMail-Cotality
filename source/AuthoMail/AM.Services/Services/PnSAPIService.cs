@@ -9,7 +9,7 @@ namespace AM.Services.Services
 {
     public interface IPnSAPIService : IDisposable
     {
-        Task<int> AddPackage(string id, DateTime receivedOn);
+        Task<int> AddPackage(Guid id, DateTime receivedOn);
         Task UpdatePackageStatus(PerfLog perfLog);
     }
 
@@ -17,7 +17,7 @@ namespace AM.Services.Services
     {
         //public PnSAPIService() : base("AMAPI") { }
 
-        public async Task<int> AddPackage(string id, DateTime receivedOn)
+        public async Task<int> AddPackage(Guid id, DateTime receivedOn)
         {
             await db.OpenAsync();
 

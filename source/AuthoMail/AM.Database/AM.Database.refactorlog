@@ -119,4 +119,18 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="InitialChecks" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="7f9883ea-c42a-4b13-ae85-ae4ff797a989" ChangeDateTime="09/24/2020 10:35:04">
+    <Property Name="ElementName" Value="[API].[AMRequestLogs].[PackageId]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[API].[AMRequestLogs]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="MailPieceId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="0bb336af-a83b-414e-a256-6af081b41747" ChangeDateTime="09/24/2020 10:44:38">
+    <Property Name="ElementName" Value="[API].[AMRequestLogs].[IX_AMRequestLogs_PackageId]" />
+    <Property Name="ElementType" Value="SqlIndex" />
+    <Property Name="ParentElementName" Value="[API].[AMRequestLogs]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="[IX_AMRequestLogs_MailPieceId]" />
+  </Operation>
 </Operations>

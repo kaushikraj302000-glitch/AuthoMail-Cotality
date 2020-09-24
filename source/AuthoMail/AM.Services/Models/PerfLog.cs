@@ -15,7 +15,7 @@ namespace AM.Services
 
     public class PerfLog
     {
-        public string UniqueId { get; set; }
+        public Guid MailPieceId { get; set; }
         public string Status { get; set; }
         public string ErrorLog { get; set; }
 
@@ -26,7 +26,7 @@ namespace AM.Services
             get { return Common.Now; }
         }
 
-        public double SizeCheck { get; set; }
+        public double InitialCheck { get; set; }
         public double? Download { get; set; }
         public double? Validate { get; set; }
         public double? Merge { get; set; }
