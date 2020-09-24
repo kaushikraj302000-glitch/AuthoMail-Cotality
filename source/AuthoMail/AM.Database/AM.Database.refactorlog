@@ -140,4 +140,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="HTTPStatusCode" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="9590eb8c-442b-4ca1-b6b0-b8ebf3557e20" ChangeDateTime="09/24/2020 13:45:39">
+    <Property Name="ElementName" Value="[API].[AMRequestLogs].[IsPrimaryRequest]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[API].[AMRequestLogs]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="IsPrimary" />
+  </Operation>
 </Operations>

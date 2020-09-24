@@ -2,7 +2,7 @@
 (
 	[Id] INT NOT NULL PRIMARY KEY IDENTITY, 
     [MailPieceId] UNIQUEIDENTIFIER NOT NULL, 
-    [IsPrimaryRequest] BIT NOT NULL, 
+    [IsPrimary] BIT NOT NULL, 
     [Status] VARCHAR(255) NOT NULL, 
     [HTTPStatusCode] INT NULL, 
     [APIResponse] NVARCHAR(2048) NULL, 
