@@ -15,7 +15,7 @@ namespace AM.Services
 
     public class PerfLog
     {
-        public Guid UniqueId { get; set; }
+        public Guid MailPieceId { get; set; }
         public string Status { get; set; }
         public string ErrorLog { get; set; }
 
