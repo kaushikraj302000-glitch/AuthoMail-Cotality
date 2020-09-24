@@ -4,7 +4,7 @@
     [MailPieceId] UNIQUEIDENTIFIER NOT NULL, 
     [IsPrimaryRequest] BIT NOT NULL, 
     [Status] VARCHAR(255) NOT NULL, 
-    [HTTPStatus] INT NULL, 
+    [HTTPStatusCode] INT NULL, 
     [APIResponse] NVARCHAR(2048) NULL, 
     [ReceivedOn] DATETIME NOT NULL, 
     [ProcessedOn] DATETIME NULL, 

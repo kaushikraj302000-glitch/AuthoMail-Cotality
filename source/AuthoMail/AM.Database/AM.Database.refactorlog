@@ -133,4 +133,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="[IX_AMRequestLogs_MailPieceId]" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="fd352845-a5dc-4300-8244-cae804938805" ChangeDateTime="09/24/2020 13:40:44">
+    <Property Name="ElementName" Value="[API].[AMRequestLogs].[HTTPStatus]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[API].[AMRequestLogs]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="HTTPStatusCode" />
+  </Operation>
 </Operations>
