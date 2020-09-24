@@ -9,7 +9,7 @@
     [ReceivedOn] DATETIME NOT NULL, 
     [ProcessedOn] DATETIME NULL, 
     [ErrorLog] NVARCHAR(MAX) NULL,
-    [SizeCheck] DECIMAL(7, 2) NULL, 
+    [InitialChecks] DECIMAL(7, 2) NULL, 
     [Download] DECIMAL(7, 2) NULL, 
     [Validate] DECIMAL(7, 2) NULL, 
     [Merge] DECIMAL(7, 2) NULL, 
