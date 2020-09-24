@@ -38,4 +38,10 @@ namespace AM.Services
             get { return (double)ProcessedOn.Subtract(ReceivedOn).TotalSeconds; }
         }
     }
+
+    public class AddPackageResult
+    {
+        public int Id { get; set; }
+        public int HTTPStatusCode { get; set; }
+    }
 }

@@ -161,9 +161,9 @@ bufferSize: 4096, useAsync: true)) { }
                     var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = "Invalid_PackageId", ErrorMessage = msg }, receivedOn);
                     return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                 }
-
-                int httpCode = await pnsApiSvc.AddPackage(mpId, receivedOn);
-                HttpStatusCode httpStatusCode = (HttpStatusCode)httpCode;
+                
+                var addPackageResult = await pnsApiSvc.AddPackage(mpId, receivedOn);
+                HttpStatusCode httpStatusCode = (HttpStatusCode)addPackageResult.HTTPStatusCode;
 
                 //Check mailpiece id is unique.
                 if (httpStatusCode == HttpStatusCode.Conflict || httpStatusCode == HttpStatusCode.NotAcceptable || httpStatusCode == HttpStatusCode.BadRequest)
@@ -182,11 +182,11 @@ bufferSize: 4096, useAsync: true)) { }
                     }
                     else if (httpStatusCode == HttpStatusCode.BadRequest)
                     {
-                        msg = $"Maximum attempt reached for package id '{mpId}'. Retry with a new GUID.";
-                        outcomeCode = "TooManyRequest";
+                        msg = $"Maximum retries exceeded for package id '{mpId}'.";
+                        outcomeCode = "MaxRetriesExceeded";
                     }
 
-                    await StoreInvalidOrBadRequest(manifest[0], null, errorPath, mpId, msg);
+                    await StoreInvalidOrBadRequest(string.Empty, provider.FileData, errorPath, mpId, msg, addPackageResult.Id);
                     DeleteFiles(downloadedFiles);
 
                     sw.Stop();
@@ -196,7 +196,7 @@ bufferSize: 4096, useAsync: true)) { }
                     perfLog.ReceivedOn = receivedOn;
                     perfLog.InitialCheck = sw.Elapsed.TotalSeconds;
                     await pnsApiSvc.UpdatePackageStatus(perfLog);
-
+                    mailPiece.Id = mpId;
                     var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = outcomeCode, ErrorMessage = msg }, receivedOn);
                     return Request.CreateResponse(httpStatusCode, res);
                 }
@@ -204,12 +204,13 @@ bufferSize: 4096, useAsync: true)) { }
                 if (Request.Content.Headers.ContentLength / 1024f / 1024f > Config.MailRequestAPI_MaxRequestSize)
                 {
                     sw.Stop();
-                    perfLog.MailPieceId = Guid.NewGuid();
+                    perfLog.MailPieceId = mpId;
                     perfLog.Status = ReqStatus.BadRequest;
                     perfLog.ErrorLog = "Maximum request length exceeded.";
                     perfLog.ReceivedOn = receivedOn;
                     perfLog.InitialCheck = sw.Elapsed.TotalSeconds;
                     await pnsApiSvc.UpdatePackageStatus(perfLog);
+                    mailPiece.Id = mpId;
                     var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.RequestTooLarge, ErrorMessage = "Maximum request length exceeded." }, receivedOn);
                     return Request.CreateResponse(HttpStatusCode.RequestEntityTooLarge, res);
                 }
@@ -218,7 +219,26 @@ bufferSize: 4096, useAsync: true)) { }
                 perfLog.InitialCheck = sw.Elapsed.TotalSeconds;
                 sw.Restart();
 
-                await Request.Content.ReadAsMultipartAsync(provider);
+                try
+                {
+                    await Request.Content.ReadAsMultipartAsync(provider);
+                }
+                catch (IOException e)
+                {
+                    string msg = "The client disconnected.";
+                    
+                    await StoreInvalidOrBadRequest(manifest.Length == 0 ? string.Empty : manifest[0], provider.FileData, errorPath, mpId, e.ToString(), addPackageResult.Id);
+
+                    sw.Stop();
+                    perfLog.MailPieceId = mpId;
+                    perfLog.Status = ReqStatus.BadRequest;
+                    perfLog.ReceivedOn = receivedOn;
+                    perfLog.ErrorLog = msg;
+                    await pnsApiSvc.UpdatePackageStatus(perfLog);
+                    mailPiece.Id = mpId;
+                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = HttpStatusCode.NotAcceptable.ToString(), ErrorMessage = msg }, receivedOn);
+                    return Request.CreateResponse(HttpStatusCode.NotAcceptable, res);
+                }
                 sw.Stop();
                 perfLog.Download = sw.Elapsed.TotalSeconds;
                 sw.Restart();
@@ -238,7 +258,7 @@ bufferSize: 4096, useAsync: true)) { }
                 if (!manifestErrDesc.IsNullOrWhiteSpace())
                 {
                     // delete downloaded files in case of exception, send path, line no, position in bad request
-                    await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, manifestErrDesc);
+                    await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, manifestErrDesc, addPackageResult.Id);
                     DeleteFiles(downloadedFiles);
 
                     sw.Stop();
@@ -268,7 +288,7 @@ bufferSize: 4096, useAsync: true)) { }
                     {
                         string msg = "Invalid client code specified.";
 
-                        await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg);
+                        await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg, addPackageResult.Id);
 
                         DeleteFiles(downloadedFiles);
 
@@ -295,7 +315,7 @@ bufferSize: 4096, useAsync: true)) { }
                         var result = ValidateClientSpecificRules(mailBatch, client);
                         if (result.Code != OutComeCodes.No_Error)
                         {
-                            await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, result.ErrorMessage);
+                            await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, result.ErrorMessage, addPackageResult.Id);
                             DeleteFiles(downloadedFiles);
 
                             sw.Stop();
@@ -331,7 +351,7 @@ bufferSize: 4096, useAsync: true)) { }
                     {
                         var msg = "Pdf file not found for the following file key(s): {0}.".Fill(string.Join(",", nullFilePathList.Select(n => n.Key)));
 
-                        await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg);
+                        await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg, addPackageResult.Id);
 
                         sw.Stop();
                         perfLog.MailPieceId = mailPiece.Id;
@@ -348,7 +368,7 @@ bufferSize: 4096, useAsync: true)) { }
                     if (files.Count > 99)
                     {
                         var msg = "Up to 99 pdf files are supported per mailpiece.";
-                        await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg);
+                        await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg, addPackageResult.Id);
 
                         sw.Stop();
                         perfLog.MailPieceId = mailPiece.Id;
@@ -396,7 +416,7 @@ bufferSize: 4096, useAsync: true)) { }
                                         log.Error(e.Message, e);
 
                                         var msg = $"Unable to decrypt file : {file.Key}.";
-                                        await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg + Environment.NewLine + e.ToString());
+                                        await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg + Environment.NewLine + e.ToString(), addPackageResult.Id);
 
                                         sw.Stop();
                                         perfLog.MailPieceId = mailPiece.Id;
@@ -429,7 +449,7 @@ bufferSize: 4096, useAsync: true)) { }
                             {
                                 var msg = $"'{file.Key}' pdf file is either corrupt or has no pages.";
                                 log.Error(e.Message, e);
-                                await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg + Environment.NewLine + e.ToString());
+                                await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg + Environment.NewLine + e.ToString(), addPackageResult.Id);
 
                                 sw.Stop();
                                 perfLog.MailPieceId = mailPiece.Id;
@@ -494,23 +514,7 @@ bufferSize: 4096, useAsync: true)) { }
                     return Request.CreateResponse(response.StatusCode, mailResponse);
                 }
 
-            }
-            catch (IOException e)
-            {
-                string msg = "The client disconnected.";
-                Guid uniqueId = mailPiece.Id == Guid.Empty ? Guid.NewGuid() : mailPiece.Id;
-                await StoreInvalidOrBadRequest(manifest.Length == 0 ? string.Empty : manifest[0], provider.FileData, errorPath, uniqueId, e.ToString());
-
-                sw.Stop();
-                perfLog.MailPieceId = uniqueId;
-                perfLog.Status = ReqStatus.BadRequest;
-                perfLog.ReceivedOn = receivedOn;
-                perfLog.ErrorLog = msg;
-                await pnsApiSvc.UpdatePackageStatus(perfLog);
-
-                var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = HttpStatusCode.NotAcceptable.ToString(), ErrorMessage = msg }, receivedOn);
-                return Request.CreateResponse(HttpStatusCode.NotAcceptable, res);
-            }
+            }            
             catch (Exception e)
             {
                 var traceId = Guid.NewGuid();
@@ -529,7 +533,7 @@ bufferSize: 4096, useAsync: true)) { }
             }
         }
 
-        private async Task StoreInvalidOrBadRequest(string manifest, Collection<MultipartFileData> fileData, string rejectedPath, Guid uniqueId, string error)
+        private async Task StoreInvalidOrBadRequest(string manifest, Collection<MultipartFileData> fileData, string rejectedPath, Guid uniqueId, string error, int id = 0)
         {
             try
             {
@@ -539,7 +543,7 @@ bufferSize: 4096, useAsync: true)) { }
                 //Store Error
                 File.WriteAllText(Path.Combine(rejectedPath, $"{uniqueId}.txt"), error);
 
-                string zipFilePath = Path.Combine(rejectedPath, $"{uniqueId}.zip");
+                string zipFilePath = Path.Combine(rejectedPath, $"{id}_{uniqueId}.zip");
 
                 using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.Create))
                 {
