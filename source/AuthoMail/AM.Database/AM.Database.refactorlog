@@ -91,4 +91,32 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="IsReqBlankPageValidation" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="f713976f-4727-46a8-9360-c73f6ad154f3" ChangeDateTime="09/23/2020 14:03:47">
+    <Property Name="ElementName" Value="[dbo].[PerfomanceLogs].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[PerfomanceLogs]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="PackageId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="57ab5e66-5be3-46ef-ad4a-87d71b96c265" ChangeDateTime="09/23/2020 14:10:15">
+    <Property Name="ElementName" Value="[API].[AMRequestLogs].[IsSelected]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[API].[AMRequestLogs]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="IsPrimaryRequest" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="73d376db-55d5-4be3-84ac-352293ab1308" ChangeDateTime="09/24/2020 07:33:36">
+    <Property Name="ElementName" Value="[API].[AMRequestLogs].[SizeCheck]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[API].[AMRequestLogs]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="SizeChecks" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="cac0fb23-59d5-4c2f-ad27-356c11274fdb" ChangeDateTime="09/24/2020 07:33:42">
+    <Property Name="ElementName" Value="[API].[AMRequestLogs].[SizeChecks]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[API].[AMRequestLogs]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="InitialChecks" />
+  </Operation>
 </Operations>
