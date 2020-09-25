@@ -110,6 +110,9 @@ namespace AM.Entities
         public const string Missing_DocumentOrPackage = "Missing_DocumentOrPackage";
         public const string Missing_Files = "Missing_Files";
         public const string RequestTooLarge = "RequestTooLarge";
+        public const string Invalid_MailPieceId = "Invalid_MailPieceId";
+        public const string NotAcceptable = "Not Acceptable";
+        public const string MaxRetriesExceeded = "MaxRetriesExceeded";
         public static string GetAMCMappingCode(string amOutcomecode)
         {
             switch (amOutcomecode)

@@ -139,22 +139,22 @@ bufferSize: 4096, useAsync: true)) { }
 
             try
             {
-                Request.Headers.TryGetValues("MailPieceId", out var mailPieceId);
+                Request.Headers.TryGetValues("MailPieceId", out var mailPieceHeader);
                 Guid mpId;
 
-                if (mailPieceId == null || mailPieceId.FirstOrDefault().IsNullOrWhiteSpace())
+                if (mailPieceHeader == null || mailPieceHeader.FirstOrDefault().IsNullOrWhiteSpace())
                 {
                     mpId = Guid.NewGuid();
                     isCLPackageId = true;
                 }
-                else if (!Guid.TryParse(mailPieceId.First(), out mpId))
+                else if (!Guid.TryParse(mailPieceHeader.First(), out mpId))
                 {
-                    addPackageResult = await pnsApiSvc.AddPackage(Guid.Empty, receivedOn);
+                    addPackageResult = await pnsApiSvc.AddPackage(null, receivedOn);
 
-                    string msg = $"MailPieceId is in bad format: {mailPieceId.First()}";
+                    string msg = $"MailPieceId must be a valid GUID: {mailPieceHeader.First()}";
                     sw.Stop();
                     requestLog.Id = addPackageResult.Id;
-                    requestLog.MailPieceId = Guid.Empty;
+                    requestLog.MailPieceId = null;
                     requestLog.Status = HttpStatusCode.BadRequest.ToString();
                     requestLog.HTTPStatusCode = (int)HttpStatusCode.BadRequest;
                     requestLog.APIResponse = msg;
@@ -162,7 +162,7 @@ bufferSize: 4096, useAsync: true)) { }
                     requestLog.InitialChecks = sw.Elapsed.TotalSeconds;
                     await pnsApiSvc.UpdatePackageStatus(requestLog);
 
-                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = "Invalid_PackageId", ErrorMessage = msg }, receivedOn);
+                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_MailPieceId, ErrorMessage = msg }, receivedOn);
                     return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                 }
                 
@@ -182,12 +182,12 @@ bufferSize: 4096, useAsync: true)) { }
                     else if (httpStatusCode == HttpStatusCode.NotAcceptable)
                     {
                         msg = $"A previous request with the specified package id '{mpId}' is being processed.";
-                        outcomeCode = httpStatusCode.ToString();
+                        outcomeCode = OutComeCodes.NotAcceptable;
                     }
                     else if (httpStatusCode == HttpStatusCode.BadRequest)
                     {
                         msg = $"Maximum retries exceeded for package id '{mpId}'.";
-                        outcomeCode = "MaxRetriesExceeded";
+                        outcomeCode = OutComeCodes.MaxRetriesExceeded;
                     }
 
                     await StoreInvalidOrBadRequest(string.Empty, provider.FileData, errorPath, mpId, msg, addPackageResult.Id);
