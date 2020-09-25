@@ -24,7 +24,7 @@ namespace AM.Reporting
             {
                 using (IReportService reportSvc = new ReportService())
                 {
-                    var sourceFilePath = @"USAAMTDVolumsReport\USAAMTDVolumeReportTemplate.xlsx";
+                    var sourceFilePath = @"USAAMTDVolumeReport\USAAMTDVolumeReportTemplate.xlsx";
                     var output = reportSvc.USAAMTDVolumeReport(startDate, EndDate, sourceFilePath);
                     var byteArr = output.ToArray();
                     var ms = new MemoryStream(byteArr, true);
