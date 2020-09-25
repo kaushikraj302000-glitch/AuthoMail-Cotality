@@ -17,7 +17,7 @@ namespace AM.Services
     {
         public int Id { get; set; }
 
-        public Guid MailPieceId { get; set; }
+        public Guid? MailPieceId { get; set; }
         public string Status { get; set; }
         public int HTTPStatusCode { get; set; }
         public string APIResponse { get; set; }
