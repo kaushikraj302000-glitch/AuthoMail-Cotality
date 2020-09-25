@@ -7,6 +7,10 @@ using Dapper;
 using System.Data;
 using AM.Entities;
 using AM.Lib;
+using System.IO;
+using AM.Services.Models;
+using System.Data.SqlClient;
+
 namespace AM.Services
 {
     public interface IReportService : IDisposable
@@ -31,6 +35,7 @@ namespace AM.Services
         List<string> GetMonthlyReconDate(int clientId);
         List<GOSMailPieceData> GetGOSDailyReconReport(DateTime currentDate);
         List<FedExReport> GetFedExDataForTracking(DateTime startDueDate, DateTime endDueDate);
+        MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate, string sourceFilePath);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -542,6 +547,26 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
                 endDueDate
             }).ToList();
             return data;
+        }
+
+        public MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate, string sourceFilePath)
+        {
+            using (var connection = new SqlConnection(db.ConnectionString))
+            {
+                var reader = connection.ExecuteReader("dbo.SP_USAAMTDVolumeReport @startDate, @endDate", new { startDate = startDate, endDate = endDate });
+                DataTable dt = new DataTable();
+                dt.Load(reader);
+                XLS xl = new XLS(sourceFilePath);
+                if (dt.Rows.Count > 0)
+                {
+                    xl.LoadData(dt, false);
+                }
+                MemoryStream ms = new MemoryStream();
+                xl.SaveAs(ms);
+                return ms;
+            }
+
+
         }
     }
 }
