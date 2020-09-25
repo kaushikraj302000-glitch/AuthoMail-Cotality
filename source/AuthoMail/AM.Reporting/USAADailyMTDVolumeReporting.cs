@@ -30,7 +30,7 @@ namespace AM.Reporting
                     var ms = new MemoryStream(byteArr, true);
                     ms.Write(byteArr, 0, byteArr.Length);
                     ms.Position = 0;
-                    SendMTDReportToUSAATeam(ms, $"USAA MTD Volume Report {startDate.ToString("MMddyy")}To{EndDate.ToString("MMddyy")}.xlsx", "USAA daily MTD volume report", "Please find the attached month to date MTD volume report.");
+                    SendMTDReportToUSAATeam(ms, $"USAA MTD Volume Report {startDate.ToString("MMddyy")}To{EndDate.ToString("MMddyy")}.xlsx", "USAA daily MTD volume report");
 
                 }
             }
@@ -40,7 +40,7 @@ namespace AM.Reporting
             }
         }
 
-        private static void SendMTDReportToUSAATeam(MemoryStream fileStream, string fileName, string subject, string body)
+        private static void SendMTDReportToUSAATeam(MemoryStream fileStream, string fileName, string subject)
         {
             try
             {
@@ -54,8 +54,8 @@ namespace AM.Reporting
                             msg.CC.Add(AppConfig.USAAMTDEmailCc);
                         msg.Subject = subject;
                         msg.Priority = MailPriority.Normal;
-                        msg.Body = body;
-
+                        msg.Body = EmailBody();
+                        msg.IsBodyHtml = true;
                         msg.Attachments.Add(new Attachment(fileStream, fileName));
 
                         smtpClient.Send(msg);
@@ -66,6 +66,26 @@ namespace AM.Reporting
             {
                 log.Error("Error occured while sending USAA MTD Report :", ex);
             }
+        }
+        private static string EmailBody()
+        {
+            return $@"
+<html>
+<head></head>
+<body>
+<p>
+<br/>
+ Please find the attached month to date MTD volume report.
+<br/>
+</p>
+<br/>
+<br/>
+Thank you,
+<br/>
+<b>AuthoMail Team</b>
+</body>
+</html>
+";
         }
     }
 }
