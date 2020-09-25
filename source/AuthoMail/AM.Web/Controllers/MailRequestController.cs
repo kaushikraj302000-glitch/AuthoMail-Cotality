@@ -190,8 +190,8 @@ bufferSize: 4096, useAsync: true)) { }
                         outcomeCode = OutComeCodes.MaxRetriesExceeded;
                     }
 
-                    await StoreInvalidOrBadRequest(string.Empty, provider.FileData, errorPath, mpId, msg, addPackageResult.Id);
-                    DeleteFiles(downloadedFiles);
+                    //await StoreInvalidOrBadRequest(string.Empty, provider.FileData, errorPath, mpId, msg, addPackageResult.Id);
+                    //DeleteFiles(downloadedFiles);
 
                     sw.Stop();
                     requestLog.Id = addPackageResult.Id;
@@ -269,7 +269,7 @@ bufferSize: 4096, useAsync: true)) { }
                 if (!manifestErrDesc.IsNullOrWhiteSpace())
                 {
                     // delete downloaded files in case of exception, send path, line no, position in bad request
-                    await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, manifestErrDesc, addPackageResult.Id);
+                    await StoreInvalidOrBadRequest(manifest == null ? string.Empty : manifest[0], provider.FileData, errorPath, mailPiece.Id, manifestErrDesc, addPackageResult.Id);
                     DeleteFiles(downloadedFiles);
 
                     sw.Stop();
