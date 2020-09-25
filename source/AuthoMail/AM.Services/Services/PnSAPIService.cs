@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,66 +31,66 @@ namespace AM.Services.Services
 
             using (var t = db.BeginTransaction())
             {
-                // check if the request is received multiple times
-                var reqCount = await db.ExecuteScalarAsync<int>(@"
-                    select count(Id) from API.AMRequestLogs where MailPieceId = @id
-                    ",new { id }, transaction: t);
+                var responseHttpStatusCode = 0;
+                bool isPrimary = false;
 
-                // check if request is successfully accepted before
-
-                var primaryHTTPStatusCode = await db.ExecuteScalarAsync<int>(@"
-                    select HTTPStatusCode from API.AMRequestLogs
-                    where MailPieceId = @id and IsPrimary = 1
-                    ", new { id }, transaction: t);
-
-                var isMailPieceAccepted = primaryHTTPStatusCode == 200;
-
-                var status = Processing;
-                var isPrimary = !isMailPieceAccepted;
-
-                // record current request
-                var reqId = await db.ExecuteScalarAsync<int>(@"
-                    insert into API.AMRequestLogs (MailPieceId, IsPrimary, Status, ReceivedOn)
-                    OUTPUT INSERTED.ID
-                    values (@id, @isPrimary, @status, @receivedOn)",
-                    new { id, isPrimary, status, receivedOn }, transaction: t);
-
-
-
-                if (reqCount >= Config.MailRequestAPI_MaxRetries)
+                if (!id.HasValue || id == Guid.Empty)
                 {
-                    t.Commit();
-                    return new AddPackageResult { Id = reqId, HTTPStatusCode = 400 };
-                }
-
-                var packageExists = await db.ExecuteScalarAsync<bool>("" +
-                    "select 1 from Packages where Id = @id");
-
-                if (packageExists)
-                {
-                    // if yes, return false and log request
-                    var processedOn = Common.Now;
-                    var totalTime = processedOn.Subtract(receivedOn).TotalSeconds;
-
-                    await db.ExecuteAsync("" +
-                        "insert into DuplicateRequets (UniqueId, ReceivedOn, ProcessedOn, TotalTime) " +
-                        "values (@id, @receivedOn, @processedOn, @totalTime",
-                        new { id, receivedOn, processedOn, totalTime }, transaction: t);
+                    isPrimary = true;
+                    responseHttpStatusCode = 0;
                 }
                 else
                 {
-                    // if no, add package and return true
-                    //var status = ReqStatus.Verifying;
+                    // check if request is successfully accepted before
+                    var primaryHTTPStatusCode = await db.ExecuteScalarAsync<int?>(@"
+                        select HTTPStatusCode from API.AMRequestLogs
+                        where MailPieceId = @id and IsPrimary = 1
+                    ", new { id }, transaction: t);
 
-                    await db.ExecuteAsync("" +
-                        "insert into Packages (Id, Status, ReceivedOn, ProcessedOn, ErrorLog) " +
-                        "values (@id, @status, @receivedOn, NULL, NULL",
-                        new { id, status, receivedOn }, transaction: t);
+                    // 406 and 409 get higher priority than 400
+                    // this ensures that even if a request is tried 100 times (more than max limit)
+                    // they still get 406 or 409 if applicable
+
+                    if (primaryHTTPStatusCode == 0)
+                    {
+                        // Earlier request is still in progress
+                        responseHttpStatusCode = 406;
+                    }
+                    else if (primaryHTTPStatusCode == 200)
+                    {
+                        // request has already been accepted
+                        responseHttpStatusCode = 409;
+                    }
+                    else
+                    {
+                        /// request is received for the first time
+                        /// or multiple times less than max retries
+                        /// or more than max retries
+
+                        // it is not 0 or 200 so it becomes primary now
+                        isPrimary = true;
+
+                        // check if the request is received multiple times
+                        var reqCount = await db.ExecuteScalarAsync<int>(@"
+                            select count(Id) from API.AMRequestLogs where MailPieceId = @id
+                        ", new { id }, transaction: t);
+
+                        responseHttpStatusCode = reqCount >= Config.MailRequestAPI_MaxRetries ? 400 : 0;
+                    }
+
                 }
+
+                // record current request
+                var reqId = await db.ExecuteScalarAsync<int>(@"
+                    insert into API.AMRequestLogs (MailPieceId, IsPrimary, Status, HTTPStatusCode, ReceivedOn)
+                    OUTPUT INSERTED.ID
+                    values (@id, @isPrimary, @status, @httpStatusCode, @receivedOn)
+                ", new { id, isPrimary, status = Processing, httpStatusCode = 0, receivedOn }, transaction: t);
 
                 t.Commit();
                 db.Close();
-                throw new NotImplementedException();
+
+                return new AddPackageResult { Id = reqId, HTTPStatusCode = responseHttpStatusCode };
             }
         }
 
