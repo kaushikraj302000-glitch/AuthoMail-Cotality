@@ -8,6 +8,9 @@ namespace AM.Services
 {
     public class ReqStatus
     {
+        public const string Verifying = "Verifying";
+        public const string Queued = "Queued";
+
         public int Id { get; set; }
         public int HTTPStatusCode { get; set; }
     }

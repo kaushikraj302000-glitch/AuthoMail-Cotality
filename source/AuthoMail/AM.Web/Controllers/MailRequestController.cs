@@ -710,10 +710,20 @@ bufferSize: 4096, useAsync: true)) { }
 
             foreach (var mailPieceId in uniqueIds)
             {
-                using (IGeneralService generalSvc = new GeneralService())
+                if (Guid.TryParse(mailPieceId,out var mpId))
                 {
-                    string deliveryReport = generalSvc.GeneralJsonReport(mailPieceId);
-                    mailAPIResponses.Add(JsonConvert.DeserializeObject<MailAPIResponse>(deliveryReport));
+                    using (IGeneralService generalSvc = new GeneralService())
+                    {
+                        //string deliveryReport = generalSvc.GeneralJsonReport(mailPieceId);
+                        var response = generalSvc.GenerateMailAPIResponse(mailPieceId);
+                        //mailAPIResponses.Add(JsonConvert.DeserializeObject<MailAPIResponse>(deliveryReport));
+                        mailAPIResponses.Add(response);
+                    } 
+                }
+                else
+                {
+                    string msg = $"MailPieceId must be a valid GUID: {mailPieceId}";
+                    mailAPIResponses.Add(new MailAPIResponse { Id = Guid.Empty, ClientCode = null, BusinessFriendlyIdName = null, BusinessFriendlyIdValue = null, DocumentOrPackageType = null, DocumentOrPackage = null, RecipientInfo = null, MailingStatus = MailingStatus.Error.ToString(), ErrorCode = OutComeCodes.Invalid_MailPieceId, ErrorDesc = msg });
                 }
             }
             return mailAPIResponses;

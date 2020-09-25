@@ -3,6 +3,7 @@ using AM.Lib;
 using AM.Services.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Org.BouncyCastle.Asn1.Ocsp;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -193,8 +194,13 @@ namespace AM.Services
 
                             return response;
                         }
+                        string status;
+                        if (reqInfo.Status == ReqStatus.Verifying || reqInfo.Status == ReqStatus.Queued)
+                            status = reqInfo.Status;
+                        else
+                            status = ShippingStatus.Error.ToString();
 
-                        return new MailAPIResponse { Id = reqInfo.MailPieceId ?? reqInfo.MailPieceId.Value, ReceivedOn = reqInfo.ReceivedOn, ClientCode = null, BusinessFriendlyIdName = null, BusinessFriendlyIdValue = null, DocumentOrPackageType = null, DocumentOrPackage = null, RecipientInfo = null, MailingStatus = reqInfo.Status == "Verifying" ? "Verifying" : reqInfo.Status == "Queued" ? "Queued" : ShippingStatus.Error.ToString(), ErrorCode = reqInfo.Status, ErrorDesc = reqInfo.APIResponse };
+                        return new MailAPIResponse { Id = reqInfo.MailPieceId ?? reqInfo.MailPieceId.Value, ReceivedOn = reqInfo.ReceivedOn, ClientCode = null, BusinessFriendlyIdName = null, BusinessFriendlyIdValue = null, DocumentOrPackageType = null, DocumentOrPackage = null, RecipientInfo = null, MailingStatus = status, ErrorCode = reqInfo.Status, ErrorDesc = reqInfo.APIResponse };
                     }
                 }
 
@@ -272,6 +278,7 @@ namespace AM.Services
             var serializedString = JsonConvert.SerializeObject(response);
             return serializedString;
         }
+
 
         public Task<HttpResponseMessage> SendAPIResponse(HttpClient httpClient, string responseURL, IEnumerable<MailAPIResponse> responseReport)
         {

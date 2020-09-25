@@ -12,8 +12,7 @@ namespace AM.Services.Services
     }
 
     public class PnSAPIService : ServiceBase, IPnSAPIService
-    {
-        private const string Verifying = "Verifying";
+    {        
         //public PnSAPIService() : base("AMAPI") { }
 
         /// <summary>
@@ -95,7 +94,7 @@ namespace AM.Services.Services
                     insert into API.AMRequestLogs (MailPieceId, IsPrimary, Status, HTTPStatusCode, ReceivedOn)
                     OUTPUT INSERTED.ID
                     values (@id, @isNewReqPrimary, @status, @httpStatusCode, @receivedOn)
-                ", new { id, isNewReqPrimary, status = Verifying, httpStatusCode = 0, receivedOn }, transaction: t);
+                ", new { id, isNewReqPrimary, status = ReqStatus.Verifying, httpStatusCode = 0, receivedOn }, transaction: t);
 
                 t.Commit();
                 db.Close();
@@ -117,7 +116,7 @@ namespace AM.Services.Services
             // update package status
             using (var t = db.BeginTransaction())
             {
-                requestLog.Status = requestLog.Status == "OK" ? "Queued" : requestLog.Status;
+                requestLog.Status = requestLog.Status == "OK" ? ReqStatus.Queued : requestLog.Status;
 
                 await db.ExecuteAsync(@"
                     update API.AMRequestLogs
