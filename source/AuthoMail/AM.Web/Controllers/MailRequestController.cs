@@ -527,6 +527,7 @@ bufferSize: 4096, useAsync: true)) { }
                     requestLog.MailPieceId = mailPiece.Id;
                     requestLog.Status = "Queued";
                     requestLog.HTTPStatusCode = (int)HttpStatusCode.OK;
+                    requestLog.APIResponse = mailResponse.Message;
                     requestLog.ReceivedOn = receivedOn;
                     requestLog.Cleanup = sw.Elapsed.TotalSeconds;
                     await pnsApiSvc.UpdatePackageStatus(requestLog);

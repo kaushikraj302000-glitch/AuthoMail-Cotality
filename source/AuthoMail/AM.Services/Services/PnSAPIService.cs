@@ -86,7 +86,7 @@ namespace AM.Services.Services
                     {
                         await db.ExecuteAsync(@"
                             update API.AMRequestLogs set IsPrimary = 0 where Id = @Id
-                        ", primaryReq);
+                        ", primaryReq, transaction: t);
                     }
                 }
 
