@@ -11,7 +11,7 @@ namespace AM.Services.Services
     public interface IPnSAPIService : IDisposable
     {
         Task<AddPackageResult> AddPackage(Guid? id, DateTime receivedOn);
-        Task UpdatePackageStatus(RequestLog perfLog);
+        Task UpdatePackageStatus(RequestLog requestLog);
     }
 
     public class PnSAPIService : ServiceBase, IPnSAPIService
@@ -94,24 +94,31 @@ namespace AM.Services.Services
             }
         }
 
-        public async Task UpdatePackageStatus(RequestLog perfLog)
+        public async Task UpdatePackageStatus(RequestLog requestLog)
         {
             await db.OpenAsync();
             // update package status
             using (var t = db.BeginTransaction())
             {
+                requestLog.Status = requestLog.Status == "OK" ? "Queued" : requestLog.Status;
 
-                await db.ExecuteAsync("" +
-                    "update Packages set" +
-                    "   Status = @Status, " +
-                    "   ProcessedOn = @ProcessedOn, " +
-                    "   ErrorLog = @ErrorLog " +
-                    "where id = @UniqueId", perfLog, transaction: t);
-
-                await db.ExecuteAsync("" +
-                    "insert into PerfLog (Id, SizeCheck, Download, Validate, Merge, PostBatch, Cleanup, TotalTime) " +
-                    "values (@UniqueId, @SizeCheck, @Download, @Validate, @Merge, @PostBatch, @Cleanup, @TotalTime)"
-                    , perfLog, transaction: t);
+                await db.ExecuteAsync(@"
+                    update API.AMRequestLogs
+                    set Status = @Status
+                        HTTPStatusCode = @HTTPStatusCode
+                        APIResponse = @APIResponse
+                        ReceivedOn = @ReceivedOn
+                        ProcessedOn = @ProcessedOn
+                        ErrorLog = @ErrorLog
+                        InitialChecks = @InitialChecks
+                        Download = @Download
+                        Validate = @Validate
+                        Merge = @Merge
+                        PostBatch = @PostBatch
+                        Cleanup = @Cleanup
+                        TotalTime = @TotalTime
+                    where Id = @Id
+                ", requestLog, transaction: t);
 
                 t.Commit();
                 db.Close();
