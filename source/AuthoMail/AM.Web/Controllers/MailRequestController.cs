@@ -155,7 +155,7 @@ bufferSize: 4096, useAsync: true)) { }
                     sw.Stop();
                     requestLog.Id = addPackageResult.Id;
                     requestLog.MailPieceId = null;
-                    requestLog.Status = HttpStatusCode.BadRequest.ToString();
+                    requestLog.Status = OutComeCodes.Invalid_MailPieceId;
                     requestLog.HTTPStatusCode = (int)HttpStatusCode.BadRequest;
                     requestLog.APIResponse = msg;
                     requestLog.ReceivedOn = receivedOn;
@@ -196,7 +196,7 @@ bufferSize: 4096, useAsync: true)) { }
                     sw.Stop();
                     requestLog.Id = addPackageResult.Id;
                     requestLog.MailPieceId = mpId;
-                    requestLog.Status = HttpStatusCode.BadRequest.ToString();
+                    requestLog.Status = outcomeCode;
                     requestLog.HTTPStatusCode = (int)httpStatusCode;
                     requestLog.APIResponse = msg;
                     requestLog.ReceivedOn = receivedOn;
@@ -212,7 +212,7 @@ bufferSize: 4096, useAsync: true)) { }
                     sw.Stop();
                     requestLog.Id = addPackageResult.Id;
                     requestLog.MailPieceId = mpId;
-                    requestLog.Status = HttpStatusCode.BadRequest.ToString();
+                    requestLog.Status = OutComeCodes.RequestTooLarge;
                     requestLog.HTTPStatusCode = (int)HttpStatusCode.RequestEntityTooLarge;
                     requestLog.APIResponse = "Maximum request length exceeded.";
                     requestLog.ReceivedOn = receivedOn;
@@ -240,14 +240,14 @@ bufferSize: 4096, useAsync: true)) { }
                     sw.Stop();
                     requestLog.Id = addPackageResult.Id;
                     requestLog.MailPieceId = mpId;
-                    requestLog.Status = HttpStatusCode.BadRequest.ToString();
+                    requestLog.Status = OutComeCodes.NotAcceptable;
                     requestLog.HTTPStatusCode = (int)HttpStatusCode.NotAcceptable;
                     requestLog.ReceivedOn = receivedOn;
                     requestLog.APIResponse = msg;
                     requestLog.ErrorLog = e.ToString();
                     await pnsApiSvc.UpdatePackageStatus(requestLog);
                     mailPiece.Id = mpId;
-                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = HttpStatusCode.NotAcceptable.ToString(), ErrorMessage = msg }, receivedOn);
+                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.NotAcceptable, ErrorMessage = msg }, receivedOn);
                     return Request.CreateResponse(HttpStatusCode.NotAcceptable, res);
                 }
                 sw.Stop();
@@ -275,7 +275,7 @@ bufferSize: 4096, useAsync: true)) { }
                     sw.Stop();
                     requestLog.Id = addPackageResult.Id;
                     requestLog.MailPieceId = mailPiece.Id;
-                    requestLog.Status = HttpStatusCode.BadRequest.ToString();
+                    requestLog.Status = OutComeCodes.Manifest_Missing_Or_Invalid;
                     requestLog.HTTPStatusCode = (int)HttpStatusCode.BadRequest;
                     requestLog.APIResponse = manifestErrDesc;
                     requestLog.ReceivedOn = receivedOn;
@@ -308,7 +308,7 @@ bufferSize: 4096, useAsync: true)) { }
                         sw.Stop();
                         requestLog.Id = addPackageResult.Id;
                         requestLog.MailPieceId = mailPiece.Id;
-                        requestLog.Status = HttpStatusCode.BadRequest.ToString();
+                        requestLog.Status = OutComeCodes.Invalid_ClientCode;
                         requestLog.HTTPStatusCode = (int)HttpStatusCode.BadRequest;
                         requestLog.APIResponse = msg;
                         requestLog.ReceivedOn = receivedOn;
@@ -336,7 +336,7 @@ bufferSize: 4096, useAsync: true)) { }
                             sw.Stop();
                             requestLog.Id = addPackageResult.Id;
                             requestLog.MailPieceId = mailPiece.Id;
-                            requestLog.Status = HttpStatusCode.BadRequest.ToString();
+                            requestLog.Status = result.Code;
                             requestLog.HTTPStatusCode = (int)HttpStatusCode.BadRequest;
                             requestLog.APIResponse = result.ErrorMessage;
                             requestLog.ReceivedOn = receivedOn;
@@ -373,7 +373,7 @@ bufferSize: 4096, useAsync: true)) { }
                         sw.Stop();
                         requestLog.Id = addPackageResult.Id;
                         requestLog.MailPieceId = mailPiece.Id;
-                        requestLog.Status = HttpStatusCode.BadRequest.ToString();
+                        requestLog.Status = OutComeCodes.Missing_PDF_File;
                         requestLog.HTTPStatusCode = (int)HttpStatusCode.BadRequest;
                         requestLog.APIResponse = msg;
                         requestLog.ReceivedOn = receivedOn;
@@ -392,7 +392,7 @@ bufferSize: 4096, useAsync: true)) { }
                         sw.Stop();
                         requestLog.Id = addPackageResult.Id;
                         requestLog.MailPieceId = mailPiece.Id;
-                        requestLog.Status = HttpStatusCode.BadRequest.ToString();
+                        requestLog.Status = OutComeCodes.Manifest_Missing_Or_Invalid;
                         requestLog.HTTPStatusCode = (int)HttpStatusCode.BadRequest;
                         requestLog.APIResponse = msg;
                         requestLog.ReceivedOn = receivedOn;
@@ -442,7 +442,7 @@ bufferSize: 4096, useAsync: true)) { }
                                         sw.Stop();
                                         requestLog.Id = addPackageResult.Id;
                                         requestLog.MailPieceId = mailPiece.Id;
-                                        requestLog.Status = HttpStatusCode.BadRequest.ToString();
+                                        requestLog.Status = OutComeCodes.Invalid_PDF_File;
                                         requestLog.HTTPStatusCode = (int)HttpStatusCode.BadRequest;
                                         requestLog.APIResponse = msg;
                                         requestLog.ErrorLog = e.ToString();
@@ -478,7 +478,7 @@ bufferSize: 4096, useAsync: true)) { }
                                 sw.Stop();
                                 requestLog.Id = addPackageResult.Id;
                                 requestLog.MailPieceId = mailPiece.Id;
-                                requestLog.Status = HttpStatusCode.BadRequest.ToString();
+                                requestLog.Status = OutComeCodes.Invalid_PDF_File;
                                 requestLog.HTTPStatusCode = (int)HttpStatusCode.BadRequest;
                                 requestLog.APIResponse = msg;
                                 requestLog.ErrorLog = e.ToString();
@@ -525,7 +525,7 @@ bufferSize: 4096, useAsync: true)) { }
                     sw.Stop();
                     requestLog.Id = addPackageResult.Id;
                     requestLog.MailPieceId = mailPiece.Id;
-                    requestLog.Status = HttpStatusCode.OK.ToString();
+                    requestLog.Status = "Queued";
                     requestLog.HTTPStatusCode = (int)HttpStatusCode.OK;
                     requestLog.ReceivedOn = receivedOn;
                     requestLog.Cleanup = sw.Elapsed.TotalSeconds;
@@ -560,7 +560,14 @@ bufferSize: 4096, useAsync: true)) { }
                 requestLog.HTTPStatusCode = (int)HttpStatusCode.InternalServerError;
                 requestLog.ReceivedOn = receivedOn;
                 requestLog.ErrorLog = e.ToString();
-                await pnsApiSvc.UpdatePackageStatus(requestLog);
+                try
+                {
+                    await pnsApiSvc.UpdatePackageStatus(requestLog);
+                }
+                catch (InvalidOperationException io)
+                {
+                    log.Error("TraceId: {0}, Message: {1}".Fill(traceId, io.Message), io);
+                }
 
                 return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, "Unexpected error. TraceId : {0}".Fill(traceId));
             }
@@ -644,6 +651,8 @@ bufferSize: 4096, useAsync: true)) { }
                     {
                         if (mailPiece.Id != Guid.Empty)
                             manifestErrDesc = "PackageId provided in header must match with manifest.";
+                        else
+                            mailPiece.Id = packageId;
                     }
                     else
                     {

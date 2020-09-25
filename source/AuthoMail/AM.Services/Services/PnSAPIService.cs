@@ -16,7 +16,7 @@ namespace AM.Services.Services
 
     public class PnSAPIService : ServiceBase, IPnSAPIService
     {
-        private const string Processing = "Processing";
+        private const string Verifying = "Verifying";
         //public PnSAPIService() : base("AMAPI") { }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace AM.Services.Services
                     insert into API.AMRequestLogs (MailPieceId, IsPrimary, Status, HTTPStatusCode, ReceivedOn)
                     OUTPUT INSERTED.ID
                     values (@id, @isPrimary, @status, @httpStatusCode, @receivedOn)
-                ", new { id, isPrimary, status = Processing, httpStatusCode = 0, receivedOn }, transaction: t);
+                ", new { id, isPrimary, status = Verifying, httpStatusCode = 0, receivedOn }, transaction: t);
 
                 t.Commit();
                 db.Close();
@@ -115,7 +115,7 @@ namespace AM.Services.Services
                         InitialChecks = @InitialChecks,
                         Download = @Download,
                         Validate = @Validate,
-                        Merge = @Merge,
+                        [Merge] = @Merge,
                         PostBatch = @PostBatch,
                         Cleanup = @Cleanup,
                         TotalTime = @TotalTime
