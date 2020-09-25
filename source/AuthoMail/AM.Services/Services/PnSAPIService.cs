@@ -16,7 +16,7 @@ namespace AM.Services.Services
 
     public class PnSAPIService : ServiceBase, IPnSAPIService
     {
-        private const string Processing = "Processing";
+        private const string Verifying = "Verifying";
         //public PnSAPIService() : base("AMAPI") { }
 
         /// <summary>
@@ -32,18 +32,18 @@ namespace AM.Services.Services
             using (var t = db.BeginTransaction())
             {
                 var responseHttpStatusCode = 0;
-                bool isPrimary = false;
+                bool isNewReqPrimary = false;
 
                 if (!id.HasValue || id == Guid.Empty)
                 {
-                    isPrimary = true;
+                    isNewReqPrimary = true;
                     responseHttpStatusCode = 0;
                 }
                 else
                 {
                     // check if request is successfully accepted before
-                    var primaryHTTPStatusCode = await db.ExecuteScalarAsync<int?>(@"
-                        select HTTPStatusCode from API.AMRequestLogs
+                    var primaryReq = await db.QuerySingleOrDefaultAsync<ReqStatus>(@"
+                        select Id, HTTPStatusCode from API.AMRequestLogs
                         where MailPieceId = @id and IsPrimary = 1
                     ", new { id }, transaction: t);
 
@@ -51,16 +51,21 @@ namespace AM.Services.Services
                     // this ensures that even if a request is tried 100 times (more than max limit)
                     // they still get 406 or 409 if applicable
 
-                    if (primaryHTTPStatusCode == 0)
+                    if (primaryReq == null)
+                    {
+                        isNewReqPrimary = true;
+                        responseHttpStatusCode = 0;
+                    }
+                    else if (primaryReq.HTTPStatusCode == 0)
                     {
                         // Earlier request is still in progress
-                        isPrimary = false;
+                        isNewReqPrimary = false;
                         responseHttpStatusCode = 406;
                     }
-                    else if (primaryHTTPStatusCode == 200)
+                    else if (primaryReq.HTTPStatusCode == 200)
                     {
                         // request has already been accepted
-                        isPrimary = false;
+                        isNewReqPrimary = false;
                         responseHttpStatusCode = 409;
                     }
                     else
@@ -70,7 +75,7 @@ namespace AM.Services.Services
                         /// or more than max retries
 
                         // it is not 0 or 200 so it becomes primary now
-                        isPrimary = true;
+                        isNewReqPrimary = true;
 
                         // check if the request is received multiple times
                         var reqCount = await db.ExecuteScalarAsync<int>(@"
@@ -80,14 +85,20 @@ namespace AM.Services.Services
                         responseHttpStatusCode = reqCount >= Config.MailRequestAPI_MaxRetries ? 400 : 0;
                     }
 
+                    if (primaryReq != null && isNewReqPrimary)
+                    {
+                        await db.ExecuteAsync(@"
+                            update API.AMRequestLogs set IsPrimary = 0 where Id = @Id
+                        ", primaryReq);
+                    }
                 }
 
                 // record current request
                 var reqId = await db.ExecuteScalarAsync<int>(@"
                     insert into API.AMRequestLogs (MailPieceId, IsPrimary, Status, HTTPStatusCode, ReceivedOn)
                     OUTPUT INSERTED.ID
-                    values (@id, @isPrimary, @status, @httpStatusCode, @receivedOn)
-                ", new { id, isPrimary, status = Processing, httpStatusCode = 0, receivedOn }, transaction: t);
+                    values (@id, @isNewReqPrimary, @status, @httpStatusCode, @receivedOn)
+                ", new { id, isNewReqPrimary, status = Verifying, httpStatusCode = 0, receivedOn }, transaction: t);
 
                 t.Commit();
                 db.Close();

@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace AM.Services
 {
-    public static class ReqStatus
+    public class ReqStatus
     {
-        public const string Verifying = "Verifying";
-        public const string BadRequest = "BadRequest";
-        public const string Queued = "Queued";
+        public int Id { get; set; }
+        public int HTTPStatusCode { get; set; }
     }
 
     public class RequestLog
