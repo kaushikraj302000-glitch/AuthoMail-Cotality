@@ -233,22 +233,29 @@ bufferSize: 4096, useAsync: true)) { }
                 }
                 catch (IOException e)
                 {
-                    string msg = "The client disconnected.";
-                    
-                    await StoreInvalidOrBadRequest(manifest.Length == 0 ? string.Empty : manifest[0], provider.FileData, errorPath, mpId, e.ToString(), addPackageResult.Id);
+                    if (e.InnerException.ToString().Contains("client disconnected"))
+                    {
+                        string msg = "The client disconnected.";
 
-                    sw.Stop();
-                    requestLog.Id = addPackageResult.Id;
-                    requestLog.MailPieceId = mpId;
-                    requestLog.Status = OutComeCodes.NotAcceptable;
-                    requestLog.HTTPStatusCode = (int)HttpStatusCode.NotAcceptable;
-                    requestLog.ReceivedOn = receivedOn;
-                    requestLog.APIResponse = msg;
-                    requestLog.ErrorLog = e.ToString();
-                    await pnsApiSvc.UpdatePackageStatus(requestLog);
-                    mailPiece.Id = mpId;
-                    var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.NotAcceptable, ErrorMessage = msg }, receivedOn);
-                    return Request.CreateResponse(HttpStatusCode.NotAcceptable, res);
+                        await StoreInvalidOrBadRequest(manifest.Length == 0 ? string.Empty : manifest[0], provider.FileData, errorPath, mpId, e.ToString(), addPackageResult.Id);
+
+                        sw.Stop();
+                        requestLog.Id = addPackageResult.Id;
+                        requestLog.MailPieceId = mpId;
+                        requestLog.Status = OutComeCodes.NotAcceptable;
+                        requestLog.HTTPStatusCode = (int)HttpStatusCode.NotAcceptable;
+                        requestLog.ReceivedOn = receivedOn;
+                        requestLog.APIResponse = msg;
+                        requestLog.ErrorLog = e.ToString();
+                        await pnsApiSvc.UpdatePackageStatus(requestLog);
+                        mailPiece.Id = mpId;
+                        var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.NotAcceptable, ErrorMessage = msg }, receivedOn);
+                        return Request.CreateResponse(HttpStatusCode.NotAcceptable, res); 
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
                 sw.Stop();
                 requestLog.Download = sw.Elapsed.TotalSeconds;
@@ -504,7 +511,7 @@ bufferSize: 4096, useAsync: true)) { }
                 {
                     sw.Stop();
                     requestLog.Validate = sw.Elapsed.TotalSeconds;
-                    requestLog.Merge = sw.Elapsed.TotalSeconds;
+                    requestLog.Merge = 0;
                     sw.Restart();
                 }
                 // call method passing mailpiece
@@ -525,7 +532,7 @@ bufferSize: 4096, useAsync: true)) { }
                     sw.Stop();
                     requestLog.Id = addPackageResult.Id;
                     requestLog.MailPieceId = mailPiece.Id;
-                    requestLog.Status = "Queued";
+                    requestLog.Status = HttpStatusCode.OK.ToString();
                     requestLog.HTTPStatusCode = (int)HttpStatusCode.OK;
                     requestLog.APIResponse = mailResponse.Message;
                     requestLog.ReceivedOn = receivedOn;
@@ -535,6 +542,8 @@ bufferSize: 4096, useAsync: true)) { }
                 }
                 else
                 {
+                    await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, mailResponse.ErrorDesc, addPackageResult.Id);
+                    DeleteFiles(downloadedFiles);
                     sw.Stop();
                     requestLog.Id = addPackageResult.Id;
                     requestLog.MailPieceId = mailPiece.Id;
@@ -542,6 +551,7 @@ bufferSize: 4096, useAsync: true)) { }
                     requestLog.HTTPStatusCode = (int)response.StatusCode;
                     requestLog.ReceivedOn = receivedOn;
                     requestLog.APIResponse = mailResponse.ErrorDesc;
+                    requestLog.Cleanup = sw.Elapsed.TotalSeconds;
                     await pnsApiSvc.UpdatePackageStatus(requestLog);
                     return Request.CreateResponse(response.StatusCode, mailResponse);
                 }
@@ -553,6 +563,7 @@ bufferSize: 4096, useAsync: true)) { }
                 log.Error("TraceId: {0}, Message: {1}".Fill(traceId, e.Message), e);
 
                 await StoreInvalidOrBadRequest(manifest.Length == 0 ? string.Empty : manifest[0], provider.FileData, errorPath, traceId, e.ToString());
+                DeleteFiles(downloadedFiles);
 
                 sw.Stop();
                 requestLog.Id = addPackageResult.Id;
@@ -628,7 +639,7 @@ bufferSize: 4096, useAsync: true)) { }
         private static string ValidateManifestRequest(ref MailPiece mailPiece, Guid packageId, bool isCLPackageId, string[] manifest, List<string> filekeys)
         {
             string manifestErrDesc = null;
-            if (manifest == null)
+            if (manifest == null || manifest.Length == 0 || string.IsNullOrWhiteSpace(manifest[0]))
             {
                 manifestErrDesc = "Manifest is mandatory.";
             }
@@ -731,15 +742,6 @@ bufferSize: 4096, useAsync: true)) { }
         private IEnumerable<MailPieceValidationResult> GetAllMailPieceBasicErrors(MailBatch mailBatch, Client client)
         {
             var mailPiece = mailBatch.MailPieces.First();
-
-            //Duplicate key validation
-            using (ICommonService commonSvc = new CommonService())
-            {
-                if (commonSvc.CheckForDuplicateMailPieceUniqueId(mailPiece.Id))
-                {
-                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_DuplicateKey, ErrorMessage = string.Format("The specified package id '{0}' conflicts with an existing package. Retry with a new GUID.", mailPiece.Id) };
-                }
-            }
 
             if (mailPiece.RecipientInfo != null)
             {
