@@ -9,24 +9,61 @@ namespace AM.Services.Services
 {
     public interface IPnSAPIService : IDisposable
     {
-        Task<AddPackageResult> AddPackage(Guid id, DateTime receivedOn);
+        Task<AddPackageResult> AddPackage(Guid? id, DateTime receivedOn);
         Task UpdatePackageStatus(RequestLog perfLog);
     }
 
     public class PnSAPIService : ServiceBase, IPnSAPIService
     {
+        private const string Processing = "Processing";
         //public PnSAPIService() : base("AMAPI") { }
 
-        public async Task<AddPackageResult> AddPackage(Guid id, DateTime receivedOn)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="receivedOn"></param>
+        /// <returns>Returns HTTP reponse status codes 200, 400, 406, 409</returns>
+        public async Task<AddPackageResult> AddPackage(Guid? id, DateTime receivedOn)
         {
             await db.OpenAsync();
 
             using (var t = db.BeginTransaction())
             {
-                // check if the package already received
+                // check if the request is received multiple times
+                var reqCount = await db.ExecuteScalarAsync<int>(@"
+                    select count(Id) from API.AMRequestLogs where MailPieceId = @id
+                    ",new { id }, transaction: t);
+
+                // check if request is successfully accepted before
+
+                var primaryHTTPStatusCode = await db.ExecuteScalarAsync<int>(@"
+                    select HTTPStatusCode from API.AMRequestLogs
+                    where MailPieceId = @id and IsPrimary = 1
+                    ", new { id }, transaction: t);
+
+                var isMailPieceAccepted = primaryHTTPStatusCode == 200;
+
+                var status = Processing;
+                var isPrimary = !isMailPieceAccepted;
+
+                // record current request
+                var reqId = await db.ExecuteScalarAsync<int>(@"
+                    insert into API.AMRequestLogs (MailPieceId, IsPrimary, Status, ReceivedOn)
+                    OUTPUT INSERTED.ID
+                    values (@id, @isPrimary, @status, @receivedOn)",
+                    new { id, isPrimary, status, receivedOn }, transaction: t);
+
+
+
+                if (reqCount >= Config.MailRequestAPI_MaxRetries)
+                {
+                    t.Commit();
+                    return new AddPackageResult { Id = reqId, HTTPStatusCode = 400 };
+                }
 
                 var packageExists = await db.ExecuteScalarAsync<bool>("" +
-                    "select 1 from Packages where Id = @id", new { id }, transaction: t);
+                    "select 1 from Packages where Id = @id");
 
                 if (packageExists)
                 {
@@ -42,7 +79,7 @@ namespace AM.Services.Services
                 else
                 {
                     // if no, add package and return true
-                    var status = ReqStatus.Verifying;
+                    //var status = ReqStatus.Verifying;
 
                     await db.ExecuteAsync("" +
                         "insert into Packages (Id, Status, ReceivedOn, ProcessedOn, ErrorLog) " +
