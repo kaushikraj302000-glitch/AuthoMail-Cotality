@@ -54,11 +54,13 @@ namespace AM.Services.Services
                     if (primaryHTTPStatusCode == 0)
                     {
                         // Earlier request is still in progress
+                        isPrimary = false;
                         responseHttpStatusCode = 406;
                     }
                     else if (primaryHTTPStatusCode == 200)
                     {
                         // request has already been accepted
+                        isPrimary = false;
                         responseHttpStatusCode = 409;
                     }
                     else
@@ -104,18 +106,18 @@ namespace AM.Services.Services
 
                 await db.ExecuteAsync(@"
                     update API.AMRequestLogs
-                    set Status = @Status
-                        HTTPStatusCode = @HTTPStatusCode
-                        APIResponse = @APIResponse
-                        ReceivedOn = @ReceivedOn
-                        ProcessedOn = @ProcessedOn
-                        ErrorLog = @ErrorLog
-                        InitialChecks = @InitialChecks
-                        Download = @Download
-                        Validate = @Validate
-                        Merge = @Merge
-                        PostBatch = @PostBatch
-                        Cleanup = @Cleanup
+                    set Status = @Status,
+                        HTTPStatusCode = @HTTPStatusCode,
+                        APIResponse = @APIResponse,
+                        ReceivedOn = @ReceivedOn,
+                        ProcessedOn = @ProcessedOn,
+                        ErrorLog = @ErrorLog,
+                        InitialChecks = @InitialChecks,
+                        Download = @Download,
+                        Validate = @Validate,
+                        Merge = @Merge,
+                        PostBatch = @PostBatch,
+                        Cleanup = @Cleanup,
                         TotalTime = @TotalTime
                     where Id = @Id
                 ", requestLog, transaction: t);
