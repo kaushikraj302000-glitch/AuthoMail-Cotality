@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿using AM.Entities;
+using Dapper;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -12,6 +13,7 @@ namespace AM.Services.Services
     {
         Task<AddPackageResult> AddPackage(Guid? id, DateTime receivedOn);
         Task UpdatePackageStatus(RequestLog requestLog);
+        RequestLog GetAMRequestInfo(string guid);
     }
 
     public class PnSAPIService : ServiceBase, IPnSAPIService
@@ -94,6 +96,13 @@ namespace AM.Services.Services
 
                 return new AddPackageResult { Id = reqId, HTTPStatusCode = responseHttpStatusCode };
             }
+        }
+
+        public RequestLog GetAMRequestInfo(string guid)
+        {
+            string query = @"SELECT * FROM API.AMRequestLogs WHERE MailPieceId=@UniqueId AND IsPrimary=1";
+
+            return db.QuerySingleOrDefault<RequestLog>(query, new { UniqueId = guid });
         }
 
         public async Task UpdatePackageStatus(RequestLog requestLog)
