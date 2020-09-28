@@ -283,7 +283,6 @@
     <Compile Include="Models\SearchViewModel.cs" />
     <Compile Include="Models\SummaryControlViewModel.cs" />
     <Compile Include="Models\TrackingInfoViewModel.cs" />
-    <Compile Include="Models\XLS.cs" />
     <Compile Include="Service References\USPSIMService\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
