@@ -254,6 +254,13 @@ namespace AM.Console
             var jsonContent = await tokenResponse.Content.ReadAsStringAsync();
             var jObj = JObject.Parse(jsonContent);
 
+            if (jObj == null || jObj.GetValue("access_token") == null)
+            {
+                var msg = $"{Config.Common_Environment} : AuthoMail is not able to generate token for channel {sftChannelDetails.Code}.";
+                log.Error(msg + Environment.NewLine + jObj == null ? null : jObj.ToString());
+                throw new Exception(msg);
+            }
+
             return jObj.GetValue("access_token").ToString();
         }
 
