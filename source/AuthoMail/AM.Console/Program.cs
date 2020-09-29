@@ -3,6 +3,7 @@ using AM.Services;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +23,8 @@ namespace AM.Console
             log = log4net.LogManager.GetLogger(type);
 
             log.InfoFormat("Command line arguments : {0}", String.Join(",", args));
+
+
 
             try
             {
@@ -63,6 +66,24 @@ namespace AM.Console
 
                         System.Console.WriteLine("Update PnSConfigDetailId Completed");
                         return;
+                    }
+                    else if (args[0] == "CustomReports")
+                    {
+                        using (IReportService reportSvc = new ReportService())
+                        using (IGeneralService generalSvc = new GeneralService())
+                        using (ICommonService commonSvc = new CommonService())
+                        using (IClientService clientSvc = new ClientService())
+                        {
+                            var appCode = "PENFED";
+                            var client = clientSvc.GetClientByAppCode(appCode).Result;
+                            var mps = reportSvc.GetMailPiecesDataBetweenDates(new DateTime(2020, 09, 04).ToStartDateTime().EstToUtc(), new DateTime(2020, 09, 09).ToEndDateTime().EstToUtc(), client.Id);
+
+                            string responseReport = generalSvc.GeneralXMLReport(mps, appCode);
+                            string deliveryReportFileName = "{0}-{1}-{2}.xml".Fill(appCode, new Random().Next(100000, 1000000), new Random().Next(100000, 1000000));
+                            string deliveryReportPath = Path.Combine(@"D:\", deliveryReportFileName);
+
+                            File.WriteAllText(deliveryReportPath, responseReport);
+                        }
                     }
                     else if (args[0] == "BatchReporting")
                     {

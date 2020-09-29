@@ -31,6 +31,7 @@ namespace AM.Services
         List<string> GetMonthlyReconDate(int clientId);
         List<GOSMailPieceData> GetGOSDailyReconReport(DateTime currentDate);
         List<FedExReport> GetFedExDataForTracking(DateTime startDueDate, DateTime endDueDate);
+        List<MailPieces> GetMailPiecesDataBetweenDates(DateTime startDate, DateTime endDate, int clientId);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -541,6 +542,41 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
                 startDueDate,
                 endDueDate
             }).ToList();
+            return data;
+        }
+        public List<MailPieces> GetMailPiecesDataBetweenDates(DateTime startDate, DateTime endDate, int clientId)
+        {
+            var mailPieceDictionary = new Dictionary<int, MailPieces>();
+
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+LEFT OUTER JOIN Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON B.ClientId=C.Id WHERE B.ReceivedOn BETWEEN @startDate AND @endDate AND B.ClientId=@clientId AND M.ShippingStatus=@ShippingStatus";
+
+            var data = db.Query<MailPieces, MailBatches, DocTypes, PnSConfigDetail, MailPieceCustomInfoTest, Clients, MailPieces>(query,
+                (m, b, d, p, c, cl) =>
+                {
+                    MailPieces mp;
+
+                    if (!mailPieceDictionary.TryGetValue(m.Id, out mp))
+                    {
+                        mp = m;
+                        mp.MailBatches = b;
+                        mp.DocTypes = d;
+                        mp.PnSConfigDetails = p;
+                        mp.Clients = cl;
+                        mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
+                        mailPieceDictionary.Add(mp.Id, mp);
+                    }
+
+                    mp.MailPieceCustomInfoTest.Add(c);
+                    return mp;
+                },
+                new
+                {
+                    startDate,
+                    endDate,
+                    clientId,
+                    ShippingStatus = ShippingStatus.Error.ToString()
+                }, splitOn: "Id,Id,MailPieceId,Id").Distinct().ToList();
             return data;
         }
     }
