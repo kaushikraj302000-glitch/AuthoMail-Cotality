@@ -420,13 +420,13 @@
         }
         StatusChangeEvent();
         function EditRoleClientEvent() {
-            $('.editroleclient').unbind('click');
-            $('.editroleclient').bind('click', function (e) {
+            $('table tbody').on('click', '.editroleclient', function () {
                 var userId = $(this).data('id');
                 $('#EditRoleClientModal').modal('show');
                 $('#useridmodal').val(userId);
                 BindRole(userId);
             });
+
         }
 
         function BindRole(userId) {

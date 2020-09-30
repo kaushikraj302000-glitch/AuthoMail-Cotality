@@ -28,6 +28,7 @@ using DELFUS.TemplateImporter;
 
 using AM.Lib;
 using System.Net.Mail;
+using AM.Services.Models;
 //using Microsoft.Ajax.Utilities;
 
 namespace AM.Web.Controllers
@@ -1195,7 +1196,7 @@ namespace AM.Web.Controllers
             {
                 return View(inventorySvc.GetEnvelopeWithShippers(id.Value));
             }
-            
+
             return View(new EnvelopesVM());
         }
         [Authorize(Roles = AMRoles.Admin), HttpPost]
@@ -1217,8 +1218,8 @@ namespace AM.Web.Controllers
         }
 
         [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult IsEnvelopeNameExists(int id,string envelopeName)
-       {
+        public ActionResult IsEnvelopeNameExists(int id, string envelopeName)
+        {
             return Json(inventorySvc.IsEnvelopeNameExists(id, envelopeName), JsonRequestBehavior.AllowGet);
             // return Json(true, JsonRequestBehavior.AllowGet);
         }

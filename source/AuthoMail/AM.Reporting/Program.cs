@@ -68,6 +68,9 @@ namespace AM.Reporting
                             break;
                     }
                     break;
+                case "USAAMTD":
+                    USAADailyMTDVolumeReporting.GenerateMTDReport();
+                    break;
                 default:
                     break;
             }

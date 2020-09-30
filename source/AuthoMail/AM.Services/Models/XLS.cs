@@ -1,19 +1,18 @@
-﻿using NPOI.HSSF.UserModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
-using System;
-using System.Collections.Generic;
+using AM.Lib;
+using System.Text.RegularExpressions;
 using System.Data;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using AM.Lib;
-namespace AM.Web.Models
+
+namespace AM.Services.Models
 {
     public class ReadSettings
     {
@@ -664,7 +663,7 @@ namespace AM.Web.Models
             }
         }
 
-        
+
 
         public static bool IsNullOrEmpty(this string inputString)
         {
