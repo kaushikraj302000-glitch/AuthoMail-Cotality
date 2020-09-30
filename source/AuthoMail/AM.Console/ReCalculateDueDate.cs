@@ -25,8 +25,8 @@ namespace AM.Console
                 foreach (var item in docTypeList)
                 {
                     var docType = docTypeSvc.GetDocTypeById(item.DocTypeId.Value, 0);
-                    DateTime estEffectiveReceivedOn = commonSvc.GetEffectiveEstReceivedOn(docType, item.ReceivedOn);
-                    var dueDate = commonSvc.GetDueDate(docType, estEffectiveReceivedOn);
+                    DateTime estEffectiveReceivedOn = commonSvc.GetEffectiveEstReceivedOn(item.ClientId, docType, item.ReceivedOn);
+                    var dueDate = commonSvc.GetDueDate(item.ClientId, docType, estEffectiveReceivedOn);
                     rSvc.UpdateDueDateAndEftRecOnEST(item.Id, dueDate, estEffectiveReceivedOn);
                 }
             }
@@ -46,14 +46,14 @@ namespace AM.Console
                     if (!item.DocTypeId.HasValue)
                     {
                         //NOTE : If System didn't find any doctypeid for particular mail piece then it will take default max cut-off time of that particular client for calculating effective received on date.                        
-                        DateTime estMaxEffectiveReceivedOn = commonSvc.GetEffectiveEstReceivedOn(docTypeSvc.GetDocTypeWithMaximumCutOffTimeByClientId(item.ClientId), item.ReceivedOn);
+                        DateTime estMaxEffectiveReceivedOn = commonSvc.GetEffectiveEstReceivedOn(item.ClientId, docTypeSvc.GetDocTypeWithMaximumCutOffTimeByClientId(item.ClientId), item.ReceivedOn);
                         rSvc.UpdateEftRecOnEST(item.Id, estMaxEffectiveReceivedOn);
                         //item.EffectiveReceivedOnEst = estMaxEffectiveReceivedOn;
                     }
                     else
                     {
                         var docType = docTypeSvc.GetDocTypeById(item.DocTypeId.Value, 0);
-                        DateTime estEffectiveReceivedOn = commonSvc.GetEffectiveEstReceivedOn(docType, item.ReceivedOn);
+                        DateTime estEffectiveReceivedOn = commonSvc.GetEffectiveEstReceivedOn(item.ClientId, docType, item.ReceivedOn);
                         rSvc.UpdateEftRecOnEST(item.Id, estEffectiveReceivedOn);
                         //item.EffectiveReceivedOnEst = estEffectiveReceivedOn;
                     }

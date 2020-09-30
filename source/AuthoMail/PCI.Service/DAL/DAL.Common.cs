@@ -104,9 +104,9 @@ namespace PCI.Service
             return printTrailDetail.DataTableAccessor<PrintTrailDetail>(false).Single();
         }
 
-        public static PrintTrailDetail GetPrintTrailDetailByPrintTrailName(string printTrailName)
+        public static PrintTrailDetail GetPrintTrailDetailByPrintTrailName(string printTrailName, string printVendorCode)
         {
-            var printTrailDetail = db.ExecuteDataSet("usp_GetPrintTrailDetailByPrintTrailName", printTrailName);
+            var printTrailDetail = db.ExecuteDataSet("usp_GetPrintTrailDetailByPrintTrailName", printTrailName, printVendorCode);
             return printTrailDetail.DataTableAccessor<PrintTrailDetail>(false).SingleOrDefault();
         }
 
@@ -135,7 +135,7 @@ namespace PCI.Service
 
         public static PrintVendor GetPrintVendorDetailByVendorCode(string printVendorCode)
         {
-            var printTrailDetail = db.ExecuteDataSet(CommandType.Text, "SELECT PV.Id, PV.Name, PV.SFTChannelId, PV.BusinessCode, PV.VendorCode, SC.Protocol, SC.Host, SC.UserName, SC.[Password], SC.ToADEDir, SC.FromADEDir, SC.ArchiveDir, SC.PostDownloadAction FROM Common.PrintVendors PV INNER JOIN Common.SFTChannels SC ON PV.SFTChannelId=SC.Id WHERE PV.VendorCode='{0}'".Fill(printVendorCode));
+            var printTrailDetail = db.ExecuteDataSet(CommandType.Text, "SELECT TOP 1 PV.Id, PV.Name, SI.SFTChannelId, SI.PrintVendorCode, PV.BusinessCode, PV.VendorCode, SC.Protocol, SC.Host, SC.UserName, SC.[Password], SC.ToADEDir, SC.FromADEDir, SC.ArchiveDir, SC.PostDownloadAction FROM Common.ShipperInformation SI INNER JOIN Common.SFTChannels SC ON SI.SFTChannelId = SC.Id INNER JOIN Common.PrintVendors PV ON SI.PrintVendorId = PV.Id WHERE SI.PrintVendorCode = '{0}'".Fill(printVendorCode));
 
             return printTrailDetail.DataTableAccessor<PrintVendor>(false).Single();
         }
@@ -145,7 +145,7 @@ namespace PCI.Service
             foreach (var envelope in envelopeInventory)
             {
                 db.ExecuteSqlNonQuery("INSERT INTO [PnS].[EnvelopeUsage]([PrintTrailBatchId],[EnvelopeId],[Quantity],[InsertedOn])VALUES(@p1,@p2,@p3,@p4)", printTrailBatch.Id, envelope.Key, envelope.Value, Common.GetCurrentTime());
-                db.ExecuteSqlNonQuery("UPDATE [Common].[Envelopes] SET CurrentQuantity = CurrentQuantity-{0} WHERE Id IN (@p1)".Fill(envelope.Value), envelope.Key);
+                db.ExecuteSqlNonQuery("UPDATE [Common].[EnvelopeStock] SET CurrentQuantity = CurrentQuantity-{0} WHERE EnvelopeId = @p1 AND ShipperId= @p2".Fill(envelope.Value), envelope.Key, printTrailBatch.ShipperId);
             }
             return 1;
         }

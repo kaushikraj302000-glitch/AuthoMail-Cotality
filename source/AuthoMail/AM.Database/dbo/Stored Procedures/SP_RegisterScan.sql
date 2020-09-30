@@ -128,7 +128,7 @@ DECLARE	@jobid INT,
 				WHERE PieceId = @pieceid AND PrintTrailBatchId=@PrintTrailBatchId AND JobId=@jobid
 
 				-- Check IF we are yet to received response for any mail pieces
-			IF((SELECT COUNT(*) FROM PnS.MRDFRequest WHERE jobid=@jobid AND MailPieceStatus='InProgress')=0)
+			IF((SELECT COUNT(*) FROM PnS.MRDFRequest WHERE JobId=@jobid AND MailPieceStatus='InProgress')=0)
 			BEGIN
 			--UPDATE Batchsummary pipeline status when all mailpieces's response is received
 				UPDATE PnS.BatchSummary 

@@ -1,24 +1,25 @@
-﻿CREATE PROCEDURE [dbo].[usp_GetSubmittedBatches]
+﻿
+
+
+CREATE PROCEDURE [dbo].[usp_GetSubmittedBatches]
 @printVendorCode VARCHAR(50)
 AS
 BEGIN
 
 IF(@printVendorCode='')
 BEGIN
-SELECT B.Id as PrintTrailBatchId,B.PrintBatchName
-FROM [PnS].PrintTrailBatches B
-INNER JOIN Common.PrintTrails PT ON B.PrintTrailId=PT.Id
-INNER JOIN Common.PrintVendors PV ON PT.PrintVendorId=PV.Id
-WHERE B.IsSubmitted=1 AND B.IsMRDFReceived=0  AND B.IsSuspended=0
+	SELECT B.Id as PrintTrailBatchId,B.PrintBatchName
+	FROM [PnS].PrintTrailBatches B
+	INNER JOIN Common.PrintTrails PT ON B.PrintTrailId=PT.Id
+	INNER JOIN Common.PrintVendors PV ON PT.PrintVendorId=PV.Id
+	WHERE B.IsSubmitted=1 AND B.IsMRDFReceived=0  AND B.IsSuspended=0
 END
 ELSE
-BEGIN
-SELECT B.Id as PrintTrailBatchId,B.PrintBatchName
-FROM [PnS].PrintTrailBatches B
-INNER JOIN Common.PrintTrails PT ON B.PrintTrailId=PT.Id
-INNER JOIN Common.PrintVendors PV ON PT.PrintVendorId=PV.Id
-WHERE B.IsSubmitted=1 AND B.IsMRDFReceived=0  AND PV.VendorCode=@printVendorCode AND B.IsSuspended=0
+BEGIN	
+	SELECT B.Id as PrintTrailBatchId,B.PrintBatchName
+	FROM [PnS].PrintTrailBatches B
+	INNER JOIN Common.PrintTrails PT ON B.PrintTrailId=PT.Id
+	WHERE B.IsSubmitted=1 AND B.IsMRDFReceived=0  AND PT.PrintVendorCode=@printVendorCode AND B.IsSuspended=0
 END
-
 END
 

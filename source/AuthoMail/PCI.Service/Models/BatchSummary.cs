@@ -134,7 +134,9 @@ namespace PCI.Service
         public string BREDesc { get; set; }
         public string PrintSize { get; set; }
         public string PrintFormat { get; set; }
-
+        public int ShipperId { get; set; }
+        public string Inserts { get; set; }
+        public string InsertsPartNos { get; set; }
         //Extra fields which will be used for generating MRDF Request
         public string InputWeight { get; set; }
         public string Feeder3_Sel { get; set; }
@@ -161,6 +163,8 @@ namespace PCI.Service
         public string CheckAmount { get; set; }
         public string PassThru { get; set; }
         public string EndofRecord { get; set; }
+        public string CustomerId { get; set; }
+        public bool IsForeignAddress { get; set; }
     }
 
     public class DallasBatch
@@ -190,6 +194,7 @@ namespace PCI.Service
         public int SFTChannelId { get; set; }
         public string PrintVendorName { get; set; }
         public string BusinessCode { get; set; }
+        public string PrintVendorCode { get; set; }
         public string VendorCode { get; set; }
         public string TrailName { get; set; }
         public bool SimulateTrail { get; set; }
@@ -204,6 +209,7 @@ namespace PCI.Service
     public class PrintTrailBatch
     {
         public int Id { get; set; }
+        public int ShipperId { get; set; }
         public int PrintTrailId { get; set; }
         public string PrintBatchName { get; set; }
         public bool IsSubmitted { get; set; }

@@ -169,6 +169,7 @@
     </Compile>
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\CoverLetterAPIController.cs" />
+    <Compile Include="Controllers\DelfusTemplateAPIController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\BaseAPIController.cs" />
     <Compile Include="Controllers\ReportsController.cs" />
@@ -179,6 +180,7 @@
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\CLAuthentication.cs" />
     <Compile Include="Models\ClientDetails.cs" />
+    <Compile Include="Models\FileDetails.cs" />
     <Compile Include="Models\PerfTimerLogger.cs" />
     <Compile Include="Models\ReportViewModel.cs" />
     <Compile Include="Models\ScanDetails.cs">
@@ -329,6 +331,10 @@
     <ProjectReference Include="..\AM.Lib\AM.Lib.csproj">
       <Project>{75996573-6449-4675-a5ff-f1c39c84d685}</Project>
       <Name>AM.Lib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AM.Services\AM.Services.csproj">
+      <Project>{A60D6E77-74FC-419C-BF13-A7684012D0A5}</Project>
+      <Name>AM.Services</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

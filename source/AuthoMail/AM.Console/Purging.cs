@@ -33,10 +33,13 @@ namespace AM.Console
         public static void StartPurging()
         {
             using (IReCalculateDueDateService rSvc = new ReCalculateDueDateService())
+            using (IClientService clientSvc = new ClientService())
             {
                 var amDirs = sourceAMRootDir.EnumerateDirectories("*.*", SearchOption.TopDirectoryOnly);
                 foreach (var dir in amDirs)
                 {
+                    var client = clientSvc.GetClientByAppCode(dir.Name);
+
                     if (!Directory.Exists(Path.Combine(destAMDir.FullName, dir.Name)))
                         Directory.CreateDirectory(Path.Combine(destAMDir.FullName, dir.Name));
                     int days = 0;
@@ -62,7 +65,7 @@ namespace AM.Console
                         do
                         {
                             startDate = startDate.AddDays(-1);
-                            days -= IsBusinessDay(startDate, Config.Common_Holidays, false, false) ? 1 : 0;
+                            days -= IsBusinessDay(startDate, Config.GetHolidaysByClientId(client.Id), false, false) ? 1 : 0;
                         } while (0 != days);
 
 
@@ -86,6 +89,8 @@ namespace AM.Console
                 var pnsDirs = sourcePnSRootDir.EnumerateDirectories("*.*", SearchOption.TopDirectoryOnly);
                 foreach (var dir in pnsDirs)
                 {
+                    var client = clientSvc.GetClientByAppCode(dir.Name);
+
                     if (!Directory.Exists(Path.Combine(destPCIDir.FullName, dir.Name)))
                         Directory.CreateDirectory(Path.Combine(destPCIDir.FullName, dir.Name));
 
@@ -112,7 +117,7 @@ namespace AM.Console
                         do
                         {
                             startDate = startDate.AddDays(-1);
-                            days -= IsBusinessDay(startDate, Config.Common_Holidays, false, false) ? 1 : 0;
+                            days -= IsBusinessDay(startDate, Config.GetHolidaysByClientId(client.Id), false, false) ? 1 : 0;
                         } while (0 != days);
 
                         var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();

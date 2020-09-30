@@ -151,7 +151,7 @@ namespace AM.Services
 
         public AddressValidateRequest()
         {
-            this.USERID = "819MILES3278"; Revision = "1";
+            //this.USERID = "819MILES3278"; Revision = "1";
             this.IncludeOptionalElements = true;
             this.ReturnCarrierRoute = true;
             this.AddressList = new List<Address>();

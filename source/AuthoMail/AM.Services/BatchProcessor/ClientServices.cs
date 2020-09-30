@@ -53,7 +53,7 @@ namespace AM.Services
 
         public async Task<SFTChannel> GetSFTChannelDetailsBySFTChannelId(int sftChannelId)
         {
-            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction FROM [Common].[SFTChannels] WHERE Id=@sftChannelId AND IsActive=1";
+            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction, APITokenURL, APIResponseURL, APIMaxResponseCount, APITokenHeaders FROM [Common].[SFTChannels] WHERE Id=@sftChannelId AND IsActive=1";
 
             var data = await db.QuerySingleOrDefaultAsync<SFTChannel>(query, new { sftChannelId = sftChannelId });
             return data;
@@ -61,7 +61,7 @@ namespace AM.Services
 
         public SFTChannel GetSFTChannelDetailsBySFTChannelCode(string sftChannelCode)
         {
-            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction FROM [Common].[SFTChannels] WHERE Code=@sftChannelCode AND IsActive=1";
+            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction, APITokenURL, APIResponseURL, APIMaxResponseCount, APITokenHeaders FROM [Common].[SFTChannels] WHERE Code=@sftChannelCode AND IsActive=1";
 
             var data = db.QuerySingleOrDefault<SFTChannel>(query, new { sftChannelCode = sftChannelCode });
             return data;

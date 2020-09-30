@@ -6,8 +6,8 @@ AS
 BEGIN
 	
 	SELECT [Id]
-      ,[Fieldname]
-      ,[Startposition]
+      ,[FieldName]
+      ,[StartPosition]
       ,[EndPosition]
       ,[Length]
       ,[Type]

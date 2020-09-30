@@ -84,6 +84,7 @@ namespace AM.Services
             if (edmp.IsFallBackRequested)
             {
                 using (ICommonService commonSvc = new CommonService())
+                using (IClientService clientSvc = new ClientService())
                 using (IMailPieceService mpSvc = new MailPieceService())
                 using (IDocTypeService docTypeSvc = new DocTypeService())
                 using (IEDeliveryService eDeliverySvc = new EDeliveryService())
@@ -95,13 +96,16 @@ namespace AM.Services
 
                     //System will calculate print trail,print location, duedate etc.
                     MailPieceDTO mailPieceDTO = mpSvc.GetMailPieceDataByUniqueIdAndMBId(edmp.UniqueId, edmp.MailBatchId);
+
+                    Client client = clientSvc.GetClientById(edmp.ClientId.Value);
+
                     //NOTE : Reason to take document type based on Name to just put valid Id after fall back
                     DocType mpDocType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, edmp.TotalPages, edmp.ReceivedOn.Value.UtcToEst());
                     mailPieceDTO.DocTypeId = mpDocType.Id;
                     mailPieceDTO.PnSConfigDetailId = mpDocType.PnSConfigDetailId;
                     mailPieceDTO.PrintTrailId = mpDocType.PrintTrailId;
                     GetExactDocumentType(mpDocType, mailPieceDTO);
-                    commonSvc.GetUpdatedDueDateAndPrintLocation(newReceivedOnDateTime, mailPieceDTO, mpDocType, edmp.ClientCode);
+                    commonSvc.GetUpdatedDueDateAndPrintLocation(newReceivedOnDateTime, mailPieceDTO, mpDocType, client);
                     mpSvc.UpdateBatchMailPieceDetails(mailPieceDTO);
 
                     var newValidatedOnDateTime = Common.Now;
@@ -143,7 +147,7 @@ namespace AM.Services
                     if (mailPiece.RcptAddressTypes.Contains(AddressType.Military.ToString()) || mailPiece.RcptAddressTypes.Contains(AddressType.POBOX.ToString()) || mailPiece.RcptAddressTypes.Contains(AddressType.Territory.ToString()))
                     {
                         var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailPiece.ReceivedOn.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
-                       
+
 
                         if (fbPriorityExpress != null)
                         {

@@ -24,7 +24,7 @@ BEGIN
 
 	 SELECT 
 	 m.BusinessFriendlyIdValue AS BusinessIdValue,m.ShippingStatus AS [Status],m.UniqueId,
-	 m.RcptFirstName AS FirstName,m.RcptLastName AS LastName,m.RcptAddressCity AS [City],m.RcptAddressZip AS ZIP,
+	 m.RcptFirstName AS FirstName,m.RcptLastName AS LastName,m.RcptAddressCity AS [City],m.RcptAddressZIP AS ZIP,
 	 m.RcptAddressState AS [State],m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,
 	 b.ReceivedOn,
 	 d.DocTypeName AS DocType,PCD.ShippingServiceType AS ShippingMethod,PCD.ShippingCarrier,

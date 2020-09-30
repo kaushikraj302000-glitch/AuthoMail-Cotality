@@ -1,9 +1,12 @@
 ﻿using AM.Entities;
 using AM.Lib;
+using AM.Services.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Org.BouncyCastle.Asn1.Ocsp;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -21,10 +24,12 @@ namespace AM.Services
         StringBuilder GeneralDeliveryReport(List<MailPieces> mailPieces, string separator);
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatches mailBatch);
         string GeneralXMLReport(List<MailPieces> mailPieces, MailBatchDTO mailBatch, string clientCode);
-        string GeneralJsonReport(MailPieces mp, MailBatchDTO mailBatch, string clientCode);
-        List<BatchAPIResponse> GeneralJsonAPIResponse(List<MailPieces> mailpieces, MailBatchDTO mailBatch, string clientCode);
-        string GeneralJsonReport(MailPieces mp, MailBatches mailBatch);
-        Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport);
+        MailAPIResponse GenerateMailAPIResponse(string mpUniqueId);
+        MailAPIResponse GenerateMailAPIResponse(BatchResponse batchResponse);
+        List<MailAPIResponse> GenerateMailAPIResponse(List<BatchResponse> batchResponses);
+        string GeneralJsonReport(string mpUniqueId);
+        Task<HttpResponseMessage> SendAPIResponse(HttpClient httpClient, string responseURL, IEnumerable<MailAPIResponse> responseReport);
+        string GeneralXMLReport(List<MailPieces> mailPieces, string clientCode);
     }
 
     public class GeneralService : ServiceBase, IGeneralService
@@ -167,134 +172,151 @@ namespace AM.Services
             return serializedString;
         }
 
-        public string GeneralJsonReport(MailPieces mp, MailBatchDTO mailBatch, string clientCode)
+        public string GeneralXMLReport(List<MailPieces> mailPieces, string clientCode)
         {
-            MailAPIResponse response = new MailAPIResponse()
+            var uniqueId = Guid.NewGuid();
+            MailBatchResponse mbResponse = new MailBatchResponse()
             {
-                BusinessFriendlyIdName = mp.BusinessFriendlyIdName,
-                BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,
+                Id = uniqueId,
+                ClientBatchId = uniqueId.ToString(),
                 ClientCode = clientCode,
-                DocumentOrPackage = new DocumentOrPackage() { Name = mp.FileName },
-                ReceivedOn = mailBatch.ReceivedOn.Value,
-                RecipientInfo = new RecipientInfo() { Recipient = new Recipient() { FirstName = mp.RcptFirstName, LastName = mp.RcptLastName }, Address = new Entities.Address() { Street = mp.RcptAddressStreet, City = mp.RcptAddressCity, State = mp.RcptAddressState, Zip = mp.RcptAddressZIP } },
-                ShippingMethod = mp.DocTypes == null ? "" : mp.DocTypes.ShippingCarrier,
-                ShippingServiceType = mp.DocTypes == null ? "" : mp.DocTypes.ShippingServiceType,
-                TotalPages = mp.TotalPages,
-                TrackingNumber = mp.TrackingNo,
-                ErrorCode = mp.ErrorCode,
-                ErrorDesc = mp.ErrorDesc,
-                Id = mp.UniqueId,
-                MailingStatus = mp.ShippingStatus,
-                PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue,
-                ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue,
-                TotalSheets = mp.TotalPages
             };
 
-            var serializedString = JsonConvert.SerializeObject(response);
+            foreach (MailPieces mp in mailPieces)
+            {
+                mbResponse.MailPiecesReport.Add(new MailPieceReport() { BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackageType = mp.DocumentOrPackageType, ErrorCode = mp.ErrorCode, ErrorDesc = mp.ErrorDesc, FileName = mp.FileName, Id = mp.UniqueId, Postage = mp.ShippingCost, MailingStatus = mp.ShippingStatus.ParseEnum<MailingStatus>(), TrackingNumber = mp.TrackingNo, PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue, ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue, TotalSheets = mp.TotalPages, WeightMeasured = mp.Weight.HasValue ? mp.Weight.Value : 0 });
+            }
+
+            var serializedString = XmlUtil.Serialize<MailBatchResponse>(mbResponse);
 
             return serializedString;
         }
 
-        public List<BatchAPIResponse> GeneralJsonAPIResponse(List<MailPieces> mailpieces, MailBatchDTO mailBatch, string clientCode)
+        public MailAPIResponse GenerateMailAPIResponse(string mpUniqueId)
         {
-            List<BatchAPIResponse> batchApiResponses = new List<BatchAPIResponse>();
-            foreach (var mp in mailpieces)
+            using (IMailPieceService mailPieceService = new MailPieceService())
             {
-                batchApiResponses.Add(new BatchAPIResponse()
-                {
-                    MBId = mailBatch.Id,
-                    resp = new MailAPIResponse()
-                    {
-                        BusinessFriendlyIdName = mp.BusinessFriendlyIdName,
-                        BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,
-                        ClientCode = clientCode,
-                        DocumentOrPackage = new DocumentOrPackage() { Name = mp.FileName },
-                        ReceivedOn = mailBatch.ReceivedOn.Value,
-                        RecipientInfo = new RecipientInfo() { Recipient = new Recipient() { FirstName = mp.RcptFirstName, LastName = mp.RcptLastName }, Address = new Entities.Address() { Street = mp.RcptAddressStreet, City = mp.RcptAddressCity, State = mp.RcptAddressState, Zip = mp.RcptAddressZIP } },
-                        ShippingMethod = mp.DocTypes == null ? "" : mp.DocTypes.ShippingCarrier,
-                        ShippingServiceType = mp.DocTypes == null ? "" : mp.DocTypes.ShippingServiceType,
-                        TotalPages = mp.TotalPages,
-                        TrackingNumber = mp.TrackingNo,
-                        ErrorCode = mp.ErrorCode,
-                        ErrorDesc = mp.ErrorDesc,
-                        Id = mp.UniqueId,
-                        MailingStatus = mp.ShippingStatus,
-                        PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue,
-                        ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue,
-                        TotalSheets = mp.TotalPages
-                    }
-                });
-            }
+                BatchResponse batchResponse = mailPieceService.GetMailPieceDetailsByMailPieceUniqueId(mpUniqueId);
 
-            return batchApiResponses;
+                if (batchResponse == null)
+                {
+                    using (IPnSAPIService pnsSvc = new PnSAPIService())
+                    {
+                        RequestLog reqInfo = pnsSvc.GetAMRequestInfo(mpUniqueId);
+
+                        if (reqInfo == null)
+                        {
+                            MailAPIResponse response = new MailAPIResponse()
+                            {
+                                Id = Guid.Parse(mpUniqueId),
+                                MailingStatus = ShippingStatus.NotFound.ToString(),
+                                Message = "The specified package does not exist."
+                            };
+
+                            return response;
+                        }
+                        string status;
+                        if (reqInfo.Status == ReqStatus.Verifying || reqInfo.Status == ReqStatus.Queued)
+                            status = reqInfo.Status;
+                        else
+                            status = ShippingStatus.Error.ToString();
+
+                        return new MailAPIResponse { Id = reqInfo.MailPieceId ?? reqInfo.MailPieceId.Value, ReceivedOn = reqInfo.ReceivedOn, ClientCode = null, BusinessFriendlyIdName = null, BusinessFriendlyIdValue = null, DocumentOrPackageType = null, DocumentOrPackage = null, RecipientInfo = null, MailingStatus = status, ErrorCode = reqInfo.Status, ErrorDesc = reqInfo.APIResponse };
+                    }
+                }
+
+                return GenerateMailAPIResponse(batchResponse);
+            }
         }
-        public string GeneralJsonReport(MailPieces mp, MailBatches mailBatch)
+
+        public List<MailAPIResponse> GenerateMailAPIResponse(List<BatchResponse> batchResponses)
+        {
+            List<MailAPIResponse> mailAPIResponses = new List<MailAPIResponse>();
+
+            foreach (var response in batchResponses)
+            {
+                mailAPIResponses.Add(GenerateMailAPIResponse(response));
+            }
+            return mailAPIResponses;
+        }
+
+        public MailAPIResponse GenerateMailAPIResponse(BatchResponse batchResponse)
         {
             MailAPIResponse response = new MailAPIResponse()
             {
-                BusinessFriendlyIdName = mp.BusinessFriendlyIdName,
-                BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue,
-                ClientCode = mp.Clients.AppCode,
-                DocumentOrPackage = new DocumentOrPackage() { Name = mp.FileName },
-                ReceivedOn = mailBatch.ReceivedOn.Value,
-                RecipientInfo = new RecipientInfo() { Recipient = new Recipient() { FirstName = mp.RcptFirstName, LastName = mp.RcptLastName }, Address = new Entities.Address() { Street = mp.RcptAddressStreet, City = mp.RcptAddressCity, State = mp.RcptAddressState, Zip = mp.RcptAddressZIP } },
-                ShippingMethod = mp.DocTypes.ShippingCarrier,
-                ShippingServiceType = mp.DocTypes.ShippingServiceType,
-                TotalPages = mp.TotalPages,
-                TrackingNumber = mp.TrackingNo,
-                ErrorCode = mp.ErrorCode,
-                ErrorDesc = mp.ErrorDesc,
-                Id = mp.UniqueId,
-                MailingStatus = mp.ShippingStatus,
-                PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue,
-                ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue,
-                TotalSheets = mp.TotalPages
+                Id = batchResponse.UniqueId,
+                ReceivedOn = batchResponse.ReceivedOn,
+                ClientCode = batchResponse.AppCode,
+                BusinessFriendlyIdName = batchResponse.BusinessFriendlyIdName,
+                BusinessFriendlyIdValue = batchResponse.BusinessFriendlyIdValue,
+                DocumentOrPackageType = batchResponse.DocumentOrPackageType,
+                DocumentOrPackage = new DocumentOrPackage { Name = batchResponse.FileName },
+                RecipientInfo = new RecipientInfo
+                {
+                    Recipient = new Recipient
+                    {
+                        Organization = batchResponse.RcptOrganization,
+                        Prefix = batchResponse.RcptPrefix,
+                        Suffix = batchResponse.RcptSuffix,
+                        FirstName = batchResponse.RcptFirstName,
+                        MiddleName = batchResponse.RcptMiddleName,
+                        LastName = batchResponse.RcptLastName,
+                        Phone = batchResponse.RcptPhone,
+                        EmailAddress = batchResponse.RcptEmailId
+                    },
+                    Address = new Entities.Address
+                    {
+                        OptionalLine1AboveStreet = batchResponse.RcptAddrOptionalLine1AboveStreet,
+                        OptionalLine1BelowStreet = batchResponse.RcptAddrOptionalLine1BelowStreet,
+                        OptionalLine2AboveStreet = batchResponse.RcptAddrOptionalLine2AboveStreet,
+                        OptionalLine2BelowStreet = batchResponse.RcptAddrOptionalLine2BelowStreet,
+                        AptOrSuiteOrOther = batchResponse.RcptAddressAptOrSuiteOrOther,
+                        Street = batchResponse.RcptAddressStreet,
+                        City = batchResponse.RcptAddressCity,
+                        State = batchResponse.RcptAddressState,
+                        Zip = batchResponse.RcptAddressZIP,
+                        Country = batchResponse.RcptAddressCountry
+                    }
+                },
+                MailingStatus = batchResponse.ShippingStatus,
+                ErrorCode = batchResponse.ErrorCode,
+                ErrorDesc = batchResponse.ErrorDesc,
+                ShippedOn = batchResponse.ShippedOn,
+                ShippingMethod = batchResponse.ShippingCarrier,
+                ShippingServiceType = batchResponse.ShippingServiceType,
+                TrackingNumber = batchResponse.TrackingNo,
+                TotalPages = batchResponse.TotalPages,
+                TotalSheets = batchResponse.TotalSheets,
+                PulledBackOn = batchResponse.PulledBackOn
             };
 
-            var serializedString = JsonConvert.SerializeObject(response);
+            return response;
+        }
 
+        public string GeneralJsonReport(string mpUniqueId)
+        {
+            var response = GenerateMailAPIResponse(mpUniqueId);
+            var serializedString = JsonConvert.SerializeObject(response);
             return serializedString;
         }
-        public string GenerateHashHMAC(string key, string message)
-        {
-            var encoding = new System.Text.ASCIIEncoding();
-            byte[] keyByte = encoding.GetBytes(key);
-            byte[] messageBytes = encoding.GetBytes(message);
 
-            using (var hmacsha256 = new HMACSHA256(keyByte))
+
+        public Task<HttpResponseMessage> SendAPIResponse(HttpClient httpClient, string responseURL, IEnumerable<MailAPIResponse> responseReport)
+        {
+            JsonSerializerSettings dateFormatSettings = new JsonSerializerSettings
             {
-                byte[] hashmessage = hmacsha256.ComputeHash(messageBytes);
-                return Convert.ToBase64String(hashmessage);
-            }
-            //return String.Concat(Array.ConvertAll(hash, x => x.ToString("x2")));
+                DateFormatHandling = DateFormatHandling.IsoDateFormat
+            };
+
+            string json = JsonConvert.SerializeObject(responseReport, dateFormatSettings);
+
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            return httpClient.PostAsync(responseURL, content);
         }
 
-        public async Task<HttpResponseMessage> SendEllieMaeResponse(List<MailAPIResponse> responseReport)
-        {
-            string json = JsonConvert.SerializeObject(responseReport);
-            string hashHMAC = GenerateHashHMAC(Config.EllieMae_Secret, json);
-            //var token = await GetToken();
-            using (var client = SetupClient(Config.EllieMae_X_API_Key, hashHMAC))
-            {
-                ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
-                HttpResponseMessage response = await client.PostAsync(Config.EllieMae_UploadResponseURL, content);
-                return response;
-            }
-        }
 
-        private static HttpClient SetupClient(string xAPIKey, string hashHMAC)
-        {
-            var client = new HttpClient();
-            client.BaseAddress = new Uri(Config.EllieMae_BaseURL);
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            //client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-            client.DefaultRequestHeaders.Add("X-API-KEY", xAPIKey);
-            client.DefaultRequestHeaders.Add("X-Elli-Signature", hashHMAC);
-            return client;
-        }
         public async static Task<string> GetToken()
         {
             try

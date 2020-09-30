@@ -7,11 +7,19 @@ using System.Web.Mvc;
 using AM.Scanner.Models;
 using System.IO;
 using System.Configuration;
+using AM.Services;
+
 namespace AM.Scanner.Controllers
 {
     [Authorize]
     public class HomeController : Controller
     {
+        IScannerService scannerSvc;
+
+        public HomeController()
+        {
+            this.scannerSvc = new ScannerService();
+        }
         public ActionResult Index()
         {
             return View();
@@ -24,11 +32,11 @@ namespace AM.Scanner.Controllers
         //    return Json(model, JsonRequestBehavior.AllowGet);
         //}
         [HttpGet]
-        public ActionResult GetScanCount(string clientCode)
+        public ActionResult GetScanCount()
         {
             using (new PerfTimerLogger("GetScanCount[HomeController]: "))
             {
-                var model = DBHelper.GetScanStats(clientCode.Trim());
+                var model = scannerSvc.GetScanStats();
                 return Json(model, JsonRequestBehavior.AllowGet);
             }
         }
@@ -69,6 +77,32 @@ namespace AM.Scanner.Controllers
             catch (Exception e)
             {
                 return Json(e.Message, JsonRequestBehavior.AllowGet);
+            }
+        }
+        [AllowAnonymous, HttpPost]
+        public ActionResult SaveDelfusTemplate()
+        {
+            try
+            {
+
+                if (Request.Headers["Id"].Trim() == "5b189031-eecc-42d7-8b6d-b531caf1036e")
+                {
+                    string path = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "DelfusTemplates");
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    Request.Files[0].SaveAs(Path.Combine(path, Request.Headers["FileName"].Trim()));
+                    return Json(JsonResponseFactory.SuccessResponse("File save successfully."), JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    return Json(JsonResponseFactory.ErrorResponse("Url is not valid."), JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
             }
         }
     }

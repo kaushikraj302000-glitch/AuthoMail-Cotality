@@ -24,7 +24,8 @@ namespace AM.Services
         int InsertBusinessIdentifierName(int clientId, string businessIdName);
         List<Deliverable> GetDeliverablesByClientId(int clientId);
         Deliverable GetDeliverableByReportType(int clientId, string reportType);
-        List<Holiday> GetHolidayList();
+        Dictionary<int, List<Holiday>> GetHolidayList();
+        Dictionary<int, int> GetClientHolidayGroup();
         List<Holiday> GetFederalHolidayList();
         string GetSystemUserId();
         List<DallasBatch> GetDallasBatches(DateTime estToday);
@@ -34,19 +35,20 @@ namespace AM.Services
         PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId, DateTime? effectiveReceivedOnEst = null);
         DateTime GetMaximumSubmissionTime(DocType docType, DateTime effectiveReceivedOnEst);
         int GetPrintTrail(int pnsConfigDetailId, DateTime estEffectiveReceivedOn);
-        DateTime GetDueDate(DocType docType, DateTime estEffectiveReceivedOn);
-        DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn);
+        DateTime GetDueDate(int clientId, DocType docType, DateTime estEffectiveReceivedOn);
+        DateTime GetEffectiveEstReceivedOn(int clientId, DocType docType, DateTime utcReceivedOn);
         bool IsBusinessDay(DateTime dueDate, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay);
         DateTime GetNextWorkingDay(DateTime estDateTime, List<Holiday> HolidayList, bool isSatWorkDay, bool isSunWorkDay);
         int InsertErrorNotifications(int mailBatchId);
         string GetErrorNotificationEmailSubscriberList(int clientId);
-        void GetUpdatedDueDateAndPrintLocation(DateTime receivedOn, MailPieceDTO mailPiece, DocType docType, string appCode);
+        void GetUpdatedDueDateAndPrintLocation(DateTime receivedOn, MailPieceDTO mailPiece, DocType docType, Client client);
         int GetReportingSequence();
         bool CheckForDuplicateMailPieceUniqueId(Guid mpUniqueId);
         List<DallasNotificationMap> GetDallasNotificationMaps();
         CustomTemplate GetCustomTemplateByDocTypeId(int docTypeId, string communityCode);
         ShipperInformation GetShipperInformation(int shipperId);
-        ShipperInformation GetShipperInformationByPrintLocation(string printLocation);
+        ShipperInformation GetShipperInformationByPrintLocation(string printLocation, int printTrailId);
+        Task<int> UpdateBatchPipeLineStatusByMailPieceId(Guid mailPieceId, string pipeLineStatus, DateTime timestamp);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -164,11 +166,18 @@ namespace AM.Services
             return data.SingleOrDefault();
         }
 
-        public List<Holiday> GetHolidayList()
+        public Dictionary<int, List<Holiday>> GetHolidayList()
         {
             string query = "SELECT * FROM [Common].[Holidays]";
 
-            return db.Query<Holiday>(query, null).ToList();
+            return db.Query<Holiday>(query).GroupBy(h => h.GroupId).ToDictionary(g => g.Key, g => g.ToList());
+        }
+
+        public Dictionary<int, int> GetClientHolidayGroup()
+        {
+            string query = "SELECT * FROM [Common].[ClientHolidayGroups]";
+
+            return db.Query<ClientHolidayGroup>(query).ToDictionary(c => c.ClientId, g => g.HolidayGroupId);
         }
 
         public List<Holiday> GetFederalHolidayList()
@@ -240,7 +249,7 @@ namespace AM.Services
 
         public PrintVendor GetPrintVendorDetailsByPrintTrailId(int printTrailId, DateTime? effectiveReceivedOnEst = null)
         {
-            string query = "SELECT pv.*,CASE WHEN DATEPART(DW,@EffectiveReceivedOnEst)=7 AND pv.VendorCode='NORDIS' THEN (SELECT Id FROM Common.ShipperInformation SI WHERE SI.PrintLocation='Las Vegas' AND PrintVendorId = (SELECT Id FROM Common.PrintVendors WHERE VendorCode='NORDIS')) ELSE pt.ShipperId END AS ShipperId FROM [Common].[PrintTrails] pt INNER JOIN  [Common].[PrintVendors] pv ON pt.PrintVendorId = pv.Id WHERE pt.Id = @PrintTrailId";
+            string query = "SELECT pv.*,CASE WHEN DATEPART(DW,@EffectiveReceivedOnEst)=7 AND pv.VendorCode='NORDIS' THEN (SELECT Id FROM Common.ShipperInformation SI WHERE SI.PrintLocation='Las Vegas' AND SI.PrintVendorCode=pt.PrintVendorCode AND PrintVendorId = (SELECT Id FROM Common.PrintVendors WHERE VendorCode='NORDIS')) ELSE pt.ShipperId END AS ShipperId FROM [Common].[PrintTrails] pt INNER JOIN  [Common].[PrintVendors] pv ON pt.PrintVendorId = pv.Id WHERE pt.Id = @PrintTrailId";
 
             return db.QuerySingleOrDefault<PrintVendor>(query, new { PrintTrailId = printTrailId, EffectiveReceivedOnEst = effectiveReceivedOnEst });
         }
@@ -296,7 +305,7 @@ namespace AM.Services
             return docTypePrintTrail.PrintTrailId;
         }
 
-        public DateTime GetDueDate(DocType docType, DateTime estEffectiveReceivedOn)
+        public DateTime GetDueDate(int clientId, DocType docType, DateTime estEffectiveReceivedOn)
         {
             bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
             bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
@@ -336,7 +345,7 @@ namespace AM.Services
 
                 for (int i = 0; i < timeSpan.Days; i++)
                 {
-                    dueDate = GetNextWorkingDay(dueDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
+                    dueDate = GetNextWorkingDay(dueDate, Config.GetHolidaysByClientId(clientId), isSatWorkDay, isSunWorkDay);
                 }
             }
             else
@@ -344,7 +353,7 @@ namespace AM.Services
                 dueDate = estEffectiveReceivedOn + TimeSpan.Parse(string.Format("{0:hh\\:mm\\:ss}", timeSpan));
                 for (int i = 0; i < timeSpan.Days; i++)
                 {
-                    dueDate = GetNextWorkingDay(dueDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
+                    dueDate = GetNextWorkingDay(dueDate, Config.GetHolidaysByClientId(clientId), isSatWorkDay, isSunWorkDay);
                 }
             }
 
@@ -352,7 +361,7 @@ namespace AM.Services
             return dueDate.EstToUtc();
         }
 
-        public DateTime GetEffectiveEstReceivedOn(DocType docType, DateTime utcReceivedOn)
+        public DateTime GetEffectiveEstReceivedOn(int clientId, DocType docType, DateTime utcReceivedOn)
         {
             var estReceivedOn = utcReceivedOn.UtcToEst();
             var estReceivedOnDate = estReceivedOn.Date;
@@ -361,7 +370,7 @@ namespace AM.Services
             bool isSatWorkDay = docType.SatSLAType == SLAType.NA ? false : true;
             bool isSunWorkDay = docType.SunSLAType == SLAType.NA ? false : true;
 
-            if (IsBusinessDay(estReceivedOn, Config.Common_Holidays, isSatWorkDay, isSunWorkDay))
+            if (IsBusinessDay(estReceivedOn, Config.GetHolidaysByClientId(clientId), isSatWorkDay, isSunWorkDay))
             {
                 DayOfWeek dayOfWeek = estReceivedOn.DayOfWeek;
 
@@ -392,7 +401,7 @@ namespace AM.Services
 
                     if (estReceivedOn > estSLACutOffDateTime)
                     {
-                        effectiveEstReceivedOn = GetNextWorkingDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
+                        effectiveEstReceivedOn = GetNextWorkingDay(estReceivedOnDate, Config.GetHolidaysByClientId(clientId), isSatWorkDay, isSunWorkDay);
                     }
                 }
                 else
@@ -402,7 +411,7 @@ namespace AM.Services
             }
             else
             {
-                effectiveEstReceivedOn = GetNextWorkingDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
+                effectiveEstReceivedOn = GetNextWorkingDay(estReceivedOnDate, Config.GetHolidaysByClientId(clientId), isSatWorkDay, isSunWorkDay);
             }
 
             return effectiveEstReceivedOn;
@@ -443,23 +452,28 @@ namespace AM.Services
             return String.Join(",", db.Query<string>("SELECT U.Email FROM [AM].[AlertSubscribers] A INNER JOIN [Profile].[Users] U ON A.UserId=U.Id WHERE U.ClientId=@ClientId", new { ClientId = clientId }));
         }
 
-        public void GetUpdatedDueDateAndPrintLocation(DateTime receivedOn, MailPieceDTO mailPiece, DocType docType, string appCode)
+        public void GetUpdatedDueDateAndPrintLocation(DateTime receivedOn, MailPieceDTO mailPiece, DocType docType, Client client)
         {
             mailPiece.DocTypeId = docType.Id;
             mailPiece.PrintTrailId = docType.PrintTrailId;
             mailPiece.PnSConfigDetailId = docType.PnSConfigDetailId;
-            mailPiece.EffectiveReceivedOnEst = GetEffectiveEstReceivedOn(docType, receivedOn);
+            mailPiece.EffectiveReceivedOnEst = GetEffectiveEstReceivedOn(client.Id, docType, receivedOn);
             //Calculate Due Date for Mail Pieces doc type wise
-            mailPiece.DueDate = GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
+            mailPiece.DueDate = GetDueDate(client.Id, docType, mailPiece.EffectiveReceivedOnEst.Value);
             //Set print location where mail piece will go for print and ship
-            //mailPiece.PrintTrailId = GetPrintTrail(mailPiece.PnSConfigDetailId.Value, mailPiece.EffectiveReceivedOnEst.Value);
             var printVendorDetails = GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value, mailPiece.EffectiveReceivedOnEst);
+            mailPiece.ShipperId = printVendorDetails.ShipperId;
             mailPiece.PrintLocation = GetShipperInformation(printVendorDetails.ShipperId).PrintLocation;
-            mailPiece.StdSubmissionTime = GetStandardSubmissionTime(appCode, printVendorDetails.VendorCode, receivedOn, GetSweepTimings());
+            mailPiece.StdSubmissionTime = GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, receivedOn, GetSweepTimings());
             mailPiece.MaxSubmissionTime = GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
-
+            mailPiece.EnvelopeName = GetEnvelopeName(mailPiece.PnSConfigDetailId.Value);
         }
 
+        private string GetEnvelopeName(int pnsConfigDetailId)
+        {
+            string query = "SELECT EnvelopeName FROM Common.Envelopes E INNER JOIN Common.PnSConfigDetail P ON P.EnvelopeId=E.Id WHERE P.Id=@pnsConfigDetailId";
+            return db.ExecuteScalar<string>(query, pnsConfigDetailId);
+        }
         public int GetReportingSequence()
         {
             string query = "SELECT NEXT VALUE FOR dbo.ReportingSequence";
@@ -468,7 +482,7 @@ namespace AM.Services
 
         public bool CheckForDuplicateMailPieceUniqueId(Guid mpUniqueId)
         {
-            string query = "SELECT Count(*) from AM.MailPieces where UniqueId = @UniqueId";
+            string query = "select case when exists(select 1 from AM.MailPieces where UniqueId = @UniqueId) then 1 else 0 end";
             return db.ExecuteScalar<bool>(query, new { UniqueId = mpUniqueId });
         }
 
@@ -493,11 +507,18 @@ namespace AM.Services
             return db.QuerySingleOrDefault<ShipperInformation>(query, new { ShipperId = shipperId });
         }
 
-        public ShipperInformation GetShipperInformationByPrintLocation(string printLocation)
+        public ShipperInformation GetShipperInformationByPrintLocation(string printLocation, int printTrailId)
         {
-            string query = "SELECT * FROM Common.ShipperInformation WHERE PrintLocation=@PrintLocation";
+            string query = "SELECT * FROM Common.ShipperInformation WHERE PrintVendorCode = (SELECT PrintVendorCode FROM Common.PrintTrails WHERE Id=@PrintTrailId) AND PrintLocation=@PrintLocation";
 
-            return db.QuerySingleOrDefault<ShipperInformation>(query, new { PrintLocation = printLocation });
+            return db.QuerySingleOrDefault<ShipperInformation>(query, new { PrintLocation = printLocation, PrintTrailId = printTrailId });
+        }
+
+        public Task<int> UpdateBatchPipeLineStatusByMailPieceId(Guid mailPieceId, string pipeLineStatus, DateTime timestamp)
+        {
+            string query = $"UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {pipeLineStatus}On = @timestamp WHERE Id = (SELECT TOP 1 MailBatchId FROM AM.MailPieces WHERE UniqueId = @mailPieceId)";
+
+            return db.ExecuteAsync(query, new { pipeLineStatus, timestamp, mailPieceId });
         }
     }
 }

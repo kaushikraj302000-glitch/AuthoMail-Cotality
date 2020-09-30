@@ -36,14 +36,8 @@ namespace AM.Core
             ShipPortTypeClient service = new ShipPortTypeClient();
 
             // For production account we always need to use production URL. Devang sir clarified that until the shipping label barcode is scanned by FedEx we will not get billed. So, if needed for UAT also we can use production URL.
-            if (Config.Common_Environment == Env.Prod)
-            {
-                service.Endpoint.Address = new System.ServiceModel.EndpointAddress(Config.Core_FedExProdService);
-            }
-            else
-            {
-                service.Endpoint.Address = new System.ServiceModel.EndpointAddress(Config.Core_FedExTestService);
-            }
+
+            service.Endpoint.Address = new System.ServiceModel.EndpointAddress(Config.Core_FedExService);
 
             try
             {
@@ -59,7 +53,7 @@ namespace AM.Core
                 else
                 {
                     //If we get saturday delivery failed then we just remove that special handling parameters.
-                    if (reply.Notifications[0].Code == "8272" || reply.Notifications[0].Message.Contains("Saturday Delivery is not allowed"))
+                    if (reply.Notifications[0].Code == "8272" || reply.Notifications[0].Message.Contains("Saturday Delivery is not allowed") || reply.Notifications[0].Message.Contains("SATURDAY_DELIVERY is not allowed"))
                     {
                         log.Error("MailPieceId - {0} does not support saturday delivery.".Fill(mailPiece.Id));
                         request.RequestedShipment.SpecialServicesRequested = null;
@@ -212,7 +206,7 @@ namespace AM.Core
             request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Contact = new Contact();
             request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Contact.PersonName = string.Format("{0} {1}", mailPiece.RetRcptFirstName, mailPiece.RetRcptLastName);
             request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Contact.CompanyName = mailPiece.RetRcptOrganization;
-            request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Contact.PhoneNumber = string.IsNullOrEmpty(mailPiece.RcptPhone) ? "0000000000" : mailPiece.RcptPhone;
+            request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Contact.PhoneNumber = string.IsNullOrEmpty(mailPiece.RetRcptPhone) ? "0000000000" : mailPiece.RetRcptPhone;
 
             request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Address = new ShipWebServiceRef.Address();
             request.RequestedShipment.LabelSpecification.PrintedLabelOrigin.Address.StreetLines = new string[] { mailPiece.RetRcptAddressStreet, mailPiece.RetRcptAddrOptionalLine1BelowStreet, mailPiece.RetRcptAddrOptionalLine2BelowStreet };
@@ -229,7 +223,7 @@ namespace AM.Core
             request.RequestedShipment.Recipient.Contact = new Contact();
             request.RequestedShipment.Recipient.Contact.PersonName = string.Format("{0} {1}", mailPiece.RcptFirstName, mailPiece.RcptLastName);
             //request.RequestedShipment.Recipient.Contact.CompanyName = loan.RecipientCompanyName;
-            request.RequestedShipment.Recipient.Contact.PhoneNumber = string.IsNullOrEmpty(mailPiece.RcptPhone) ? "0000000000" : mailPiece.RcptPhone;
+            request.RequestedShipment.Recipient.Contact.PhoneNumber = string.IsNullOrEmpty(mailPiece.RcptPhone) ? "0000000000" : "+1" + mailPiece.RcptPhone;
             request.RequestedShipment.Recipient.Address = new ShipWebServiceRef.Address();
             request.RequestedShipment.Recipient.Address.StreetLines = new string[] { mailPiece.RcptAddressStreet, mailPiece.RcptAddrOptionalLine1BelowStreet, mailPiece.RcptAddrOptionalLine2BelowStreet };
             request.RequestedShipment.Recipient.Address.City = mailPiece.RcptAddressCity;

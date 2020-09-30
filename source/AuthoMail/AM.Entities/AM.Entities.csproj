@@ -47,11 +47,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DocGenResponse.cs" />
     <Compile Include="DTOs\Batch.cs" />
     <Compile Include="DTOs\CapOneData.cs" />
     <Compile Include="DTOs\Client.cs" />
     <Compile Include="DTOs\DocType.cs" />
     <Compile Include="DTOs\FedExAccountInfo.cs" />
+    <Compile Include="EllieMaeResponse.cs" />
     <Compile Include="GeneralModels.cs" />
     <Compile Include="IdentityModels\IdentityModel.cs" />
     <Compile Include="IdentityModels\ProfileUser.cs" />
@@ -61,6 +63,11 @@
     <Compile Include="MailAPIResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DTOs\ShippingAccount.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -73,6 +80,12 @@
       <Project>{75996573-6449-4675-a5ff-f1c39c84d685}</Project>
       <Name>AM.Lib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

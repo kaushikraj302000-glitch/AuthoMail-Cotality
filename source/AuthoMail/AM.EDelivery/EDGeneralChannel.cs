@@ -73,7 +73,7 @@ namespace AM.EDelivery
                     IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
                     int reTrycnt = 0;
                     bool hasError = false;
-                    while (reTrycnt < Config.Core_NoofTime_AttemptFedexService)
+                    while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                     {
                         var response = eDeliveryAPISvc.CreateSigningRoom(request).Result;
                         if (!response.HasError)
@@ -100,7 +100,7 @@ namespace AM.EDelivery
                         MailUtility.SendUnexpectedExceptionEmail(msg);
                         edmp.ErrorCode = OutComeCodes.Issue_In_EDelivery;
                         edmp.ErrorDesc = "Error occured while creating signing room for Loan Number:{0}".Fill(edmp.LoanNumber);
-                        System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                        System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
                         hasError = true;
                         reTrycnt++;
                     }
@@ -145,7 +145,7 @@ namespace AM.EDelivery
                     IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
                     int reTrycnt = 0;
                     bool hasError = false;
-                    while (reTrycnt < Config.Core_NoofTime_AttemptFedexService)
+                    while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                     {
                         bool isInvitationSent = eDeliveryAPISvc.SendInvitations(edmp.SigningRoomId.Value).Result;
 
@@ -159,7 +159,7 @@ namespace AM.EDelivery
                         var msg = "Error occured while sending invitation to participants of Id {0}";
                         log.Error(msg);
                         MailUtility.SendUnexpectedExceptionEmail(msg);
-                        System.Threading.Thread.Sleep(Config.Core_FedexServiceAttemptInterval);
+                        System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
                         hasError = true;
                         reTrycnt++;
                     }
@@ -253,7 +253,7 @@ namespace AM.EDelivery
         {
             string amResponsePath = mpi.AMResponsePath;
 
-            switch (eDeliveryMP.ChannelCode.Split('_')[0].ToUpper())
+            switch (eDeliveryMP.GetChannelCode().ToUpper())
             {
                 case "AMC":
                     using (IAMCService amcSvc = new AMCService())
@@ -271,13 +271,13 @@ namespace AM.EDelivery
                     }
                     Thread.Sleep(1000);
                     break;
-                case "ELLIEMAE":
+                case "API_ELLIEMAE":
                     using (IGeneralService generalSvc = new GeneralService())
                     {
                         var mailBatch = mp.MailBatches;
                         var client = mp.Clients;
                         mailBatch.Clients = client;
-                        string responseReport = generalSvc.GeneralJsonReport(mp, mp.MailBatches);
+                        string responseReport = generalSvc.GeneralJsonReport(mp.UniqueId.ToString());
 
                         if (!string.IsNullOrWhiteSpace(responseReport))
                         {

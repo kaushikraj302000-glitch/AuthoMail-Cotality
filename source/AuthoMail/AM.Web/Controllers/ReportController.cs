@@ -12,7 +12,7 @@ using AutoMapper;
 using System.IO;
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator)]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus)]
     public class ReportController : BaseController
     {
         IHomeService homeSvc;
@@ -183,7 +183,7 @@ namespace AM.Web.Controllers
             var model = repoSvc.SupplyInventoryReport(envelopes);
             foreach (var item in model)
             {
-                item.StockUsed = model.Where(m => m.EnvelopeId == item.EnvelopeId).Sum(m => m.ReceivedQuantity) - item.Envelopes.CurrentQuantity;
+                item.StockUsed = model.Where(m => m.GetEnvelopeId() == item.GetEnvelopeId()).Sum(m => m.ReceivedQuantity) - item.Envelopes.CurrentQuantity;
             }
             return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
         }

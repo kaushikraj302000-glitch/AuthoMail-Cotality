@@ -8,7 +8,7 @@
         width: 100% !important;
     }
 
-  
+
     .dataTables_wrapper {
         margin-top: -1.5% !important;
     }
@@ -19,21 +19,21 @@
     }
 </style>
 <div class="row">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <div class="panel-title">
-                    <i class="fa fa-globe"></i> Domain Details <span class="pull-right">
-                        <button type="button" data-alloweddomain="" class="btn btn-primary " onclick="AddEditDomain(this)"><i class="fa fa-plus"></i> Add Domain</button>
-                    </span>
-                </div>
-            </div>
-            <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;min-height: 107px;">
-                <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
-                <div id="DomainList"></div>
-
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div class="panel-title">
+                <i class="fa fa-globe"></i> Domain Details <span class="pull-right">
+                    <button type="button" data-alloweddomain="" data-clientid="0" class="btn btn-primary " onclick="AddEditDomain(this)"><i class="fa fa-plus"></i> Add Domain</button>
+                </span>
             </div>
         </div>
-       
+        <div class="panel-body panel-gray" style="padding:2% 2% 2% 2% !important;min-height: 107px;">
+            <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
+            <div id="DomainList"></div>
+
+        </div>
+    </div>
+
 </div>
 
 <!--Domain table html template code -->
@@ -104,7 +104,7 @@
     });
     function FormatObject(Model) {
         $(Model).each(function () {
-            this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="AddEditDomain(this)" data-alloweddomain="' + this.AllowedDomain + '" ><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
+            this.Action = '<span style="cursor: pointer;font-size:1.2em;" onclick="AddEditDomain(this)" data-clientid="'+this.ClientId+'" data-alloweddomain="' + this.AllowedDomain + '" ><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></span>';
         });
         return Model;
     }
@@ -246,12 +246,13 @@
     }
     function AddEditDomain(obj) {
         var allowedDomain = $(obj).data("alloweddomain");
+        var clientId = $(obj).data("clientid");
         var el = $("#AddEditModal").find(".modal-header");
         el.empty();
         $.ajax({
             type: "GET",
-            url: baseUrl + "Admin/GetDomainByName",
-            data: { domainName: allowedDomain },
+            url: baseUrl + "Admin/GetDomainByNameAndclientId",
+            data: { domainName: allowedDomain,clientId:clientId },
             success: function (response) {
                 el.html(response);
                 $("#AddEditModal").modal("show");
@@ -268,7 +269,7 @@
 
     }
     function SaveDomain() {
-        
+
         var el = $("#myModal").find(".modal-body");
         el.empty();
         $.ajax({

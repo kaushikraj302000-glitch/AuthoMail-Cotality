@@ -58,6 +58,7 @@
     <Compile Include="AppConfig.cs" />
     <Compile Include="DallasNotification.cs" />
     <Compile Include="DALLASReconReport.cs" />
+    <Compile Include="FedExTrackingInfo.cs" />
     <Compile Include="FedExPickUP.cs" />
     <Compile Include="GOSReports.cs" />
     <Compile Include="HSBCChannel.cs" />

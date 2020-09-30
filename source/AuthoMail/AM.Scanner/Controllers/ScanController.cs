@@ -1,5 +1,6 @@
 ﻿using AM.Scanner.Common;
 using AM.Scanner.Models;
+using AM.Services;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,11 +14,12 @@ namespace AM.Scanner.Controllers
     [Authorize]
     public class ScanController : Controller
     {
+        IScannerService scannerSvc;
         // GET: Scan
         readonly log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public ScanController()
         {
-
+            this.scannerSvc = new ScannerService();
         }
         public ActionResult Index(string clientCode, string batchTime)
         {
@@ -55,7 +57,7 @@ namespace AM.Scanner.Controllers
             using (new PerfTimerLogger("RegisterScan[ScanController]: "))
             {
                 string machineName = GetIPAddress();
-                ScanDetails scanDetails = DBHelper.RegisterScan(barcode, clientCode, User.Identity.Name, machineName, batchName);
+                Services.ScanDetails scanDetails = scannerSvc.RegisterScan(barcode, clientCode, User.Identity.Name, machineName, batchName);
                 return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
             }
         }
@@ -65,7 +67,7 @@ namespace AM.Scanner.Controllers
         {
             using (new PerfTimerLogger("GetScannedDocuments[ScanController]: "))
             {
-                var getScannedList = DBHelper.GetScannedMailPieces(clientCode, batchName);
+                var getScannedList = scannerSvc.GetScannedMailPieces(clientCode, batchName);
                 return Json(new { model = getScannedList }, JsonRequestBehavior.AllowGet);
             }
             
@@ -75,8 +77,8 @@ namespace AM.Scanner.Controllers
         {
             using (new PerfTimerLogger("GetScanCountByBatchName[ScanController]: "))
             {
-                var model = DBHelper.GetRecentBatchesStats(clientCode.Trim());
-                ScanDetails scanDetails = new ScanDetails();
+                var model = scannerSvc.GetRecentBatchesStatsWithAppCode(clientCode);
+                Services.ScanDetails scanDetails = new Services.ScanDetails();
                 scanDetails.AppCode = clientCode;
                 if (model != null)
                 {
@@ -111,7 +113,7 @@ namespace AM.Scanner.Controllers
         [HttpPost]
         public ActionResult RegisterUSPSScan(int mailPieceId, string trackingNo, string clientCode)
         {
-            USPSScanDetails scanDetails = DBHelper.RegisterUSPSScan(mailPieceId, trackingNo, clientCode);
+            Services.USPSScanDetails scanDetails = scannerSvc.RegisterUSPSScan(mailPieceId, trackingNo, clientCode);
             return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
         }
 

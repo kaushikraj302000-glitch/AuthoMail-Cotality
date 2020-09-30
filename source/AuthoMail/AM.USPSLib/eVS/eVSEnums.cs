@@ -595,6 +595,10 @@ namespace AM.USPSLib
         [XmlEnum(Name = "INVALID")]
         INVALID,
 
+        [EnumMember(Value = "FOREIGN")]
+        [XmlEnum(Name = "FOREIGN")]
+        FOREIGN,
+
         [EnumMember(Value = "POBOX")]
         [XmlEnum(Name = "POBOX")]
         POBOX,

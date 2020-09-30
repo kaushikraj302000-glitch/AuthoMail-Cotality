@@ -21,6 +21,15 @@ using System.Collections.Specialized;
 using System.Net.Http;
 using System.Configuration;
 using System.Net.Http.Headers;
+using AM.Services.Services;
+using Newtonsoft.Json;
+using System.Threading;
+using DELFUS.TemplateImporter;
+
+using AM.Lib;
+using System.Net.Mail;
+//using Microsoft.Ajax.Utilities;
+
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager)]
@@ -32,7 +41,8 @@ namespace AM.Web.Controllers
         IConfigService confSvc;
         IInventoryService inventorySvc;
         IProjectRequestService projectRequestSvc;
-        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc, IProjectRequestService projectRequestSvc)
+        private readonly IClientPermissionService clientPermissionSvc;
+        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc, IProjectRequestService projectRequestSvc, IClientPermissionService clientPermissionSvc)
         {
             UserManager = userManager;
             this.supportSvc = supportSvc;
@@ -40,12 +50,68 @@ namespace AM.Web.Controllers
             this.confSvc = confSvc;
             this.inventorySvc = inventorySvc;
             this.projectRequestSvc = projectRequestSvc;
+            this.clientPermissionSvc = clientPermissionSvc;
         }
         // GET: Admin
         #region SignUp Request
         public ActionResult SignUpRequest()
         {
+
             return View();
+        }
+        public async Task<ActionResult> GetRoleAndAppCode(string userId)
+        {
+            if (userId == null)
+            {
+                return Json(JsonResponseFactory.ErrorResponse("User not found"), JsonRequestBehavior.AllowGet);
+            }
+            var user = await UserManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return Json(JsonResponseFactory.ErrorResponse("User not found"), JsonRequestBehavior.AllowGet);
+            }
+            bool IsCL = CLAuthentication.HasCorelogicAccount(user.Email);
+            var roles = new List<string> { AMRoles.Client };
+            if (IsCL) roles.Add(AMRoles.BA);
+
+            var appCodes = await clientPermissionSvc.GetAppCodeByUserIdORall(IsCL ? null : userId);
+
+            var data = new
+            {
+                roles = roles,
+                appCodes = appCodes,
+                isCL = IsCL
+            };
+            return Json(JsonResponseFactory.SuccessResponse(data), JsonRequestBehavior.AllowGet);
+        }
+        public async Task<ActionResult> EditGetRoleAndAppCode(string userId)
+        {
+            if (userId == null)
+            {
+                return Json(JsonResponseFactory.ErrorResponse("User not found"), JsonRequestBehavior.AllowGet);
+            }
+            var user = await UserManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return Json(JsonResponseFactory.ErrorResponse("User not found"), JsonRequestBehavior.AllowGet);
+            }
+            bool IsCL = CLAuthentication.HasCorelogicAccount(user.Email);
+            var roles = new List<string> { AMRoles.Client };
+            if (IsCL) roles.Add(AMRoles.BA);
+
+            //var appCodes = await clientPermissionSvc.GetAppCodeByUserIdORall(IsCL ? null : userId);
+            var domainAppCode = IsCL ? await clientPermissionSvc.GetClientDomainForCL() : await clientPermissionSvc.GetClientDomainByDomainName(new MailAddress(user.Email).Host);
+            var userRole = await UserManager.GetRolesAsync(user.Id);
+            var approveAppCode = await clientPermissionSvc.GetApproveAppCodesByUserId(user.Id);
+            var data = new
+            {
+                roles = roles,
+                isCL = IsCL,
+                domainAppCode = domainAppCode,
+                userRole = userRole.Where(u => u == AMRoles.BA || u == AMRoles.Client).FirstOrDefault(),
+                approveAppCode = approveAppCode
+            };
+            return Json(JsonResponseFactory.SuccessResponse(data), JsonRequestBehavior.AllowGet);
         }
         public AMUserManager UserManager
         {
@@ -65,18 +131,81 @@ namespace AM.Web.Controllers
             return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
-        public async Task<ActionResult> UpdateUsersRequestSignUp(string userId, string status)
+        public async Task<ActionResult> UpdateUsersRequestSignUp(string userId, string status, List<int> clientIds, string role)
         {
             try
             {
-                var model = supportSvc.UpdateUsersRequestSignUp(userId, status, User.Identity.GetUserId());
-                var user = UserManager.FindById(userId);
+                if (status.IsNullOrWhiteSpace())
+                {
+                    return Json(JsonResponseFactory.ErrorResponse("Status can't be empty."), JsonRequestBehavior.AllowGet);
+                }
+                if (role.IsNullOrWhiteSpace() && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
+                }
+
+                var user = await UserManager.FindByIdAsync(userId);
+                var model = new KeyValuePair<bool, string>();
+                string partiallyApproveRequest = null;
+                if (role == AMRoles.Client && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (!(role.Equals(AMRoles.BA, StringComparison.CurrentCultureIgnoreCase) || role.Equals(AMRoles.Client, StringComparison.CurrentCultureIgnoreCase)))
+                    {
+                        return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
+                    }
+                    if (clientIds == null || clientIds.Count == 0)
+                    {
+                        return Json(JsonResponseFactory.ErrorResponse("Please select AppCode(s)."), JsonRequestBehavior.AllowGet);
+                    }
+                    //CL user Remove BA role and add Client role
+                    if (CLAuthentication.HasCorelogicAccount(user.Email))
+                    {
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
+                        await UserManager.AddToRoleAsync(userId, AMRoles.Client);
+                    }
+                    var output = await clientPermissionSvc.ApproveOrDeclinedClientsForUser(userId, clientIds, User.Identity.GetUserId(), CLAuthentication.HasCorelogicAccount(user.Email));
+
+                    if (output.Any(o => o.Status == ClientUserMappingStatusTypes.Declined))
+                    {
+                        foreach (var item in output)
+                        {
+                            partiallyApproveRequest = $@"{partiallyApproveRequest} <tr>
+                            <th style='border: 1px solid black; padding: 5px 10px;'>{item.ClientName}</th>
+                                <td style='border: 1px solid black; padding: 5px 10px;'>{item.Status}</td>
+                            </tr>";
+                        }
+                        model = new KeyValuePair<bool, string>(true, "Sign up request approved successfully for partial AppCode(s).");
+                    }
+                    else
+                    {
+                        model = new KeyValuePair<bool, string>(true, "Sign up request approved successfully for all AppCode(s).");
+                    }
+                }
+                else
+                {
+                    if (status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase) && CLAuthentication.HasCorelogicAccount(user.Email))
+                    {
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
+                        await UserManager.AddToRoleAsync(userId, AMRoles.BA);
+                    }
+                    model = supportSvc.UpdateUsersRequestSignUp(userId, status, User.Identity.GetUserId());
+                }
+
 
                 string template = status.Equals(AMUserStatus.Approved) ? "ApproveRegistration.html" : "RejectRegistration.html";
+                if (!(partiallyApproveRequest.IsNullOrWhiteSpace()))
+                {
+                    template = "PartiallyApproveRegistration.html";
+                }
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\" + template)));
                 sb.Replace("{{name}}", user.FirstName);
                 sb.Replace("{{email}}", user.Email);
-
+                if (!partiallyApproveRequest.IsNullOrWhiteSpace())
+                {
+                    sb.Replace("{{PartiallyApproveRequestTableData}}", partiallyApproveRequest);
+                }
                 string AuthoMailURL = "";
                 if (Config.Common_Environment == Env.Prod)
                 {
@@ -102,6 +231,31 @@ namespace AM.Web.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<ActionResult> SaveEditRoleClient(string userId, List<int> clientIds, string role)
+        {
+            if (userId.IsNullOrWhiteSpace())
+            {
+                return Json(JsonResponseFactory.ErrorResponse("User not found."), JsonRequestBehavior.AllowGet);
+            }
+            if (role.IsNullOrWhiteSpace())
+            {
+                return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
+            }
+            if (clientIds != null)
+                clientIds.RemoveAll(c => c == 0);
+            if (role == AMRoles.Client && (clientIds == null || clientIds.Count == 0))
+            {
+                return Json(JsonResponseFactory.ErrorResponse("Please select AppCode(s)."), JsonRequestBehavior.AllowGet);
+            }
+            var user = await UserManager.FindByIdAsync(userId);
+            var output = await clientPermissionSvc.EditSaveRoleClient(user, clientIds, role, User.Identity.GetUserId(), CLAuthentication.HasCorelogicAccount(user.Email));
+            if (output.Key)
+                return Json(JsonResponseFactory.SuccessResponse(output.Value), JsonRequestBehavior.AllowGet);
+
+            return Json(JsonResponseFactory.ErrorResponse(output.Value), JsonRequestBehavior.AllowGet);
+
+        }
         #endregion
 
         #region Manage Domain
@@ -120,12 +274,12 @@ namespace AM.Web.Controllers
             }
         }
         [Authorize(Roles = AMRoles.Admin), HttpGet]
-        public ActionResult GetDomainByName(string domainName)
+        public ActionResult GetDomainByNameAndclientId(string domainName, int clientId)
         {
 
             if (!string.IsNullOrWhiteSpace(domainName))
             {
-                ClientDomains domain = supportSvc.FingByDomainName(domainName);
+                ClientDomains domain = supportSvc.FindByDomainNameAndClientId(domainName, clientId);
                 ViewBag.Clients = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name", domain.ClientId);
                 return PartialView("_AddOrEditDomain", domain);
             }
@@ -157,7 +311,7 @@ namespace AM.Web.Controllers
                 }
                 else
                 {
-                    model = supportSvc.UpdateClientDomain(domainName, oldDomain);
+                    model = supportSvc.UpdateClientDomain(domainName, clientId, oldDomain);
                     return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
                 }
             }
@@ -1032,18 +1186,129 @@ namespace AM.Web.Controllers
             return View();
         }
 
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult CreateOrEditEnvelope(int? id)
+        {
+            var shippers = inventorySvc.ShipperSelectList();
+            ViewBag.Shippers = new SelectList(shippers, "Id", "Name");
+            if (id.HasValue)
+            {
+                return View(inventorySvc.GetEnvelopeWithShippers(id.Value));
+            }
+            
+            return View(new EnvelopesVM());
+        }
         [Authorize(Roles = AMRoles.Admin), HttpPost]
-        public ActionResult CreateOrEditEnvelope(Envelopes envelopes)
+        public ActionResult ShipperWiseStock(int ShipperId, string ShipperName)
+        {
+            return PartialView("_ShipperWiseStockDetails", new EnvelopeStockVM { ShipperName = ShipperName, ShipperId = ShipperId });
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult CreateOrEditEnvelope(EnvelopesVM envelopes)
         {
             try
             {
-                if (envelopes.Id == 0)
-                {
-                    var env = inventorySvc.FindEnvelopeById(envelopes.Id);
-                    if (env != null) return Json(JsonResponseFactory.ErrorResponse("Envelope already exists."), JsonRequestBehavior.AllowGet);
-                }
-
                 return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopes(envelopes, User.Identity.GetUserId())), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult IsEnvelopeNameExists(int id,string envelopeName)
+       {
+            return Json(inventorySvc.IsEnvelopeNameExists(id, envelopeName), JsonRequestBehavior.AllowGet);
+            // return Json(true, JsonRequestBehavior.AllowGet);
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult IsPartNumberExists(int id, string partNumber)
+        {
+            return Json(inventorySvc.IsPartNumberExists(id, partNumber), JsonRequestBehavior.AllowGet);
+            // return Json(true, JsonRequestBehavior.AllowGet);
+        }
+        #endregion
+
+        #region Manage Envelopes Inventory
+        [Authorize(Roles = AMRoles.Admin)]
+        public ActionResult ManageEnvelopesInventory()
+        {
+            return View();
+        }
+        public ActionResult GetEnvelopsInventory()
+        {
+            try
+            {
+                var model = inventorySvc.GetLast3MonthsInventoryEnvelopes();
+
+                return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult AddEnvelopInventory()
+        {
+            var envelopes = inventorySvc.GetEnvelopes().OrderBy(e => e.Order);
+            var shippers = inventorySvc.ShipperSelectList();
+            ViewBag.Envelops = new SelectList(envelopes, "Id", "EnvelopeName");
+            ViewBag.Shippers = new SelectList(shippers, "Id", "Name");
+            return PartialView("_AddEnvelopeInventory");
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult SaveEnvelopeInventory(EnvelopeInventory envelopeInventory)
+        {
+            try
+            {
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.SaveEnvelopeInventory(envelopeInventory, User.Identity.GetUserId())), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult RemoveEnvelopeInventoryById(int id)
+        {
+            try
+            {
+                inventorySvc.RemoveEnvelopeInventoryById(id);
+                return Json(JsonResponseFactory.SuccessResponse(new { model = true }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+        public ActionResult ManageEnvelopesInventoryStock()
+        {
+            return View();
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetEnvelopeInventoryStock()
+        {
+            try
+            {
+                var model = inventorySvc.GetEnvelopeInventoryStockCalculation();
+
+                return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult UpdateReorderDuration(int envelopeId, int shipperId, int reorderDuration)
+        {
+            try
+            {
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.UpdateReorderDuration(envelopeId, shipperId, reorderDuration)), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
             {
@@ -1069,7 +1334,7 @@ namespace AM.Web.Controllers
             }
         }
         [Authorize(Roles = AMRoles.Admin), HttpGet]
-        public ActionResult GetEnvelopeTransactionsByName(int id, string envelopeId)
+        public ActionResult GetEnvelopeTransactionsByName(int id, int envelopeId)
         {
             return PartialView("_AddOrEditEnvelopeTransactions", new EnvelopeInventory() { EnvelopeId = envelopeId });
         }
@@ -1174,5 +1439,7 @@ namespace AM.Web.Controllers
         }
 
         #endregion
+
+
     }
 }

@@ -50,27 +50,31 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AuthenticatedHttpClientHandler.cs" />
-    <Compile Include="eVSCustomsFormsData.cs" />
-    <Compile Include="eVSEnums.cs" />
-    <Compile Include="eVSCancelLabelRequest.cs" />
-    <Compile Include="eVSLabelRequest.cs" />
-    <Compile Include="eVSGeneral.cs" />
-    <Compile Include="eVSCancelLabelResponse.cs" />
-    <Compile Include="eVSLabelResponse.cs" />
-    <Compile Include="IeVSCancelLabelRequest.cs" />
-    <Compile Include="IeVSCancelRequestCommon.cs" />
-    <Compile Include="IeVSCustomsFormsData.cs" />
-    <Compile Include="IeVSCancelLabelResponse.cs" />
-    <Compile Include="IeVSLabelResponse.cs" />
-    <Compile Include="IeVSRequestCommon.cs" />
-    <Compile Include="IeVSLabelRequest.cs" />
-    <Compile Include="IeVSCancelResponseCommon.cs" />
-    <Compile Include="IeVSResponseCommon.cs" />
+    <Compile Include="eVS\eVSCustomsFormsData.cs" />
+    <Compile Include="eVS\eVSEnums.cs" />
+    <Compile Include="eVSCancel\eVSCancelLabelRequest.cs" />
+    <Compile Include="eVS\eVSLabelRequest.cs" />
+    <Compile Include="eVS\eVSGeneral.cs" />
+    <Compile Include="eVSCancel\eVSCancelLabelResponse.cs" />
+    <Compile Include="eVS\eVSLabelResponse.cs" />
+    <Compile Include="eVSCancel\IeVSCancelLabelRequest.cs" />
+    <Compile Include="eVSCancel\IeVSCancelRequestCommon.cs" />
+    <Compile Include="eVS\IeVSCustomsFormsData.cs" />
+    <Compile Include="eVSCancel\IeVSCancelLabelResponse.cs" />
+    <Compile Include="eVS\IeVSLabelResponse.cs" />
+    <Compile Include="eVS\IeVSRequestCommon.cs" />
+    <Compile Include="eVS\IeVSLabelRequest.cs" />
+    <Compile Include="eVSCancel\IeVSCancelResponseCommon.cs" />
+    <Compile Include="eVS\IeVSResponseCommon.cs" />
     <Compile Include="IUSPS.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TrackV2\ITrackAPIResponse.cs" />
+    <Compile Include="TrackV2\ITrackFieldAPIRequest.cs" />
+    <Compile Include="TrackV2\TrackAPIResponse.cs" />
+    <Compile Include="TrackV2\TrackFieldAPIRequest.cs" />
     <Compile Include="USPSError.cs" />
-    <Compile Include="VerifierAddressRequest.cs" />
-    <Compile Include="VerifierAddressResponse.cs" />
+    <Compile Include="Verify\VerifierAddressRequest.cs" />
+    <Compile Include="Verify\VerifierAddressResponse.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

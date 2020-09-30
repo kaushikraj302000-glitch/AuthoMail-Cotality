@@ -17,6 +17,8 @@
 );
 
 
+
+
 GO
 CREATE NONCLUSTERED INDEX [IX_LogBatchTimeLine_DownloadEnd]
     ON [PnS].[LogBatchTimeLine]([DownloadEnd] ASC) WITH (FILLFACTOR = 70);
@@ -86,3 +88,9 @@ GO
 CREATE NONCLUSTERED INDEX [IX_LogBatchTimeLine_SubmitToPCIStart]
     ON [PnS].[LogBatchTimeLine]([SubmitToPCIStart] ASC) WITH (FILLFACTOR = 70);
 
+GO
+CREATE CLUSTERED INDEX [LogBatchTimeLine_BatchId] ON [PnS].[LogBatchTimeLine]
+(
+	[BatchId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+GO

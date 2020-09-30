@@ -10,32 +10,46 @@ using System.Web.Hosting;
 using AM.Lib;
 using System.ComponentModel;
 using AM.Entities;
+using System.Text.RegularExpressions;
 
 namespace AM.Services
 {
     public class Config
     {
+        private static readonly Dictionary<int, int> clientGroupMap;
+        private static readonly Dictionary<int, List<Holiday>> groupHolidays;
+
         #region General
         [Description("To indicate on which environment job is running.")]
         public static string Common_Environment { get; private set; }
         public static string Common_EnvironmentInitial { get; private set; }
         public static string Common_AuthoMailRootFolder { get; private set; }
-        public static string Common_EDeliveryRootFolder { get; private set; }
-        public static List<Holiday> Common_Holidays { get; private set; }
+        public static string Common_DocGen_API { get; private set; }
+        public static int Common_MaxProcessingLimit { get; private set; }
         public static List<Holiday> Common_FederalHolidays { get; private set; }
+
         public static int Common_ProcessingBufferTime { get; private set; }
         public static string Common_FedExTrackingAccountCode { get; private set; }
         public static string Common_FedExTrackingUrl { get; private set; }
         public static string Common_ErrorSubscribedEmailSubject { get; private set; }
         public static string Common_ErrorSubscribedEmailCc { get; private set; }
         public static string Common_ErrorSubscribedEmailTemplate { get; private set; }
+        public static string Common_LandscapeUSPSLabels { get; private set; }
+
+        public static List<Holiday> GetHolidaysByClientId(int clientId)
+        {
+            if (!clientGroupMap.TryGetValue(clientId, out int groupId))
+            {
+                groupId = 1;
+            }
+
+            return groupHolidays[groupId];
+        }
 
         #endregion
 
         #region Console & Core
         public static string Monitor_AMCPulledBackDate { get; set; }
-        public static string Monitor_ExpressMailingText { get; set; }
-        public static string Monitor_PriorityMailingText { get; set; }
         public static string Monitor_AMC_ReportDateFormat { get; private set; }
         public static string Monitor_DSEmailTemplate { get; private set; }
         public static string Monitor_PSEmailTemplate { get; private set; }
@@ -46,21 +60,18 @@ namespace AM.Services
         public static string Monitor_ExceptionEmail_Subject { get; private set; }
         public static string Monitor_Exception_Email_To { get; private set; }
         public static string Monitor_Exception_Email_Cc { get; private set; }
-        public static string Monitor_AMCBackupReportUploadPath { get; set; }
         public static string Monitor_CustomTemplateFolder { get; private set; }
 
         //Core
         public static string Core_PnS_SFT_RootDir { get; private set; }
         public static string Core_CoverTemplateFolder { get; private set; }
+        public static string Core_Base64Folder { get; private set; }
+        public static string Core_CoversheetAPI { get; private set; }
         public static string Core_CountryCode { get; private set; }
-        public static int Core_NoofTime_AttemptFedexService { get; private set; }
-        public static int Core_FedexServiceAttemptInterval { get; private set; }
+        public static int Core_NoOfAttemptOnFailure { get; private set; }
+        public static int Core_FailureAttemptInterval { get; private set; }
         public static string Core_IncrementalReportingChannelCodes { get; private set; }
-
-
-        //FedEx URLs
-        public static string Core_FedExTestService { get; private set; }
-        public static string Core_FedExProdService { get; private set; }
+        public static string Core_FedExService { get; private set; }
         #endregion
 
         #region Reporting_ReadOnly
@@ -114,7 +125,7 @@ namespace AM.Services
         public static string Web_API_PB_Email_Subject { get; private set; }
         public static string Web_API_PB_Email_BodyMsg { get; private set; }
         [Description("Define client's local timezone.")]
-        public static string Web_API_PB_ClientTimeZone { get; private set; }        
+        public static string Web_API_PB_ClientTimeZone { get; private set; }
         [Description("Path of PCI pdf template which is used to send when pullback is requested.")]
         public static string Web_API_PB_PullBackForm_PCI { get; private set; }
         [Description("Path of NORDIS pdf template which is used to send when pullback is requested.")]
@@ -181,6 +192,11 @@ namespace AM.Services
 
         #endregion
 
+        #region Web Delfus Template
+        [Description("Web Delfus API Url")]
+        public static string Web_Delfus_API_Url { get; private set; }
+        #endregion
+
         #region USPSIntegration
 
         public static bool Web_API_USPS_IsDbLoggingEnabled { get; private set; }
@@ -194,7 +210,10 @@ namespace AM.Services
         public static string Web_API_USPS_MainlandStates { get; private set; }
         public static string Web_API_USPS_eVSAPIName { get; private set; }
         public static string Web_API_USPS_eVSCancelAPIName { get; private set; }
-
+        public static int Web_API_USPS_TrackingCount { get; private set; }
+        public static string Web_API_USPS_TrackingAPIName { get; private set; }
+        public static string Web_API_USPS_TrackingSourseZipCode { get; private set; }
+        public static bool Web_API_USPS_Tracking_IsDbLoggingEnabled { get; private set; }
         #endregion
 
         #region E-DeliveryAPI
@@ -223,18 +242,36 @@ namespace AM.Services
 
         #region EllieMae_API
 
-        public static string EllieMae_Secret { get; set; }
-        public static string EllieMae_X_API_Key { get; set; }
+        public static string EllieMae_UserId { get; set; }
+        public static string EllieMae_UserPass { get; set; }
+        public static string EllieMae_GrantType { get; set; }
+        public static string EllieMae_Scope { get; set; }
         public static string EllieMae_BaseURL { get; set; }
+        public static string EllieMae_TokenUrl { get; set; }
         public static string EllieMae_UploadResponseURL { get; set; }
+        public static int EllieMae_MaxResponseCount { get; set; }
+        public static string MailRequestAPI_FilesDownloadPath { get; set; }
+        public static int MailRequestAPI_MaxRequestSize { get; set; }
+        public static int MailRequestAPI_MaxRetries { get; set; }        
+        public static string PGP_Passphrase { get; set; }
 
+        #endregion
+
+        #region Scanner
+        public static string SP_GetScanStats { get; set; }
+        public static string SP_RegisterScan { get; set; }
+        public static string SP_RegisterUSPSScan { get; set; }
+        public static string SP_GetScanReportData { get; set; }
+        public static string SP_GetRecentBatchesStats { get; set; }
+        public static string SP_GetPendingScanning { get; set; }
+        public static string SP_GetScannedMailPieces { get; set; }
         #endregion
 
         #region HSBC_IPRestriction
 
         public static string HSBC_WhiteListedIPs { get; set; }
 
-        #endregion       
+        #endregion             
 
 
         private static List<string> errors;
@@ -244,8 +281,10 @@ namespace AM.Services
             InitializeProperties<Config>();
             using (ICommonService commonSvc = new CommonService())
             {
-                Common_Holidays = commonSvc.GetHolidayList();
+                //Common_Holidays = commonSvc.GetHolidayList();
                 Common_FederalHolidays = commonSvc.GetFederalHolidayList();
+                clientGroupMap = commonSvc.GetClientHolidayGroup();
+                groupHolidays = commonSvc.GetHolidayList();
             }
         }
 
@@ -322,7 +361,7 @@ namespace AM.Services
                 {
                     Id = key,
                     Value = value,
-                    IsSystem = IsSystem.HasValue ? IsSystem.Value : false,
+                    IsSystem = IsSystem ?? false,
                     DefaultValue = DefaultValue,
                     Description = prop.GetDescription(),
                     DataType = prop.PropertyType.Name

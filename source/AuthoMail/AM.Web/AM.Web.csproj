@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\EntityFramework.6.3.0\build\EntityFramework.props" Condition="Exists('..\packages\EntityFramework.6.3.0\build\EntityFramework.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -22,6 +23,8 @@
     <IISExpressUseClassicPipelineMode />
     <Use64BitIISExpress />
     <UseGlobalApplicationHostFile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,6 +44,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Aspose.Words, Version=20.7.0.0, Culture=neutral, PublicKeyToken=716fcc553a201e56, processorArchitecture=MSIL">
+      <HintPath>..\packages\Aspose.Words.20.7.0\lib\net40\Aspose.Words.dll</HintPath>
+    </Reference>
     <Reference Include="Autofac, Version=4.6.2.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
       <HintPath>..\packages\Autofac.4.6.2\lib\net45\Autofac.dll</HintPath>
       <Private>True</Private>
@@ -69,9 +75,19 @@
       <HintPath>..\packages\AutoMapper.6.2.2\lib\net45\AutoMapper.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="DELFUS.TemplateImporter, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>dll\DELFUS.TemplateImporter.dll</HintPath>
+    </Reference>
     <Reference Include="DocumentFormat.OpenXml, Version=2.8.1.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
       <HintPath>..\packages\Open-XML-SDK.2.8.1\lib\net40\DocumentFormat.OpenXml.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.3.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.3.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=1.0.0.999, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpZipLib.1.0.0\lib\net45\ICSharpCode.SharpZipLib.dll</HintPath>
@@ -256,6 +272,7 @@
     <Compile Include="Controllers\CommonController.cs" />
     <Compile Include="Controllers\MailRequestController.cs" />
     <Compile Include="Controllers\SupportController.cs" />
+    <Compile Include="Controllers\DelfusTemplateController.cs" />
     <Compile Include="Controllers\TrackController.cs" />
     <Compile Include="Controllers\USPSApiController.cs" />
     <Compile Include="Models\ChartViewModel.cs" />
@@ -264,6 +281,7 @@
     <Compile Include="Models\ErrorReportViewModel.cs" />
     <Compile Include="Models\ErrorSLAReportViewModel.cs" />
     <Compile Include="Models\ExcelHelper.cs" />
+    <Compile Include="Models\FileDetails.cs" />
     <Compile Include="Models\LookupViewModel.cs" />
     <Compile Include="Models\MailPieceCommonViewModel.cs" />
     <Compile Include="Models\MailPieceDetailsViewModel.cs" />
@@ -364,6 +382,10 @@
     <Content Include="clui\images\sso-image.jpg" />
     <Content Include="clui\images\corelogic.png" />
     <Content Include="clui\images\1sso-image.jpg" />
+    <Content Include="Content\ag\ag-grid-community.min.js" />
+    <Content Include="Content\ag\ag-grid-community.min.noStyle.js" />
+    <Content Include="Content\ag\ag-grid.css" />
+    <Content Include="Content\ag\ag-theme-alpine.css" />
     <Content Include="Content\bootstrap-timepicker\bootstrap-timepicker.css" />
     <Content Include="Content\bootstrap-timepicker\bootstrap-timepicker.js" />
     <Content Include="Content\bootstrap-timepicker\bootstrap-timepicker.min.css" />
@@ -389,6 +411,10 @@
     <Content Include="Content\datatables\plugins\bootstrap\datatables.bootstrap.js" />
     <Content Include="Content\datatables\datatables.css" />
     <Content Include="Content\datatables\table-datatables-managed.js" />
+    <Content Include="Content\dropzone\dropzone.css" />
+    <Content Include="Content\dropzone\dropzone.js" />
+    <Content Include="Content\dropzone\uploadfile.css" />
+    <Content Include="dll\DELFUS.TemplateImporter.dll" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -446,6 +472,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Scripts\notify.js" />
+    <Content Include="Scripts\PageScript_Templates.js" />
     <Content Include="Scripts\respond.js" />
     <Content Include="Scripts\respond.min.js" />
     <Content Include="Scripts\_references.js" />
@@ -462,6 +489,7 @@
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
+    <Content Include="Template\PartiallyApproveRegistration.html" />
     <Content Include="Template\WaitForApproval.html" />
     <Content Include="Template\ApproveRegistration.html" />
     <Content Include="Template\ForgotPassword.html" />
@@ -579,6 +607,14 @@
     <Content Include="Views\Admin\_DocTypePageRange.cshtml" />
     <Content Include="Views\Admin\CreateOrEditDocType.cshtml" />
     <Content Include="Template\PullBackForm_NORDIS.pdf" />
+    <Content Include="Views\Account\ClientSelection.cshtml" />
+    <Content Include="Views\DelfusTemplate\Templates.cshtml" />
+    <Content Include="Views\DelfusTemplate\TemplateSummary.cshtml" />
+    <Content Include="Views\Admin\ManageEnvelopesInventory.cshtml" />
+    <Content Include="Views\Admin\_AddEnvelopeInventory.cshtml" />
+    <Content Include="Views\Admin\CreateOrEditEnvelope.cshtml" />
+    <Content Include="Views\Admin\_ShipperWiseStockDetails.cshtml" />
+    <Content Include="Views\Admin\ManageEnvelopesInventoryStock.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -647,6 +683,14 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\EntityFramework.6.3.0\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.3.0\build\EntityFramework.props'))" />
+    <Error Condition="!Exists('..\packages\EntityFramework.6.3.0\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\EntityFramework.6.3.0\build\EntityFramework.targets'))" />
+  </Target>
+  <Import Project="..\packages\EntityFramework.6.3.0\build\EntityFramework.targets" Condition="Exists('..\packages\EntityFramework.6.3.0\build\EntityFramework.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

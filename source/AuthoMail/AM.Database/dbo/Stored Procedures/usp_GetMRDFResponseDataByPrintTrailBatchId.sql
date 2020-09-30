@@ -11,7 +11,7 @@ BEGIN
  , Res.Disposition, Res.Input_Fed, Res.Feeder3_Fed, Res.Feeder4_Fed, Res.Feeder5_Fed, Res.ComputedWeight, Res.MeterDate
  , Res.StatusSource, Res.PostageMetered, Res.WeightMeasured, Res.ExitLocation, Res.TotalSheets, Res.PDFFileName, Res.PackageTrackingNumber
  ,MP.Id as MailPieceId 
- FROM [Pns].[MRDFResponse] Res
+ FROM [PnS].[MRDFResponse] Res
  LEFT OUTER JOIN PnS.MRDFRequest Req ON Res.PieceId=Req.PieceId AND Res.JobId=Req.PrintTrailBatchId
  LEFT OUTER JOIN AM.MailPieces MP ON MP.UniqueId=Req.UniqueId
  WHERE  Req.PrintTrailBatchId=@printTrailBatchId

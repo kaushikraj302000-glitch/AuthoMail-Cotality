@@ -35,9 +35,9 @@ BEGIN
 	
 	SELECT @totalPrintBatchesMailPieces = COUNT(*) FROM AM.MailPieces WHERE PrintBatchId = @printBatchId
 
-	SELECT @totalBatchSummaryMailPieces = COUNT(*) FROM PnS.MrdfRequest WHERE JobId = @batchSummaryId
+	SELECT @totalBatchSummaryMailPieces = COUNT(*) FROM PnS.MRDFRequest WHERE JobId = @batchSummaryId
 
-	SELECT @totalPulledBackBatchSummaryMailPieces = COUNT(*) FROM PnS.MrdfRequest WHERE JobId = @batchSummaryId AND MailPieceStatus = 'PulledBack'
+	SELECT @totalPulledBackBatchSummaryMailPieces = COUNT(*) FROM PnS.MRDFRequest WHERE JobId = @batchSummaryId AND MailPieceStatus = 'PulledBack'
 	
 	
 	IF (@totalBatchSummaryMailPieces = @totalPulledBackBatchSummaryMailPieces and @totalBatchSummaryMailPieces <> 0)

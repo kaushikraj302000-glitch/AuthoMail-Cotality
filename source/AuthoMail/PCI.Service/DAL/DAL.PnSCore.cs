@@ -276,7 +276,10 @@ namespace PCI.Service
                 foreach (var pageCount in pageSizewiseCounts)
                 {
                     //try to delete if any record then try to insert
-                    var sqlDelete = @"DELETE FROM [Common].[MailPiecePageInfo] Where MailPieceId=@p1 AND PageSize=@p2";
+                    var sqlDelete = @"IF EXISTS (SELECT 1 FROM [Common].[MailPiecePageInfo] Where MailPieceId=@p1 AND PageSize=@p2) 
+                                    BEGIN 
+                                        DELETE FROM [Common].[MailPiecePageInfo] Where MailPieceId=@p1 AND PageSize=@p2
+                                    END";
                     db.ExecuteSqlNonQuery(sqlDelete, mailPieceId.Value, pageCount.Key);
 
                     var sqlInsert = @"INSERT INTO [Common].[MailPiecePageInfo]([MailPieceId],[PageSize],[PageCount]) VALUES(@p1,@p2,@p3)";
@@ -351,6 +354,11 @@ namespace PCI.Service
                     BREEnvelopeName = row.Field<string>("BREEnvelopeName"),
                     BREDesc = row.Field<string>("BREDesc"),
                     BREPartNo = row.Field<string>("BREPartNo"),
+                    CustomerId = row.Field<string>("CustomerId"),
+                    IsForeignAddress = row.Field<bool>("IsForeignAddress"),
+                    ShipperId = row.Field<int>("ShipperId"),
+                    Inserts = row.Field<string>("Inserts"),
+                    InsertsPartNos = row.Field<string>("InsertsPartNos"),
                     //Extra Properties to map for MRDF Request
                     InputWeight = row.Field<string>("InputWeight"),
                     Feeder3_Sel = row.Field<string>("Feeder3_Sel"),

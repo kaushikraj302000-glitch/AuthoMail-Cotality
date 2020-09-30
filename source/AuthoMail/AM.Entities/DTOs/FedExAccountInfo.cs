@@ -20,12 +20,20 @@ namespace AM.Entities
         public int Id { get; set; }
         public DateTime HolidayDate { get; set; }
         public string Description { get; set; }
+        public int GroupId { get; set; }
+    }
+
+    public class ClientHolidayGroup
+    {
+        public int ClientId { get; set; }
+        public int HolidayGroupId { get; set; }
     }
 
     public class FedExPickedPackagesDetail
     {
         public DateTime PickedTimeStamp { get; set; }
         public string TrackingNo { get; set; }
+        public string ShipmentStatus { get; set; }
     }
 
     public class FedExNotPickedPackagesDetail

@@ -18,7 +18,7 @@ BEGIN
 	select TrackingNo,
 	(case when IsPullBackRequested = 1 then 'Pulledback' when IsQCRequested = 1 then 'QC' else 'Valid' end) as [Code],JobName,PrintBatchName
 	from dbo.ufn_GetDallasBatchDetails(@EstDate)
-	where Printlocation=@printlocationcl and ClientId=@clientId and BatchName=@batchName and MailPieceStatus <> 'InProgress'	and ProcessingTimeStamp between @startDate and @endDate and IsSubmitted=1
+	where PrintLocation=@printlocationcl and ClientId=@clientId and BatchName=@batchName and MailPieceStatus <> 'InProgress'	and ProcessingTimeStamp between @startDate and @endDate and IsSubmitted=1
 
 END
 

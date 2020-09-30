@@ -2,11 +2,14 @@
 using AM.Lib;
 using AM.Services;
 using AM.USPSLib;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -14,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace AM.Console
 {
-    abstract class Channel : Disposable
+    abstract class Channel : Disposable, IChannel
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -109,12 +112,6 @@ namespace AM.Console
                         ProcessGeneralReportedBack(channelCode);
                     }
                     break;
-                case "API":
-                    foreach (var channelCode in channelCodes)
-                    {
-                        ProcessAPIReportedBack(channelCode);
-                    }
-                    break;
                 default:
                     foreach (var channelCode in channelCodes)
                     {
@@ -126,113 +123,30 @@ namespace AM.Console
             log.Debug("ReportedBack job is completed.");
         }
 
-        private static void ProcessAPIReportedBack(string channelCode)
+        public static async Task<string> GenerateToken()
         {
-            using (IMailBatchService mailBatchSvc = new MailBatchService())
-            using (IMailPieceService mailPieceSvc = new MailPieceService())
-            using (IClientService clientSvc = new ClientService())
-            using (ICommonService commonSvc = new CommonService())
-            using (IGeneralService genSvc = new GeneralService())
-            {
-                SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
+            HttpClient client = new HttpClient();
+            string baseAddress = Path.Combine(Config.EllieMae_BaseURL, Config.EllieMae_TokenUrl);
 
-                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.ReportPrepped).Where(ch => ch.SFTChannelId == sftChannelDetails.Id).Take(100).ToList();
+            string grant_type = Config.EllieMae_GrantType;
+            string client_id = Config.EllieMae_UserId;
+            string client_secret = Config.EllieMae_UserPass;
+            string scope = Config.EllieMae_Scope;
 
-                if (reportPreppedBatches == null || reportPreppedBatches.Count == 0)
-                {
-                    log.Debug("Uploading report job queue is empty.");
-                    return;
-                }
-                List<BatchAPIResponse> batchApiResponses = new List<BatchAPIResponse>();
-                HttpResponseMessage responseResult = null;
-                foreach (var mailBatch in reportPreppedBatches)
-                {
-                    //take all the MP of that batch and generate List<MailResponseAPI> (Max:100)
-                    //Based on response update MailBatch Status to ReportedBack
-
-                    try
+            var form = new Dictionary<string, string>
                     {
-                        Client client = clientSvc.GetClientById(mailBatch.ClientId);
+                        {"grant_type", grant_type},
+                        {"client_id", client_id},
+                        {"client_secret", client_secret},
+                        {"scope", scope}
+                    };
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            HttpResponseMessage tokenResponse = await client.PostAsync(baseAddress, new FormUrlEncodedContent(form));
+            var jsonContent = await tokenResponse.Content.ReadAsStringAsync();
+            var jObj = JObject.Parse(jsonContent);
 
-                        MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
-
-                        List<MailPieces> mailPieces;
-                        using (IReportService reportSvc = new ReportService())
-                        {
-                            mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
-                        }
-                        var responses = genSvc.GeneralJsonAPIResponse(mailPieces, mailBatch, client.AppCode);
-
-                        if (responses.Count == 0)
-                        {
-                            continue;
-                        }
-
-                        batchApiResponses.AddRange(responses);
-                    }
-                    catch (Exception ex)
-                    {
-                        var msg = "Error occured while generating JSON API response For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
-                        log.Error(msg, ex);
-                        MailUtility.SendUnexpectedExceptionEmail(msg);
-                        continue;
-                    }
-                }
-
-                switch (sftChannelDetails.Code.Split('_')[0].ToUpper())
-                {
-                    case "ELLIEMAE":
-                        try
-                        {
-                            responseResult = genSvc.SendEllieMaeResponse(batchApiResponses.Select(b => b.resp).ToList()).Result;
-                        }
-                        catch (Exception ex)
-                        {
-                            var msg = "Unexpected error occured while sending response to EllieMae endpoint with Error : {0}".Fill(ex.Message);
-                            log.Error(msg, ex);
-                            MailUtility.SendUnexpectedExceptionEmail(msg);
-                            break;
-                        }
-                        if (responseResult.StatusCode.ToString() == "OK")
-                        {
-                            //LIST<Response> one by check with uniqueId (check All MPs NOT IN "INPROGRESS"--> check ALL PrintBatches NOT IN "INPROGRESS" Then Execute below.
-                            foreach (var batchResponse in batchApiResponses)
-                            {
-                                try
-                                {
-                                    var mailPieceInfo = mailPieceSvc.GetMailPiecesByMailBatchId(batchResponse.MBId).Where(m => m.ShippingStatus == ShippingStatus.InProgress.ToString()).ToList();
-                                    if (mailPieceInfo.Count > 0)
-                                        continue;
-
-                                    //int remainingPrintBatchReportedBackCount = 0;
-
-                                    //remainingPrintBatchReportedBackCount = mailBatchSvc.RemainingPrintBatchesReportedBackCount(batchResponse.MBId);
-                                    //if (remainingPrintBatchReportedBackCount > 0)
-                                    //    continue;
-
-                                    commonSvc.UpdateBatchPipeLineStatus(batchResponse.MBId, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
-                                }
-                                catch (Exception ex)
-                                {
-                                    var msg = "Error occured in API ReportedBack Method For Mail Batch Id: {0} with Error : {1}".Fill(batchResponse.MBId, ex.Message);
-                                    log.Error(msg, ex);
-                                    MailUtility.SendUnexpectedExceptionEmail(msg);
-                                    continue;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            var msg = "Error occured while sending response to EllieMae endpoint with Status Code : {0}, Error : {1}".Fill(responseResult.StatusCode, responseResult.RequestMessage);
-                            log.Error(msg);
-                            MailUtility.SendUnexpectedExceptionEmail(msg);
-                        }
-                        break;
-                    default:
-                        log.Error("Invalid SFT channel.");
-                        break;
-                }
-            }
+            return jObj.GetValue("access_token").ToString();
         }
 
         private static void ProcessGeneralReportedBack(string channelCode)
@@ -347,7 +261,7 @@ namespace AM.Console
             }
         }
 
-        private static void GenerateAndSendProductionSummaryNotification(MailBatchInfo mbi, List<MailPieces> mailPieces, List<Deliverable> deliverables, SFTChannel sftChannelDetail)
+        private static void GenerateAndSendProductionSummaryNotification(MailBatchInfo mbi, List<MailPieces> mailPieces, List<Deliverable> deliverables, SFTChannel sftChannel)
         {
             string errorReportPath = string.Empty;
             string errorReportFileName = string.Empty;
@@ -363,7 +277,7 @@ namespace AM.Console
             if (deliveryReportDeliverable.EmailChannel == null && errorReportDeliverable.EmailChannel == null)
                 return;
 
-            switch (sftChannelDetail.Code.Split('_')[0].ToUpper())
+            switch (sftChannel.GetChannelCode().ToUpper())
             {
                 case "HSBC":
                     using (IHSBCService hsbcSvc = new HSBCService())
@@ -418,11 +332,11 @@ namespace AM.Console
                         }
                     }
                     break;
-                case "ELLIEMAE":
+                case "API_ELLIEMAE":
                     using (IGeneralService generalSvc = new GeneralService())
                     using (ICommonService commonSvc = new CommonService())
                     {
-                        string deliveryReport = generalSvc.GeneralJsonReport(mailPieces.FirstOrDefault(), mbi.MailBatch, mbi.Client.AppCode);
+                        string deliveryReport = generalSvc.GeneralJsonReport(mailPieces.FirstOrDefault().UniqueId.ToString());
                         if (!string.IsNullOrWhiteSpace(deliveryReport))
                         {
                             deliveryReportFileName = "{0}-{1}-{2}.json".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
@@ -460,12 +374,12 @@ namespace AM.Console
             }
         }
 
-        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite, SFTChannel sftChannelDetails)
+        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite, SFTChannel sftChannel)
         {
             string deliveryUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
             string errorUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Error).UploadPath;
             string ftpUploadPath = "";
-            string sftChannelCode = sftChannelDetails.Code.Split('_')[0].ToUpper();
+            string sftChannelCode = sftChannel.GetChannelCode().ToUpper();
             string zipFileName, zipFilePath;
             List<string> resXmlList;
             switch (sftChannelCode)
@@ -558,7 +472,7 @@ namespace AM.Console
                     File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
                     Thread.Sleep(1000);
                     break;
-                case "ELLIEMAE":
+                case "API_ELLIEMAE":
                     var resJsonList = Directory.EnumerateFiles(localReportPath, "*.json").ToList();
 
                     foreach (string filePath in resJsonList)
@@ -589,7 +503,7 @@ namespace AM.Console
             }
         }
 
-        private static bool UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, List<MailPieces> mailPieceData, SFTChannel sftChannelDetail)
+        private static bool UploadReportsToClients(MailBatchInfo mbi, SFTUtil sftSite, List<Deliverable> deliverables, List<MailPieces> mailPieceData, SFTChannel sftChannel)
         {
             bool isUploaded = false;
 
@@ -597,7 +511,7 @@ namespace AM.Console
 
             increamentalReportingChannels = increamentalReportingChannels.Select(c => c + "_" + Config.Common_Environment).ToList();
 
-            switch (sftChannelDetail.Code.Split('_')[0].ToUpper())
+            switch (sftChannel.GetChannelCode().ToUpper())
             {
                 case "ALASKA":
 
@@ -675,7 +589,7 @@ namespace AM.Console
 
                     //NOTE : Here we have to check printbatches table for that MailBatchId because we can not updated reported back status until all print batches status are getting changed to ReportedBack.
                     int remainingPrintBatchReportedBackCount = 0;
-                    if (increamentalReportingChannels.Contains(sftChannelDetail.Code))
+                    if (increamentalReportingChannels.Contains(sftChannel.Code))
                     {
                         using (IMailBatchService mailBatchSvc = new MailBatchService())
                         {
@@ -689,9 +603,9 @@ namespace AM.Console
                     string reportPath = Path.Combine(Config.Common_AuthoMailRootFolder, mbi.Client.AppCode, mbi.MailBatch.Id.ToString(), Util.AMResponseFolderName);
 
                     //Here we are passing localReportPath as MailBatch folder structure AMRoot/USAA/MailBatchId/AMResponses
-                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite, sftChannelDetail);
+                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite, sftChannel);
 
-                    GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverables, sftChannelDetail);
+                    GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverables, sftChannel);
                     isUploaded = true;
                     break;
 
@@ -721,16 +635,16 @@ namespace AM.Console
                         if (!mailPiece.DocTypeId.HasValue)
                         {
                             //NOTE : If System didn't find any doctypeid for particular mail piece then it will take default max cut-off time of that particular client for calculating effective received on date.
-                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docTypeSvc.GetDocTypeWithMaximumCutOffTimeByClientId(client.Id), mailBatch.ReceivedOn.Value);
+                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docTypeSvc.GetDocTypeWithMaximumCutOffTimeByClientId(client.Id), mailBatch.ReceivedOn.Value);
                         }
                         else
                         {
-                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
+                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
                         }
                     }
                     else if (mailPiece.IsEDeliveryRequested)
                     {
-                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
+                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
                         mailPiece.DueDate = mailPiece.ExpiryDate;
                         mailPiece.StdSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddMinutes(30).EstToUtc();
                         mailPiece.MaxSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddHours(4).EstToUtc();
@@ -741,12 +655,13 @@ namespace AM.Console
 
                         //Here first we will calculate effective received on date and based on that we will calculate due date,Print location, print trail id,etc. for that
                         //Here storing effective receivedon in EST format
-                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(docType, mailBatch.ReceivedOn.Value);
+                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docType, mailBatch.ReceivedOn.Value);
                         //Calculate Due Date for Mail Pieces doc type wise
-                        mailPiece.DueDate = commonSvc.GetDueDate(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                        mailPiece.DueDate = commonSvc.GetDueDate(client.Id, docType, mailPiece.EffectiveReceivedOnEst.Value);
                         //Set print location where mail piece will go for print and ship
                         //mailPiece.PrintTrailId = commonSvc.GetPrintTrail(mailPiece.PnSConfigDetailId.Value, mailPiece.EffectiveReceivedOnEst.Value);
                         var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value, mailPiece.EffectiveReceivedOnEst);
+                        mailPiece.ShipperId = printVendorDetails.ShipperId;
                         mailPiece.PrintLocation = commonSvc.GetShipperInformation(printVendorDetails.ShipperId).PrintLocation;
                         //This field will be used for monitoring data    
                         mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
@@ -776,7 +691,7 @@ namespace AM.Console
                     //Get validate Addresses for each records
                     List<AddressResponse> addressResponses = new List<AddressResponse>();
                     List<AddressRequest> addressRequestes = new List<AddressRequest>();
-                    foreach (var mailPiece in validMailPieces.Where(mp => (mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested)) // Here system will verify only those address which have fallbackrequested=true or Edeliveryrequested=false
+                    foreach (var mailPiece in validMailPieces.Where(mp => ((mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested) || (!mp.RcptAddressCountry.IsNullOrWhiteSpace() && (mp.RcptAddressCountry.Contains("USA") || mp.RcptAddressCountry.Contains("US") || mp.RcptAddressCountry.Contains("The United States of America") || mp.RcptAddressCountry.Contains("United States of America") || mp.RcptAddressCountry.Contains("United States"))))) // Here system will verify only those address which have fallbackrequested=true or Edeliveryrequested=false and if country exist than it will check for country name must be from above metioned one
                     {
                         AddressRequest addressRequest = new AddressRequest() { Id = mailPiece.UniqueId.ToString(), StreetAddress = mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet, City = mailPiece.RcptAddressCity, State = mailPiece.RcptAddressState, Zip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4), Zip5 = mailPiece.RcptAddressZIP.SeparateZip4And5(5) };
 
@@ -823,6 +738,7 @@ namespace AM.Console
 
                         mailPiece.RcptAddressTypes = string.Join(",", addressResponse.AddressTypes);
 
+
                         if (addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
                         {
                             mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
@@ -830,6 +746,11 @@ namespace AM.Console
                             mailPiece.ErrorDesc = !string.IsNullOrEmpty(addressResponse.VerifierDesc) ? addressResponse.VerifierDesc : addressResponse.Error.Description;
                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                             continue;
+                        }
+
+                        if (!mailPiece.RcptAddressCountry.IsNullOrWhiteSpace() && (!mailPiece.RcptAddressCountry.Contains("USA") || !mailPiece.RcptAddressCountry.Contains("US") || !mailPiece.RcptAddressCountry.Contains("The United States of America") || !mailPiece.RcptAddressCountry.Contains("United States of America") || !mailPiece.RcptAddressCountry.Contains("United States")))
+                        {
+                            mailPiece.RcptAddressTypes = AddressType.FOREIGN.ToString();
                         }
 
                         if (docType.ShippingCarrier == Carrier.FedEx.ToString())

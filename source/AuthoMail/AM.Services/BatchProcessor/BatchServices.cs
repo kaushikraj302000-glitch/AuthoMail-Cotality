@@ -93,7 +93,7 @@ namespace AM.Services
         public List<MailBatchDTO> GetBatchesByPipelineStatusAndClientId(string batchPipelineStatus, int? clientId)
         {
             //Sql Query
-            string query = "SELECT * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus";
+            string query = $"SELECT TOP {Config.Common_MaxProcessingLimit} * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus";
 
             if (clientId.HasValue)
                 query += " AND ClientId= @ClientId";
@@ -135,7 +135,7 @@ namespace AM.Services
         public List<MailBatchDTO> GetBatchesByPipelineStatusAndSFTChannelId(string batchPipelineStatus, int? sftChannelId)
         {
             //Sql Query
-            string query = "SELECT * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus";
+            string query = $"SELECT TOP {Config.Common_MaxProcessingLimit} * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus";
 
             if (sftChannelId.HasValue)
                 query += " AND SFTChannelId= @SFTChannelId";
@@ -178,7 +178,7 @@ namespace AM.Services
             BatchData data = null;
             string query = @"SELECT * FROM [AM].[MailBatches] WHERE Id=@mailBatchId 
                             SELECT * FROM [AM].[MailBatchCustomInfo] WHERE MailBatchId=@mailBatchId
-                            SELECT P.*,D.IsPrintReady FROM [AM].[MailPieces] P LEFT OUTER JOIN AM.DocTypes D ON P.DocTypeId=D.Id WHERE MailBatchId=@mailBatchId
+                            SELECT P.*,D.IsPrintReady,E.EnvelopeName FROM [AM].[MailPieces] P LEFT OUTER JOIN AM.DocTypes D ON P.DocTypeId=D.Id LEFT OUTER JOIN Common.PnSConfigDetail PCD ON P.PnSConfigDetailId=PCD.Id INNER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id WHERE MailBatchId=@mailBatchId
                             SELECT * FROM [AM].[MailPieceCustomInfo] WHERE MailPieceId IN (SELECT Id FROM [AM].[MailPieces] WHERE MailBatchId=@mailBatchId)";
 
             using (var multi = db.QueryMultiple(query, new { mailBatchId = mailBatchId }))
@@ -222,7 +222,7 @@ namespace AM.Services
         public List<SubmittedBatch> GetSubmittedPrintBatchDetails()
         {
             //Sql Query
-            string query = @"SELECT PB.Id AS PrintBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM AM.PrintBatches PB WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=0";
+            string query = $@"SELECT PB.Id AS PrintBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM AM.PrintBatches PB WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=0";
 
             return db.Query<SubmittedBatch>(query).ToList();
         }
@@ -230,7 +230,7 @@ namespace AM.Services
         public List<SubmittedBatch> GetResponseReceivedPrintBatchDetails()
         {
             //Sql Query
-            string query = @"SELECT DISTINCT PB.Id AS PrintBatchId,PB.MailBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode,MB.SFTChannelId FROM AM.PrintBatches PB INNER JOIN AM.MailBatches MB ON PB.MailBatchId=MB.Id WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1 AND PB.BatchStatus=@BatchStatus";
+            string query = $@"SELECT TOP {Config.Common_MaxProcessingLimit} PB.Id AS PrintBatchId,PB.MailBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode,MB.SFTChannelId FROM AM.PrintBatches PB INNER JOIN AM.MailBatches MB ON PB.MailBatchId=MB.Id WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1 AND PB.BatchStatus=@BatchStatus";
 
             return db.Query<SubmittedBatch>(query, new { BatchStatus = BatchStatus.InProgress.ToString() }).ToList();
         }

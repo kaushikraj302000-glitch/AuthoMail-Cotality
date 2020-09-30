@@ -1,9 +1,15 @@
-﻿using iTextSharp.text;
-using iTextSharp.text.pdf;
+﻿extern alias iText;
+
+using iText::iTextSharp.text;
+using iText::iTextSharp.text.pdf;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -84,6 +90,31 @@ namespace AM.Lib
             File.Move(temp, dest);
         }
 
+        public static byte[] Mergebase64PDFs(params string[] pdflist)
+        {
+            using (var ms = new MemoryStream())
+            using (var doc = new Document())
+            using (var copy = new PdfSmartCopy(doc, ms))
+            {
+                doc.Open();
+                // This is done to open and merge (Secured) PDFs which allow printing but not copying or merging
+                PdfReader.unethicalreading = true;
+                foreach (var pdf in pdflist)
+                {
+                    //Create a PdfReader
+                    using (var reader = new PdfReader(Convert.FromBase64String(pdf)))
+                    {
+                        //Add the entire document
+                        copy.AddDocument(reader);
+                        reader.Close();
+                    }
+                }
+                PdfReader.unethicalreading = false;
+                doc.Close();
+                return ms.ToArray();
+            }
+        }
+
         public static void BookmarkedPdfFilesMerge(string outputPdf, string[] sourcePdfs)
         {
             PdfReader reader = null;
@@ -104,7 +135,7 @@ namespace AM.Lib
 
                 if (i == 0)
                 {
-                    document = new iTextSharp.text.Document(reader.GetPageSizeWithRotation(1));
+                    document = new Document(reader.GetPageSizeWithRotation(1));
                     pdfCpy = new PdfCopy(document, new FileStream(outputPdf, FileMode.Create));
                     document.Open();
                     PdfReader.unethicalreading = true;
@@ -175,7 +206,7 @@ namespace AM.Lib
 
         public static void PdfFormFiller(string templatePDFPath, string filledPDFPath, Dictionary<string, string> fieldData)
         {
-            using (var existingFileStream = new FileStream(templatePDFPath, FileMode.Open))
+            using (var existingFileStream = new FileStream(templatePDFPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var newFileStream = new FileStream(filledPDFPath, FileMode.Create))
             {
                 // Open existing PDF
@@ -199,6 +230,33 @@ namespace AM.Lib
 
                 stamper.Close();
                 pdfReader.Close();
+            }
+        }
+
+        public static void GenerateCoverSheet(string apiUrl, string templatePath, string base64Path, string coversheetPath, dynamic coversheetData)
+        {
+            var data = coversheetData as IDictionary<string, object>;
+
+            foreach (var prop in data.Keys)
+            {
+                string customValue = data[prop] == null ? null : data[prop].ToString();
+                if (prop.StartsWith("Base64") && !customValue.IsNullOrWhiteSpace())
+                {
+                    var filePath = Path.Combine(base64Path, customValue);
+                    data[prop] = Convert.ToBase64String(File.ReadAllBytes(filePath));
+                }
+            }
+
+            dynamic mergeRequest = new ExpandoObject();
+            mergeRequest.Settings = new { MailMergeOptions = "RemoveEmptyParagraphs", OutputDocType = "pdf", Template = Convert.ToBase64String(File.ReadAllBytes(templatePath)) };
+            mergeRequest.Data = coversheetData;
+            using (var client = new HttpClient())
+            {
+                var stringContent = new StringContent(JsonConvert.SerializeObject(mergeRequest), Encoding.UTF8, "application/json");
+                HttpResponseMessage httpResponse = client.PostAsync(apiUrl, stringContent).Result;
+                var responseString = httpResponse.Content.ReadAsStringAsync().Result;
+                var resObj = JsonConvert.DeserializeObject<dynamic>(responseString);
+                File.WriteAllBytes(coversheetPath, Convert.FromBase64String(resObj.documentData.Value));
             }
         }
     }

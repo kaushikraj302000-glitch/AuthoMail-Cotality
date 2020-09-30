@@ -10,6 +10,6 @@
 			 SELECT JobId, PieceId, Date, Feeder2_Fed, OperatorId, MachineId, ProcessingTimeStamp, DetailedErrorId
 			 , Disposition, Input_Fed, Feeder3_Fed, Feeder4_Fed, Feeder5_Fed, ComputedWeight, MeterDate
 			 , StatusSource, PostageMetered, WeightMeasured, ExitLocation, TotalSheets, PDFFileName, PackageTrackingNumber 
-			 FROM [Pns].[MRDFResponse] MS 
+			 FROM [PnS].[MRDFResponse] MS 
 			 WHERE MS.JobId=@jobId
 			END

@@ -26,6 +26,7 @@ namespace PCI.Service
         public int Id { get; set; }
         public string Name { get; set; }
         public string VendorCode { get; set; }
+        public string PrintVendorCode { get; set; }
         public int SFTChannelId { get; set; }
         public string Protocol { get; set; }
         public string Host { get; set; }

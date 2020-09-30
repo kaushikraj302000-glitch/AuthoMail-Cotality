@@ -7,6 +7,8 @@ namespace AM.Web.Models
 {
     public class MailPieceDetailsViewModel
     {
+        public int MailPieceId { get; set; }
+        public int MailBatchId { get; set; }
         public string BatchName { get; set; }
         public Guid UniqueId { get; set; }
         public string AppCode { get; set; }
@@ -69,5 +71,8 @@ namespace AM.Web.Models
         public string PrintLocation { get; set; }
         public string PrintBatch { get; set; }
         public string PrintFileName { get; set; }
+        public string Inserts { get; set; }
+        public string ShipmentStatus { get; set; }
+        public DateTime? ShipmentStatusUpdatedOn { get; set; }
     }
 }

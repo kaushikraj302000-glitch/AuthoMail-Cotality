@@ -19,7 +19,9 @@ namespace AM.Services
         DocType GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, DateTime estReceivedOn, string shippingCarrier, string shippingServiceType);
         DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId);
         List<PnSConfigDetailCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId);
+        List<PnSConfigDetailCoverLetter> GetDocumentRearLetterTemplates(int pnSConfigDetailId);
         DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId);
+        bool AllowInsertsOnlyDocumentType(int clientId, string docType);
     }
 
     public class DocTypeService : ServiceBase, IDocTypeService
@@ -47,7 +49,7 @@ namespace AM.Services
             if (docTypeList.Count == 0)
                 return null;
 
-            return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+            return GetDocTypeByDocTypeName(clientId, docTypeList, estReceivedOn);
         }
 
         public DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId)
@@ -59,7 +61,14 @@ namespace AM.Services
 
         public List<PnSConfigDetailCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId)
         {
-            string query = "SELECT * FROM [Common].[PnSConfigDetailCoverLetters] WHERE PnSConfigDetailId=@PnSConfigDetailId";
+            string query = "SELECT * FROM [Common].[PnSConfigDetailCoverLetters] WHERE PnSConfigDetailId=@PnSConfigDetailId AND SeqId<=100 ORDER BY SeqId";
+
+            return db.Query<PnSConfigDetailCoverLetter>(query, new { PnSConfigDetailId = pnSConfigDetailId }).ToList();
+        }
+
+        public List<PnSConfigDetailCoverLetter> GetDocumentRearLetterTemplates(int pnSConfigDetailId)
+        {
+            string query = "SELECT * FROM [Common].[PnSConfigDetailCoverLetters] WHERE PnSConfigDetailId=@PnSConfigDetailId AND SeqId > 100 ORDER BY SeqId";
 
             return db.Query<PnSConfigDetailCoverLetter>(query, new { PnSConfigDetailId = pnSConfigDetailId }).ToList();
         }
@@ -82,11 +91,11 @@ namespace AM.Services
                 if (docTypeList.Count == 0)
                     return null;
 
-                return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+                return GetDocTypeByDocTypeName(clientId, docTypeList, estReceivedOn);
             }
         }
 
-        private DocType GetDocTypeByDocTypeName(List<DocType> docTypeList, DateTime estReceivedOn)
+        private DocType GetDocTypeByDocTypeName(int clientId, List<DocType> docTypeList, DateTime estReceivedOn)
         {
             var estReceivedOnDate = estReceivedOn.Date;
             bool isSatWorkDay = true;
@@ -104,7 +113,7 @@ namespace AM.Services
                 if (maxDocTypeCutOffTime.IsNullOrWhiteSpace())
                 {
                     estReceivedOn = estReceivedOn.Date.AddDays(1);
-                    return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+                    return GetDocTypeByDocTypeName(clientId, docTypeList, estReceivedOn);
                 }
             }
             else if (dayOfWeek == DayOfWeek.Saturday)
@@ -113,7 +122,7 @@ namespace AM.Services
                 if (maxDocTypeCutOffTime.IsNullOrWhiteSpace())
                 {
                     estReceivedOn = estReceivedOn.Date.AddDays(1);
-                    return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+                    return GetDocTypeByDocTypeName(clientId, docTypeList, estReceivedOn);
                 }
             }
             else
@@ -123,12 +132,12 @@ namespace AM.Services
 
             using (ICommonService commonSvc = new CommonService())
             {
-                if (!commonSvc.IsBusinessDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay) || (estReceivedOn > maxCutOffDateTimeEst))
+                if (!commonSvc.IsBusinessDay(estReceivedOnDate, Config.GetHolidaysByClientId(clientId), isSatWorkDay, isSunWorkDay) || (estReceivedOn > maxCutOffDateTimeEst))
                 {
-                    estReceivedOn = commonSvc.GetNextWorkingDay(estReceivedOnDate, Config.Common_Holidays, isSatWorkDay, isSunWorkDay);
+                    estReceivedOn = commonSvc.GetNextWorkingDay(estReceivedOnDate, Config.GetHolidaysByClientId(clientId), isSatWorkDay, isSunWorkDay);
 
                     //Recalculate same function for updated document type with new effective received date;
-                    return GetDocTypeByDocTypeName(docTypeList, estReceivedOn);
+                    return GetDocTypeByDocTypeName(clientId, docTypeList, estReceivedOn);
                 }
 
                 estReceivedOnDate = estReceivedOn.Date;
@@ -146,6 +155,13 @@ namespace AM.Services
 
                 return maxCutOffDocType;
             }
+        }
+
+        public bool AllowInsertsOnlyDocumentType(int clientId, string docType)
+        {
+            string query = "SELECT AllowInsertsOnly FROM AM.DocTypes WHERE ClientId=@clientId AND IsActive=1 AND DocTypeName=@docType";
+
+            return db.QuerySingleOrDefault<bool>(query, new { clientId, docType });
         }
     }
 }

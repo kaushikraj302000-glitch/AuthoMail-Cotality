@@ -17,7 +17,7 @@ BEGIN
 
 	SET @PnSBatchUniqueId=(SELECT BatchIdentifier FROM PnS.BatchSummary WHERE PrintBatch=@jobId)
 	
-	SET @AMMailBatchId = (SELECT MailBatchId FROM AM.PrintBatches WHERE UniqueID=@PnSBatchUniqueId)
+	SET @AMMailBatchId = (SELECT MailBatchId FROM AM.PrintBatches WHERE UniqueId=@PnSBatchUniqueId)
 	
 	SELECT * FROM [AM].[PullBackRequests] 
 	WHERE MailPieceUniqueId IN (SELECT UniqueId FROM AM.MailPieces WHERE MailBatchId=@AMMailBatchId)

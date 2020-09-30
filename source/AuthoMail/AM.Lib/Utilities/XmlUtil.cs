@@ -16,21 +16,23 @@ namespace AM.Lib
     {
         public bool HasErrors { get; set; }
         public string Errors { get; set; }
+        public List<string> ErrorList { get; set; }
     }
 
     public static class XmlUtil
     {
         public static ValidationResult ValidateXml(XmlSchemaSet schemaSet, string xml)
         {
-            ValidationResult vResult = new ValidationResult() { HasErrors = false };
+            ValidationResult vResult = new ValidationResult() { HasErrors = false, ErrorList = new List<string>() };
 
-            XDocument xDoc = XDocument.Load(xml);
+            XDocument xDoc = XDocument.Parse(xml);
             StringBuilder sbErrorMessage = new StringBuilder();
 
             xDoc.Validate(schemaSet, (o, e) =>
             {
                 vResult.HasErrors = true;
                 sbErrorMessage.AppendLine(e.Message);
+                vResult.ErrorList.Add(e.Message);
             });
 
             vResult.Errors = sbErrorMessage.ToString();

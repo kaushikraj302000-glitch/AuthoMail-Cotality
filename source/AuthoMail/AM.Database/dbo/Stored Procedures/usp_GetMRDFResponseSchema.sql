@@ -5,9 +5,9 @@ CREATE PROCEDURE [dbo].[usp_GetMRDFResponseSchema]
 AS
 BEGIN
 	SELECT [Id]
-      ,[Fieldname]
+      ,[FieldName]
       ,[Type]
-      ,[Startposition]
+      ,[StartPosition]
       ,[Length]
       ,[IsActive]
       ,[Description]

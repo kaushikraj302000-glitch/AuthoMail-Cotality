@@ -20,6 +20,8 @@ using System.Configuration;
 using System.Net;
 using System.Collections.Generic;
 using System.Net.Http;
+using AutoMapper;
+using WebGrease.Css.Extensions;
 
 namespace AM.Web.Controllers
 {
@@ -28,19 +30,21 @@ namespace AM.Web.Controllers
     {
         private AMSignInManager _signInManager;
         private AMUserManager _userManager;
-        private ISupportService supportSvc;
-        private IAccountManageService accSvc;
+        private readonly ISupportService supportSvc;
+        private readonly IAccountManageService accSvc;
+        private readonly IClientPermissionService clientPermissionSvc;
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public AccountController()
         {
         }
 
-        public AccountController(AMUserManager userManager, AMSignInManager signInManager, ISupportService supportSvc, IAccountManageService accSvc)
+        public AccountController(AMUserManager userManager, AMSignInManager signInManager, ISupportService supportSvc, IAccountManageService accSvc, IClientPermissionService clientPermissionSvc)
         {
             UserManager = userManager;
             SignInManager = signInManager;
             this.supportSvc = supportSvc;
             this.accSvc = accSvc;
+            this.clientPermissionSvc = clientPermissionSvc;
         }
 
         public AMSignInManager SignInManager
@@ -127,7 +131,7 @@ namespace AM.Web.Controllers
                     {
                         ModelState.AddModelError("", string.Format(Config.Web_Msg_Login_IPRestricted, clientIP));
                         return View(model);
-                    }                
+                    }
                 }
 
                 if (!ModelState.IsValid)
@@ -193,7 +197,7 @@ namespace AM.Web.Controllers
                         }
                         if (!isCoreLogicUser && Config.Web_Login_PasswordExpirationIsEnable && user.PasswordExpirationDays > Config.Web_Login_PasswordExpirationDays)
                         {
-                            AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
+                            //AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
                             return RedirectToAction("ChangePassword", new { unm = user.UserName });
                         }
                         UpdateLoginTime(user.Id);
@@ -201,7 +205,7 @@ namespace AM.Web.Controllers
                     case SignInStatus.LockedOut:
                         return View("Lockout");
                     case SignInStatus.RequiresVerification:
-                        return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
+                        return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, model.RememberMe });
                     case SignInStatus.Failure:
                     default:
                         ModelState.AddModelError("", Config.Web_Msg_Login_Default);
@@ -213,7 +217,7 @@ namespace AM.Web.Controllers
                 ModelState.AddModelError("", Config.Web_Msg_Login_InvalidUserName);
                 return View(model);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 ModelState.AddModelError("", Config.Web_Msg_Login_Default);
                 return View(model);
@@ -300,8 +304,8 @@ namespace AM.Web.Controllers
             EmailValidate emailValidate = new EmailValidate(email);
             if (emailValidate.IsValid)
             {
-                var clientDomain = supportSvc.FingByDomainName(emailValidate.Host);
-                if (clientDomain == null)
+                var IsDomainExists = supportSvc.IsDomainExists(emailValidate.Host);
+                if (!IsDomainExists)
                 {
                     emailValidate.Message = string.Format("Users of the specified domain name '{0}' are not allowed to register.", emailValidate.Host);
                     emailValidate.IsValid = false;
@@ -501,8 +505,8 @@ namespace AM.Web.Controllers
                             return View(model);
                         }
                         MailAddress mAdd = new MailAddress(model.Email);
-                        var clientdomain = supportSvc.FingByDomainName(mAdd.Host);
-                        if (clientdomain == null)
+                        var IsDomainExists = supportSvc.IsDomainExists(mAdd.Host);
+                        if (!IsDomainExists)
                         {
                             ModelState.AddModelError("", string.Format("Users of the specified domain name '{0}' are not allowed to register.", mAdd.Host));
                             return View(model);
@@ -530,7 +534,7 @@ namespace AM.Web.Controllers
                             sb.Replace("{{name}}", user.FirstName);
                             //sb.Replace("{{email}}", user.Email);
 
-                            var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                            var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code }, protocol: Request.Url.Scheme);
                             if (Config.Common_Environment == Env.Prod)
                             {
                                 var u = new Uri(callbackUrl);
@@ -575,7 +579,7 @@ namespace AM.Web.Controllers
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\CreateAccount.html")));
                 sb.Replace("{{name}}", user.FirstName);
 
-                var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code }, protocol: Request.Url.Scheme);
                 if (Config.Common_Environment == Env.Prod)
                 {
                     var u = new Uri(callbackUrl);
@@ -630,35 +634,14 @@ namespace AM.Web.Controllers
 
             if (result.Succeeded)
             {
-                var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
-                string emails = string.Empty;
-                if (Config.Common_Environment == Env.Prod)
+                bool isCoreLogicUser = CLAuthentication.HasCorelogicAccount(user.Email);
+                if (!isCoreLogicUser)
                 {
-                    sb.Replace("{{url}}", "https://authomail.corelogic.com");
-                    emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+                    user.EmailConfirmed = false;
+                    await UserManager.UpdateAsync(user);
+                    return RedirectToAction("ClientSelection", new { userId });
                 }
-                else if (Config.Common_Environment == Env.Staging)
-                {
-                    sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
-                    emails = supportSvc.GetEmailsFromClientDomain(user.Email);
-                }
-                else
-                {
-                    string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("SignUpRequest", "Admin"));
-                    sb.Replace("{{url}}", url);
-                    emails = Config.Web_RegistrationDefaultEmails;
-                }
-                sb.Replace("{{email}}", user.Email);
-
-                //Send email to specified client admin for new registration request.
-                await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in authomail.", sb.ToString());
-                //Send email to client for waiting for approval of registration
-                sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\WaitForApproval.html")));
-                sb.Replace("{{name}}", user.FirstName);
-                sb.Replace("{{email}}", user.Email);
-                sb.Replace("{{defaultemails}}", string.Join(", ", emails.Split(',')));
-                await InternalEmail.SendMail(user.Email, null, Config.Web_RegistrationBCCEmails, "Welcome to AuthoMail.", sb.ToString());
-                ViewBag.Message = "Thank you for confirming your email. Your registration request is now awaiting approval. Please note that you may login only after your account is approved.";
+                ViewBag.Message = await ConfirmEmailAndSendMail(user);
                 ViewBag.Success = true;
                 return View();
             }
@@ -676,7 +659,82 @@ namespace AM.Web.Controllers
                 return View();
             }
         }
+        private async Task<string> ConfirmEmailAndSendMail(ProfileUser user)
+        {
+            var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
+            string emails;
+            if (Config.Common_Environment == Env.Prod)
+            {
+                sb.Replace("{{url}}", "https://authomail.corelogic.com");
+                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+            }
+            else if (Config.Common_Environment == Env.Staging)
+            {
+                sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
+                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+            }
+            else
+            {
+                string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("SignUpRequest", "Admin"));
+                sb.Replace("{{url}}", url);
+                emails = Config.Web_RegistrationDefaultEmails;
+            }
+            sb.Replace("{{email}}", user.Email);
 
+            //Send email to specified client admin for new registration request.
+            await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in authomail.", sb.ToString());
+            //Send email to client for waiting for approval of registration
+            sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\WaitForApproval.html")));
+            sb.Replace("{{name}}", user.FirstName);
+            sb.Replace("{{email}}", user.Email);
+            sb.Replace("{{defaultemails}}", string.Join(", ", emails.Split(',')));
+            await InternalEmail.SendMail(user.Email, null, Config.Web_RegistrationBCCEmails, "Welcome to AuthoMail.", sb.ToString());
+            return "Thank you for confirming your email. Your registration request is now awaiting approval. Please note that you may login only after your account is approved.";
+        }
+        [AllowAnonymous]
+        public async Task<ActionResult> ClientSelection(string userId)
+        {
+            var user = await UserManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                ViewBag.Success = false;
+                ViewBag.Message = "User not found.";
+                return View();
+            }
+            var isAlreadyRequested = await clientPermissionSvc.IsUserClientRequestPending(userId);
+            if (isAlreadyRequested)
+            {
+                ViewBag.Success = false;
+                ViewBag.Message = "User's request already recorded.";
+                return View();
+            }
+            ViewBag.Success = true;
+            string domainName = new MailAddress(user.Email).Host;
+            ViewBag.clientDomains = await clientPermissionSvc.GetClientDomainByDomainName(domainName);
+            ViewBag.userId = userId;
+            return View();
+        }
+        [AllowAnonymous, HttpPost]
+        public async Task<ActionResult> ClientSelection(string userId, List<int> clientIds)
+        {
+            var user = await UserManager.FindByIdAsync(userId);
+            var systemUser = await UserManager.FindByNameAsync("system@milestonetechnoconsulting.com");
+            var clientUserMapping = new ClientUserMapping
+            {
+                UserId = userId,
+                ModifiedById = systemUser.Id
+            };
+            for (int i = 0; i < clientIds.Count; i++)
+            {
+                clientUserMapping.ClientId = clientIds[i];
+                clientUserMapping.Status = ClientUserMappingStatusTypes.Pending;
+                await clientPermissionSvc.InsertClientIdAndUserId(clientUserMapping);
+            }
+            user.EmailConfirmed = true;
+            await UserManager.UpdateAsync(user);
+            var message = await ConfirmEmailAndSendMail(user);
+            return Json(JsonResponseFactory.SuccessResponse(message), JsonRequestBehavior.AllowGet);
+        }
         //
         // GET: /Account/ForgotPassword
         [AllowAnonymous]
@@ -720,7 +778,7 @@ namespace AM.Web.Controllers
                 // Send an email with this link
                 string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
 
-                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code }, protocol: Request.Url.Scheme);
                 if (Config.Common_Environment == Env.Prod)
                 {
                     var u = new Uri(callbackUrl);
@@ -803,12 +861,36 @@ namespace AM.Web.Controllers
         {
             return View();
         }
-        [Authorize(Roles = AMRoles.Admin)]
-        public JsonResult GetAllUsers()
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+        public async Task<JsonResult> GetAllUsers()
         {
-            var users = UserManager.Users;
+            var users = await accSvc.GetAllUsers();
             if (users == null || users.Count() == 0) return Json(JsonResponseFactory.ErrorResponse("Users not found."), JsonRequestBehavior.AllowGet);
             return Json(JsonResponseFactory.SuccessResponse(new { model = users.ToList() }), JsonRequestBehavior.AllowGet);
+        }
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+        public async Task<JsonResult> GetAllUserToDownExcel(int timezoneOffset)
+        {
+            var users = await accSvc.GetAllUsers();
+            var model = new List<AMAllUsersReportVM>();
+            foreach (var user in users)
+            {
+                model.Add(
+                    new AMAllUsersReportVM
+                    {
+                        Email = user.Email,
+                        EmailConfirmed = user.EmailConfirmed,
+                        DisplayName = user.DisplayName,
+                        Status = user.Status,
+                        LastLoginTimeUTC = user.LastLoginTimeUTC.HasValue ? user.LastLoginTimeUTC.Value.AddMinutes(timezoneOffset) : user.LastLoginTimeUTC,
+                        RequestedOn = user.RequestedOn.AddMinutes(timezoneOffset)
+                    }
+                    );
+            }
+            var dataTable = ExcelHelper.ToDataTable<AMAllUsersReportVM>(model);
+            var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            return Json(JsonResponseFactory.SuccessResponse(Convert.ToBase64String(memoryStream.ToArray())), JsonRequestBehavior.AllowGet);
         }
         [HttpPost, Authorize(Roles = AMRoles.Admin)]
         public JsonResult UnlockUser(string userId)
@@ -833,7 +915,6 @@ namespace AM.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ChangePassword(ChangePasswordViewModel model)
         {
-            string userId = string.Empty;
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -859,7 +940,7 @@ namespace AM.Web.Controllers
                 ModelState.AddModelError("", "Your new password must be different then old password.");
                 return View(model);
             }
-            userId = existingUser.Id;
+            string userId = existingUser.Id;
             var result = await UserManager.ChangePasswordAsync(userId, model.OldPassword, model.NewPassword);
             if (result.Succeeded)
             {
@@ -880,7 +961,7 @@ namespace AM.Web.Controllers
 
         [HttpPost]
         //Change user's status
-        [Authorize(Roles =AMRoles.Admin)]
+        [Authorize(Roles = AMRoles.Admin)]
         public ActionResult ChangeUserStatus(string userName, string status)
         {
             if (!(AMUserStatus.Approved == status || AMUserStatus.InActive == status || AMUserStatus.Open == status || AMUserStatus.Rejected == status))
@@ -945,7 +1026,7 @@ namespace AM.Web.Controllers
             {
                 return View("Error");
             }
-            return RedirectToAction("VerifyCode", new { Provider = model.SelectedProvider, ReturnUrl = model.ReturnUrl, RememberMe = model.RememberMe });
+            return RedirectToAction("VerifyCode", new { Provider = model.SelectedProvider, model.ReturnUrl, model.RememberMe });
         }
 
         //
@@ -1066,7 +1147,7 @@ namespace AM.Web.Controllers
                 if (user != null)
                 {
                     user.LastLoginTimeUTC = DateTime.UtcNow;
-                    var result = UserManager.Update(user);
+                    _ = UserManager.Update(user);
                 }
             }
         }

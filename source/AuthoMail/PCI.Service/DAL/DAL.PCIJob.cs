@@ -82,6 +82,11 @@ namespace PCI.Service
                     MailPieceDueDate = row.Field<DateTime>("MailPieceDueDate"),
                     EnvelopeId = row.Field<int?>("EnvelopeId"),
                     BREEnvelopeId = row.Field<int?>("BREEnvelopeId"),
+                    CustomerId = row.Field<string>("CustomerId"),
+                    IsForeignAddress = row.Field<bool>("IsForeignAddress"),
+                    ShipperId = row.Field<int>("ShipperId"),
+                    Inserts = row.Field<string>("Inserts"),
+                    InsertsPartNos = row.Field<string>("InsertsPartNos"),
                     //Extra Properties to map for MRDF Request
                     InputWeight = row.Field<string>("InputWeight"),
                     Feeder3_Sel = row.Field<string>("Feeder3_Sel"),
@@ -116,7 +121,7 @@ namespace PCI.Service
 
         public static int InsertPrintTrailBatchDetail(PrintTrailBatch printTrailBatchDetail)
         {
-            var printTrailBatchId = db.ExecuteSqlScalar<int>(@"INSERT INTO [PnS].[PrintTrailBatches]([PrintBatchName],[SubmittedOn],[MRDFReceivedOn],[PrintTrailId]) OUTPUT INSERTED.Id VALUES(@p1,@p2,@p3,@p4)", printTrailBatchDetail.PrintBatchName, printTrailBatchDetail.SubmittedOn, printTrailBatchDetail.MRDFReceivedOn, printTrailBatchDetail.PrintTrailId);
+            var printTrailBatchId = db.ExecuteSqlScalar<int>(@"INSERT INTO [PnS].[PrintTrailBatches]([PrintBatchName],[ShipperId],[SubmittedOn],[MRDFReceivedOn],[PrintTrailId]) OUTPUT INSERTED.Id VALUES(@p1,@p2,@p3,@p4,@p5)", printTrailBatchDetail.PrintBatchName, printTrailBatchDetail.ShipperId, printTrailBatchDetail.SubmittedOn, printTrailBatchDetail.MRDFReceivedOn, printTrailBatchDetail.PrintTrailId);
 
             return printTrailBatchId;
         }
@@ -160,7 +165,7 @@ namespace PCI.Service
 
         public static List<PrintTrailBatch> GetNotSubmittedPrintBatchDetailByPrintVendorCode(string pvCode)
         {
-            string sqlQuery = "SELECT PTB.* FROM PnS.PrintTrailBatches PTB INNER JOIN Common.PrintTrails PT ON PTB.PrintTrailId = PT.Id INNER JOIN Common.PrintVendors PV ON PT.PrintVendorId = PV.Id WHERE PTB.IsSubmitted=0 AND PV.VendorCode = '{0}'".Fill(pvCode);
+            string sqlQuery = "SELECT PTB.* FROM PnS.PrintTrailBatches PTB INNER JOIN Common.PrintTrails PT ON PTB.PrintTrailId = PT.Id INNER JOIN Common.PrintVendors PV ON PT.PrintVendorId = PV.Id WHERE PTB.IsSubmitted=0 AND PT.PrintVendorCode = '{0}'".Fill(pvCode);
             return db.ExecuteSqlStringAccessor<PrintTrailBatch>(sqlQuery).ToList();
         }
 

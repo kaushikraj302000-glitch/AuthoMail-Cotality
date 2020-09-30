@@ -845,7 +845,7 @@ namespace PCI.Service
 
                 #region By Pass Print Vendors
                 //If we are bypass PCI then we will generate PCI response over here.
-                if (printTrailDetail.SimulateTrail == true && (Common.ApplicationEnvironment == Env.Internal || Common.ApplicationEnvironment == Env.Staging || Common.ApplicationEnvironment == Env.QA))
+                if (printTrailDetail.SimulateTrail == true && Common.ApplicationEnvironment != Env.Prod)
                 {
                     var mrdfResData = DAL.GetMRDFResponseDummyDataByPrintTrailBatchId(printTrailBatchId);
 
