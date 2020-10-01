@@ -469,11 +469,11 @@ namespace PCI.Service
                             PaperSize = package.PrintSize,
                             PrintFormat = package.PrintFormat.ParseEnum<PrintFormat>(),
                             //Here if BREPartNo and InsertPartNo both exist then both will go with pipeline separate, if only InsertPartNos is there then that will go in BREPartNo
-                            BREPartNo = 
-                            !package.InsertsPartNos.IsNullOrWhiteSpace() && !package.BREPartNo.IsNullOrWhiteSpace() ? $"{package.BREPartNo}|{package.InsertsPartNos}" : 
+                            BREPartNo =
+                            !package.InsertsPartNos.IsNullOrWhiteSpace() && !package.BREPartNo.IsNullOrWhiteSpace() ? $"{package.BREPartNo}|{package.InsertsPartNos}" :
                             !package.InsertsPartNos.IsNullOrWhiteSpace() && package.BREPartNo.IsNullOrWhiteSpace() ? package.InsertsPartNos : package.BREPartNo,
                             BREDesc = package.BREDesc,
-                            EnvelopePartNumber = package.EnvelopePartNo,
+                            DocumentCode = package.DocumentCode,
                             QCReqd = package.DivertVS3 == 1 ? true : false,
                         });
 

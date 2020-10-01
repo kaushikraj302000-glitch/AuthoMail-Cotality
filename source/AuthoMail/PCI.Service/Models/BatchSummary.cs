@@ -165,6 +165,7 @@ namespace PCI.Service
         public string EndofRecord { get; set; }
         public string CustomerId { get; set; }
         public bool IsForeignAddress { get; set; }
+        public string DocumentCode { get; set; }
     }
 
     public class DallasBatch

@@ -11,6 +11,7 @@ BEGIN
   ,E.PartNumber AS EnvelopePartNo,BE.PartNumber AS BREPartNo,E.EnvelopeName AS EnvelopeDesc,BE.EnvelopeName AS BREDesc
   ,(SELECT [Value] FROM AM.MailPieceCustomInfo MPC WHERE MPC.[Key]='CustomerId' AND MPC.MailPieceId=MP.Id) AS CustomerId
   ,CAST((CASE WHEN LEN(LTRIM(RTRIM(MP.RcptAddressCountry))) >0 THEN 1 ELSE 0 END )AS BIT) AS IsForeignAddress,MP.ShipperId, MP.Inserts
+  ,PC.DocumentCode
   ,InsertsPartNos=STUFF
   (  
     (  
@@ -23,7 +24,8 @@ BEGIN
  INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
  LEFT OUTER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
  INNER JOIN [AM].[DocTypes] d ON mp.DocTypeId=d.Id
-  INNER JOIN Common.PnSConfigDetail PCD ON MP.PnSConfigDetailId = pcd.Id
+ INNER JOIN Common.PnSConfigDetail PCD ON MP.PnSConfigDetailId = pcd.Id
+ INNER JOIN Common.PnSConfig PC ON PCD.PnSConfigId=PC.Id
  INNER JOIN Common.Clients C ON C.Id=BS.ClientId
  LEFT OUTER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id
  LEFT OUTER JOIN Common.Envelopes BE ON D.BREEnvelopeId=BE.Id
