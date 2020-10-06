@@ -236,3 +236,5 @@ INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsS
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'PGP_Passphrase', N'String', 'sw@m!n@r@y@n', 'Key use for decrypting pdf.', 0, 'sw@m!n@r@y@n', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
 
 INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'MailRequestAPI_MaxRetries', N'Int32', N'12', NULL, 0, N'12', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())
+
+INSERT [Common].[SystemSettings] ([Id], [DataType], [Value], [Description], [IsSystem], [DefaultValue], [ModifiedBy], [ModifiedOn]) VALUES (N'MailResponseAPI_MaxParallelCallBack', N'Int32', N'5', NULL, 0, N'5', (select Id from [Profile].Users where UserName = 'system@milestonetechnoconsulting.com'), GETUTCDATE())

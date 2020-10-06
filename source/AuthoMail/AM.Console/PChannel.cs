@@ -154,12 +154,17 @@ namespace AM.Console
 
                         // Parallel submit
                         var responseBatches = mailAPIResponses
-                            .Batch(sftChannelDetails.APIMaxResponseCount)
-                            .Select(responseBatch => SubmitBatchResponse(httpClient, responseBatch, sftChannelDetails));
+                            .Batch(sftChannelDetails.APIMaxResponseCount);
+                        
+                        foreach (var resBatches in responseBatches.Batch(Config.MailResponseAPI_MaxParallelCallBack))
+                        {
+                            var outResponse = resBatches.Select(responseBatch => SubmitBatchResponse(httpClient, responseBatch, sftChannelDetails));
 
-                        var responseTasks = responseBatches.ToArray();
+                            var responseTasks = outResponse.ToArray();
 
-                        await Task.WhenAll(responseTasks);
+                            await Task.WhenAll(responseTasks);
+                        }
+
 
                         //// Sequential submit
                         //var responseBatches = mailAPIResponses.Batch(sftChannelDetails.APIMaxResponseCount);
