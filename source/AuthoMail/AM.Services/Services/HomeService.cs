@@ -118,7 +118,7 @@ WHERE cu.status=@status and c.IsAMActive = 1 and cu.UserId = @userId";
         public static string GetMailPieceIdFromBusinessFriendlyValue = "select m.[UniqueId] as [MailPieceId] from [AM].[MailBatches] b,[AM].[MailPieces] m where b.Id = m.MailBatchId and ((cast(ReceivedOn as date)=cast(@todayDate as date) or (m.ShippingStatus=@shippingStatus and b.PipelineStatus=@pipelineStatus))) and m.BusinessFriendlyIdName=@businessFriendlyIdName AND m.BusinessFriendlyIdValue=@businessFriendlyIdValue AND b.ClientId=@clientId";
 
         public static string GetBusinessFriendlyIdNameByclientId = "SELECT DISTINCT [BusinessIdName] FROM [AM].[ClientBusinessIdentifiers] WHERE [BusinessIdName] Is NOT NULL AND ClientId=@clientId";
-        public static string GetAllActiveClient = "SELECT Id,Name FROM [Common].[Clients] WHERE IsAMActive=1";
+        public static string GetAllActiveClient = "SELECT Id,Name,AppCode FROM [Common].[Clients] WHERE IsAMActive=1";
         public static string SetClientIdToUser = "UPDATE [Profile].[Users] SET ClientId=@clientId WHERE Id=@userId";
     }
 }

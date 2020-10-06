@@ -18,6 +18,7 @@ namespace AM.Entities
         public int SigningRoomExpiryDays { get; set; }
         public bool IsReqBlankPageValidation { get; set; }
         public bool IsEncrypted { get; set; }
+        public int RetentionPeriod { get; set; }
     }
 
     public class ClientSFTChannel

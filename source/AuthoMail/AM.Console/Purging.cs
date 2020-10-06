@@ -14,128 +14,61 @@ namespace AM.Console
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         //Testing Paths
-        //private static DirectoryInfo sourceAMRootDir = new DirectoryInfo(@"E:\Delete\AMRoot");
-        //private static DirectoryInfo destAMDir = new DirectoryInfo(@"E:\Delete\AMTrash");
-        //private static DirectoryInfo sourcePnSRootDir = new DirectoryInfo(@"E:\Delete\PCIRoot");
-        //private static DirectoryInfo destPCIDir = new DirectoryInfo(@"E:\Delete\PCITrash");
-
-        //PROD paths
-        private static DirectoryInfo sourceAMRootDir = new DirectoryInfo(@"\\10.212.24.57\d$\Production\AuthoMail\AMRoot");
-        private static DirectoryInfo destAMDir = new DirectoryInfo(@"\\10.212.24.57\D$\MTC\Delete\AM");
-        private static DirectoryInfo sourcePnSRootDir = new DirectoryInfo(@"\\10.212.24.57\d$\MTC\PnSService\PCIRoot");
-        private static DirectoryInfo destPCIDir = new DirectoryInfo(@"\\10.212.24.57\D$\MTC\Delete\PCI");
-
-        //Staging Paths
-        //private static DirectoryInfo sourceAMRootDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\AuthoMail\Monitor\AuthoMailRoot");
-        //private static DirectoryInfo destAMDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\Delete\AM");
-        //private static DirectoryInfo sourcePnSRootDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\AuthoMail\PnSService\PCIRoot");
-        //private static DirectoryInfo destPCIDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\Delete\PCI");
+        private static DirectoryInfo sourceAMRootDir = new DirectoryInfo(Config.Common_AuthoMailRootFolder);
+        private static DirectoryInfo destAMDir = new DirectoryInfo(Config.Common_AMTrash);
+        private static DirectoryInfo sourcePnSRootDir = new DirectoryInfo(Config.Core_PnS_SFT_RootDir);
+        private static DirectoryInfo destPnSDir = new DirectoryInfo(Config.Common_PnSTrash);
+        
         public static void StartPurging()
         {
             using (IReCalculateDueDateService rSvc = new ReCalculateDueDateService())
+            using (IHomeService homeSvc = new HomeService())
             using (IClientService clientSvc = new ClientService())
             {
-                var amDirs = sourceAMRootDir.EnumerateDirectories("*.*", SearchOption.TopDirectoryOnly);
-                foreach (var dir in amDirs)
+                var clients = homeSvc.GetAllActiveClient();
+                foreach (var client in clients)
                 {
-                    var client = clientSvc.GetClientByAppCode(dir.Name);
+                    var clientDetails = clientSvc.GetClientByAppCode(client.AppCode).Result;
+                    EnumerateAndDeleteDirs(clientDetails, sourceAMRootDir, destAMDir);
+                    EnumerateAndDeleteDirs(clientDetails, sourcePnSRootDir, destPnSDir);
+                }
+            }
+        }
 
-                    if (!Directory.Exists(Path.Combine(destAMDir.FullName, dir.Name)))
-                        Directory.CreateDirectory(Path.Combine(destAMDir.FullName, dir.Name));
-                    int days = 0;
-                    if (dir.Name == "ALASKA")
-                        days = 30;
-                    else if (dir.Name == "BOTW")
-                        days = 30;
-                    else if (dir.Name == "CITIVM")
-                        days = 30;
-                    else if (dir.Name == "HSBC")
-                        days = 30;
-                    else if (dir.Name == "RPS")
-                        days = 60;
-                    else if (dir.Name == "USAA")
-                        days = 21;
-                    else if (dir.Name == "S3")
-                        days = 5;
-                    else
-                        days = 30;
-                    DateTime startDate = Common.Today;
-                    try
+        private static void EnumerateAndDeleteDirs(Client client, DirectoryInfo rootDir, DirectoryInfo destDir)
+        {
+            int days = client.RetentionPeriod;
+            var dir = new DirectoryInfo(Path.Combine(rootDir.FullName, client.AppCode));
+
+            if (dir.Exists)
+            {
+                if (!Directory.Exists(Path.Combine(destDir.FullName, dir.Name)))
+                    Directory.CreateDirectory(Path.Combine(destDir.FullName, dir.Name));                                
+
+                DateTime startDate = Common.Today;
+                try
+                {
+                    do
                     {
-                        do
-                        {
-                            startDate = startDate.AddDays(-1);
-                            days -= IsBusinessDay(startDate, Config.GetHolidaysByClientId(client.Id), false, false) ? 1 : 0;
-                        } while (0 != days);
+                        startDate = startDate.AddDays(-1);
+                        days -= IsBusinessDay(startDate, Config.GetHolidaysByClientId(client.Id), false, false) ? 1 : 0;
+                    } while (0 != days);
 
+                    var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
 
-                        var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
-
-                        foreach (var subdir in subdirs)
-                        {
-                            if (Directory.Exists(Path.Combine(Path.Combine(destAMDir.FullName, dir.Name), subdir.Name)))
-                                Directory.Delete(Path.Combine(Path.Combine(destAMDir.FullName, dir.Name), subdir.Name));
-                            Directory.Move(subdir.FullName, Path.Combine(Path.Combine(destAMDir.FullName, dir.Name), subdir.Name));
-                        }
-                    }
-                    catch (Exception ex)
+                    foreach (var subdir in subdirs)
                     {
-                        var msg = "Error occured while PURGING AM ROOT files: {0} ".Fill(ex.Message);
-                        log.Error(msg, ex);
-                        MailUtility.SendUnexpectedExceptionEmail(msg);
+                        if (Directory.Exists(Path.Combine(Path.Combine(destDir.FullName, dir.Name), subdir.Name)))
+                            Directory.Delete(Path.Combine(Path.Combine(destDir.FullName, dir.Name), subdir.Name));
+                        Directory.Move(subdir.FullName, Path.Combine(Path.Combine(destDir.FullName, dir.Name), subdir.Name));
                     }
                 }
-
-                var pnsDirs = sourcePnSRootDir.EnumerateDirectories("*.*", SearchOption.TopDirectoryOnly);
-                foreach (var dir in pnsDirs)
+                catch (Exception ex)
                 {
-                    var client = clientSvc.GetClientByAppCode(dir.Name);
-
-                    if (!Directory.Exists(Path.Combine(destPCIDir.FullName, dir.Name)))
-                        Directory.CreateDirectory(Path.Combine(destPCIDir.FullName, dir.Name));
-
-                    int days = 0;
-                    if (dir.Name == "ALASKA")
-                        days = 30;
-                    else if (dir.Name == "BOTW")
-                        days = 30;
-                    else if (dir.Name == "CITIVM")
-                        days = 30;
-                    else if (dir.Name == "HSBC")
-                        days = 30;
-                    else if (dir.Name == "RPS")
-                        days = 60;
-                    else if (dir.Name == "USAA")
-                        days = 21;
-                    else if (dir.Name == "S3")
-                        days = 5;
-                    else
-                        days = 30;
-                    DateTime startDate = Common.Today;
-                    try
-                    {
-                        do
-                        {
-                            startDate = startDate.AddDays(-1);
-                            days -= IsBusinessDay(startDate, Config.GetHolidaysByClientId(client.Id), false, false) ? 1 : 0;
-                        } while (0 != days);
-
-                        var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
-
-                        foreach (var subdir in subdirs)
-                        {
-                            if (Directory.Exists(Path.Combine(Path.Combine(destPCIDir.FullName, dir.Name), subdir.Name)))
-                                Directory.Delete(Path.Combine(Path.Combine(destPCIDir.FullName, dir.Name), subdir.Name));
-                            Directory.Move(subdir.FullName, Path.Combine(Path.Combine(destPCIDir.FullName, dir.Name), subdir.Name));
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        var msg = "Error occured while PURGING PCI Root files: {0} ".Fill(ex.Message);
-                        log.Error(msg, ex);
-                        MailUtility.SendUnexpectedExceptionEmail(msg);
-                    }
-                }
+                    var msg = "Error occured while PURGING directories and files: {0} ".Fill(ex.Message);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                } 
             }
         }
 
@@ -159,7 +92,7 @@ namespace AM.Console
             {
                 amDir.Delete(true);
             }
-            foreach (DirectoryInfo pciDir in destPCIDir.GetDirectories())
+            foreach (DirectoryInfo pciDir in destPnSDir.GetDirectories())
             {
                 pciDir.Delete(true);
             }
