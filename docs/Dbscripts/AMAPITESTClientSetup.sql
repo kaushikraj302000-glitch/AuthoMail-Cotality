@@ -349,7 +349,7 @@ END
 
 IF NOT EXISTS(SELECT 1 FROM Profile.Users WHERE Email='amtest')
 BEGIN
-	INSERT INTO Profile.Users (Id, Email, EmailConfirmed, PasswordHash, SecurityStamp, PhoneNumber, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEndDateUtc, LockoutEnabled, AccessFailedCount, UserName, ClientId, FirstName, LastName, DisplayName, RequestedOn, Status, ClosedOn, ClosedBy, LastLoginTimeUTC, ChangePasswordDateUTC, StatusModifiedBy, StatusModifiedOn, SFTChannelId) VALUES ('f2e490f8-15c9-4f4f-9b28-b14a643ccddf', 'amtest', 1, 'AJU6wq6AtBacLbhTU0ohlKNW/lL4rzePCX7qYAJRplxyQG+wWTgEn7gw9FetbGzVng==', '505cb5cd-5e36-434f-8eda-0d9de906ab0c', NULL, 0, 0, NULL, 1, 0, 'amtest', NULL, NULL, NULL, NULL, GETUTCDATE(), 'Approved', GETUTCDATE(), NULL, NULL, GETUTCDATE(), NULL, GETUTCDATE(), (SELECT Id FROM Common.SFTChannels WHERE Code=@SFTChannelCode+'_'+@Environment))
+	INSERT INTO Profile.Users (Id, Email, EmailConfirmed, PasswordHash, SecurityStamp, PhoneNumber, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEndDateUtc, LockoutEnabled, AccessFailedCount, UserName, ClientId, FirstName, LastName, DisplayName, RequestedOn, Status, ClosedOn, ClosedBy, LastLoginTimeUTC, ChangePasswordDateUTC, StatusModifiedBy, StatusModifiedOn, SFTChannelId) VALUES ('f2e490f8-15c9-4f4f-9b28-b14a643ccddf', 'amtest', 1, 'AJU6wq6AtBacLbhTU0ohlKNW/lL4rzePCX7qYAJRplxyQG+wWTgEn7gw9FetbGzVng==', '505cb5cd-5e36-434f-8eda-0d9de906ab0c', NULL, 0, 0, NULL, 1, 0, 'amtest', @ClientId, NULL, NULL, NULL, GETUTCDATE(), 'Approved', GETUTCDATE(), NULL, NULL, GETUTCDATE(), NULL, GETUTCDATE(), (SELECT Id FROM Common.SFTChannels WHERE Code=@SFTChannelCode+'_'+@Environment))
 	
 	INSERT INTO Profile.UserRoles (UserId, RoleId) VALUES ('f2e490f8-15c9-4f4f-9b28-b14a643ccddf', '10a98c20-bc2c-4914-b823-7e25a78ad673')
 END
