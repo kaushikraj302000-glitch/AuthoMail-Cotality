@@ -128,6 +128,7 @@ bufferSize: 4096, useAsync: true)) { }
             RequestLog requestLog = new RequestLog();
             Stopwatch sw = new Stopwatch();
             sw.Start();
+            var requestSize = Request.Content.Headers.ContentLength.Value;
             var mailPiece = new MailPiece();
             bool isCLPackageId = false;
             string[] manifest = new string[] { };
@@ -149,7 +150,7 @@ bufferSize: 4096, useAsync: true)) { }
                 }
                 else if (!Guid.TryParse(mailPieceHeader.First(), out mpId))
                 {
-                    addPackageResult = await pnsApiSvc.AddPackage(null, receivedOn);
+                    addPackageResult = await pnsApiSvc.AddPackage(null, User.Identity.GetClientId().Value, receivedOn, requestSize / 1024f);
 
                     string msg = $"MailPieceId must be a valid GUID: {mailPieceHeader.First()}";
                     sw.Stop();
@@ -166,7 +167,7 @@ bufferSize: 4096, useAsync: true)) { }
                     return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                 }
                 
-                addPackageResult = await pnsApiSvc.AddPackage(mpId, receivedOn);
+                addPackageResult = await pnsApiSvc.AddPackage(mpId, User.Identity.GetClientId().Value, receivedOn, requestSize / 1024f);
                 HttpStatusCode httpStatusCode = (HttpStatusCode)addPackageResult.HTTPStatusCode;
 
                 //Check mailpiece id is unique.
@@ -207,7 +208,7 @@ bufferSize: 4096, useAsync: true)) { }
                     return Request.CreateResponse(httpStatusCode, res);
                 }
 
-                if (Request.Content.Headers.ContentLength / 1024f / 1024f > Config.MailRequestAPI_MaxRequestSize)
+                if (requestSize / 1024f / 1024f > Config.MailRequestAPI_MaxRequestSize)
                 {
                     sw.Stop();
                     requestLog.Id = addPackageResult.Id;
@@ -419,10 +420,12 @@ bufferSize: 4096, useAsync: true)) { }
 
                     string destPdf = Path.Combine(root, Path.GetRandomFileName());
                     destPdf = Path.ChangeExtension(destPdf, ".pdf");
+                    int totalPdfPages = 0;
                     using (var ds = new FileStream(destPdf, FileMode.Create))
                     using (var doc = new Document())
                     using (var copy = new PdfSmartCopy(doc, ds))
                     {
+                        
                         // This is done to open and merge (Secured) PDFs which allow printing but not copying or merging
                         PdfReader.unethicalreading = true;
                         //Loop through each input file                        
@@ -466,8 +469,9 @@ bufferSize: 4096, useAsync: true)) { }
 
                                 using (var reader = new PdfReader(decryptedFilePath))
                                 {
-                                    mailPiece.CustomInfo.Add(new Metadata { Key = file.Key, Value = "FileName:{0} | PageCount: {1}".Fill(file.Value.Headers.ContentDisposition.FileName.Replace("\"", ""), reader.NumberOfPages) });
-
+                                    var pageCount = reader.NumberOfPages;
+                                    mailPiece.CustomInfo.Add(new Metadata { Key = file.Key, Value = "FileName:{0} | PageCount: {1}".Fill(file.Value.Headers.ContentDisposition.FileName.Replace("\"", ""), pageCount) });
+                                    totalPdfPages += pageCount;
                                     //open document
                                     if (!doc.IsOpen()) doc.Open();
                                     //Add the entire document
@@ -504,6 +508,7 @@ bufferSize: 4096, useAsync: true)) { }
                     finalPdfPath = destPdf;
                     mailPiece.DocumentOrPackage.Path = finalPdfPath;
                     sw.Stop();
+                    requestLog.TotalPages = totalPdfPages;
                     requestLog.Merge = sw.Elapsed.TotalSeconds;
                     sw.Restart();
                 }
@@ -773,8 +778,8 @@ bufferSize: 4096, useAsync: true)) { }
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient Address is mandatory." };
                 }
 
-                if (mailPiece.RecipientInfo.Recipient.FirstName.IsNullOrWhiteSpace() || mailPiece.RecipientInfo.Recipient.LastName.IsNullOrWhiteSpace())
-                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient first and last name are mandatory." };
+                if (mailPiece.RecipientInfo.Recipient.FirstName.IsNullOrWhiteSpace())
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient first name is mandatory." };
             }
 
             if (mailPiece.ReturnInfo != null)
@@ -799,8 +804,8 @@ bufferSize: 4096, useAsync: true)) { }
 
                 if (mailPiece.ReturnInfo.Recipient != null)
                 {
-                    if (mailPiece.ReturnInfo.Recipient.FirstName.IsNullOrWhiteSpace() || mailPiece.ReturnInfo.Recipient.LastName.IsNullOrWhiteSpace())
-                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Return recipient first and last name are mandatory." };
+                    if (mailPiece.ReturnInfo.Recipient.FirstName.IsNullOrWhiteSpace())
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Return recipient first name is mandatory." };
                 }
                 else
                 {

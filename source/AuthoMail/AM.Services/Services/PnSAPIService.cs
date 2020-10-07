@@ -6,13 +6,13 @@ namespace AM.Services.Services
 {
     public interface IPnSAPIService : IDisposable
     {
-        Task<AddPackageResult> AddPackage(Guid? id, DateTime receivedOn);
+        Task<AddPackageResult> AddPackage(Guid? id, int clientId, DateTime receivedOn, float requestSize);
         Task UpdatePackageStatus(RequestLog requestLog);
         RequestLog GetAMRequestInfo(string guid);
     }
 
     public class PnSAPIService : ServiceBase, IPnSAPIService
-    {        
+    {
         //public PnSAPIService() : base("AMAPI") { }
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace AM.Services.Services
         /// <param name="id"></param>
         /// <param name="receivedOn"></param>
         /// <returns>Returns HTTP reponse status codes 200, 400, 406, 409</returns>
-        public async Task<AddPackageResult> AddPackage(Guid? id, DateTime receivedOn)
+        public async Task<AddPackageResult> AddPackage(Guid? id, int clientId, DateTime receivedOn, float requestSize)
         {
             await db.OpenAsync();
 
@@ -91,10 +91,10 @@ namespace AM.Services.Services
 
                 // record current request
                 var reqId = await db.ExecuteScalarAsync<int>(@"
-                    insert into API.AMRequestLogs (MailPieceId, IsPrimary, Status, HTTPStatusCode, ReceivedOn)
+                    insert into API.AMRequestLogs (ClientId, MailPieceId, IsPrimary, Status, HTTPStatusCode, ReceivedOn, RequestSize)
                     OUTPUT INSERTED.ID
-                    values (@id, @isNewReqPrimary, @status, @httpStatusCode, @receivedOn)
-                ", new { id, isNewReqPrimary, status = ReqStatus.Verifying, httpStatusCode = 0, receivedOn }, transaction: t);
+                    values (@clientId, @id, @isNewReqPrimary, @status, @httpStatusCode, @receivedOn, @requestSize)
+                ", new { clientId, id, isNewReqPrimary, status = ReqStatus.Verifying, httpStatusCode = 0, receivedOn, requestSize }, transaction: t);
 
                 t.Commit();
                 db.Close();
@@ -123,6 +123,7 @@ namespace AM.Services.Services
                     set Status = @Status,
                         HTTPStatusCode = @HTTPStatusCode,
                         APIResponse = @APIResponse,
+                        TotalPages = @TotalPages,
                         ReceivedOn = @ReceivedOn,
                         ProcessedOn = @ProcessedOn,
                         ErrorLog = @ErrorLog,

@@ -18,12 +18,12 @@ namespace AM.Services
     public class RequestLog
     {
         public int Id { get; set; }
-
+        public int ClientId { get; set; }
         public Guid? MailPieceId { get; set; }
         public string Status { get; set; }
         public int HTTPStatusCode { get; set; }
         public string APIResponse { get; set; }
-
+        public int TotalPages { get; set; }
         public string ErrorLog { get; set; }
 
         public DateTime ReceivedOn { get; set; }
@@ -33,6 +33,7 @@ namespace AM.Services
             get { return Common.Now; }
         }
 
+        public float RequestSize { get; set; }
         public double InitialChecks { get; set; }
         public double? Download { get; set; }
         public double? Validate { get; set; }
