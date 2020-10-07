@@ -25,7 +25,7 @@ namespace AM.Core
         private static readonly List<string> fedExExceptionCodes = new List<string>() { "3022", "1000", "2998", "Unknown_Error" };
         private static readonly List<string> fedExExceptionDescriptions = new List<string>() { "General Failure" };
         private static readonly List<string> uspsExceptionCodes = new List<string>() { "80040B18", "Unknown_Error" };
-        private static readonly List<string> uspsExceptionDescriptions = new List<string>() { "error has occurred with the service", "connected party did not properly respond", "existing connection was forcibly closed" };
+        private static readonly List<string> uspsExceptionDescriptions = new List<string>() { "error has occurred with the service", "connected party did not properly respond", "existing connection was forcibly closed", "contact the system administrator" };
 
         #region PrepPnSJob
         internal static bool PrepPnSJobs()
@@ -222,7 +222,7 @@ namespace AM.Core
                                             response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
 
 
-                                            if (response.HasError && (uspsExceptionCodes.Any(code => response.ExceptionCode.Contains(code)) && uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
+                                            if (response.HasError && (uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc)) || string.IsNullOrWhiteSpace(response.ExceptionDetail)))
                                             {
                                                 //NOTE: Here system is check for unusal error like connection issue or timeout issue if occure then system will retry to generate label
                                                 log.Error("Priority Express had some unexpected error {0}".Fill(response.ExceptionDetail));
@@ -284,7 +284,7 @@ namespace AM.Core
 
                                             response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
 
-                                            if (response.HasError && (uspsExceptionCodes.Any(code => response.ExceptionCode.Contains(code)) || uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
+                                            if (response.HasError && (uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc)) || string.IsNullOrWhiteSpace(response.ExceptionDetail)))
                                             {
                                                 //NOTE: Here system is check for unusal error like connection issue or timeout issue if occure then system will retry to generate label
                                                 log.Error("Priority had some unexpected error {0}".Fill(response.ExceptionDetail));
@@ -789,7 +789,7 @@ namespace AM.Core
             // From Address
             eVSReq.CustomerRefNo = mailPiece.Id.ToString();
             eVSReq.FromName = (mailPiece.RetRcptFirstName + " " + mailPiece.RetRcptLastName).Trim();
-            
+
             eVSReq.FromAptOrSuiteorOther = mailPiece.RetRcptAddressAptOrSuiteOrOther;
             eVSReq.FromStreetAddress = (mailPiece.RetRcptAddressStreet + " " + mailPiece.RetRcptAddrOptionalLine1BelowStreet).Trim();
             eVSReq.FromFirm = mailPiece.RetRcptOrganization;
@@ -797,7 +797,7 @@ namespace AM.Core
             {
                 eVSReq.FromFirm = clientName;
             }
-            
+
             eVSReq.FromCity = mailPiece.RetRcptAddressCity;
             eVSReq.FromState = mailPiece.RetRcptAddressState;
             eVSReq.FromZip4 = mailPiece.RetRcptAddressZIP.SeparateZip4And5(4);
@@ -1156,27 +1156,27 @@ namespace AM.Core
                     request.PrintLocation = printBatchData.PrintLocation;
                     request.OnValidationErrors = OnValidationErrors.ProcessValidFiles;
 
-                        List<MailPieceData> mailPackage = new List<MailPieceData>();
-                        foreach (var piece in printBatchData.MailPieces)
-                        {
-                            string batchPnSRequestPath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatchData.AppCode, piece.MailBatchId.ToString(), "PnSRequest");
-                            string fileName = "{0}_{1}".Fill(piece.Id, piece.FileName);
-                            string localFilePath = Path.Combine(batchPnSRequestPath, fileName);
-                            string remoteFilePath = Path.Combine(remoteBatchPath, fileName);
+                    List<MailPieceData> mailPackage = new List<MailPieceData>();
+                    foreach (var piece in printBatchData.MailPieces)
+                    {
+                        string batchPnSRequestPath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatchData.AppCode, piece.MailBatchId.ToString(), "PnSRequest");
+                        string fileName = "{0}_{1}".Fill(piece.Id, piece.FileName);
+                        string localFilePath = Path.Combine(batchPnSRequestPath, fileName);
+                        string remoteFilePath = Path.Combine(remoteBatchPath, fileName);
 
-                            File.Copy(localFilePath, remoteFilePath, true);
+                        File.Copy(localFilePath, remoteFilePath, true);
 
-                            MailPieceData mailPieceData = new MailPieceData();
-                            mailPieceData.UniqueId = piece.UniqueId;
-                            mailPieceData.TotalPages = piece.TotalPages;
-                            mailPieceData.PerformQC = piece.IsQCRequested;
-                            mailPieceData.PDFFileName = fileName;
-                            mailPackage.Add(mailPieceData);
-                        }
-                        request.MailPackageData = mailPackage;
+                        MailPieceData mailPieceData = new MailPieceData();
+                        mailPieceData.UniqueId = piece.UniqueId;
+                        mailPieceData.TotalPages = piece.TotalPages;
+                        mailPieceData.PerformQC = piece.IsQCRequested;
+                        mailPieceData.PDFFileName = fileName;
+                        mailPackage.Add(mailPieceData);
+                    }
+                    request.MailPackageData = mailPackage;
 
-                        File.WriteAllText(remoteXMLPath, request.ToXml());
-                        File.WriteAllText(remoteGOPath, "");
+                    File.WriteAllText(remoteXMLPath, request.ToXml());
+                    File.WriteAllText(remoteGOPath, "");
 
                     commonSvc.UpdatePrintBatchStatus(printBatchData.Id, AM.Entities.BatchStatus.InProgress.ToString());
                     commonSvc.UpdatePrintBatchPipeLineStatus(printBatchData.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);
