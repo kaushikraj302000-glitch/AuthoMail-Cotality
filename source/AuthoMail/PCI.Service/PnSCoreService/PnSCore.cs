@@ -1244,6 +1244,9 @@ namespace PCI.Service
             if (res.Field<string>("Disposition").Trim() == "6")
                 yield return "Disposition : Response(6)";
 
+            if (res.Field<string>("Disposition").Trim() == "5" && !req.Field<bool>("IsPullBackRequested"))
+                yield return $"MailPieceId : {res.Field<int?>("MailPieceId")} package was not requested for pull back but received as a pulled back.";
+
             if ((req.Field<string>("MailPieceStatus") == PrintStatus.Shipped.ToString() || req.Field<string>("MailPieceStatus") == PrintStatus.PulledBack.ToString()) && res.Field<DateTime>("ProcessingTimeStamp") < submittedOn)
                 yield return "ProcessingTimeStamp : Submitted({0} EST), ProcessingTimeStamp({1} EST)".Fill(Common.UtcToEst(submittedOn), Common.UtcToEst(res.Field<DateTime>("ProcessingTimeStamp")));
             //if (res.Field<string>("Disposition").Trim() == "7")
