@@ -14,7 +14,7 @@ BEGIN
   , Req.DivertVS4, Req.ReturnLogoBitMap, Req.ReturnLine1, Req.ReturnLine2, Req.ReturnLine3, Req.ReturnLine4
   , Req.ReturnLine5, Req.ReturnLine6, Req.GroupNumber, Req.SocialSecNumber, Req.CheckAmount, Req.PassThru
   , Req.Expansion, Req.EndofRecord, Req.UniqueId, Req.PDFFileName,ErrId, Req.ErrDesc, Req.MailPieceStatus
-  , Req.IsPDFReceived,PrintTrailBatchId,MP.Id AS MailPieceId
+  , Req.IsPDFReceived,PrintTrailBatchId,MP.Id AS MailPieceId,MP.IsPullBackRequested
   FROM [PnS].[MRDFRequest] Req
   INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
   LEFT OUTER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
@@ -36,7 +36,7 @@ BEGIN
   PCD.ShippingServiceType,C.AppCode,CASE WHEN C.Alias IS NULL OR C.Alias='' THEN C.AppCode ELSE C.Alias END AS Alias,MP.DueDate AS MailPieceDueDate,PCD.EnvelopeId,d.BREEnvelopeId,E.EnvelopeName,BE.EnvelopeName AS BREEnvelopeName
   ,E.PartNumber AS EnvelopePartNo,BE.PartNumber AS BREPartNo,E.EnvelopeName AS EnvelopeDesc,BE.EnvelopeName AS BREDesc,PCD.PrintFormat
   ,PCD.PrintSize,E.EnvelopeDesc AS PackageCode,(SELECT [Value] FROM AM.MailPieceCustomInfo MPC WHERE MPC.[Key]='CustomerId' AND MPC.MailPieceId=MP.Id) AS CustomerId
-  ,CAST((CASE WHEN LEN(LTRIM(RTRIM(MP.RcptAddressCountry))) >0 THEN 1 ELSE 0 END )AS BIT) AS IsForeignAddress,MP.ShipperId, MP.Inserts
+  ,CAST((CASE WHEN LEN(LTRIM(RTRIM(MP.RcptAddressCountry))) >0 THEN 1 ELSE 0 END )AS BIT) AS IsForeignAddress,MP.ShipperId, MP.Inserts,MP.IsPullBackRequested
   ,PC.DocumentCode
   ,InsertsPartNos=STUFF
   (  
