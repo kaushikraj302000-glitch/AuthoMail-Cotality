@@ -33,7 +33,7 @@ namespace AM.Services
             get { return Common.Now; }
         }
 
-        public float RequestSize { get; set; }
+        public double RequestSize { get; set; }
         public double InitialChecks { get; set; }
         public double? Download { get; set; }
         public double? Validate { get; set; }
