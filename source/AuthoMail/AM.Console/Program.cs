@@ -24,8 +24,6 @@ namespace AM.Console
 
             log.InfoFormat("Command line arguments : {0}", String.Join(",", args));
 
-
-
             try
             {
                 if (args.Length > 0)
@@ -107,12 +105,12 @@ namespace AM.Console
                     }
                     else if (args[0] == "Purging")
                     {
-                        Purging.StartPurging();
+                        Purging.StartPurging(args[1], args[2]);
                     }
-                    else if (args[0] == "Delete")
-                    {
-                        Purging.DeleteFiles();
-                    }
+                    //else if (args[0] == "Delete")
+                    //{
+                    //    Purging.DeleteFiles();
+                    //}
                     else if (args[0] == "PurgeDBRecords")
                     {
                         Purging.PurgeDBRecords();

@@ -16,10 +16,10 @@ namespace AM.Console
         //Testing Paths
         private static DirectoryInfo sourceAMRootDir = new DirectoryInfo(Config.Common_AuthoMailRootFolder);
         private static DirectoryInfo destAMDir = new DirectoryInfo(Config.Common_AMTrash);
-        private static DirectoryInfo sourcePnSRootDir = new DirectoryInfo(Config.Core_PnS_SFT_RootDir);
+        private static DirectoryInfo sourcePnSRootDir = new DirectoryInfo(Config.PnS_PCIRootFolder);
         private static DirectoryInfo destPnSDir = new DirectoryInfo(Config.Common_PnSTrash);
-        
-        public static void StartPurging()
+
+        public static void StartPurging(string retentionPeriod, string trashDays)
         {
             using (IReCalculateDueDateService rSvc = new ReCalculateDueDateService())
             using (IHomeService homeSvc = new HomeService())
@@ -29,33 +29,83 @@ namespace AM.Console
                 foreach (var client in clients)
                 {
                     var clientDetails = clientSvc.GetClientByAppCode(client.AppCode).Result;
-                    EnumerateAndDeleteDirs(clientDetails, sourceAMRootDir, destAMDir);
-                    EnumerateAndDeleteDirs(clientDetails, sourcePnSRootDir, destPnSDir);
+                    EnumerateClientDirs(retentionPeriod, clientDetails, sourceAMRootDir, destAMDir);
+                    EnumerateClientDirs(retentionPeriod, clientDetails, sourcePnSRootDir, destPnSDir);
                 }
+                EnumerateOtherDirs();
             }
+
+            #region delete moved files
+            DateTime startDate = Common.Today;
+            startDate = startDate.AddDays(-int.Parse(trashDays));
+
+            var destAMDirs = destAMDir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
+
+            foreach (DirectoryInfo amDir in destAMDirs)
+            {
+                amDir.Delete(true);
+            }
+
+            var destPnSDirs = destPnSDir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
+
+            foreach (DirectoryInfo pciDir in destPnSDirs)
+            {
+                pciDir.Delete(true);
+            }
+            #endregion
         }
 
-        private static void EnumerateAndDeleteDirs(Client client, DirectoryInfo rootDir, DirectoryInfo destDir)
+        private static void EnumerateClientDirs(string retentionPeriod, Client client, DirectoryInfo rootDir, DirectoryInfo destDir)
         {
-            int days = client.RetentionPeriod;
+            int days = retentionPeriod == "DB" ? client.RetentionPeriod : int.Parse(retentionPeriod);
             var dir = new DirectoryInfo(Path.Combine(rootDir.FullName, client.AppCode));
 
             if (dir.Exists)
             {
                 if (!Directory.Exists(Path.Combine(destDir.FullName, dir.Name)))
-                    Directory.CreateDirectory(Path.Combine(destDir.FullName, dir.Name));                                
+                    Directory.CreateDirectory(Path.Combine(destDir.FullName, dir.Name));
 
-                DateTime startDate = Common.Today;
-                try
+                MoveDirs(client, destDir, days, dir);
+            }
+        }
+
+        private static void EnumerateOtherDirs()
+        {
+            var archiveDir = new DirectoryInfo(Path.Combine(sourceAMRootDir.FullName, "Archive"));
+            var bundleRootDir = new DirectoryInfo(Path.Combine(sourcePnSRootDir.FullName, "BundlingRoot"));
+
+            if (!Directory.Exists(Path.Combine(destAMDir.FullName, archiveDir.Name)))
+                Directory.CreateDirectory(Path.Combine(destAMDir.FullName, archiveDir.Name));
+            if (!Directory.Exists(Path.Combine(destPnSDir.FullName, bundleRootDir.Name)))
+                Directory.CreateDirectory(Path.Combine(destPnSDir.FullName, bundleRootDir.Name));
+
+            MoveDirs(null, destAMDir, 7, archiveDir);
+            MoveDirs(null, destPnSDir, 30, bundleRootDir);
+        }
+
+        private static int MoveDirs(Client client, DirectoryInfo destDir, int days, DirectoryInfo dir)
+        {
+            DateTime startDate = Common.Today;
+            try
+            {
+                do
                 {
-                    do
+                    startDate = startDate.AddDays(-1);
+                    days -= IsBusinessDay(startDate, client == null ? new List<Holiday> { } : Config.GetHolidaysByClientId(client.Id), false, false) ? 1 : 0;
+                } while (0 != days);
+
+                var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
+
+                if (subdirs.Count == 0)
+                {
+                    var files = dir.EnumerateFiles("*.zip");
+                    foreach (var file in files)
                     {
-                        startDate = startDate.AddDays(-1);
-                        days -= IsBusinessDay(startDate, Config.GetHolidaysByClientId(client.Id), false, false) ? 1 : 0;
-                    } while (0 != days);
-
-                    var subdirs = dir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
-
+                        File.Move(file.FullName, Path.Combine(Path.Combine(destDir.FullName, dir.Name), file.Name));
+                    }
+                }
+                else
+                {
                     foreach (var subdir in subdirs)
                     {
                         if (Directory.Exists(Path.Combine(Path.Combine(destDir.FullName, dir.Name), subdir.Name)))
@@ -63,13 +113,15 @@ namespace AM.Console
                         Directory.Move(subdir.FullName, Path.Combine(Path.Combine(destDir.FullName, dir.Name), subdir.Name));
                     }
                 }
-                catch (Exception ex)
-                {
-                    var msg = "Error occured while PURGING directories and files: {0} ".Fill(ex.Message);
-                    log.Error(msg, ex);
-                    MailUtility.SendUnexpectedExceptionEmail(msg);
-                } 
             }
+            catch (Exception ex)
+            {
+                var msg = "Error occured while PURGING directories and files: {0} ".Fill(ex.Message);
+                log.Error(msg, ex);
+                MailUtility.SendUnexpectedExceptionEmail(msg);
+            }
+
+            return days;
         }
 
         private static bool IsBusinessDay(DateTime date, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)

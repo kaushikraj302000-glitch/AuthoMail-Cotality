@@ -23,7 +23,7 @@ namespace AM.Services
         [Description("To indicate on which environment job is running.")]
         public static string Common_Environment { get; private set; }
         public static string Common_EnvironmentInitial { get; private set; }
-        public static string Common_AuthoMailRootFolder { get; private set; }
+        public static string Common_AuthoMailRootFolder { get; private set; }        
         public static string Common_DocGen_API { get; private set; }
         public static int Common_MaxProcessingLimit { get; private set; }
         public static List<Holiday> Common_FederalHolidays { get; private set; }
@@ -35,6 +35,7 @@ namespace AM.Services
         public static string Common_ErrorSubscribedEmailCc { get; private set; }
         public static string Common_ErrorSubscribedEmailTemplate { get; private set; }
         public static string Common_LandscapeUSPSLabels { get; private set; }
+        public static string PnS_PCIRootFolder { get; private set; }
         public static string Common_AMTrash { get; set; }
         public static string Common_PnSTrash { get; set; }   
 
