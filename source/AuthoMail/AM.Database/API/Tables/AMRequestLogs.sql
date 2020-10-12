@@ -11,7 +11,7 @@
     [ReceivedOn] DATETIME NOT NULL, 
     [ProcessedOn] DATETIME NULL, 
     [ErrorLog] NVARCHAR(MAX) NULL,
-    [RequestSize] FLOAT NULL,
+    [RequestSize] DECIMAL(9, 2) NULL,
     [InitialChecks] DECIMAL(7, 2) NULL, 
     [Download] DECIMAL(7, 2) NULL, 
     [Validate] DECIMAL(7, 2) NULL, 
