@@ -468,8 +468,8 @@ namespace AuthoMailAPI_UnitTest
                 var formContent = new FormUrlEncodedContent(new[]
                 {
                     new KeyValuePair<string, string>("grant_type", "password"),       
-                    new KeyValuePair<string, string>("username", "admin@milestonetechnoconsulting.com"), //"AksharClientAdmin"
-                    new KeyValuePair<string, string>("password", "Admin@123") //"Intellimods123#"
+                    new KeyValuePair<string, string>("username", ConfigurationManager.AppSettings["Uname"]), 
+                    new KeyValuePair<string, string>("password", ConfigurationManager.AppSettings["Password"]) 
                 });
 
                 //send request
@@ -560,8 +560,8 @@ namespace AuthoMailAPI_UnitTest
                 var formContent = new FormUrlEncodedContent(new[]
                 {
                     new KeyValuePair<string, string>("grant_type", "password"),       
-                    new KeyValuePair<string, string>("username", "admin@milestonetechnoconsulting.com"), //"AksharClientAdmin"
-                    new KeyValuePair<string, string>("password", "Admin@123") //"Intellimods123#"
+                    new KeyValuePair<string, string>("username", ConfigurationManager.AppSettings["Uname"]), 
+                    new KeyValuePair<string, string>("password", ConfigurationManager.AppSettings["Password"])
                 });
 
                 //send request
@@ -655,8 +655,8 @@ namespace AuthoMailAPI_UnitTest
                 var formContent = new FormUrlEncodedContent(new[]
                 {
                     new KeyValuePair<string, string>("grant_type", "password"),       
-                    new KeyValuePair<string, string>("username", "admin@milestonetechnoconsulting.com"), //"AksharClientAdmin"
-                    new KeyValuePair<string, string>("password", "Admin@123") //"Intellimods123#"
+                    new KeyValuePair<string, string>("username", ConfigurationManager.AppSettings["Uname"]),
+                    new KeyValuePair<string, string>("password", ConfigurationManager.AppSettings["Password"])
                 });
 
                 //send request
