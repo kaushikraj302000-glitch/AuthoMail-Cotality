@@ -2343,7 +2343,7 @@ namespace AuthoMailAPI_UnitTest
             var response = await GenerateLocalResponse(files, mailPiece);
             Assert.AreEqual("Error", response.MailingStatus);
             Assert.AreEqual("Missing_Files", response.ErrorCode);
-            Assert.AreEqual("Following specified inserts are invalid or not BRE: ABC", response.ErrorDesc);
+            Assert.AreEqual(string.Format("Following specified inserts are invalid or not BRE: {0}", mailPiece.DocumentOrPackage.Inserts), response.ErrorDesc);
         }
 
         [TestMethod]
