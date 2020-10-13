@@ -305,7 +305,7 @@ namespace AuthoMailAPI_UnitTest
                 DocumentOrPackageType = "Initial Disclosures",
                 DocumentOrPackage = new DocumentOrPackage()
                 {
-                    Inserts = "S3_B_9_12"
+                    Inserts = "TEST_BRE"
                 },
                 RecipientInfo = new RecipientInfo()
                 {
