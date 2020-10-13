@@ -32,6 +32,7 @@ namespace AM.Services
 
         List<MPAddress> GetMailPiecesWithLast6Month();
         List<MPAddress> GetMailPiecesForReprocessCoverLetter(DateTime receivedDateEst);
+        void UpdateShipperUpdateShipperSFTChannel(Dictionary<int, int> sftMapps);
     }
 
     public class PrintBatchReporting
@@ -178,6 +179,15 @@ namespace AM.Services
         {
             string q = @"SELECT P.clientId,P.Id,P.UniqueId,P.FileName,P.TrackingNo,P.RcptFirstName,P.RcptLastName, P.RcptAddressStreet, P.RcptAddrOptionalLine1BelowStreet,P.RcptAddressCity,P.RcptAddressState,P.RcptAddressZIP,REQ.JobId AS PnSJobId,REQ.PDFFileName FROM AM.MailPieces P INNER JOIN PnS.MRDFRequest REQ ON P.UniqueId=REQ.UniqueId WHERE ClientId=101 AND P.TotalSheets>=1 AND P.TotalSheets<=7 AND PrintLocation='Fort Mill, SC' AND EffectiveReceivedOnEst >=@EffectiveReceivedOnEst";
             return db.Query<MPAddress>(q, new { EffectiveReceivedOnEst = receivedDateEst }).ToList();
+        }
+        public void UpdateShipperUpdateShipperSFTChannel(Dictionary<int, int> sftMapps)
+        {
+            foreach (var sftInfo in sftMapps)
+            {
+                string q = $"UPDATE [Common].[ShipperInformation] SET SFTChannelId = {sftInfo.Value} WHERE SFTChannelId = {sftInfo.Key}";
+                db.Execute(q);
+            }
+            return;
         }
     }
     public class Recal

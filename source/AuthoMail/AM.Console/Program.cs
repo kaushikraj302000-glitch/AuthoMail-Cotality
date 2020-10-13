@@ -65,6 +65,15 @@ namespace AM.Console
                         System.Console.WriteLine("Update PnSConfigDetailId Completed");
                         return;
                     }
+                    else if (args[0] == "UpdateSFTChannels")
+                    {
+                        System.Console.WriteLine("Update UpdateSFTChannels Start");
+
+                        ReCalculateDueDate.UpdateShipperSFTChannels(args);
+
+                        System.Console.WriteLine("Update UpdateSFTChannels Completed");
+                        return;
+                    }
                     else if (args[0] == "CustomReports")
                     {
                         using (IReportService reportSvc = new ReportService())
