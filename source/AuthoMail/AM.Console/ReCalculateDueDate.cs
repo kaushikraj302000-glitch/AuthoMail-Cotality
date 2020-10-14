@@ -228,6 +228,20 @@ namespace AM.Console
             }
             return deliveryReport;
         }
+        public static void UpdateShipperSFTChannels(string[] sftMaps)
+        {
+            using (ICommonService commonSvc = new CommonService())
+            using (IReCalculateDueDateService rcsvc = new ReCalculateDueDateService())
+            {
+                var sftDict = new Dictionary<int, int>();
+                foreach (var sftChannel in sftMaps.Skip(1))
+                {
+                    var maps = sftChannel.Split(',');
+                    sftDict.Add(int.Parse(maps[0]), int.Parse(maps[1]));
+                }
+                rcsvc.UpdateShipperUpdateShipperSFTChannel(sftDict);
+            }
+        }
     }
 
     internal class PrintBatchDetail
