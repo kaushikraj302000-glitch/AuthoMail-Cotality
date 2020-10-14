@@ -13,11 +13,16 @@ namespace AM.Console
     public class Purging
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        //Testing Paths
         private static DirectoryInfo sourceAMRootDir = new DirectoryInfo(Config.Common_AuthoMailRootFolder);
         private static DirectoryInfo destAMDir = new DirectoryInfo(Config.Common_AMTrash);
         private static DirectoryInfo sourcePnSRootDir = new DirectoryInfo(Config.PnS_PCIRootFolder);
         private static DirectoryInfo destPnSDir = new DirectoryInfo(Config.Common_PnSTrash);
+
+        //Testing Paths
+        //private static DirectoryInfo sourceAMRootDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\AuthoMail_KitTest\AMRoot");
+        //private static DirectoryInfo destAMDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\AuthoMail_KitTest\Delete\AMTrash");
+        //private static DirectoryInfo sourcePnSRootDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\AuthoMail_KitTest\PCIRoot");
+        //private static DirectoryInfo destPnSDir = new DirectoryInfo(@"\\10.215.112.64\d$\MTC\AuthoMail_KitTest\Delete\PnSTrash");
 
         public static void StartPurging(string retentionPeriod, string trashDays)
         {
@@ -39,18 +44,34 @@ namespace AM.Console
             DateTime startDate = Common.Today;
             startDate = startDate.AddDays(-int.Parse(trashDays));
 
-            var destAMDirs = destAMDir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
+            var destAMDirs = destAMDir.EnumerateDirectories().ToList();
 
-            foreach (DirectoryInfo amDir in destAMDirs)
+            foreach (DirectoryInfo destDir in destAMDirs)
             {
-                amDir.Delete(true);
+                var amSubDirs = destDir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
+                if (destDir.Name == "Archive")
+                {
+                    var files = destDir.EnumerateFiles("*.zip").Where(d => d.LastWriteTime < startDate).ToList();
+                    foreach (var file in files)
+                    {
+                        File.Delete(file.FullName);
+                    }
+                }
+                foreach (DirectoryInfo amSubDir in amSubDirs)
+                {
+                    amSubDir.Delete(true); 
+                }
             }
 
-            var destPnSDirs = destPnSDir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
+            var destPnSDirs = destPnSDir.EnumerateDirectories().ToList();
 
-            foreach (DirectoryInfo pciDir in destPnSDirs)
+            foreach (DirectoryInfo destDir in destPnSDirs)
             {
-                pciDir.Delete(true);
+                var pnsSubDirs = destDir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
+                foreach (DirectoryInfo pnsSubDir in pnsSubDirs)
+                {
+                    pnsSubDir.Delete(true); 
+                }
             }
             #endregion
         }
@@ -98,7 +119,7 @@ namespace AM.Console
 
                 if (subdirs.Count == 0)
                 {
-                    var files = dir.EnumerateFiles("*.zip");
+                    var files = dir.EnumerateFiles("*.zip").Where(d => d.LastWriteTime < startDate).ToList();
                     foreach (var file in files)
                     {
                         File.Move(file.FullName, Path.Combine(Path.Combine(destDir.FullName, dir.Name), file.Name));
