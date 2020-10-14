@@ -157,7 +157,15 @@ namespace AM.Console
             {
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
 
-                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.ReportPrepped).Where(ch => ch.SFTChannelId == sftChannelDetails.Id).ToList();
+                if (sftChannelDetails == null)
+                {
+                    var msg = "SFT site is not available or not enabled to upload reports.";
+                    log.Error(msg);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    return;
+                }
+
+                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.ReportPrepped, sftChannelDetails.Id);
 
                 if (reportPreppedBatches == null || reportPreppedBatches.Count == 0)
                 {
@@ -181,33 +189,24 @@ namespace AM.Console
                             mailPieces = reportSvc.GetMailPiecesDataFromMailBatchId(mbi.MailBatch.Id);
                         }
 
-                        if (sftChannelDetails != null)
+                        try
                         {
-                            try
-                            {
-                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
-                                sftSite.Connect();
+                            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
+                            sftSite.Connect();
 
-                                //TODO: Remove switch case after proper logic implementation of deliverables
-                                bool isUploaded = UploadReportsToClients(mbi, sftSite, deliverables, mailPieces, sftChannelDetails);
+                            //TODO: Remove switch case after proper logic implementation of deliverables
+                            bool isUploaded = UploadReportsToClients(mbi, sftSite, deliverables, mailPieces, sftChannelDetails);
 
-                                if (isUploaded)
-                                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
+                            if (isUploaded)
+                                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
 
-                                if (sftSite.IsConnected)
-                                    sftSite.Disconnect();
-                            }
-                            catch (Exception ex)
-                            {
-                                var msg = "Error occured while report uploading for MailBatchId - {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
-                                log.Error(msg, ex);
-                                MailUtility.SendUnexpectedExceptionEmail(msg);
-                            }
+                            if (sftSite.IsConnected)
+                                sftSite.Disconnect();
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            var msg = "SFT site is not available or not enabled to upload reports.";
-                            log.Error(msg);
+                            var msg = "Error occured while report uploading for MailBatchId - {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
+                            log.Error(msg, ex);
                             MailUtility.SendUnexpectedExceptionEmail(msg);
                         }
                     }
@@ -231,7 +230,17 @@ namespace AM.Console
             using (IReportService reportSvc = new ReportService())
             {
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
+
+                if (sftChannelDetails == null)
+                {
+                    var msg = "SFT site is not available or not enabled to upload reports.";
+                    log.Error(msg);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    return;
+                }
+
                 var reportPreppedBatches = mailBatchSvc.GetReportPreppedPrintBatchDetails().Where(c => c.SFTChannelId == sftChannelDetails.Id).ToList();
+
                 SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
                 sftSite.Connect();
                 foreach (var preppedPrintBatch in reportPreppedBatches)
