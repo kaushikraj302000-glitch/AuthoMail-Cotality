@@ -61,7 +61,16 @@ namespace AM.Lib.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to -----BEGIN PGP PRIVATE KEY BLOCK-----
+        ///Version: BCPG C# v1.8.6.0
+        ///
+        ///lQPGBF9JJTEDCACMOFlRAvY3zbjQxoKJPFaI0Jb+GSg8sLfBw8HfekJdM0ULZsqE
+        ///nqjKgaGC28BeyQixc/wxoUcb0tq6054YzdAryfqq4oH28afpgS6em6LqcKfDT0pA
+        ///UkEcfFaJ0b2O3o+kLNa4I7HrY/cyyG4tGw/wjLSgd7uscsRUoF6TQ/O61Pyf8Y+b
+        ///o1PJPl+sz7MXu4Lsg3Do0L9om8g4O6Piv79JFbaznqeQKfqblF5UXRHOXvPZQiEK
+        ///LTybKtV0onMIulGzvfZugDA/rHBfxIYCCcMRsVwQuTU8+D2/mNs29LyTX9paV+gj
+        ///m1W8DUe1M1o+V8Wo4fWEryWXILrpvet0yu1hABEBAAH+CQMC0ylbUptajjtga/B5
+        ///KSlkF7f3bkEJIzm3za2MG4ZQEn1kBmkaeOBCkZf/30jYvvZ9 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string PGP_Private_Key_Perf {
             get {
@@ -70,11 +79,29 @@ namespace AM.Lib.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to -----BEGIN PGP PRIVATE KEY BLOCK-----
+        ///Version: BCPG C# v1.8.6.0
+        ///
+        ///lQPGBF+G6EYDCACdxzavIu3JHpdHJ0ETIoUt8IH+wY+0+bsaGy9ayF3siU6xbFhM
+        ///c33jvhjD1q/SLRmiHGk+CueGrKGB+pLw3VMtQEE+5SV/7ZumyF3sMzCBg7PvdR9w
+        ///fqq03Rk8pVRdk3p7lbQ3vBdJ2Z/FyuFmqKtjxN1cVO1htl1QChEN6P+DPc08A1bL
+        ///+yTdbxHB8hULlsx2Agwpj7MqTopUTN1HRjZ/VFPVzbi4+cO+GV6dvqGHb9+2bUui
+        ///3X8CIytg660VbylIL6Dso77KjDdXtBSR51zehr2g0A2ccS6oa40OiATfYWd11Bb0
+        ///6UxkxiFRpJqyqjXt9w1CHlXLOhHXEl0xPLe9ABEBAAH+CQMCMM8YzSBM74Jg++XN
+        ///oxkvHW62xiuuRHuq+l0eegB0zTDaCaTTaQYGoiuJIsuSI4iF [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string PGP_Private_Key_Prod {
             get {
                 return ResourceManager.GetString("PGP_Private_Key_Prod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string PGP_Private_Key_Stage {
+            get {
+                return ResourceManager.GetString("PGP_Private_Key_Stage", resourceCulture);
             }
         }
         
@@ -97,7 +124,16 @@ namespace AM.Lib.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to -----BEGIN PGP PUBLIC KEY BLOCK-----
+        ///Version: BCPG C# v1.8.6.0
+        ///
+        ///mQENBF9JJTEDCACMOFlRAvY3zbjQxoKJPFaI0Jb+GSg8sLfBw8HfekJdM0ULZsqE
+        ///nqjKgaGC28BeyQixc/wxoUcb0tq6054YzdAryfqq4oH28afpgS6em6LqcKfDT0pA
+        ///UkEcfFaJ0b2O3o+kLNa4I7HrY/cyyG4tGw/wjLSgd7uscsRUoF6TQ/O61Pyf8Y+b
+        ///o1PJPl+sz7MXu4Lsg3Do0L9om8g4O6Piv79JFbaznqeQKfqblF5UXRHOXvPZQiEK
+        ///LTybKtV0onMIulGzvfZugDA/rHBfxIYCCcMRsVwQuTU8+D2/mNs29LyTX9paV+gj
+        ///m1W8DUe1M1o+V8Wo4fWEryWXILrpvet0yu1hABEBAAG0CUNMIEFNIEFQSYkBNwQQ
+        ///AwIAIQUCX0klMgIbAwQLCQgHBhUIAgkKCwQLCQgHBhUIAgkKC [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string PGP_Public_Key_Perf {
             get {
@@ -106,11 +142,38 @@ namespace AM.Lib.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to -----BEGIN PGP PUBLIC KEY BLOCK-----
+        ///Version: BCPG C# v1.8.6.0
+        ///
+        ///mQENBF+G6EYDCACdxzavIu3JHpdHJ0ETIoUt8IH+wY+0+bsaGy9ayF3siU6xbFhM
+        ///c33jvhjD1q/SLRmiHGk+CueGrKGB+pLw3VMtQEE+5SV/7ZumyF3sMzCBg7PvdR9w
+        ///fqq03Rk8pVRdk3p7lbQ3vBdJ2Z/FyuFmqKtjxN1cVO1htl1QChEN6P+DPc08A1bL
+        ///+yTdbxHB8hULlsx2Agwpj7MqTopUTN1HRjZ/VFPVzbi4+cO+GV6dvqGHb9+2bUui
+        ///3X8CIytg660VbylIL6Dso77KjDdXtBSR51zehr2g0A2ccS6oa40OiATfYWd11Bb0
+        ///6UxkxiFRpJqyqjXt9w1CHlXLOhHXEl0xPLe9ABEBAAG0CUNMIEFNIEFQSYkBNwQQ
+        ///AwIAIQUCX4boSAIbAwQLCQgHBhUIAgkKCwQLCQgHBhUIAgkKC [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string PGP_Public_Key_Prod {
             get {
                 return ResourceManager.GetString("PGP_Public_Key_Prod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to -----BEGIN PGP PUBLIC KEY BLOCK-----
+        ///Version: BCPG C# v1.8.6.0
+        ///
+        ///mQENBF9JJTEDCACMOFlRAvY3zbjQxoKJPFaI0Jb+GSg8sLfBw8HfekJdM0ULZsqE
+        ///nqjKgaGC28BeyQixc/wxoUcb0tq6054YzdAryfqq4oH28afpgS6em6LqcKfDT0pA
+        ///UkEcfFaJ0b2O3o+kLNa4I7HrY/cyyG4tGw/wjLSgd7uscsRUoF6TQ/O61Pyf8Y+b
+        ///o1PJPl+sz7MXu4Lsg3Do0L9om8g4O6Piv79JFbaznqeQKfqblF5UXRHOXvPZQiEK
+        ///LTybKtV0onMIulGzvfZugDA/rHBfxIYCCcMRsVwQuTU8+D2/mNs29LyTX9paV+gj
+        ///m1W8DUe1M1o+V8Wo4fWEryWXILrpvet0yu1hABEBAAG0CUNMIEFNIEFQSYkBNwQQ
+        ///AwIAIQUCX0klMgIbAwQLCQgHBhUIAgkKCwQLCQgHBhUIAgkKC [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string PGP_Public_Key_Stage {
+            get {
+                return ResourceManager.GetString("PGP_Public_Key_Stage", resourceCulture);
             }
         }
         

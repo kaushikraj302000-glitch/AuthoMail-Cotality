@@ -10,25 +10,50 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
+using System.Resources;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace AM.Lib
 {
-    public static class CryptoHelper
+    public class CryptoHelper
     {
-        public static readonly string PublicKey;
-        private static readonly string PrivateKey;
+        public readonly string PublicKey;
+        private readonly string PrivateKey;
 
-        static CryptoHelper()
+        public CryptoHelper(string environment)
         {
             //TODO: fix based on environment
-            PublicKey = Resources.PGP_Public_Key_UAT;
-            PrivateKey = Resources.PGP_Private_Key_UAT;
+            switch (environment)
+            {
+                case "Prod":
+                    PublicKey = Resources.PGP_Public_Key_Prod;
+                    PrivateKey = Resources.PGP_Private_Key_Prod;
+                    break;
+                case "QA":
+                    PublicKey = Resources.PGP_Public_Key_UAT;
+                    PrivateKey = Resources.PGP_Private_Key_UAT;
+                    break;
+                case "Perf":
+                    PublicKey = Resources.PGP_Public_Key_Perf;
+                    PrivateKey = Resources.PGP_Private_Key_Perf;
+                    break;
+                case "Stage":
+                    PublicKey = Resources.PGP_Public_Key_Stage;
+                    PrivateKey = Resources.PGP_Private_Key_Stage;
+                    break;
+                case "Internal":
+                    PublicKey = Resources.PGP_Public_Key_UAT;
+                    PrivateKey = Resources.PGP_Private_Key_UAT;
+                    break;
+                default:
+                    break;
+            }
+
         }
 
-        public static async Task DecryptFileAsync(string cipherFilePath, string passPhrase, string decryptedFilePath)
+        public async Task DecryptFileAsync(string cipherFilePath, string passPhrase, string decryptedFilePath)
         {
             using (var inputStream = File.OpenRead(cipherFilePath))
             {
@@ -135,9 +160,9 @@ namespace AM.Lib
                     {
                         await @is.CopyToAsync(os);
                     }
-                }                
+                }
             }
-            else if (message is PgpLiteralData literalData) 
+            else if (message is PgpLiteralData literalData)
             {
                 using (var os = File.Open(decryptedFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
                 {
@@ -178,7 +203,7 @@ namespace AM.Lib
             throw new ArgumentException("Can't find encryption key in key ring.");
         }
 
-        public static async Task EncryptPgpFile(string inputFile, string outputFile)
+        public async Task EncryptPgpFile(string inputFile, string outputFile)
         {
             // use armor: yes, use integrity check? yes?
             using (var publicKeyStream = await IOHelper.GetASCIIStreamAsync(PublicKey))

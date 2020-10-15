@@ -440,7 +440,8 @@ bufferSize: 4096, useAsync: true)) { }
                                     try
                                     {
                                         decryptedFilePath = Path.Combine(root, string.Format("Literal_{0}.pdf", Path.GetFileNameWithoutExtension(file.Value.LocalFileName)));
-                                        await CryptoHelper.DecryptFileAsync(file.Value.LocalFileName, Config.PGP_Passphrase, decryptedFilePath);
+                                        CryptoHelper cryptoHelper = new CryptoHelper(Config.Common_Environment);
+                                        await cryptoHelper.DecryptFileAsync(file.Value.LocalFileName, Config.PGP_Passphrase, decryptedFilePath);
                                     }
                                     catch (Exception e)
                                     {
