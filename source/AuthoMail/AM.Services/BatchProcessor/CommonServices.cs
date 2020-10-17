@@ -472,7 +472,7 @@ namespace AM.Services
         private string GetEnvelopeName(int pnsConfigDetailId)
         {
             string query = "SELECT EnvelopeName FROM Common.Envelopes E INNER JOIN Common.PnSConfigDetail P ON P.EnvelopeId=E.Id WHERE P.Id=@pnsConfigDetailId";
-            return db.ExecuteScalar<string>(query, pnsConfigDetailId);
+            return db.ExecuteScalar<string>(query, new { pnsConfigDetailId });
         }
         public int GetReportingSequence()
         {
