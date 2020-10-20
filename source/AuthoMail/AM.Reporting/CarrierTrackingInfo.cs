@@ -94,6 +94,14 @@ namespace AM.Reporting
                         {
                             foreach (var trackInfo in trackingInfos.TrackInfo)
                             {
+
+                                log.Debug(trackInfo.ID);
+                                if (trackInfo == null)
+                                {
+                                    log.Error("Tracking info not found.");
+                                    continue;
+                                }
+
                                 var shipmentDateTime = (trackInfo.TrackSummary.EventDate + " " + trackInfo.TrackSummary.EventTime).AnyFormatToDateTime().HasValue ? (DateTime?)(trackInfo.TrackSummary.EventDate + " " + trackInfo.TrackSummary.EventTime).AnyFormatToDateTime().Value.EstToUtc() : null;
                                 var shipmentStatus = $"{trackInfo.TrackSummary.Event} on {shipmentDateTime} UTC at ({trackInfo.TrackSummary.EventCity},{trackInfo.TrackSummary.EventState})";
 
