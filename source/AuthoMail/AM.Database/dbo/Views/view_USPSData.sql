@@ -6,6 +6,6 @@ INNER JOIN AM.MailBatches AS MB ON MB.Id = MP.MailBatchId
 INNER JOIN [AM].[DocTypes] d ON MP.DocTypeId=d.Id 
 INNER JOIN Common.PnSConfigDetail PCD ON MP.PnSConfigDetailId = PCD.Id
 INNER JOIN Common.Clients AS C ON MB.ClientId = C.Id
-WHERE (MP.ShippingStatus IN ('InProgress', 'Shipped')) AND (PCD.ShippingCarrier = 'USPS' AND PCD.ShippingServiceType IN ('PRIORITY','PRIORITY_EXPRESS')) AND (MB.ReceivedOn >= '2020-08-01 05:00:00')
+WHERE (MP.ShippingStatus IN ('InProgress', 'Shipped')) AND (PCD.ShippingCarrier = 'USPS' AND PCD.ShippingServiceType IN ('PRIORITY','PRIORITY_EXPRESS')) AND (MB.ReceivedOn >= '2020-08-01 05:00:00') AND TrackingNo IS NOT NULL
 GO
 
