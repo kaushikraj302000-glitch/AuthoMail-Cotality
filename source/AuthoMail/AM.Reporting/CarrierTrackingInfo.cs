@@ -54,14 +54,13 @@ namespace AM.Reporting
                     DateTime dueDateStartTime = Common.Now.UtcToEst().AddDays(-10).ToStartDateTime();
                     //Here we are passing dates in EST format because we are looking for est dates column
                     DateTime dueDateEndTime = Common.Now.UtcToEst().ToEndDateTime();
-                    log.Info("FedEx Tracking Process For Date And Time {0}".Fill(dueDateEndTime));
+                    log.Info("USPS Tracking Process For Date And Time {0}".Fill(dueDateEndTime));
 
                     List<USPSeVSReport> mailPieces = reportSvc.GetUSPSeVSDataForTracking(dueDateStartTime, dueDateEndTime);
 
                     if (mailPieces == null || mailPieces.Count == 0)
                         return;
 
-                    List<TrackID> trackIDs = new List<TrackID>();
 
                     int requestTrackingCount = mailPieces.Count;
                     int maxTrackRequest = 35;
@@ -70,6 +69,7 @@ namespace AM.Reporting
 
                     for (double i = 0; i < loopCount; i++)
                     {
+                        List<TrackID> trackIDs = new List<TrackID>();
                         mailPieces.Skip(trackedRequests).Take(maxTrackRequest).ToList().ForEach(r =>
                         {
                             trackIDs.Add(new TrackID() { ID = r.TrackingNo });
@@ -96,7 +96,7 @@ namespace AM.Reporting
                             {
 
                                 log.Debug(trackInfo.ID);
-                                if (trackInfo == null)
+                                if (trackInfo == null || trackInfo.TrackSummary == null)
                                 {
                                     log.Error("Tracking info not found.");
                                     continue;
@@ -114,7 +114,7 @@ namespace AM.Reporting
             }
             catch (Exception ex)
             {
-                log.Error("Error occured while checkign for FedEx packages picked up or not", ex);
+                log.Error("Error occured while checking for USPS packages picked up or not", ex);
             }
         }
     }
