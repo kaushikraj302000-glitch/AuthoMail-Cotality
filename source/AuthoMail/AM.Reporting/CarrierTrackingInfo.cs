@@ -63,14 +63,14 @@ namespace AM.Reporting
 
                     List<TrackID> trackIDs = new List<TrackID>();
 
-                    int requestAddressCount = mailPieces.Count;
-                    int maxAddressVerification = 35;
-                    int verifiedAddressCount = 0;
-                    double loopCount = Math.Ceiling(requestAddressCount / (float)maxAddressVerification);
+                    int requestTrackingCount = mailPieces.Count;
+                    int maxTrackRequest = 35;
+                    int trackedRequests = 0;
+                    double loopCount = Math.Ceiling(requestTrackingCount / (float)maxTrackRequest);
 
                     for (double i = 0; i < loopCount; i++)
                     {
-                        mailPieces.Skip(verifiedAddressCount).Take(maxAddressVerification).ToList().ForEach(r =>
+                        mailPieces.Skip(trackedRequests).Take(maxTrackRequest).ToList().ForEach(r =>
                         {
                             trackIDs.Add(new TrackID() { ID = r.TrackingNo });
                         });
@@ -79,13 +79,16 @@ namespace AM.Reporting
                         {
                             TrackID = trackIDs
                         };
+
                         var trackingInfos = uspsSvc.GetTrackingDetailsAsync(commonSvc.GetSystemUserId(), trackFieldRequest).Result;
 
                         if (trackingInfos.HasError)
                         {
                             log.Error($"Error occured while tracking shipment info for USPS {trackingInfos.Error}");
-                            return;
+                            continue;
                         }
+
+                        trackedRequests += maxTrackRequest;
 
                         using (IMailPieceService mailPieceSvc = new MailPieceService())
                         {
