@@ -126,9 +126,9 @@ namespace AM.Services
 
         public int UpdateMailPieceShipmentStatusFromTrackingNo(FedExPickedPackagesDetail pickedUpDetail, DateTime jobRunTime)
         {
-            string query = @"UPDATE [AM].[MailPieces] SET [ShipmentStatus] = @ShipmentStatus,[ShipmentStatusUpdatedOn]=jobRunTime WHERE Id = (SELECT TOP 1 Id FROM [AM].[MailPieces] WHERE [TrackingNo] = @TrackingNo ORDER BY EffectiveReceivedOnEst DESC)";
+            string query = @"UPDATE [AM].[MailPieces] SET [ShipmentStatus] = @ShipmentStatus,[ShipmentStatusUpdatedOn]=@jobRunTime WHERE Id = (SELECT TOP 1 Id FROM [AM].[MailPieces] WHERE [TrackingNo] = @TrackingNo ORDER BY EffectiveReceivedOnEst DESC)";
 
-            return db.ExecuteScalar<int>(query, new { pickedUpDetail, jobRunTime });
+            return db.ExecuteScalar<int>(query, new { ShipmentStatus = pickedUpDetail.ShipmentStatus, TrackingNo = pickedUpDetail.TrackingNo, jobRunTime });
         }
 
         public MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo)
