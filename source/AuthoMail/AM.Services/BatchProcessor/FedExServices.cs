@@ -127,7 +127,7 @@ namespace AM.Services
             {
                 foreach (var pickedUpDetail in fedExPickedPackageDetails)
                 {
-                    mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(pickedUpDetail, jobRunTime);
+                    mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(pickedUpDetail.ShipmentStatus, pickedUpDetail.TrackingNo, jobRunTime);
                 }
             }
         }

@@ -28,7 +28,10 @@ namespace AM.Reporting
                     FedExPickUp.CheckPickedUpPackages();
                     break;
                 case "FedExTracking":
-                    FedExTrackingInfo.CheckForShipmentTracking();
+                    CarrierTrackingInfo.CheckForShipmentTracking();
+                    break;
+                case "USPSTracking":
+                    CarrierTrackingInfo.CheckForUSPSeVSShipmentTracking();
                     break;
                 case "DallasNotification":
                     DallasNotification.GenerateEmailNotification();

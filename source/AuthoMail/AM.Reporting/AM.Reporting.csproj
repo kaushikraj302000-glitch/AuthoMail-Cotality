@@ -73,7 +73,7 @@
     <Compile Include="AppConfig.cs" />
     <Compile Include="DallasNotification.cs" />
     <Compile Include="DALLASReconReport.cs" />
-    <Compile Include="FedExTrackingInfo.cs" />
+    <Compile Include="CarrierTrackingInfo.cs" />
     <Compile Include="FedExPickUP.cs" />
     <Compile Include="GOSReports.cs" />
     <Compile Include="HSBCChannel.cs" />
@@ -105,6 +105,10 @@
     <ProjectReference Include="..\AM.Services\AM.Services.csproj">
       <Project>{a60d6e77-74fc-419c-bf13-a7684012d0a5}</Project>
       <Name>AM.Services</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AM.USPSLib\AM.USPSLib.csproj">
+      <Project>{C221D27E-C501-4838-B58F-D06C97E07923}</Project>
+      <Name>AM.USPSLib</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

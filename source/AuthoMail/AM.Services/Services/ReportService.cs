@@ -37,6 +37,7 @@ namespace AM.Services
         List<FedExReport> GetFedExDataForTracking(DateTime startDueDate, DateTime endDueDate);
         List<MailPieces> GetMailPiecesDataBetweenDates(DateTime startDate, DateTime endDate, int clientId);
         MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate, string sourceFilePath);
+        List<USPSeVSReport> GetUSPSeVSDataForTracking(DateTime startDueDate, DateTime endDueDate);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -603,6 +604,19 @@ LEFT OUTER JOIN Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
             }
 
 
+        }
+
+        public List<USPSeVSReport> GetUSPSeVSDataForTracking(DateTime startDueDate, DateTime endDueDate)
+        {
+            string query = "SELECT * FROM [dbo].[view_USPSData] WHERE DueDate BETWEEN @startDueDate AND @endDueDate AND (ShipmentStatus NOT LIKE '%delivered%' OR ShipmentStatus NOT LIKE '%Delivered%' OR ShipmentStatus IS NULL)";
+
+            //This will provide previous and today's not picked up records
+            var data = db.Query<USPSeVSReport>(query, new
+            {
+                startDueDate,
+                endDueDate
+            }).ToList();
+            return data;
         }
     }
 }
