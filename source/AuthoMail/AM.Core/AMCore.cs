@@ -25,7 +25,7 @@ namespace AM.Core
         private static readonly List<string> fedExExceptionCodes = new List<string>() { "3022", "1000", "2998", "Unknown_Error" };
         private static readonly List<string> fedExExceptionDescriptions = new List<string>() { "General Failure" };
         private static readonly List<string> uspsExceptionCodes = new List<string>() { "80040B18", "Unknown_Error" };
-        private static readonly List<string> uspsExceptionDescriptions = new List<string>() { "error has occurred with the service", "connected party did not properly respond", "existing connection was forcibly closed", "contact the system administrator" };
+        private static readonly List<string> uspsExceptionDescriptions = new List<string>() { "error has occurred with the service", "connected party did not properly respond", "existing connection was forcibly closed", "contact the system administrator", "an unexpected system error has occurred", "underlying connection was closed" };
 
         #region PrepPnSJob
         internal static bool PrepPnSJobs()
@@ -222,7 +222,7 @@ namespace AM.Core
                                             response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
 
 
-                                            if (response.HasError && (uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc)) || string.IsNullOrWhiteSpace(response.ExceptionDetail)))
+                                            if (response.HasError && (uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())) || string.IsNullOrWhiteSpace(response.ExceptionDetail)))
                                             {
                                                 //NOTE: Here system is check for unusal error like connection issue or timeout issue if occure then system will retry to generate label
                                                 log.Error("Priority Express had some unexpected error {0}".Fill(response.ExceptionDetail));
@@ -284,7 +284,7 @@ namespace AM.Core
 
                                             response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
 
-                                            if (response.HasError && (uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc)) || string.IsNullOrWhiteSpace(response.ExceptionDetail)))
+                                            if (response.HasError && (uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())) || string.IsNullOrWhiteSpace(response.ExceptionDetail)))
                                             {
                                                 //NOTE: Here system is check for unusal error like connection issue or timeout issue if occure then system will retry to generate label
                                                 log.Error("Priority had some unexpected error {0}".Fill(response.ExceptionDetail));
@@ -293,6 +293,7 @@ namespace AM.Core
                                             }
                                             else
                                             {
+                                                log.Debug($"{response.HasError} , {response.ExceptionCode} , {response.ExceptionDetail}");
                                                 break;
                                             }
                                         }
