@@ -41,7 +41,9 @@ namespace AM.Core
                     log.Debug("Prep Job queue is empty.");
                     return false;
                 }
-                Parallel.ForEach(mailBatches, (mailBatch) =>
+                //Parallel.ForEach(mailBatches, (mailBatch) =>
+                //{
+                foreach (var mailBatch in mailBatches)
                 {
                     using (IMailBatchService mailBatchSvc = new MailBatchService())
                     using (IClientService clientSvc = new ClientService())
@@ -614,7 +616,8 @@ namespace AM.Core
                             SendUnexpectedExceptionEmail(msg);
                         }
                     }
-                });
+                }
+                //});
             }
             log.Debug("PrepPnSJob Completed");
             return true;
@@ -1279,7 +1282,9 @@ namespace AM.Core
                     return false;
                 }
 
-                Parallel.ForEach(responseReceivedPrintBatches, (printBatch) =>
+                //Parallel.ForEach(responseReceivedPrintBatches, (printBatch) =>
+                //{
+                foreach (var printBatch in responseReceivedPrintBatches)
                 {
                     using (IMailBatchService mailBatchSvc = new MailBatchService())
                     using (IClientService clientSvc = new ClientService())
@@ -1418,7 +1423,8 @@ namespace AM.Core
                             SendUnexpectedExceptionEmail(errorMsg);
                         }
                     }
-                });
+                }
+                //});
             }
             log.Debug("Process PnS response job is completed.");
             return true;
@@ -1462,7 +1468,9 @@ namespace AM.Core
                     return false;
                 }
 
-                Parallel.ForEach(resReceivedBatches, (mailBatch) =>
+                //Parallel.ForEach(resReceivedBatches, (mailBatch) =>
+                //{
+                foreach (var mailBatch in resReceivedBatches)
                 {
                     using (IMailBatchService mailBatchSvc = new MailBatchService())
                     using (IClientService clientSvc = new ClientService())
@@ -1510,7 +1518,8 @@ namespace AM.Core
                             SendUnexpectedExceptionEmail(msg);
                         }
                     }
-                });
+                }
+                //});
             }
 
             log.Debug("Report prepped job is completed.");
