@@ -317,7 +317,7 @@ namespace PCI.Service
                 return;
             }
 
-            if (Common.ApplicationEnvironment == Env.Prod || ptDetails.SimulateTrail == false)
+            if (ptDetails.SimulateTrail == false)
             {
                 if (ptDetails.VendorCode == "CL_DALLAS")
                 {
