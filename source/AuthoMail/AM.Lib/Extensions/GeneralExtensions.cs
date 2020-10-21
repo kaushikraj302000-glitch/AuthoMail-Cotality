@@ -136,19 +136,19 @@ namespace AM.Lib
         public static string AnyFormatToDateTimeString(this string date)
         {
             string[] formats = {"M/d/yyyy h:mm:ss tt", "M/d/yyyy h:mm tt",
-"MM/dd/yyyy hh:mm:ss", "M/d/yyyy h:mm:ss","M/d/yyyy hh:mm tt", "M/d/yyyy hh tt","M/d/yyyy h:mm", "M/d/yyyy h:mm","MM/dd/yyyy hh:mm", "M/dd/yyyy hh:mm","dd-MMM-yyyy hh:mm:ss","MMMM     dd, yyyy","MMM-dd-yyyy hh:mm:ss","MMMM dd, yyyy","MMMM dd, yyyy hh:mm:ss","MM-dd-yyyy hh:mm tt","dd-MM-yyyy hh:mm:ss","MM-dd-yyyy hh:mm:ss","M/d/yyyy H:mm:ss tt", "M/d/yyyy H:mm tt","MM/dd/yyyy HH:mm:ss", "M/d/yyyy h:mm:ss","M/d/yyyy HH:mm tt", "M/d/yyyy HH tt","M/d/yyyy h:mm", "M/d/yyyy h:mm","MM/dd/yyyy HH:mm", "M/dd/yyyy HH:mm","dd-MMM-yyyy HH:mm:ss","MMMM     dd, yyyy","MMM-dd-yyyy HH:mm:ss","MMMM dd, yyyy","MMMM dd, yyyy HH:mm:ss","MM-dd-yyyy HH:mm","dd-MM-yyyy HH:mm:ss","MM-dd-yyyy HH:mm:ss"};
+"MM/dd/yyyy hh:mm:ss", "M/d/yyyy h:mm:ss","M/d/yyyy hh:mm tt", "M/d/yyyy hh tt","M/d/yyyy h:mm", "M/d/yyyy h:mm","MM/dd/yyyy hh:mm", "M/dd/yyyy hh:mm","dd-MMM-yyyy hh:mm:ss","MMMM     dd, yyyy","MMM-dd-yyyy hh:mm:ss","MMMM dd, yyyy","MMMM dd, yyyy hh:mm:ss","MM-dd-yyyy hh:mm tt","dd-MM-yyyy hh:mm:ss","MM-dd-yyyy hh:mm:ss","M/d/yyyy H:mm:ss tt", "M/d/yyyy H:mm tt","MM/dd/yyyy HH:mm:ss", "M/d/yyyy h:mm:ss","M/d/yyyy HH:mm tt", "M/d/yyyy HH tt","M/d/yyyy h:mm", "M/d/yyyy h:mm","MM/dd/yyyy HH:mm", "M/dd/yyyy HH:mm","dd-MMM-yyyy HH:mm:ss","MMMM     dd, yyyy","MMM-dd-yyyy HH:mm:ss","MMMM dd, yyyy","MMMM dd, yyyy HH:mm:ss","MM-dd-yyyy HH:mm","dd-MM-yyyy HH:mm:ss","MM-dd-yyyy HH:mm:ss","MMMM dd, yyyy hh:mm tt","MMMM dd, yyyy h:mm tt"};
 
             DateTime dateValue;
             if (DateTime.TryParseExact(date, formats, new CultureInfo("en-US"), DateTimeStyles.None, out dateValue))
                 return dateValue.ToString();
             else
-                return null;
+                return "";
         }
 
         public static DateTime? AnyFormatToDateTime(this string date)
         {
             string[] formats = {"M/d/yyyy h:mm:ss tt", "M/d/yyyy h:mm tt",
-"MM/dd/yyyy hh:mm:ss", "M/d/yyyy h:mm:ss","M/d/yyyy hh:mm tt", "M/d/yyyy hh tt","M/d/yyyy h:mm", "M/d/yyyy h:mm","MM/dd/yyyy hh:mm", "M/dd/yyyy hh:mm","dd-MMM-yyyy hh:mm:ss","MMMM     dd, yyyy","MMM-dd-yyyy hh:mm:ss","MMMM dd, yyyy","MMMM dd, yyyy hh:mm:ss","dd-MM-yyyy hh:mm tt","MM-dd-yyyy hh:mm tt","dd-MM-yyyy hh:mm:ss","MM-dd-yyyy hh:mm:ss","M/d/yyyy H:mm:ss tt", "M/d/yyyy H:mm tt","MM/dd/yyyy HH:mm:ss", "M/d/yyyy h:mm:ss","M/d/yyyy HH:mm tt", "M/d/yyyy HH tt","M/d/yyyy h:mm", "M/d/yyyy h:mm","MM/dd/yyyy HH:mm", "M/dd/yyyy HH:mm","dd-MMM-yyyy HH:mm:ss","MMMM     dd, yyyy","MMM-dd-yyyy HH:mm:ss","MMMM dd, yyyy","MMMM dd, yyyy HH:mm:ss","MM-dd-yyyy HH:mm","dd-MM-yyyy HH:mm:ss","MM-dd-yyyy HH:mm:ss"};
+"MM/dd/yyyy hh:mm:ss", "M/d/yyyy h:mm:ss","M/d/yyyy hh:mm tt", "M/d/yyyy hh tt","M/d/yyyy h:mm", "M/d/yyyy h:mm","MM/dd/yyyy hh:mm", "M/dd/yyyy hh:mm","dd-MMM-yyyy hh:mm:ss","MMMM     dd, yyyy","MMM-dd-yyyy hh:mm:ss","MMMM dd, yyyy","MMMM dd, yyyy hh:mm:ss","dd-MM-yyyy hh:mm tt","MM-dd-yyyy hh:mm tt","dd-MM-yyyy hh:mm:ss","MM-dd-yyyy hh:mm:ss","M/d/yyyy H:mm:ss tt", "M/d/yyyy H:mm tt","MM/dd/yyyy HH:mm:ss", "M/d/yyyy h:mm:ss","M/d/yyyy HH:mm tt", "M/d/yyyy HH tt","M/d/yyyy h:mm", "M/d/yyyy h:mm","MM/dd/yyyy HH:mm", "M/dd/yyyy HH:mm","dd-MMM-yyyy HH:mm:ss","MMMM     dd, yyyy","MMM-dd-yyyy HH:mm:ss","MMMM dd, yyyy","MMMM dd, yyyy HH:mm:ss","MM-dd-yyyy HH:mm","dd-MM-yyyy HH:mm:ss","MM-dd-yyyy HH:mm:ss","MMMM dd, yyyy hh:mm tt","MMMM dd, yyyy h:mm tt"};
 
             DateTime dateValue;
             if (DateTime.TryParseExact(date, formats, new CultureInfo("en-US"), DateTimeStyles.None, out dateValue))

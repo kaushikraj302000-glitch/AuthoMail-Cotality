@@ -568,7 +568,7 @@ namespace AM.Console
 
                         objFloodRequest.TransformData = null;
 
-                        GenerateDoc(objFloodRequest, mp.DocumentOrPackage.Name, mbi);
+                        GenerateDoc(objFloodRequest, mp.DocumentOrPackage.Name, mbi).Wait();
                     }
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now).Wait();
