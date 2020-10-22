@@ -38,6 +38,8 @@ namespace AM.Services
         List<MailPieces> GetMailPiecesDataBetweenDates(DateTime startDate, DateTime endDate, int clientId);
         MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate, string sourceFilePath);
         List<USPSeVSReport> GetUSPSeVSDataForTracking(DateTime startDueDate, DateTime endDueDate);
+        List<MailPieces> GetMailPiecesDataFromPrintBatchId(List<int> printBatchIds);
+        List<MailPieces> GetMailPiecesDataFromMailPieceId(List<int> mpIds);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -616,6 +618,70 @@ LEFT OUTER JOIN Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
                 startDueDate,
                 endDueDate
             }).ToList();
+            return data;
+        }
+
+        public List<MailPieces> GetMailPiecesDataFromPrintBatchId(List<int> printBatchIds)
+        {
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId WHERE M.PrintBatchId IN @PrintBatchId";
+
+            var mailPieceDictionary = new Dictionary<int, MailPieces>();
+
+            var data = db.Query<MailPieces, MailBatches, DocTypes, PnSConfigDetail, MailPieceCustomInfoTest, MailPieces>(query,
+                (m, b, d, p, c) =>
+                {
+                    MailPieces mp;
+
+                    if (!mailPieceDictionary.TryGetValue(m.Id, out mp))
+                    {
+                        mp = m;
+                        mp.MailBatches = b;
+                        mp.DocTypes = d;
+                        mp.PnSConfigDetails = p;
+                        mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
+                        mailPieceDictionary.Add(mp.Id, mp);
+                    }
+
+                    mp.MailPieceCustomInfoTest.Add(c);
+                    return mp;
+                },
+                new
+                {
+                    PrintBatchId = printBatchIds
+                }, splitOn: "Id,Id,MailPieceId").Distinct().ToList();
+            return data;
+        }
+
+        public List<MailPieces> GetMailPiecesDataFromMailPieceId(List<int> mpIds)
+        {
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId WHERE M.Id IN @MPIds";
+
+            var mailPieceDictionary = new Dictionary<int, MailPieces>();
+
+            var data = db.Query<MailPieces, MailBatches, DocTypes, PnSConfigDetail, MailPieceCustomInfoTest, MailPieces>(query,
+                (m, b, d, p, c) =>
+                {
+                    MailPieces mp;
+
+                    if (!mailPieceDictionary.TryGetValue(m.Id, out mp))
+                    {
+                        mp = m;
+                        mp.MailBatches = b;
+                        mp.DocTypes = d;
+                        mp.PnSConfigDetails = p;
+                        mp.MailPieceCustomInfoTest = new List<MailPieceCustomInfoTest>();
+                        mailPieceDictionary.Add(mp.Id, mp);
+                    }
+
+                    mp.MailPieceCustomInfoTest.Add(c);
+                    return mp;
+                },
+                new
+                {
+                    MPIds = mpIds
+                }, splitOn: "Id,Id,MailPieceId").Distinct().ToList();
             return data;
         }
     }

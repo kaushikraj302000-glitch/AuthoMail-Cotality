@@ -1,4 +1,5 @@
-﻿using AM.Lib;
+﻿using AM.Entities;
+using AM.Lib;
 using AM.Services;
 using System;
 using System.Collections.Generic;
@@ -79,17 +80,39 @@ namespace AM.Console
                         using (IReportService reportSvc = new ReportService())
                         using (IGeneralService generalSvc = new GeneralService())
                         using (ICommonService commonSvc = new CommonService())
-                        using (IClientService clientSvc = new ClientService())
+                        using (IAMCService amcSvc = new AMCService())
                         {
-                            var appCode = "PENFED";
-                            var client = clientSvc.GetClientByAppCode(appCode).Result;
-                            var mps = reportSvc.GetMailPiecesDataBetweenDates(new DateTime(2020, 09, 04).ToStartDateTime().EstToUtc(), new DateTime(2020, 09, 09).ToEndDateTime().EstToUtc(), client.Id);
+                            //var appCode = "PENFED";
+                            //var client = clientSvc.GetClientByAppCode(appCode).Result;
+                            //var mps = reportSvc.GetMailPiecesDataBetweenDates(new DateTime(2020, 09, 04).ToStartDateTime().EstToUtc(), new DateTime(2020, 09, 09).ToEndDateTime().EstToUtc(), client.Id);
 
-                            string responseReport = generalSvc.GeneralXMLReport(mps, appCode);
-                            string deliveryReportFileName = "{0}-{1}-{2}.xml".Fill(appCode, new Random().Next(100000, 1000000), new Random().Next(100000, 1000000));
-                            string deliveryReportPath = Path.Combine(@"D:\", deliveryReportFileName);
+                            //string responseReport = generalSvc.GeneralXMLReport(mps, appCode);
+                            //string deliveryReportFileName = "{0}-{1}-{2}.xml".Fill(appCode, new Random().Next(100000, 1000000), new Random().Next(100000, 1000000));
+                            //string deliveryReportPath = Path.Combine(@"D:\", deliveryReportFileName);
 
-                            File.WriteAllText(deliveryReportPath, responseReport);
+                            //File.WriteAllText(deliveryReportPath, responseReport);
+                            var readIds = File.ReadAllLines(@"C:\Users\sagar.g\Desktop\PrintBatchIds.txt").Select(r => int.Parse(r)).ToList();
+                            List<MailPieces> mailPieces = reportSvc.GetMailPiecesDataFromMailPieceId(readIds);
+
+                            var erroredRecords = mailPieces.Where(p => p.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
+                            var shippedorpulledbackRecords = mailPieces.Where(p => p.ShippingStatus == ShippingStatus.Shipped.ToString() || p.ShippingStatus == ShippingStatus.PulledBack.ToString()).ToList();
+
+
+                            StringBuilder errorData = amcSvc.AMCErrorReport(erroredRecords);
+                            if (errorData != null)
+                            {
+                                string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                string errorReportPath = Path.Combine(@"D:\", errorReportFileName);
+                                File.WriteAllText(errorReportPath, errorData.ToString());
+                            }
+
+                            StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(shippedorpulledbackRecords);
+                            if (deliveryReport != null)
+                            {
+                                string deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                string deliveryReportPath = Path.Combine(@"D:\", deliveryReportFileName);
+                                File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+                            }
                         }
                     }
                     else if (args[0] == "BatchReporting")
