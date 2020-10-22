@@ -160,10 +160,10 @@ namespace AM.Core
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
                     //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
-                    //if (rcptAddressTypes.Contains(AddressType.Military.ToString()))
-                    //{
-                    ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
-                    //}
+                    if (!Config.Common_LandscapeUSPSLabels.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Any(e => e.ToUpper() == envelopeName.ToUpper()))
+                    {
+                        ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
+                    }
                     response.CoverLetterPath = coverLetterPDFPath;
                 }
 
@@ -247,7 +247,7 @@ namespace AM.Core
                     File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
 
                     //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
-                    if (!Config.Common_LandscapeUSPSLabels.Contains(envelopeName))
+                    if (!Config.Common_LandscapeUSPSLabels.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Any(e => e.ToUpper() == envelopeName.ToUpper()))
                     {
                         ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
                     }
