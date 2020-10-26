@@ -10,6 +10,9 @@ using AM.Lib;
 using System.IO;
 using AM.Services.Models;
 using System.Data.SqlClient;
+using CsvHelper;
+using System.Globalization;
+using CsvHelper.TypeConversion;
 
 namespace AM.Services
 {
@@ -35,7 +38,7 @@ namespace AM.Services
         List<string> GetMonthlyReconDate(int clientId);
         List<GOSMailPieceData> GetGOSDailyReconReport(DateTime currentDate);
         List<FedExReport> GetFedExDataForTracking(DateTime startDueDate, DateTime endDueDate);
-        MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate, string sourceFilePath);
+        MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -549,22 +552,36 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
             return data;
         }
 
-        public MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate, string sourceFilePath)
+        public MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate)
         {
-            using (var connection = new SqlConnection(db.ConnectionString))
+
+            var dataReader = db.ExecuteReader("dbo.SP_USAAMTDVolumeReport @startDate, @endDate", new { startDate = startDate, endDate = endDate });
+            MemoryStream memoryStream = new MemoryStream();
+            using (var writer = new StreamWriter(memoryStream))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
-                var reader = connection.ExecuteReader("dbo.SP_USAAMTDVolumeReport @startDate, @endDate", new { startDate = startDate, endDate = endDate });
-                DataTable dt = new DataTable();
-                dt.Load(reader);
-                XLS xl = new XLS(sourceFilePath);
-                if (dt.Rows.Count > 0)
+                var hasHeaderBeenWritten = false;
+                while (dataReader.Read())
                 {
-                    xl.LoadData(dt, false);
+                    if (!hasHeaderBeenWritten)
+                    {
+                        for (var i = 0; i < dataReader.FieldCount; i++)
+                        {
+                            csv.WriteField(dataReader.GetName(i));
+                        }
+                        csv.NextRecord();
+                        hasHeaderBeenWritten = true;
+                    }
+
+                    for (var i = 0; i < dataReader.FieldCount; i++)
+                    {
+                        csv.WriteField(dataReader[i]);
+                    }
+                    csv.NextRecord();
                 }
-                MemoryStream ms = new MemoryStream();
-                xl.SaveAs(ms);
-                return ms;
             }
+            return memoryStream;
+
 
 
         }

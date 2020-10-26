@@ -24,13 +24,19 @@ namespace AM.Reporting
             {
                 using (IReportService reportSvc = new ReportService())
                 {
-                    var sourceFilePath = @"USAAMTDVolumeReport\USAAMTDVolumeReportTemplate.xlsx";
-                    var output = reportSvc.USAAMTDVolumeReport(startDate, EndDate, sourceFilePath);
+                    //var sourceFilePath = @"USAAMTDVolumeReport\USAAMTDVolumeReportTemplate.xlsx";
+                    var output = reportSvc.USAAMTDVolumeReport(startDate, EndDate);
                     var byteArr = output.ToArray();
                     var ms = new MemoryStream(byteArr, true);
                     ms.Write(byteArr, 0, byteArr.Length);
                     ms.Position = 0;
-                    SendMTDReportToUSAATeam(ms, $"USAA MTD Volume Report {startDate.ToString("MMddyy")}To{EndDate.ToString("MMddyy")}.xlsx", "USAA daily MTD volume report");
+                    SendMTDReportToUSAATeam(ms, $"USAA MTD Volume Report {startDate.ToString("MMddyy")}To{EndDate.ToString("MMddyy")}.csv", "USAA daily MTD volume report");
+                    //var output = reportSvc.USAAMTDVolumeReport(startDate, EndDate, sourceFilePath);
+                    //var byteArr = output.ToArray();
+                    //var ms = new MemoryStream(byteArr, true);
+                    //ms.Write(byteArr, 0, byteArr.Length);
+                    //ms.Position = 0;
+                    //SendMTDReportToUSAATeam(ms, $"USAA MTD Volume Report {startDate.ToString("MMddyy")}To{EndDate.ToString("MMddyy")}.csv", "USAA daily MTD volume report");
 
                 }
             }
