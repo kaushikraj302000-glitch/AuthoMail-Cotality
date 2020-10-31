@@ -25,10 +25,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.Monitor", "AM.Monitor\AM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.Scanner", "AM.Scanner\AM.Scanner.csproj", "{1113C7AA-06D1-47C3-A761-F93E9A48AC05}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.UnitTests", "AM.UnitTests\AM.UnitTests.csproj", "{AC378337-9824-4A15-86A7-3ED281CC57CC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.Unit", "UnitTestProject1\AM.Unit.csproj", "{301C0587-11D8-4953-9389-1FB92F811AAB}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.USPSLib", "AM.USPSLib\AM.USPSLib.csproj", "{C221D27E-C501-4838-B58F-D06C97E07923}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PCI.Service", "PCI.Service\PCI.Service.csproj", "{8107735F-EAD2-47EA-9BB1-A77637C62CA6}"
@@ -39,9 +35,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.ProductionToUATBridge", 
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "AM.Database", "AM.Database\AM.Database.sqlproj", "{18F7FB8D-BDA2-4109-A82D-909A2E6569F5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.PerfTest", "AM.PerfTest\AM.PerfTest.csproj", "{62EAE346-2C03-47B1-A47B-D38B27C3500B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AM.PerfTest", "AM.PerfTest\AM.PerfTest.csproj", "{62EAE346-2C03-47B1-A47B-D38B27C3500B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AM.HealthAPI", "AM.HealthAPI\AM.HealthAPI.csproj", "{64935B6B-C737-4480-8940-2F0AB254CA01}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AM.HealthAPI", "AM.HealthAPI\AM.HealthAPI.csproj", "{64935B6B-C737-4480-8940-2F0AB254CA01}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,14 +81,6 @@ Global
 		{1113C7AA-06D1-47C3-A761-F93E9A48AC05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1113C7AA-06D1-47C3-A761-F93E9A48AC05}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1113C7AA-06D1-47C3-A761-F93E9A48AC05}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AC378337-9824-4A15-86A7-3ED281CC57CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AC378337-9824-4A15-86A7-3ED281CC57CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AC378337-9824-4A15-86A7-3ED281CC57CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AC378337-9824-4A15-86A7-3ED281CC57CC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{301C0587-11D8-4953-9389-1FB92F811AAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{301C0587-11D8-4953-9389-1FB92F811AAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{301C0587-11D8-4953-9389-1FB92F811AAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{301C0587-11D8-4953-9389-1FB92F811AAB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C221D27E-C501-4838-B58F-D06C97E07923}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C221D27E-C501-4838-B58F-D06C97E07923}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C221D27E-C501-4838-B58F-D06C97E07923}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -128,7 +116,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {B2EB8168-EB28-40A6-9C95-DB9114637768}
 		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.Common.6.0.1304.0\lib\NET45;packages\EnterpriseLibrary.Data.6.0.1304.0\lib\NET45
+		SolutionGuid = {B2EB8168-EB28-40A6-9C95-DB9114637768}
 	EndGlobalSection
 EndGlobal
