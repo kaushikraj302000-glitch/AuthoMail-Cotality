@@ -36,7 +36,7 @@ namespace PCI.Service
             List<string> unprocessedPrintTrails = new List<string>();
 
             var pieceIdFormat = MRDFRequestSchema.Single(f => f.FieldName == "PieceId").DataFormat;
-
+            log.Info("PCIJob SubmitBatchToPrintVendor Checking isBundle");
             if (isBundle)
             {
                 try
@@ -71,8 +71,8 @@ namespace PCI.Service
                     return;
                 }
             }
-
-
+            log.Info("PCIJob SubmitBatchToPrintVendor Completed Checking isBundle");
+            log.Info("PCIJob SubmitBatchToPrintVendor Inserting Loop Started");
             foreach (string ptName in ptNames)
             {
                 try
@@ -93,7 +93,7 @@ namespace PCI.Service
                     continue;
                 }
             }
-
+            log.Info("PCIJob SubmitBatchToPrintVendor Inserting Loop Ended");
             //NOTE: Here System will process unprocessed print trails.
             if (unprocessedPrintTrails.Count > 0)
             {
@@ -102,9 +102,10 @@ namespace PCI.Service
                 log.Info("Processing Completed Unprocessed PrintTrails {0}".Fill(unprocessedPrintTrails));
                 return;
             }
-
+            log.Info("PCIJob SubmitBatchToPrintVendor Submit Process Call Started");
             //NOTE : Here system will try to submit bundle batches 5 times if any error is coming during execution
             30.TimesAttempt(() => SubmitBundledBatches(pvCode));
+            log.Info("PCIJob SubmitBatchToPrintVendor Submit Process Call Ended");
         }
 
         public static void SubmitBundledBatches(string pvCode)
