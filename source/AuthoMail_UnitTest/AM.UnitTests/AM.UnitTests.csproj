@@ -38,6 +38,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AM.Entities">
+      <HintPath>..\..\AuthoMail\AM.Web\bin\AM.Entities.dll</HintPath>
+    </Reference>
+    <Reference Include="AM.Lib">
+      <HintPath>..\..\AuthoMail\AM.Web\bin\AM.Lib.dll</HintPath>
+    </Reference>
+    <Reference Include="AM.Services">
+      <HintPath>..\..\AuthoMail\AM.Web\bin\AM.Services.dll</HintPath>
+    </Reference>
+    <Reference Include="AM.USPSLib">
+      <HintPath>..\..\AuthoMail\AM.Web\bin\AM.USPSLib.dll</HintPath>
+    </Reference>
     <Reference Include="ExcelReader">
       <HintPath>..\..\..\..\..\Projects\USPSADDTEST\Excel Reader\ExcelReader\ExcelReader\bin\Debug\ExcelReader.dll</HintPath>
     </Reference>
@@ -95,24 +107,6 @@
     <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="USPSUnitTest.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AM.Entities\AM.Entities.csproj">
-      <Project>{f25362e2-a823-430e-8187-3bca3fd4c891}</Project>
-      <Name>AM.Entities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\AM.Lib\AM.Lib.csproj">
-      <Project>{75996573-6449-4675-a5ff-f1c39c84d685}</Project>
-      <Name>AM.Lib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\AM.Services\AM.Services.csproj">
-      <Project>{a60d6e77-74fc-419c-bf13-a7684012d0a5}</Project>
-      <Name>AM.Services</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\AM.USPSLib\AM.USPSLib.csproj">
-      <Project>{c221d27e-c501-4838-b58f-d06c97e07923}</Project>
-      <Name>AM.USPSLib</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
