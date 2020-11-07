@@ -72,278 +72,309 @@ namespace AuthoMailAPI_UnitTest
         #endregion
 
         #region ValidScenarios
-        //[TestMethod]
-        //public async Task AM_SinglePdfValid()
-        //{
-        //    var files = new List<string>();
-        //    files.Add(@"PdfSample\encryptedsample1newkey.pdf");
-        //    MailPiece mailPiece = new MailPiece()
-        //    {
-        //        Id = mpId,
-        //        ClientCode = "AMAPITEST",
-        //        BusinessFriendlyIdName = "Loan Number",
-        //        BusinessFriendlyIdValue = "123456789",
-        //        DocumentOrPackageType = "Initial Disclosures",
-        //        DocumentOrPackage = new DocumentOrPackage()
-        //        {
-        //            Files = new List<string> { "F1" }
-        //        },
-        //        RecipientInfo = new RecipientInfo()
-        //        {
-        //            Recipient = new Recipient()
-        //            {
-        //                FirstName = "Mark",
-        //                LastName = "Varney"
-        //            },
-        //            Address = new Address()
-        //            {
-        //                Street = "1363 Henery Street",
-        //                City = "Wichita",
-        //                State = "KS",
-        //                Zip = "67203"
-        //            }
-        //        },
-        //        ReturnInfo = new ReturnInfo()
-        //        {
-        //            Recipient = new Recipient()
-        //            {
-        //                FirstName = "Mark",
-        //                LastName = "Varney"
-        //            },
-        //            Address = new Address()
-        //            {
-        //                Street = "1363 Henery Street",
-        //                City = "Wichita",
-        //                State = "KS",
-        //                Zip = "67203"
-        //            }
-        //        }
+        [TestMethod]
+        public async Task AM_SinglePdfValid()
+        {
+            var files = new List<string>();
+            if (ConfigurationManager.AppSettings["TokenURL"] == "https://authomail.corelogic.com/token")
+            {
+                files.Add(@"PdfSample\encrypetedFile2pub.pdf");
+            }
+            else
+            {
+                files.Add(@"PdfSample\encryptedsample1newkey.pdf");
+            }
+            MailPiece mailPiece = new MailPiece()
+            {
+                Id = mpId,
+                ClientCode = "AMAPITEST",
+                BusinessFriendlyIdName = "Loan Number",
+                BusinessFriendlyIdValue = "123456789",
+                DocumentOrPackageType = "Initial Disclosures",
+                DocumentOrPackage = new DocumentOrPackage()
+                {
+                    Files = new List<string> { "F1" }
+                },
+                RecipientInfo = new RecipientInfo()
+                {
+                    Recipient = new Recipient()
+                    {
+                        FirstName = "Mark",
+                        LastName = "Varney"
+                    },
+                    Address = new Address()
+                    {
+                        Street = "1363 Henery Street",
+                        City = "Wichita",
+                        State = "KS",
+                        Zip = "67203"
+                    }
+                },
+                ReturnInfo = new ReturnInfo()
+                {
+                    Recipient = new Recipient()
+                    {
+                        FirstName = "Mark",
+                        LastName = "Varney"
+                    },
+                    Address = new Address()
+                    {
+                        Street = "1363 Henery Street",
+                        City = "Wichita",
+                        State = "KS",
+                        Zip = "67203"
+                    }
+                }
 
-        //    };
-        //    var response = await GenerateLocalResponse(files, mailPiece);
-        //    Assert.AreEqual(mailPiece.Id, response.Id);
-        //    Assert.AreEqual("Your request is queued for processing.", response.Message);
-        //    Assert.AreEqual("Acknowledgement", response.MailingStatus);
-        //}
+            };
+            var response = await GenerateLocalResponse(files, mailPiece);
+            Assert.AreEqual(mailPiece.Id, response.Id);
+            Assert.AreEqual("Your request is queued for processing.", response.Message);
+            Assert.AreEqual("Acknowledgement", response.MailingStatus);
+        }
 
-        //[TestMethod]
-        //public async Task AM_TwoPdfValid()
-        //{
-        //    var files = new List<string>();
-        //    files.Add(@"PdfSample\encryptedsample1newkey.pdf");
-        //    files.Add(@"PdfSample\encryptedsample1newkey.pdf");
-        //    MailPiece mailPiece = new MailPiece()
-        //    {
-        //        Id = Guid.NewGuid(),
-        //        ClientCode = "AMAPITEST",
-        //        BusinessFriendlyIdName = "Loan Number",
-        //        BusinessFriendlyIdValue = "123456789",
-        //        DocumentOrPackageType = "Initial Disclosures",
-        //        DocumentOrPackage = new DocumentOrPackage()
-        //        {
-        //            Files = new List<string> { "F1", "F2" }
-        //        },
-        //        RecipientInfo = new RecipientInfo()
-        //        {
-        //            Recipient = new Recipient()
-        //            {
-        //                FirstName = "Mark",
-        //                LastName = "Varney"
-        //            },
-        //            Address = new Address()
-        //            {
-        //                Street = "1363 Henery Street",
-        //                City = "Wichita",
-        //                State = "KS",
-        //                Zip = "67203"
-        //            }
-        //        },
-        //        ReturnInfo = new ReturnInfo()
-        //        {
-        //            Recipient = new Recipient()
-        //            {
-        //                FirstName = "Mark",
-        //                LastName = "Varney"
-        //            },
-        //            Address = new Address()
-        //            {
-        //                Street = "1363 Henery Street",
-        //                City = "Wichita",
-        //                State = "KS",
-        //                Zip = "67203"
-        //            }
-        //        }
+        [TestMethod]
+        public async Task AM_TwoPdfValid()
+        {
+            var files = new List<string>();
+            if (ConfigurationManager.AppSettings["TokenURL"] == "https://authomail.corelogic.com/token")
+            {
+                files.Add(@"PdfSample\encrypetedFile2pub.pdf");
+                files.Add(@"PdfSample\encrypetedFile2pub.pdf");
+            }
+            else
+            {
+                files.Add(@"PdfSample\encryptedsample1newkey.pdf");
+                files.Add(@"PdfSample\encryptedsample1newkey.pdf");
+            }
+            MailPiece mailPiece = new MailPiece()
+            {
+                Id = Guid.NewGuid(),
+                ClientCode = "AMAPITEST",
+                BusinessFriendlyIdName = "Loan Number",
+                BusinessFriendlyIdValue = "123456789",
+                DocumentOrPackageType = "Initial Disclosures",
+                DocumentOrPackage = new DocumentOrPackage()
+                {
+                    Files = new List<string> { "F1", "F2" }
+                },
+                RecipientInfo = new RecipientInfo()
+                {
+                    Recipient = new Recipient()
+                    {
+                        FirstName = "Mark",
+                        LastName = "Varney"
+                    },
+                    Address = new Address()
+                    {
+                        Street = "1363 Henery Street",
+                        City = "Wichita",
+                        State = "KS",
+                        Zip = "67203"
+                    }
+                },
+                ReturnInfo = new ReturnInfo()
+                {
+                    Recipient = new Recipient()
+                    {
+                        FirstName = "Mark",
+                        LastName = "Varney"
+                    },
+                    Address = new Address()
+                    {
+                        Street = "1363 Henery Street",
+                        City = "Wichita",
+                        State = "KS",
+                        Zip = "67203"
+                    }
+                }
 
-        //    };
-        //    var response = await GenerateLocalResponse(files, mailPiece);
-        //    Assert.AreEqual(mailPiece.Id, response.Id);
-        //    Assert.AreEqual("Your request is queued for processing.", response.Message);
-        //    Assert.AreEqual("Acknowledgement", response.MailingStatus);
-        //}
+            };
+            var response = await GenerateLocalResponse(files, mailPiece);
+            Assert.AreEqual(mailPiece.Id, response.Id);
+            Assert.AreEqual("Your request is queued for processing.", response.Message);
+            Assert.AreEqual("Acknowledgement", response.MailingStatus);
+        }
 
-        //[TestMethod]
-        //public async Task AM_ThreePdfValid()
-        //{
-        //    var files = new List<string>();
-        //    files.Add(@"PdfSample\encryptedsample1newkey.pdf");
-        //    files.Add(@"PdfSample\encryptedsample1newkey.pdf");
-        //    files.Add(@"PdfSample\encryptedsample1newkey.pdf");
-        //    MailPiece mailPiece = new MailPiece()
-        //    {
-        //        Id = Guid.NewGuid(),
-        //        ClientCode = "AMAPITEST",
-        //        BusinessFriendlyIdName = "Loan Number",
-        //        BusinessFriendlyIdValue = "123456789",
-        //        DocumentOrPackageType = "Initial Disclosures",
-        //        DocumentOrPackage = new DocumentOrPackage()
-        //        {
-        //            Files = new List<string> { "F1", "F2", "F3" }
-        //        },
-        //        RecipientInfo = new RecipientInfo()
-        //        {
-        //            Recipient = new Recipient()
-        //            {
-        //                FirstName = "Mark",
-        //                LastName = "Varney"
-        //            },
-        //            Address = new Address()
-        //            {
-        //                Street = "1363 Henery Street",
-        //                City = "Wichita",
-        //                State = "KS",
-        //                Zip = "67203"
-        //            }
-        //        },
-        //        ReturnInfo = new ReturnInfo()
-        //        {
-        //            Recipient = new Recipient()
-        //            {
-        //                FirstName = "Mark",
-        //                LastName = "Varney"
-        //            },
-        //            Address = new Address()
-        //            {
-        //                Street = "1363 Henery Street",
-        //                City = "Wichita",
-        //                State = "KS",
-        //                Zip = "67203"
-        //            }
-        //        }
+        [TestMethod]
+        public async Task AM_ThreePdfValid()
+        {
+            var files = new List<string>();
+            if (ConfigurationManager.AppSettings["TokenURL"] == "https://authomail.corelogic.com/token")
+            {
+                files.Add(@"PdfSample\encrypetedFile2pub.pdf");
+                files.Add(@"PdfSample\encrypetedFile2pub.pdf");
+                files.Add(@"PdfSample\encrypetedFile2pub.pdf");
+            }
+            else
+            {
+                files.Add(@"PdfSample\encryptedsample1newkey.pdf");
+                files.Add(@"PdfSample\encryptedsample1newkey.pdf");
+                files.Add(@"PdfSample\encryptedsample1newkey.pdf");
+            }
+            MailPiece mailPiece = new MailPiece()
+            {
+                Id = Guid.NewGuid(),
+                ClientCode = "AMAPITEST",
+                BusinessFriendlyIdName = "Loan Number",
+                BusinessFriendlyIdValue = "123456789",
+                DocumentOrPackageType = "Initial Disclosures",
+                DocumentOrPackage = new DocumentOrPackage()
+                {
+                    Files = new List<string> { "F1", "F2", "F3" }
+                },
+                RecipientInfo = new RecipientInfo()
+                {
+                    Recipient = new Recipient()
+                    {
+                        FirstName = "Mark",
+                        LastName = "Varney"
+                    },
+                    Address = new Address()
+                    {
+                        Street = "1363 Henery Street",
+                        City = "Wichita",
+                        State = "KS",
+                        Zip = "67203"
+                    }
+                },
+                ReturnInfo = new ReturnInfo()
+                {
+                    Recipient = new Recipient()
+                    {
+                        FirstName = "Mark",
+                        LastName = "Varney"
+                    },
+                    Address = new Address()
+                    {
+                        Street = "1363 Henery Street",
+                        City = "Wichita",
+                        State = "KS",
+                        Zip = "67203"
+                    }
+                }
 
-        //    };
-        //    var response = await GenerateLocalResponse(files, mailPiece);
-        //    Assert.AreEqual(mailPiece.Id, response.Id);
-        //    Assert.AreEqual("Your request is queued for processing.", response.Message);
-        //    Assert.AreEqual("Acknowledgement", response.MailingStatus);
-        //}
+            };
+            var response = await GenerateLocalResponse(files, mailPiece);
+            Assert.AreEqual(mailPiece.Id, response.Id);
+            Assert.AreEqual("Your request is queued for processing.", response.Message);
+            Assert.AreEqual("Acknowledgement", response.MailingStatus);
+        }
 
-        //[TestMethod]
-        //public async Task AM_PdfInsertsValid()
-        //{
-        //    var files = new List<string>();
-        //    files.Add(@"PdfSample\encryptedsample1newkey.pdf");
-        //    MailPiece mailPiece = new MailPiece()
-        //    {
-        //        Id = Guid.NewGuid(),
-        //        ClientCode = "AMAPITEST",
-        //        BusinessFriendlyIdName = "Loan Number",
-        //        BusinessFriendlyIdValue = "123456789",
-        //        DocumentOrPackageType = "Initial Disclosures",
-        //        DocumentOrPackage = new DocumentOrPackage()
-        //        {
-        //            Files = new List<string> { "F1" },
-        //            Inserts = "TEST_BRE"
-        //        },
-        //        RecipientInfo = new RecipientInfo()
-        //        {
-        //            Recipient = new Recipient()
-        //            {
-        //                FirstName = "Mark",
-        //                LastName = "Varney"
-        //            },
-        //            Address = new Address()
-        //            {
-        //                Street = "1363 Henery Street",
-        //                City = "Wichita",
-        //                State = "KS",
-        //                Zip = "67203"
-        //            }
-        //        },
-        //        ReturnInfo = new ReturnInfo()
-        //        {
-        //            Recipient = new Recipient()
-        //            {
-        //                FirstName = "Mark",
-        //                LastName = "Varney"
-        //            },
-        //            Address = new Address()
-        //            {
-        //                Street = "1363 Henery Street",
-        //                City = "Wichita",
-        //                State = "KS",
-        //                Zip = "67203"
-        //            }
-        //        }
+        [TestMethod]
+        public async Task AM_PdfInsertsValid()
+        {
+            var files = new List<string>();
+            if (ConfigurationManager.AppSettings["TokenURL"] == "https://authomail.corelogic.com/token")
+            {
+                files.Add(@"PdfSample\encrypetedFile2pub.pdf");
+            }
+            else
+            {
+                files.Add(@"PdfSample\encryptedsample1newkey.pdf");
+            }
+            MailPiece mailPiece = new MailPiece()
+            {
+                Id = Guid.NewGuid(),
+                ClientCode = "AMAPITEST",
+                BusinessFriendlyIdName = "Loan Number",
+                BusinessFriendlyIdValue = "123456789",
+                DocumentOrPackageType = "Initial Disclosures",
+                DocumentOrPackage = new DocumentOrPackage()
+                {
+                    Files = new List<string> { "F1" },
+                    Inserts = "TEST_BRE"
+                },
+                RecipientInfo = new RecipientInfo()
+                {
+                    Recipient = new Recipient()
+                    {
+                        FirstName = "Mark",
+                        LastName = "Varney"
+                    },
+                    Address = new Address()
+                    {
+                        Street = "1363 Henery Street",
+                        City = "Wichita",
+                        State = "KS",
+                        Zip = "67203"
+                    }
+                },
+                ReturnInfo = new ReturnInfo()
+                {
+                    Recipient = new Recipient()
+                    {
+                        FirstName = "Mark",
+                        LastName = "Varney"
+                    },
+                    Address = new Address()
+                    {
+                        Street = "1363 Henery Street",
+                        City = "Wichita",
+                        State = "KS",
+                        Zip = "67203"
+                    }
+                }
 
-        //    };
-        //    var response = await GenerateLocalResponse(files, mailPiece);
-        //    Assert.AreEqual(mailPiece.Id, response.Id);
-        //    Assert.AreEqual("Your request is queued for processing.", response.Message);
-        //    Assert.AreEqual("Acknowledgement", response.MailingStatus);
-        //}
+            };
+            var response = await GenerateLocalResponse(files, mailPiece);
+            Assert.AreEqual(mailPiece.Id, response.Id);
+            Assert.AreEqual("Your request is queued for processing.", response.Message);
+            Assert.AreEqual("Acknowledgement", response.MailingStatus);
+        }
 
-        //[TestMethod]
-        //public async Task AM_InsertsOnlyValid()
-        //{
-        //    var files = new List<string>();
-        //    MailPiece mailPiece = new MailPiece()
-        //    {
-        //        Id = Guid.NewGuid(),
-        //        ClientCode = "AMAPITEST",
-        //        BusinessFriendlyIdName = "Loan Number",
-        //        BusinessFriendlyIdValue = "123456789",
-        //        DocumentOrPackageType = "Initial Disclosures",
-        //        DocumentOrPackage = new DocumentOrPackage()
-        //        {
-        //            Inserts = "TEST_BRE"
-        //        },
-        //        RecipientInfo = new RecipientInfo()
-        //        {
-        //            Recipient = new Recipient()
-        //            {
-        //                FirstName = "Mark",
-        //                LastName = "Varney"
-        //            },
-        //            Address = new Address()
-        //            {
-        //                Street = "1363 Henery Street",
-        //                City = "Wichita",
-        //                State = "KS",
-        //                Zip = "67203"
-        //            }
-        //        },
-        //        ReturnInfo = new ReturnInfo()
-        //        {
-        //            Recipient = new Recipient()
-        //            {
-        //                FirstName = "Mark",
-        //                LastName = "Varney"
-        //            },
-        //            Address = new Address()
-        //            {
-        //                Street = "1363 Henery Street",
-        //                City = "Wichita",
-        //                State = "KS",
-        //                Zip = "67203"
-        //            }
-        //        }
+        [TestMethod]
+        public async Task AM_InsertsOnlyValid()
+        {
+            var files = new List<string>();
+            MailPiece mailPiece = new MailPiece()
+            {
+                Id = Guid.NewGuid(),
+                ClientCode = "AMAPITEST",
+                BusinessFriendlyIdName = "Loan Number",
+                BusinessFriendlyIdValue = "123456789",
+                DocumentOrPackageType = "Initial Disclosures",
+                DocumentOrPackage = new DocumentOrPackage()
+                {
+                    Inserts = "TEST_BRE"
+                },
+                RecipientInfo = new RecipientInfo()
+                {
+                    Recipient = new Recipient()
+                    {
+                        FirstName = "Mark",
+                        LastName = "Varney"
+                    },
+                    Address = new Address()
+                    {
+                        Street = "1363 Henery Street",
+                        City = "Wichita",
+                        State = "KS",
+                        Zip = "67203"
+                    }
+                },
+                ReturnInfo = new ReturnInfo()
+                {
+                    Recipient = new Recipient()
+                    {
+                        FirstName = "Mark",
+                        LastName = "Varney"
+                    },
+                    Address = new Address()
+                    {
+                        Street = "1363 Henery Street",
+                        City = "Wichita",
+                        State = "KS",
+                        Zip = "67203"
+                    }
+                }
 
-        //    };
-        //    var response = await GenerateLocalResponse(files, mailPiece);
-        //    Assert.AreEqual(mailPiece.Id, response.Id);
-        //    Assert.AreEqual("Your request is queued for processing.", response.Message);
-        //    Assert.AreEqual("Acknowledgement", response.MailingStatus);
-        //}
+            };
+            var response = await GenerateLocalResponse(files, mailPiece);
+            Assert.AreEqual(mailPiece.Id, response.Id);
+            Assert.AreEqual("Your request is queued for processing.", response.Message);
+            Assert.AreEqual("Acknowledgement", response.MailingStatus);
+        }
 
         #endregion
 
@@ -466,9 +497,9 @@ namespace AuthoMailAPI_UnitTest
                 //setup login data
                 var formContent = new FormUrlEncodedContent(new[]
                 {
-                    new KeyValuePair<string, string>("grant_type", "password"),       
-                    new KeyValuePair<string, string>("username", ConfigurationManager.AppSettings["Uname"]), 
-                    new KeyValuePair<string, string>("password", ConfigurationManager.AppSettings["Password"]) 
+                    new KeyValuePair<string, string>("grant_type", "password"),
+                    new KeyValuePair<string, string>("username", ConfigurationManager.AppSettings["Uname"]),
+                    new KeyValuePair<string, string>("password", ConfigurationManager.AppSettings["Password"])
                 });
 
                 //send request
@@ -557,8 +588,8 @@ namespace AuthoMailAPI_UnitTest
                 //setup login data
                 var formContent = new FormUrlEncodedContent(new[]
                 {
-                    new KeyValuePair<string, string>("grant_type", "password"),       
-                    new KeyValuePair<string, string>("username", ConfigurationManager.AppSettings["Uname"]), 
+                    new KeyValuePair<string, string>("grant_type", "password"),
+                    new KeyValuePair<string, string>("username", ConfigurationManager.AppSettings["Uname"]),
                     new KeyValuePair<string, string>("password", ConfigurationManager.AppSettings["Password"])
                 });
 
@@ -651,7 +682,7 @@ namespace AuthoMailAPI_UnitTest
                 //setup login data
                 var formContent = new FormUrlEncodedContent(new[]
                 {
-                    new KeyValuePair<string, string>("grant_type", "password"),       
+                    new KeyValuePair<string, string>("grant_type", "password"),
                     new KeyValuePair<string, string>("username", ConfigurationManager.AppSettings["Uname"]),
                     new KeyValuePair<string, string>("password", ConfigurationManager.AppSettings["Password"])
                 });
@@ -1843,7 +1874,7 @@ namespace AuthoMailAPI_UnitTest
                 },
                 eDelivery = new eDelivery()
                 {
-                    ExpiryDate = DateTime.Now
+                    ExpiryDate = DateTime.Now.AddDays(1)
                 }
 
             };
@@ -3044,8 +3075,8 @@ namespace AuthoMailAPI_UnitTest
                 //setup login data
                 var formContent = new FormUrlEncodedContent(new[]
                 {
-                    new KeyValuePair<string, string>("grant_type", "password"),       
-                    new KeyValuePair<string, string>("username", ConfigurationManager.AppSettings["Uname"]), 
+                    new KeyValuePair<string, string>("grant_type", "password"),
+                    new KeyValuePair<string, string>("username", ConfigurationManager.AppSettings["Uname"]),
                     new KeyValuePair<string, string>("password", ConfigurationManager.AppSettings["Password"])
                 });
 
@@ -3084,8 +3115,8 @@ namespace AuthoMailAPI_UnitTest
                 //setup login data
                 var formContent = new FormUrlEncodedContent(new[]
                 {
-                    new KeyValuePair<string, string>("grant_type", "password"),       
-                    new KeyValuePair<string, string>("username", ConfigurationManager.AppSettings["Uname"]), 
+                    new KeyValuePair<string, string>("grant_type", "password"),
+                    new KeyValuePair<string, string>("username", ConfigurationManager.AppSettings["Uname"]),
                     new KeyValuePair<string, string>("password", ConfigurationManager.AppSettings["Password"])
                 });
 
