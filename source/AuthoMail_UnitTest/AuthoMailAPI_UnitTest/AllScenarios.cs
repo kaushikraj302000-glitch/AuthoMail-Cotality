@@ -11,6 +11,9 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Threading;
 using System.Configuration;
+using System.Data.Common;
+using System.Runtime.CompilerServices;
+using Dapper;
 
 namespace AuthoMailAPI_UnitTest
 {
@@ -86,7 +89,7 @@ namespace AuthoMailAPI_UnitTest
             }
             MailPiece mailPiece = new MailPiece()
             {
-                Id = mpId,
+                Id = Guid.Parse("00232F45-5C55-4AE2-8E73-32718928F66D"),//Guid.NewGuid(),mpId,
                 ClientCode = "AMAPITEST",
                 BusinessFriendlyIdName = "Loan Number",
                 BusinessFriendlyIdValue = "123456789",
@@ -127,10 +130,42 @@ namespace AuthoMailAPI_UnitTest
                 }
 
             };
-            var response = await GenerateLocalResponse(files, mailPiece);
-            Assert.AreEqual(mailPiece.Id, response.Id);
-            Assert.AreEqual("Your request is queued for processing.", response.Message);
-            Assert.AreEqual("Acknowledgement", response.MailingStatus);
+
+            dynamic expectedValues = new JObject();
+
+            expectedValues.ShippingCarrier = "USPS";
+            expectedValues.PrintFormat = "Simplex";
+            expectedValues.IsBRE = false;
+            expectedValues.PrintLocation = "Las Vegas";
+
+            expectedValues.QCPercent = 0;
+            expectedValues.TotalPages = 8;
+            expectedValues.PrintTrailName = "GENERIC_PRIEXP";
+            //this is not in view
+            expectedValues.VendorName = "Nordis Technologies";
+            //this is not in view
+            expectedValues.EnvelopeName = "TEST_USPS_PRIEXP";
+            //expectedValues.SweepTime = "";
+            //this is not in view
+            expectedValues.PdfFileSize = 70;
+            expectedValues.ShippingStatus = "Shipped";
+            expectedValues.IsPulledBack = 0;
+            expectedValues.IsQCPerformed = false;
+            expectedValues.ErrCode = "No_Error";
+
+            SetDefaultExpectedValuesJson(expectedValues, mailPiece, files);
+
+            bool isRegistered = RegisterTestCase(mailPiece.Id.ToString(), expectedValues.ToString(), this.GetMethodName());
+
+            Assert.AreEqual(true, isRegistered);
+
+            if (isRegistered)
+            {
+                var response = await GenerateLocalResponse(files, mailPiece);
+                Assert.AreEqual(mailPiece.Id, response.Id);
+                Assert.AreEqual("Your request is queued for processing.", response.Message);
+                Assert.AreEqual("Acknowledgement", response.MailingStatus);
+            }
         }
 
         [TestMethod]
@@ -3133,6 +3168,90 @@ namespace AuthoMailAPI_UnitTest
                 return JsonConvert.DeserializeObject<List<MailAPIResponse>>(sd);
 
             }
+        }
+
+        private void SetDefaultExpectedValuesJson(dynamic expectedValues, MailPiece mailPiece, List<string> files)
+        {
+            expectedValues.DocTypeName = mailPiece.DocumentOrPackageType;
+            expectedValues.RcptAddressCity = mailPiece.RecipientInfo.Address.City;
+            expectedValues.RcptAddressState = mailPiece.RecipientInfo.Address.State;
+            expectedValues.RcptAddressZIP = mailPiece.RecipientInfo.Address.Zip;
+            //todo db view does not configured
+            expectedValues.Inserts = mailPiece.DocumentOrPackage.Inserts;
+
+            #region PDFCount Check
+            //todo this will going to static value for pdf page count
+            //int pagecount = 0;
+            //if (files.Count > 0)
+            //{
+            //    foreach (var f in mailPiece.DocumentOrPackage.Files)
+            //    {
+            //        int index = int.Parse(f.Replace("F", "")) - 1;
+            //        if (index < files.Count)
+            //        {
+            //            var file = files[index];
+
+            //            pagecount += GetPageCount(file);
+            //        }
+            //    }
+            //}
+
+            //expectedValues.TotalPages = pagecount;
+            #endregion
+
+            expectedValues.TotalSheets = expectedValues.TotalPages;
+
+            if (expectedValues.PrintFormat == "Duplex")
+            {
+                int pagecount = int.Parse(expectedValues.TotalPages.ToString());
+
+                expectedValues.TotalSheets = (int)(pagecount / 2) + (int)(pagecount % 2);
+            }
+        }
+
+        public bool RegisterTestCase(string mailPieceId, string expectedValuesJson, string methodName = "")
+        {
+            try
+            {
+                using (var ldb = CreateDbConnection())
+                {
+                    ldb.Execute("Insert Into APITestResult (MailPieceId, TestCaseName, ExpectedResult, CreatedTime) Values (:MailPieceId, :TestCaseName, :ExpectedResult, :CreatedTime)", new { MailPieceId = mailPieceId, TestCaseName = methodName, ExpectedResult = expectedValuesJson, CreatedTime = DateTime.Now.ToString() });
+                }
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
+        private string GetMethodName([CallerMemberName] string callerName = "")
+        {
+            return callerName;
+        }
+
+        //public static int GetPageCount(string filePath)
+        //{
+        //    using (PdfReader reader = new PdfReader(filePath))
+        //    {
+        //        return reader.NumberOfPages;
+        //    }
+        //}
+
+        private static DbConnection CreateDbConnection(string connectionStringName = "AMTesting")
+        {
+            var cs = ConfigurationManager.ConnectionStrings[connectionStringName];
+
+            if (cs == null)
+            {
+                throw new ArgumentException("Connection string with name '{0}' does not exist.", connectionStringName);
+            }
+
+            var factory = DbProviderFactories.GetFactory(cs.ProviderName);
+            var connection = factory.CreateConnection();
+            connection.ConnectionString = cs.ConnectionString;
+            return connection;
         }
     }
 }
