@@ -68,7 +68,7 @@ namespace AM.Web.Controllers
 
                 string xml = XmlUtil.Serialize(mailBatch);
 
-                using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.OpenOrCreate))
+                using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.Create))
                 {
                     using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
                     {
@@ -129,6 +129,9 @@ bufferSize: 4096, useAsync: true)) { }
             Stopwatch sw = new Stopwatch();
             sw.Start();
             var requestSize = Request.Content.Headers.ContentLength.Value;
+            // Logging Request Size just to confirm actual value
+            //log.DebugFormat("Files Downloaded: {0}", sw.Elapsed.TotalSeconds);
+            log.DebugFormat("RequestSizeByte: {0}, RequestSizeKB: {1}",requestSize, requestSize / 1024f);
             var mailPiece = new MailPiece();
             bool isCLPackageId = false;
             string[] manifest = new string[] { };
@@ -166,7 +169,9 @@ bufferSize: 4096, useAsync: true)) { }
                     var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_MailPieceId, ErrorMessage = msg }, receivedOn);
                     return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                 }
-                
+
+                // Logging Request Size with MailPieceId just to confirm actual value
+                log.DebugFormat("MailPieceId: {0}, RequestSizeByte: {1}, RequestSizeKB: {2}",mpId, requestSize, requestSize / 1024f);
                 addPackageResult = await pnsApiSvc.AddPackage(mpId, User.Identity.GetClientId().Value, receivedOn, requestSize / 1024f);
                 HttpStatusCode httpStatusCode = (HttpStatusCode)addPackageResult.HTTPStatusCode;
 
@@ -251,7 +256,7 @@ bufferSize: 4096, useAsync: true)) { }
                         await pnsApiSvc.UpdatePackageStatus(requestLog);
                         mailPiece.Id = mpId;
                         var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.NotAcceptable, ErrorMessage = msg }, receivedOn);
-                        return Request.CreateResponse(HttpStatusCode.NotAcceptable, res); 
+                        return Request.CreateResponse(HttpStatusCode.NotAcceptable, res);
                     }
                     else
                     {
@@ -425,7 +430,7 @@ bufferSize: 4096, useAsync: true)) { }
                     using (var doc = new Document())
                     using (var copy = new PdfSmartCopy(doc, ds))
                     {
-                        
+
                         // This is done to open and merge (Secured) PDFs which allow printing but not copying or merging
                         PdfReader.unethicalreading = true;
                         //Loop through each input file                        
@@ -562,7 +567,7 @@ bufferSize: 4096, useAsync: true)) { }
                     return Request.CreateResponse(response.StatusCode, mailResponse);
                 }
 
-            }            
+            }
             catch (Exception e)
             {
                 var traceId = Guid.NewGuid();
@@ -716,7 +721,7 @@ bufferSize: 4096, useAsync: true)) { }
 
             foreach (var mailPieceId in uniqueIds)
             {
-                if (Guid.TryParse(mailPieceId,out var mpId))
+                if (Guid.TryParse(mailPieceId, out var mpId))
                 {
                     using (IGeneralService generalSvc = new GeneralService())
                     {
@@ -724,7 +729,7 @@ bufferSize: 4096, useAsync: true)) { }
                         var response = generalSvc.GenerateMailAPIResponse(mailPieceId);
                         //mailAPIResponses.Add(JsonConvert.DeserializeObject<MailAPIResponse>(deliveryReport));
                         mailAPIResponses.Add(response);
-                    } 
+                    }
                 }
                 else
                 {

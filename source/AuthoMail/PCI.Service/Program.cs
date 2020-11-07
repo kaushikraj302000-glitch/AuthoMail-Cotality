@@ -44,6 +44,7 @@ namespace PCI.Service
 
             try
             {
+                log.Info($"{string.Join(",",args)} started.");
                 Common.PCIRootFolder.IsNullOrEmpty();
                 switch (args[0])
                 {
@@ -61,18 +62,24 @@ namespace PCI.Service
                     case "PCIJob":
                         List<string> ptNames;
                         var isBundle = args.Length > 3 ? true : false;
+                        log.Info("PCIJob Started");
                         if (isBundle)
                         {
+                            log.Info("PCIJob isBundle True..Started Submitting..");
                             //NOTE : Total 4 arguments will be passed for bundling PCIJob PrintVendorCode Bundle [PrintTrailNames]
                             ptNames = args[3].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
                             PCIJobMonitor.SubmitBatchToPrintVendor(args[1], isBundle, ptNames);
+                            log.Info("PCIJob isBundle True..Completed Submitting..");
                         }
                         else
                         {
+                            log.Info("PCIJob isBundle False..Started Submitting..");
                             //NOTE : Total 3 arguments will be passed for regular flow PCIJob PrintVendorCode [PrintTrailNames]
                             ptNames = args[2].Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
                             PCIJobMonitor.SubmitBatchToPrintVendor(args[1], isBundle, ptNames);
+                            log.Info("PCIJob isBundle False..Completed Submitting..");
                         }
+                        log.Info("PCIJob Completed");
                         break;
                     case "DownloadPrinterReport":
                         PCIJobMonitor.GetPrintVendorResponse(args.Length > 1 ? args[1] : "");
@@ -81,6 +88,7 @@ namespace PCI.Service
                     default:
                         break;
                 }
+                log.Info($"{string.Join(",", args)} completed.");
             }
             catch (Exception ex)
             {
