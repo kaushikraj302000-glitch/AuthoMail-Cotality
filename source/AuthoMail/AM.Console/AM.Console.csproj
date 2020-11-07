@@ -145,6 +145,12 @@
     <None Include="CustomTemplates\CAPONE\2845768_REP.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="CustomTemplates\HOMEPOINTCORP\Generic_NS.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CustomTemplates\HOMEPOINTCORP\Generic_REP.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CustomTemplates\MTBANK\2813735_NS.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

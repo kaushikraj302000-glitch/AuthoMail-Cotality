@@ -99,6 +99,9 @@
     <None Include="CoverTemplates\BOTW\BOTW_USPS_#10_6X95.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="CoverTemplates\HOMEPOINTCORP\CAPONE_USPS_#10_6X95.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CoverTemplates\CAPONE\CAPONE_USPS_#10_6X95.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
