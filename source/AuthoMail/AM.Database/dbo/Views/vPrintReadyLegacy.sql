@@ -10,7 +10,7 @@ select
 ,c.AppCode as ClientCode
 ,'CL_PRINT_READY' as ChannelCode
 ,D.DocTypeName AS DocTypeCode
-,PrintFormat
+,D.PrintFormat
 ,PrintSize
 ,EnvelopeId as EnvPartNo
 ,IsBRE
@@ -65,7 +65,7 @@ select
 ,c.AppCode as ClientCode
 ,'CL_PRINT_READY' as ChannelCode
 ,D.DocTypeName AS DocTypeCode
-,PrintFormat
+,D.PrintFormat
 ,PrintSize
 ,EnvelopeId as EnvPartNo
 ,IsBRE

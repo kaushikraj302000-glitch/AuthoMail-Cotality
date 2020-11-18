@@ -35,7 +35,7 @@ BEGIN
    SELECT REQ.*,MP.Id AS MailPieceId,MP.EffectiveReceivedOnEst, BS.ClientId,BS.DocTypeId,PCD.ShippingCarrier,
   PCD.ShippingServiceType,C.AppCode,CASE WHEN C.Alias IS NULL OR C.Alias='' THEN C.AppCode ELSE C.Alias END AS Alias,MP.DueDate AS MailPieceDueDate,PCD.EnvelopeId
   ,d.BREEnvelopeId,E.EnvelopeName,CASE WHEN BE.EnvelopeName IS NULL THEN MP.Inserts ELSE CASE WHEN MP.Inserts IS NULL OR MP.Inserts='' THEN BE.EnvelopeName ELSE BE.EnvelopeName+','+MP.Inserts END END AS BREEnvelopeName
-  ,E.PartNumber AS EnvelopePartNo,BE.PartNumber AS BREPartNo,E.EnvelopeName AS EnvelopeDesc,BE.EnvelopeName AS BREDesc,PCD.PrintFormat
+  ,E.PartNumber AS EnvelopePartNo,BE.PartNumber AS BREPartNo,E.EnvelopeName AS EnvelopeDesc,BE.EnvelopeName AS BREDesc,d.PrintFormat
   ,PCD.PrintSize,E.EnvelopeDesc AS PackageCode,(SELECT [Value] FROM AM.MailPieceCustomInfo MPC WHERE MPC.[Key]='CustomerId' AND MPC.MailPieceId=MP.Id) AS CustomerId
   ,CAST((CASE WHEN LEN(LTRIM(RTRIM(MP.RcptAddressCountry))) >0 THEN 1 ELSE 0 END )AS BIT) AS IsForeignAddress,MP.ShipperId, MP.Inserts,MP.IsPullBackRequested
   ,PC.DocumentCode

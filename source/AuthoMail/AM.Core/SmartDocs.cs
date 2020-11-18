@@ -272,11 +272,12 @@ namespace AM.Core
             #endregion
         }
 
-        public SmartDocResponse GenerateDoc(List<string> coverLetterPDFPaths, string pdfAttachmentPath, string outputDocumentPath, float contentScalePercent, int noOfCopies, List<string> endPagePDFPaths = null)
+        public SmartDocResponse GenerateDoc(List<string> coverLetterPDFPaths, string pdfAttachmentPath, string outputDocumentPath, float contentScalePercent, int noOfCopies, string printFormat, List<string> endPagePDFPaths = null)
         {
             List<string> mergePdfCollection = new List<string>();
             SmartDocResponse response = new SmartDocResponse();
 
+            string blankPdfPath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Common_BlankPage);
             string outputDirPath = Path.GetDirectoryName(outputDocumentPath);
             string flattenPDFPath = Path.Combine(outputDirPath, "Flatten_" + Path.GetFileName(pdfAttachmentPath));
             string shrinkPDFPath = Path.Combine(outputDirPath, "Shrinked_" + Path.GetFileName(pdfAttachmentPath));
@@ -299,25 +300,27 @@ namespace AM.Core
 
                 #region Merge Final Document
 
-                if (endPagePDFPaths.Count > 0)
+                if (coverLetterPDFPaths.Count > 0)
                 {
                     mergePdfCollection.AddRange(coverLetterPDFPaths);
-                    for (int i = 0; i < noOfCopies; i++)
-                    {
-                        mergePdfCollection.Add(mergeReadyFilePath);
-                    }
-                    mergePdfCollection.AddRange(endPagePDFPaths);
-                    mergePdfCollection.Add(outputDocumentPath);
 
-                    PdfUtil.MergePDFs(mergePdfCollection.ToArray());
-                }
-                else if (coverLetterPDFPaths.Count > 0)
-                {
-                    mergePdfCollection.AddRange(coverLetterPDFPaths);
+                    //Here if print format is Duplex than system is adding one blank page after coverletter / label.
+                    if (printFormat == "Duplex")
+                    {
+                        mergePdfCollection.Add(blankPdfPath);
+                    }
+
                     for (int i = 0; i < noOfCopies; i++)
                     {
                         mergePdfCollection.Add(mergeReadyFilePath);
                     }
+
+                    //Here system will add end page if any
+                    if (endPagePDFPaths.Count > 0)
+                    {
+                        mergePdfCollection.AddRange(endPagePDFPaths);
+                    }
+
                     mergePdfCollection.Add(outputDocumentPath);
 
                     PdfUtil.MergePDFs(mergePdfCollection.ToArray());
@@ -331,11 +334,11 @@ namespace AM.Core
                     mergePdfCollection.Add(outputDocumentPath);
                     if (mergePdfCollection.Count == 2)
                     {
+                        //Here we are just renaming file as a output document because we are not merging any cover letter for it
                         File.Move(mergePdfCollection[0], mergePdfCollection[1]);
                     }
                     else
                     {
-                        //Here we are just renaming file as a output document because we are not merging any cover letter for it
                         PdfUtil.MergePDFs(mergePdfCollection.ToArray());
                     }
                 }
