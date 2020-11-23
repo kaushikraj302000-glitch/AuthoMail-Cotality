@@ -47,9 +47,10 @@ namespace AM.Services
     public static class Env
     {
         public static string Prod = "Prod";
-        public static string Staging = "Staging";
+        public static string Stage = "Stage";
         public static string QA = "QA";
         public static string Internal = "Internal";
+        public static string Performance = "Perf";
     }
     public static class ClientUserMappingStatusTypes
     {
