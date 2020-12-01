@@ -99,9 +99,6 @@
     <None Include="CoverTemplates\BOTW\BOTW_USPS_#10_6X95.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="CoverTemplates\HOMEPOINTCORP\CAPONE_USPS_#10_6X95.pdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="CoverTemplates\CAPONE\CAPONE_USPS_#10_6X95.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -174,6 +171,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="CoverTemplates\Generic_Template95X12.pdf" />
+    <None Include="CoverTemplates\HOMEPOINTFLOOD\HOMEPOINTFLOOD_USPS_#10_6X95.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CoverTemplates\HSBC\HSBC_#10CustomEnvelope.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -38,7 +38,7 @@ namespace AM.Services
 
         public async Task<Client> GetClientByName(string clientName)
         {
-            string query = "SELECT * FROM [Common].[Clients] WHERE IsAMActive=1 and Name = @Name";
+            string query = "SELECT * FROM [Common].[Clients] WHERE IsAMActive=1 and Id = (select ClientId from AM.FloodClientMapping where Name = @Name)";
             var data = await db.QuerySingleOrDefaultAsync<Client>(query, new { Name = clientName });
             return data;
         }
