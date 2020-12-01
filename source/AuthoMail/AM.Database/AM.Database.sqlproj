@@ -80,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Snapshots\AMProduction_12_16_2019.dacpac" />
+    <None Include="Snapshots\Release_01DEC20.dacpac" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Profile\Tables\Info.sql" />

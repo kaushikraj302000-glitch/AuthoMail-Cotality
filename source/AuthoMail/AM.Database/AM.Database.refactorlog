@@ -147,4 +147,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="IsPrimary" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="c07285da-19c7-4ec6-bb3f-037660ad0b68" ChangeDateTime="11/27/2020 10:55:13">
+    <Property Name="ElementName" Value="[dbo].[FloodClientMapping].[Id]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[FloodClientMapping]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ClientId" />
+  </Operation>
 </Operations>
