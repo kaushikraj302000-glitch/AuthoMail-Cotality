@@ -212,9 +212,17 @@ namespace AM.Web.Controllers
                 {
                     AuthoMailURL = "https://authomail.corelogic.com";
                 }
-                else if (Config.Common_Environment == Env.Staging)
+                else if (Config.Common_Environment == Env.QA)
                 {
                     AuthoMailURL = "https://authomailuat.corelogic.com";
+                }
+                else if (Config.Common_Environment == Env.Performance)
+                {
+                    AuthoMailURL = "https://authomailperftest.corelogic.com";
+                }
+                else if (Config.Common_Environment == Env.Stage)
+                {
+                    AuthoMailURL = "https://authomailkittest.corelogic.com";
                 }
                 else
                 {
