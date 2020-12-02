@@ -3,7 +3,6 @@
     [PnSConfigId]            INT           NOT NULL,
     [PrintSize]              VARCHAR (255) NULL,
     [ContentScalePercent]    FLOAT (53)    CONSTRAINT [DF_PnSConfigDetail_ContentScalePercent] DEFAULT ((100)) NULL,
-    [PrintFormat]            VARCHAR (255) NULL,
     [ShippingCarrier]        VARCHAR (255) NULL,
     [ShippingServiceType]    VARCHAR (255) NULL,
     [ShippingAccountCode]    VARCHAR (255) NULL,
