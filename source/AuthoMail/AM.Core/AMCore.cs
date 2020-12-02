@@ -532,6 +532,13 @@ namespace AM.Core
                                     endLetterPdfPaths.Add(response.CoverLetterPath);
                                 }
 
+                                //TODO: Print Inserts in coverletter
+
+                                if (mailPiece.PrintLocation == "Dallas CL" && !string.IsNullOrWhiteSpace(mailPiece.Inserts))
+                                {
+                                    doc.WriteTextOnLabel(coverLetterPdfPaths.First(), mailPiece.Inserts);
+                                }
+
                                 if (!File.Exists(pdfFilePath) && docType.AllowInsertsOnly)
                                 {
                                     if (File.Exists(outputFilePath))

@@ -12,6 +12,7 @@ using AM.Lib;
 using AM.USPSLib;
 using AM.Entities;
 using ServiceType = AM.USPSLib.ServiceType;
+using System.Security;
 
 namespace AM.Core
 {
@@ -387,6 +388,40 @@ namespace AM.Core
             }
 
             return response;
+        }
+
+        public void WriteTextOnLabel(string inputPath, string text)
+        {
+            var temp = Path.Combine(Path.GetDirectoryName(inputPath), Path.GetRandomFileName());
+            using (var reader = new PdfReader(inputPath))
+            {
+                using (var fileStream = new FileStream(temp, FileMode.Create, FileAccess.Write))
+                {
+                    var document = new Document(reader.GetPageSizeWithRotation(1));
+                    var writer = PdfWriter.GetInstance(document, fileStream);
+
+                    document.Open();
+
+                    document.NewPage();
+
+                    var baseFont = BaseFont.CreateFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
+                    var importedPage = writer.GetImportedPage(reader, 1);
+
+                    var contentByte = writer.DirectContent;
+
+                    contentByte.BeginText();
+                    contentByte.SetFontAndSize(baseFont, 8);
+
+                    contentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, text, importedPage.Width - 200, importedPage.Height - 750, 0);
+
+                    contentByte.EndText();
+                    contentByte.AddTemplate(importedPage, 0, 0);
+
+                    document.Close();
+                    writer.Close();
+                }
+            }
+            File.Move(temp, inputPath);
         }
 
         public SmartDocResponse GenerateLastPageWithBarcode(string endPageTemplatePath, string outputDocumentPath, Dictionary<string, string> mailPieceData)
