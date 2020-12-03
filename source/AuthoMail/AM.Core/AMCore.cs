@@ -549,6 +549,11 @@ namespace AM.Core
                                     if (docType.PrintFormat == "Duplex")
                                     {
                                         PdfUtil.MergePDFs(coverLetterPdfPaths.First(), blankPdfPath, outputFilePath);
+
+                                        if (File.Exists(coverLetterPdfPaths.First()))
+                                        {
+                                            File.Delete(coverLetterPdfPaths.First());
+                                        }
                                     }
                                     else
                                         File.Move(coverLetterPdfPaths.First(), outputFilePath);
