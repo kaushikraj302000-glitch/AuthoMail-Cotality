@@ -539,16 +539,29 @@ namespace AM.Core
                                     doc.WriteTextOnLabel(coverLetterPdfPaths.First(), mailPiece.Inserts);
                                 }
 
+                                string blankPdfPath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Common_BlankPage);
+
                                 if (!File.Exists(pdfFilePath) && docType.AllowInsertsOnly)
                                 {
                                     if (File.Exists(outputFilePath))
                                         File.Delete(outputFilePath);
 
-                                    File.Move(coverLetterPdfPaths.First(), outputFilePath);
+                                    if (docType.PrintFormat == "Duplex")
+                                    {
+                                        PdfUtil.MergePDFs(coverLetterPdfPaths.First(), blankPdfPath, outputFilePath);
+                                    }
+                                    else
+                                        File.Move(coverLetterPdfPaths.First(), outputFilePath);
+
                                     mailPiece.TotalPages = PdfUtil.GetPageCount(outputFilePath);
                                 }
                                 else
                                 {
+                                    if (docType.PrintFormat == "Duplex")
+                                    {
+                                        coverLetterPdfPaths.Add(blankPdfPath);
+                                    }
+
                                     response = doc.GenerateDoc(coverLetterPdfPaths, pdfFilePath, outputFilePath, docType.ContentScalePercent, docType.NoOfCopies, docType.PrintFormat, endLetterPdfPaths);
 
                                     if (response.HasError)
