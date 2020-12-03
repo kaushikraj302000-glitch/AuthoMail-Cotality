@@ -374,6 +374,29 @@ namespace PCI.Service
             //After Updating status of Batch System is going to update envelope inventory stock.
             var envelopes = mpList.GroupBy(c => c.EnvelopeId);
             var breEnvelopes = mpList.GroupBy(c => c.BREEnvelopeId);
+
+            #region Calculate Inserts used in data
+            var insertIds = mpList.Where(e => !e.Inserts.IsNullOrWhiteSpace()).Select(c => c.InsertsIds);
+
+            Dictionary<int, int> insertCounts = new Dictionary<int, int>();
+            foreach (var inserts in insertIds)
+            {
+                var insertIdValues = inserts.Split(new string[] { "|" }, StringSplitOptions.RemoveEmptyEntries).Select(id => int.Parse(id));
+
+                foreach (var id in insertIdValues)
+                {
+                    if (insertCounts.ContainsKey(id))
+                    {
+                        insertCounts[id] += 1;
+                    }
+                    else
+                    {
+                        insertCounts.Add(id, 1);
+                    }
+                }
+            }
+            #endregion
+
             foreach (var env in envelopes.Where(e => e.Key != null))
             {
                 envelopeData.Add(env.Key, mpList.Count(mp => mp.EnvelopeId == env.Key));
@@ -381,6 +404,18 @@ namespace PCI.Service
             foreach (var breEnv in breEnvelopes.Where(e => e.Key != null))
             {
                 envelopeData.Add(breEnv.Key, mpList.Count(mp => mp.BREEnvelopeId == breEnv.Key));
+            }
+
+            foreach (var insertEnv in insertCounts)
+            {
+                if (envelopeData.ContainsKey(insertEnv.Key))
+                {
+                    envelopeData[insertEnv.Key] += insertEnv.Value;
+                }
+                else
+                {
+                    envelopeData.Add(insertEnv.Key, insertEnv.Value);
+                }
             }
             #endregion
 

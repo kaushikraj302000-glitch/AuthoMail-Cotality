@@ -359,7 +359,8 @@ namespace PCI.Service
                     ShipperId = row.Field<int>("ShipperId"),
                     Inserts = row.Field<string>("Inserts"),
                     InsertsPartNos = row.Field<string>("InsertsPartNos"),
-                    DocumentCode=row.Field<string>("DocumentCode"),
+                    InsertsIds = row.Field<string>("InsertsIds"),
+                    DocumentCode =row.Field<string>("DocumentCode"),
                     //Extra Properties to map for MRDF Request
                     InputWeight = row.Field<string>("InputWeight"),
                     Feeder3_Sel = row.Field<string>("Feeder3_Sel"),

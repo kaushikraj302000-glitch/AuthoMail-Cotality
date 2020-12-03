@@ -137,6 +137,7 @@ namespace PCI.Service
         public int ShipperId { get; set; }
         public string Inserts { get; set; }
         public string InsertsPartNos { get; set; }
+        public string InsertsIds { get; set; }
         //Extra fields which will be used for generating MRDF Request
         public string InputWeight { get; set; }
         public string Feeder3_Sel { get; set; }

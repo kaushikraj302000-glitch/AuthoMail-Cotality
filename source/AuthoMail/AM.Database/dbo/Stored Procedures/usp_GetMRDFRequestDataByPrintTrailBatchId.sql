@@ -46,7 +46,15 @@ BEGIN
       FROM Common.Envelopes   
       WHERE UPPER(EnvelopeName) IN (SELECT  UPPER(RTRIM(LTRIM(value))) FROM string_split((MP.Inserts),',') WHERE RTRIM(LTRIM(value)) <>'')   
       FOR XMl PATH('')  
-    ),1,1,'')  
+    ),1,1,'') 
+    ,InsertsIds=STUFF
+  (  
+    (  
+      SELECT DISTINCT '|'+ CAST([Id] AS VARCHAR(MAX))  
+      FROM Common.Envelopes   
+      WHERE UPPER(EnvelopeName) IN (SELECT  UPPER(RTRIM(LTRIM(value))) FROM string_split((MP.Inserts),',') WHERE RTRIM(LTRIM(value)) <>'')   
+      FOR XMl PATH('')  
+    ),1,1,'')
   FROM PnS.MRDFRequest REQ
   INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
   LEFT OUTER JOIN AM.MailPieces MP ON REQ.UniqueId=MP.UniqueId
