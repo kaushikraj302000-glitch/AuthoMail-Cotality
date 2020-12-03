@@ -139,8 +139,8 @@ namespace AM.Console
 
                     if (File.Exists(localArchivePath))
                         File.Delete(localArchivePath);
-
-                    File.Move(localCsvFilePath, localArchivePath);
+                    if(File.Exists(localCsvFilePath))
+                        File.Move(localCsvFilePath, localArchivePath);
                     //Deleting Local Directory 
                     if (Directory.Exists(localCsvDirPath))
                         Directory.Delete(localCsvDirPath, true);

@@ -421,6 +421,8 @@ namespace AM.Core
                     writer.Close();
                 }
             }
+            if (File.Exists(inputPath))
+                File.Delete(inputPath);
             File.Move(temp, inputPath);
         }
 
