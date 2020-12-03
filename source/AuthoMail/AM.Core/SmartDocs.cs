@@ -278,6 +278,8 @@ namespace AM.Core
             List<string> mergePdfCollection = new List<string>();
             SmartDocResponse response = new SmartDocResponse();
 
+            string blankPdfPath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Common_BlankPage);
+
             string outputDirPath = Path.GetDirectoryName(outputDocumentPath);
             string flattenPDFPath = Path.Combine(outputDirPath, "Flatten_" + Path.GetFileName(pdfAttachmentPath));
             string shrinkPDFPath = Path.Combine(outputDirPath, "Shrinked_" + Path.GetFileName(pdfAttachmentPath));
@@ -303,6 +305,12 @@ namespace AM.Core
                 if (coverLetterPDFPaths.Count > 0)
                 {
                     mergePdfCollection.AddRange(coverLetterPDFPaths);
+
+                    //Here if print format is Duplex than system is adding one blank page after coverletter / label.
+                    if (printFormat == "Duplex")
+                    {
+                        mergePdfCollection.Add(blankPdfPath);
+                    }
 
                     for (int i = 0; i < noOfCopies; i++)
                     {

@@ -562,11 +562,6 @@ namespace AM.Core
                                 }
                                 else
                                 {
-                                    if (docType.PrintFormat == "Duplex")
-                                    {
-                                        coverLetterPdfPaths.Add(blankPdfPath);
-                                    }
-
                                     response = doc.GenerateDoc(coverLetterPdfPaths, pdfFilePath, outputFilePath, docType.ContentScalePercent, docType.NoOfCopies, docType.PrintFormat, endLetterPdfPaths);
 
                                     if (response.HasError)
