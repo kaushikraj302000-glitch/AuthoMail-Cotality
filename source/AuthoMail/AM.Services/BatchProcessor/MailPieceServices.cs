@@ -18,7 +18,7 @@ namespace AM.Services
         int UpdateBatchMailPieceDetails(MailPieceDTO mailPiece);
         int UpdateBatchMailPieceShippingStatusDetails(MailPieces mailPiece);
         int UpdateMailPiecePickedUpDetailsFromTrackingNo(FedExPickedPackagesDetail pickedUpDetail);
-        int UpdateMailPieceShipmentStatusFromTrackingNo(string shipmentStatus, string trackingNo, DateTime jobRunTime);
+        int UpdateMailPieceShipmentStatusFromTrackingNo(string shipmentStatus, string trackingNo, DateTime jobRunTime, string deliveryStatus, DateTime? deliveryDate);
         MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo);
         List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string sweepName);
         BatchSummary GetBatchSummaryDetailByUniqueId(Guid uniqueId);
@@ -124,11 +124,11 @@ namespace AM.Services
             return db.ExecuteScalar<int>(query, pickedUpDetail);
         }
 
-        public int UpdateMailPieceShipmentStatusFromTrackingNo(string shipmentStatus, string trackingNo, DateTime jobRunTime)
+        public int UpdateMailPieceShipmentStatusFromTrackingNo(string shipmentStatus, string trackingNo, DateTime jobRunTime, string deliveryStatus, DateTime? deliveryDate)
         {
-            string query = @"UPDATE [AM].[MailPieces] SET [ShipmentStatus] = @ShipmentStatus,[ShipmentStatusUpdatedOn]=@jobRunTime WHERE Id = (SELECT TOP 1 Id FROM [AM].[MailPieces] WHERE [TrackingNo] = @TrackingNo ORDER BY EffectiveReceivedOnEst DESC)";
+            string query = @"UPDATE [AM].[MailPieces] SET [ShipmentStatus] = @ShipmentStatus,[ShipmentStatusUpdatedOn]=@jobRunTime, DeliveryStatus = @DeliveryStatus, DeliveryDate = @DeliveryDate WHERE Id = (SELECT TOP 1 Id FROM [AM].[MailPieces] WHERE [TrackingNo] = @TrackingNo ORDER BY EffectiveReceivedOnEst DESC)";
 
-            return db.ExecuteScalar<int>(query, new { ShipmentStatus = shipmentStatus, TrackingNo = trackingNo, jobRunTime });
+            return db.ExecuteScalar<int>(query, new { ShipmentStatus = shipmentStatus, TrackingNo = trackingNo, jobRunTime, DeliveryStatus = deliveryStatus, DeliveryDate = deliveryDate });
         }
 
         public MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo)
