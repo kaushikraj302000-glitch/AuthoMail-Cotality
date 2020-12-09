@@ -125,13 +125,9 @@ namespace PCI.Service
         public int SequenceNo { get; set; }
         public DateTime MailPieceDueDate { get; set; }
         public int? EnvelopeId { get; set; }
-        public int? BREEnvelopeId { get; set; }
         public string EnvelopeName { get; set; }
-        public string BREEnvelopeName { get; set; }
         public string EnvelopePartNo { get; set; }
-        public string BREPartNo { get; set; }
         public string EnvelopeDesc { get; set; }
-        public string BREDesc { get; set; }
         public string PrintSize { get; set; }
         public string PrintFormat { get; set; }
         public int ShipperId { get; set; }

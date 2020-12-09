@@ -185,15 +185,17 @@ namespace AM.Core
                                 #endregion
 
                                 #region Prepare dictionary of placeholders/tags to fill the PDF template.
-                                Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
-                                mailPieceData.Add("FromAddress", fromAddress.Trim());
-                                mailPieceData.Add("ToAddress", toAddress.Trim());
-                                mailPieceData.Add("MailPieceId", mailPieceId.ToString());
-                                mailPieceData.Add("Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy"));//USAA Specific
-                                mailPieceData.Add("Free3OF9Barcode", "*" + mailPiece.Id.ToString() + "*");//Barcode for non-IMBarcode cover letter
-                                mailPieceData.Add("UniqueId", "*" + mailPieceId.ToString() + "*");//Humanreadable code which is used for barcode
-                                mailPieceData.Add("MailPieceZip", mailPiece.RcptAddressZIP);
-                                mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
+                                Dictionary<string, string> mailPieceData = new Dictionary<string, string>
+                                {
+                                    { "FromAddress", fromAddress.Trim() },
+                                    { "ToAddress", toAddress.Trim() },
+                                    { "MailPieceId", mailPieceId.ToString() },
+                                    { "Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy") },//USAA Specific
+                                    { "Free3OF9Barcode", "*" + mailPiece.Id.ToString() + "*" },//Barcode for non-IMBarcode cover letter
+                                    { "UniqueId", "*" + mailPieceId.ToString() + "*" },//Humanreadable code which is used for barcode
+                                    { "MailPieceZip", mailPiece.RcptAddressZIP },
+                                    { "LoanNbr", mailPiece.BusinessFriendlyIdValue }
+                                };
                                 #endregion
 
                                 List<PnSConfigDetailCoverLetter> coverLetters = docTypeSvc.GetDocumentCoverLetterTemplates(mailPiece.PnSConfigDetailId.Value);
@@ -579,8 +581,14 @@ namespace AM.Core
 
                                 mailPiece.TotalSheets = docType.PrintFormat == "Duplex" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;
 
-                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                //Here we are finally updating BRE  envelope in inserts field because now shipping method is not going to change.
+                                if (docType.IsBRE)
+                                {
+                                    var breEnvelopeName = commonSvc.GetEnvelopeCodeByEnvelopeId(docType.BREEnvelopeId);
+                                    mailPiece.Inserts = $"{breEnvelopeName},{mailPiece.Inserts}".TrimEnd(',');
+                                }
 
+                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                             }
 
                             try

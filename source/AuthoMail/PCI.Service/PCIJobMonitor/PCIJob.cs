@@ -306,8 +306,6 @@ namespace PCI.Service
 
         private static void PrepAndUploadStage(PrintTrailBatch ptBatchDetails)
         {
-            string batchPath = string.Empty;
-
             var ptDetails = DAL.GetPrintTrailDetailByPrintTrailId(ptBatchDetails.PrintTrailId);
 
             var mpList = DAL.GetMRDFRequestListByPrintTrailBatchId(ptBatchDetails.Id);
@@ -337,21 +335,11 @@ namespace PCI.Service
                     Thread.Sleep(1000);
                     batchResponsePath.CreateDirectoryIfNotExist();
 
-                    if (ptDetails.VendorCode == "PCI")
-                    {
-                        var zipFilePath = Path.Combine(batchRequestPath, ptBatchDetails.PrintBatchName + ".zip");
-                        var mrdfFilePath = Path.Combine(batchRequestPath, ptBatchDetails.PrintBatchName + ".dat");
+                    //For NORDIS OR Any Other Print Vendor
+                    var zipFilePath = Path.Combine(batchRequestPath, ptBatchDetails.PrintBatchName + ".zip");
+                    var xmlFilePath = Path.Combine(batchRequestPath, ptBatchDetails.PrintBatchName + ".xml");
 
-                        batchPath = CreatePCIBatch(mpList, ptBatchDetails, zipFilePath, mrdfFilePath, ptDetails);
-                    }
-                    else
-                    {
-                        //For NORDIS OR Any Other Print Vendor
-                        var zipFilePath = Path.Combine(batchRequestPath, ptBatchDetails.PrintBatchName + ".zip");
-                        var xmlFilePath = Path.Combine(batchRequestPath, ptBatchDetails.PrintBatchName + ".xml");
-
-                        batchPath = CreateNordisBatch(mpList, ptBatchDetails, zipFilePath, xmlFilePath, ptDetails);
-                    }
+                    string batchPath = CreateNordisBatch(mpList, ptBatchDetails, zipFilePath, xmlFilePath);
 
                     log.InfoFormat("Uploading Started For PrintTrailBatchId : {0}", ptBatchDetails.Id);
                     UploadBatchToPrintVendorSite(batchPath, ptDetails);
@@ -373,7 +361,6 @@ namespace PCI.Service
             #region Envelope Stock Update
             //After Updating status of Batch System is going to update envelope inventory stock.
             var envelopes = mpList.GroupBy(c => c.EnvelopeId);
-            var breEnvelopes = mpList.GroupBy(c => c.BREEnvelopeId);
 
             #region Calculate Inserts used in data
             var insertIds = mpList.Where(e => !e.Inserts.IsNullOrWhiteSpace()).Select(c => c.InsertsIds);
@@ -400,10 +387,6 @@ namespace PCI.Service
             foreach (var env in envelopes.Where(e => e.Key != null))
             {
                 envelopeData.Add(env.Key, mpList.Count(mp => mp.EnvelopeId == env.Key));
-            }
-            foreach (var breEnv in breEnvelopes.Where(e => e.Key != null))
-            {
-                envelopeData.Add(breEnv.Key, mpList.Count(mp => mp.BREEnvelopeId == breEnv.Key));
             }
 
             foreach (var insertEnv in insertCounts)
@@ -473,9 +456,10 @@ namespace PCI.Service
             sftSite.Disconnect();
         }
 
-        private static string CreateNordisBatch(List<MailPieceDetail> mpList, PrintTrailBatch ptBatchDetails, string zipFilePath, string xmlFilePath, PrintTrailDetail ptDetails)
+        private static string CreateNordisBatch(List<MailPieceDetail> mpList, PrintTrailBatch ptBatchDetails, string zipFilePath, string xmlFilePath)
         {
-            var shippingMethod = mpList.Select(x => new { ShippingCarrier = x.ShippingCarrier, ShippingServiceType = x.ShippingServiceType == "IMB" ? "FIRSTCLASS" : x.ShippingServiceType }).Distinct().First();
+            var shippingMethod = mpList.Select(x => new { x.ShippingCarrier, ShippingServiceType = x.ShippingServiceType == "IMB" ? "FIRSTCLASS" : x.ShippingServiceType }).Distinct().First();
+
             List<Package> packageData = new List<Package>();
             PrintRequest printRequestXml = new PrintRequest();
             printRequestXml.JobId = ptBatchDetails.Id;
@@ -504,11 +488,8 @@ namespace PCI.Service
                             TotalImages = package.TotalPages,
                             PaperSize = package.PrintSize,
                             PrintFormat = package.PrintFormat.ParseEnum<PrintFormat>(),
-                            //Here if BREPartNo and InsertPartNo both exist then both will go with pipeline separate, if only InsertPartNos is there then that will go in BREPartNo
-                            BREPartNo =
-                            !package.InsertsPartNos.IsNullOrWhiteSpace() && !package.BREPartNo.IsNullOrWhiteSpace() ? $"{package.BREPartNo}|{package.InsertsPartNos}" :
-                            !package.InsertsPartNos.IsNullOrWhiteSpace() && package.BREPartNo.IsNullOrWhiteSpace() ? package.InsertsPartNos : package.BREPartNo,
-                            BREDesc = package.BREDesc,
+                            BREPartNo = package.InsertsPartNos,
+                            BREDesc = package.Inserts,
                             DocumentCode = package.DocumentCode,
                             QCReqd = package.DivertVS3 == 1 ? true : false,
                         });
@@ -522,53 +503,6 @@ namespace PCI.Service
                 File.WriteAllText(xmlFilePath, printRequestXml.ToXml());
                 //make an entry for mrdf file after making entries of files into zip
                 newFile.CreateEntryFromFile(xmlFilePath, Path.GetFileName(xmlFilePath));
-            }
-
-            //NOTE : Here system is storing file size of received pdf in KB
-            FileInfo fileInfo = new FileInfo(zipFilePath);
-            Int64 fileSize = (fileInfo.Length / 1024);
-            DAL.UpdatePrintTrailBatchSize(ptBatchDetails.Id, fileSize);
-
-            return zipFilePath;
-        }
-
-        private static string CreatePCIBatch(List<MailPieceDetail> mpList, PrintTrailBatch ptBatchDetails, string zipFilePath, string mrdfFilePath, PrintTrailDetail ptDetails)
-        {
-            var mrdfContent = new StringBuilder();
-
-            foreach (MailPieceDetail row in mpList)
-            {
-                foreach (var f in MRDFRequestSchema)
-                {
-                    if (f.FieldName == "JobId")
-                    {
-                        mrdfContent.AppendFormat(f.DataFormat, row.PrintTrailBatchId);
-                    }
-                    else
-                    {
-                        mrdfContent.AppendFormat(f.DataFormat, row.GetType().GetProperty(f.FieldName).GetValue(row, null));
-                    }
-                }
-                mrdfContent.AppendLine();
-            }
-
-            File.WriteAllText(mrdfFilePath, mrdfContent.ToString());
-
-            if (File.Exists(zipFilePath))
-                File.Delete(zipFilePath);
-
-            using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
-            {
-                foreach (var mailPiece in mpList)
-                {
-                    //NOTE:Here we are directly creating Zip with Bundling into another path
-                    //We have folder structure like PCIRoot/AppCode/JobId/PCIRequest
-                    var localFilePath = Path.Combine(Common.PCIRootFolder, mailPiece.AppCode, mailPiece.JobId.ToString(), Common.PCIRequestFolderName, mailPiece.PDFFileName);
-                    newFile.CreateEntryFromFile(localFilePath, mailPiece.PDFFileName);
-                }
-
-                //make an entry for mrdf file after making entries of files into zip
-                newFile.CreateEntryFromFile(mrdfFilePath, Path.GetFileName(mrdfFilePath));
             }
 
             //NOTE : Here system is storing file size of received pdf in KB
@@ -633,8 +567,8 @@ namespace PCI.Service
 
                     var currentBatch = dallasBatches.Single(b => (b.AppCode == client.AppCode && effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == mailPiece.ShippingCarrier && b.ShippingServiceType == mailPiece.ShippingServiceType);
 
-                    //NOTE: Folder structure will be like  /gos/ClientCode/SweepTime/ShippingCarrier_ShippingServiceType/EnvelopeName_BREEnvelopeName
-                    string submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType, "{0}_{1}".Fill(mailPiece.EnvelopeName, mailPiece.BREEnvelopeName)).TrimEnd('_');
+                    //NOTE: Folder structure will be like  /gos/ClientCode/SweepTime/ShippingCarrier_ShippingServiceType/EnvelopeName_{Inserts/BREEnvelopeName}
+                    string submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType, "{0}_{1}".Fill(mailPiece.EnvelopeName, mailPiece.Inserts)).TrimEnd('_');
 
                     if (!sftSite.IsDownloadDirectoryAvailable(submitDir))
                         sftSite.CreateDirectory(submitDir);
