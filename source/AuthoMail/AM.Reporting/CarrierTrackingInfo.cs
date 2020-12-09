@@ -94,7 +94,6 @@ namespace AM.Reporting
                         {
                             foreach (var trackInfo in trackingInfos.TrackInfo)
                             {
-
                                 log.Debug(trackInfo.ID);
                                 if (trackInfo == null || trackInfo.TrackSummary == null)
                                 {
@@ -105,7 +104,7 @@ namespace AM.Reporting
                                 var shipmentDateTime = (trackInfo.TrackSummary.EventDate + " " + trackInfo.TrackSummary.EventTime).AnyFormatToDateTime().HasValue ? (DateTime?)(trackInfo.TrackSummary.EventDate + " " + trackInfo.TrackSummary.EventTime).AnyFormatToDateTime().Value.EstToUtc() : null;
                                 var shipmentStatus = $"{trackInfo.TrackSummary.Event} on {shipmentDateTime} UTC at ({trackInfo.TrackSummary.EventCity},{trackInfo.TrackSummary.EventState})";
 
-                                mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(shipmentStatus, trackInfo.ID, Common.Now);
+                                mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(shipmentStatus, trackInfo.ID, Common.Now, trackInfo.TrackSummary.Event, shipmentDateTime);
                             }
                         }
                     }
