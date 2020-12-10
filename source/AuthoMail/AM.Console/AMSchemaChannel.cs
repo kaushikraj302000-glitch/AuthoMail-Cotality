@@ -369,6 +369,21 @@ namespace AM.Console
                     scope.Complete();
 
                 }
+                catch (SqlException ex)
+                {
+                    //2601 error code used for duplicate unique key insert 
+                    if (ex.Number == 2601)
+                    {
+                        var msg = "{0} key id is duplicate in received batch.".Fill(mailBatch.UniqueId);
+                        log.Error(msg, ex);
+                        MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
+
+                        log.Error(msg, ex);
+
+                        ReportInvalidBatch(InsertInvalidBatchInfo(mailBatch.BatchName, mailBatch.ReceivedOn.Value, msg, client.Id), xmlFilePath);
+                        return;
+                    }
+                }
                 catch (Exception ex)
                 {
                     var msg = "Error occured while inserting General Channel batches details for Batch '{0}.xml'".Fill(batchName);
@@ -549,11 +564,11 @@ namespace AM.Console
             }
         }
 
-        private MailBatchDTO InsertInvalidBatchInfo(string batchName, DateTime receivedOn, string errorMessage)
+        private MailBatchDTO InsertInvalidBatchInfo(string batchName, DateTime receivedOn, string errorMessage, int? clientId = null)
         {
             MailBatchDTO mailBatch = new MailBatchDTO();
             mailBatch.UniqueId = Guid.NewGuid();
-            mailBatch.ClientId = GetInvalidClient(SFTChannel.GetChannelCode()).Id;
+            mailBatch.ClientId = clientId ?? GetInvalidClient(SFTChannel.GetChannelCode()).Id;
             mailBatch.SFTChannelId = SFTChannel.Id;
             mailBatch.BatchName = batchName;
             mailBatch.ClientBatchId = batchName;
