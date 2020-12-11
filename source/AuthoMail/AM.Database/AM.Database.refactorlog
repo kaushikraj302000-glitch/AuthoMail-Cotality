@@ -154,4 +154,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="ClientId" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="34a23747-774f-430d-8a70-0865822643e7" ChangeDateTime="12/09/2020 10:02:30">
+    <Property Name="ElementName" Value="[Common].[EnvelopeStock].[IX_EnvelopeStock_Column]" />
+    <Property Name="ElementType" Value="SqlIndex" />
+    <Property Name="ParentElementName" Value="[Common].[EnvelopeStock]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="[IX_EnvelopeStock_ShipperId]" />
+  </Operation>
 </Operations>

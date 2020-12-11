@@ -279,6 +279,7 @@ namespace AM.Core
             SmartDocResponse response = new SmartDocResponse();
 
             string blankPdfPath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Common_BlankPage);
+
             string outputDirPath = Path.GetDirectoryName(outputDocumentPath);
             string flattenPDFPath = Path.Combine(outputDirPath, "Flatten_" + Path.GetFileName(pdfAttachmentPath));
             string shrinkPDFPath = Path.Combine(outputDirPath, "Shrinked_" + Path.GetFileName(pdfAttachmentPath));
@@ -332,7 +333,9 @@ namespace AM.Core
                     {
                         mergePdfCollection.Add(mergeReadyFilePath);
                     }
+
                     mergePdfCollection.Add(outputDocumentPath);
+
                     if (mergePdfCollection.Count == 2)
                     {
                         //Here we are just renaming file as a output document because we are not merging any cover letter for it
@@ -412,7 +415,7 @@ namespace AM.Core
                     contentByte.BeginText();
                     contentByte.SetFontAndSize(baseFont, 8);
 
-                    contentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, text, importedPage.Width - 200, importedPage.Height - 750, 0);
+                    contentByte.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, text, importedPage.Width - 200, importedPage.Height - 750, 0);
 
                     contentByte.EndText();
                     contentByte.AddTemplate(importedPage, 0, 0);

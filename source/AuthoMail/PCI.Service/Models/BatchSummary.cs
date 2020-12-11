@@ -125,18 +125,15 @@ namespace PCI.Service
         public int SequenceNo { get; set; }
         public DateTime MailPieceDueDate { get; set; }
         public int? EnvelopeId { get; set; }
-        public int? BREEnvelopeId { get; set; }
         public string EnvelopeName { get; set; }
-        public string BREEnvelopeName { get; set; }
         public string EnvelopePartNo { get; set; }
-        public string BREPartNo { get; set; }
         public string EnvelopeDesc { get; set; }
-        public string BREDesc { get; set; }
         public string PrintSize { get; set; }
         public string PrintFormat { get; set; }
         public int ShipperId { get; set; }
         public string Inserts { get; set; }
         public string InsertsPartNos { get; set; }
+        public string InsertsIds { get; set; }
         //Extra fields which will be used for generating MRDF Request
         public string InputWeight { get; set; }
         public string Feeder3_Sel { get; set; }

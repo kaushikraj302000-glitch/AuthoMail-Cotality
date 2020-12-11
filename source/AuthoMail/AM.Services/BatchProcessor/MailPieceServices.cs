@@ -18,7 +18,7 @@ namespace AM.Services
         int UpdateBatchMailPieceDetails(MailPieceDTO mailPiece);
         int UpdateBatchMailPieceShippingStatusDetails(MailPieces mailPiece);
         int UpdateMailPiecePickedUpDetailsFromTrackingNo(FedExPickedPackagesDetail pickedUpDetail);
-        int UpdateMailPieceShipmentStatusFromTrackingNo(string shipmentStatus, string trackingNo, DateTime jobRunTime);
+        int UpdateMailPieceShipmentStatusFromTrackingNo(string shipmentStatus, string trackingNo, DateTime jobRunTime, string deliveryStatus, DateTime? deliveryDate);
         MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo);
         List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string sweepName);
         BatchSummary GetBatchSummaryDetailByUniqueId(Guid uniqueId);
@@ -91,7 +91,7 @@ namespace AM.Services
 
         public int UpdateBatchMailPieceDetails(MailPieceDTO mailPiece)
         {
-            string query = @"UPDATE [AM].[MailPieces] SET [DocTypeId] = @DocTypeId,[PnSConfigDetailId] = @PnSConfigDetailId, [EffectiveReceivedOnEst] = @EffectiveReceivedOnEst, RcptAddressTypes=@RcptAddressTypes, [DueDate] = @DueDate,[ShippingStatus] = @ShippingStatus,[TotalPages] = @TotalPages,[TotalSheets] = @TotalSheets,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[TrackingNo] = @TrackingNo,[PrintLocation] = @PrintLocation, [StdSubmissionTime] = @StdSubmissionTime, [MaxSubmissionTime] = @MaxSubmissionTime, [PrintTrailId] = @PrintTrailId, [RetRcptFirstName]= @RetRcptFirstName, [RetRcptLastName]= @RetRcptLastName, [RetRcptPhone] = @RetRcptPhone, [RetRcptAddressStreet] = @RetRcptAddressStreet, [RetRcptAddrOptionalLine1BelowStreet] = @RetRcptAddrOptionalLine1BelowStreet, [RetRcptAddressCity] = @RetRcptAddressCity, [RetRcptAddressState] = @RetRcptAddressState, [RetRcptAddressZIP] = @RetRcptAddressZIP, [ShippingCost] = @ShippingCost, [ShipperId] = @ShipperId WHERE Id=@Id";
+            string query = @"UPDATE [AM].[MailPieces] SET [DocTypeId] = @DocTypeId,[PnSConfigDetailId] = @PnSConfigDetailId, [EffectiveReceivedOnEst] = @EffectiveReceivedOnEst, RcptAddressTypes=@RcptAddressTypes, [DueDate] = @DueDate,[ShippingStatus] = @ShippingStatus,[TotalPages] = @TotalPages,[TotalSheets] = @TotalSheets,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[TrackingNo] = @TrackingNo,[PrintLocation] = @PrintLocation, [StdSubmissionTime] = @StdSubmissionTime, [MaxSubmissionTime] = @MaxSubmissionTime, [PrintTrailId] = @PrintTrailId, [RetRcptFirstName]= @RetRcptFirstName, [RetRcptLastName]= @RetRcptLastName, [RetRcptPhone] = @RetRcptPhone, [RetRcptAddressStreet] = @RetRcptAddressStreet, [RetRcptAddrOptionalLine1BelowStreet] = @RetRcptAddrOptionalLine1BelowStreet, [RetRcptAddressCity] = @RetRcptAddressCity, [RetRcptAddressState] = @RetRcptAddressState, [RetRcptAddressZIP] = @RetRcptAddressZIP, [ShippingCost] = @ShippingCost, [ShipperId] = @ShipperId, [Inserts] = @Inserts WHERE Id=@Id";
 
             return db.Execute(query, mailPiece);
         }
@@ -124,11 +124,11 @@ namespace AM.Services
             return db.ExecuteScalar<int>(query, pickedUpDetail);
         }
 
-        public int UpdateMailPieceShipmentStatusFromTrackingNo(string shipmentStatus, string trackingNo, DateTime jobRunTime)
+        public int UpdateMailPieceShipmentStatusFromTrackingNo(string shipmentStatus, string trackingNo, DateTime jobRunTime, string deliveryStatus, DateTime? deliveryDate)
         {
-            string query = @"UPDATE [AM].[MailPieces] SET [ShipmentStatus] = @ShipmentStatus,[ShipmentStatusUpdatedOn]=@jobRunTime WHERE Id = (SELECT TOP 1 Id FROM [AM].[MailPieces] WHERE [TrackingNo] = @TrackingNo ORDER BY EffectiveReceivedOnEst DESC)";
+            string query = @"UPDATE [AM].[MailPieces] SET [ShipmentStatus] = @ShipmentStatus,[ShipmentStatusUpdatedOn]=@jobRunTime, DeliveryStatus = @DeliveryStatus, DeliveryDate = @DeliveryDate WHERE Id = (SELECT TOP 1 Id FROM [AM].[MailPieces] WHERE [TrackingNo] = @TrackingNo ORDER BY EffectiveReceivedOnEst DESC)";
 
-            return db.ExecuteScalar<int>(query, new { ShipmentStatus = shipmentStatus, TrackingNo = trackingNo, jobRunTime });
+            return db.ExecuteScalar<int>(query, new { ShipmentStatus = shipmentStatus, TrackingNo = trackingNo, jobRunTime, DeliveryStatus = deliveryStatus, DeliveryDate = deliveryDate });
         }
 
         public MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo)

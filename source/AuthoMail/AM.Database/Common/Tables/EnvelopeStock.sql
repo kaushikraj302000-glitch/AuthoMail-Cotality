@@ -7,3 +7,11 @@
     CONSTRAINT [FK_EnvelopeStock_Envelope] FOREIGN KEY ([EnvelopeId]) REFERENCES [Common].[Envelopes]([Id]), 
     CONSTRAINT [FK_EnvelopeStock_ShipperInformation] FOREIGN KEY ([ShipperId]) REFERENCES [Common].[ShipperInformation]([Id])
 )
+
+GO
+
+CREATE INDEX [IX_EnvelopeStock_EnvelopeId] ON [Common].[EnvelopeStock] ([EnvelopeId])
+
+GO
+
+CREATE INDEX [IX_EnvelopeStock_ShipperId] ON [Common].[EnvelopeStock] ([ShipperId])

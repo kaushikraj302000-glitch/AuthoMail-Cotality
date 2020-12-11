@@ -49,6 +49,7 @@ namespace AM.Services
         ShipperInformation GetShipperInformation(int shipperId);
         ShipperInformation GetShipperInformationByPrintLocation(string printLocation, int printTrailId);
         Task<int> UpdateBatchPipeLineStatusByMailPieceId(Guid mailPieceId, string pipeLineStatus, DateTime timestamp);
+        string GetEnvelopeCodeByEnvelopeId(int envelopeId);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -519,6 +520,10 @@ namespace AM.Services
             string query = $"UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {pipeLineStatus}On = @timestamp WHERE Id = (SELECT TOP 1 MailBatchId FROM AM.MailPieces WHERE UniqueId = @mailPieceId)";
 
             return db.ExecuteAsync(query, new { pipeLineStatus, timestamp, mailPieceId });
+        }
+        public string GetEnvelopeCodeByEnvelopeId(int envelopeId)
+        {
+            return db.QuerySingle<string>("SELECT EnvelopeName FROM Common.Envelopes WHERE Id=@EnvelopeId", new { EnvelopeId = envelopeId });
         }
     }
 }

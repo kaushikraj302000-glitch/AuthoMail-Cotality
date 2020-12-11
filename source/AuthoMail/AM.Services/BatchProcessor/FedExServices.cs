@@ -113,9 +113,13 @@ namespace AM.Services
                         var trackEvent = trackDetail.Events.FirstOrDefault();
                         if (trackEvent != null)
                         {
+                            //todo change in class make separate props Delivery Status and the Delivery Date
                             FedExPickedPackagesDetail pickupDetail = new FedExPickedPackagesDetail();
                             pickupDetail.TrackingNo = trackDetail.TrackingNumber;
                             pickupDetail.PickedTimeStamp = trackEvent.Timestamp.ToUniversalTime();
+                            //todo separate this data to new prop Delivery Status and the Delivery Date
+                            pickupDetail.DeliveryStatus = trackEvent.EventDescription;
+                            pickupDetail.DeliveryDate = trackEvent.Timestamp.ToUniversalTime();
                             pickupDetail.ShipmentStatus = $"{trackEvent.EventDescription} on {trackEvent.Timestamp.ToUniversalTime()} UTC at ( {trackEvent.Address.City}, { trackEvent.Address.StateOrProvinceCode} )";
                             fedExPickedPackageDetails.Add(pickupDetail);
                         }
@@ -127,7 +131,7 @@ namespace AM.Services
             {
                 foreach (var pickedUpDetail in fedExPickedPackageDetails)
                 {
-                    mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(pickedUpDetail.ShipmentStatus, pickedUpDetail.TrackingNo, jobRunTime);
+                    mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(pickedUpDetail.ShipmentStatus, pickedUpDetail.TrackingNo, jobRunTime, pickedUpDetail.DeliveryStatus, pickedUpDetail.DeliveryDate);
                 }
             }
         }

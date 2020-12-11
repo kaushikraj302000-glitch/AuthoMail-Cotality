@@ -8,8 +8,7 @@ BEGIN
 
 		SELECT REQ.*,MP.Id AS MailPieceId,MP.EffectiveReceivedOnEst, BS.ClientId,BS.DocTypeId,PCD.ShippingCarrier,
  PCD.ShippingServiceType,C.AppCode,CASE WHEN C.Alias IS NULL OR C.Alias='' THEN C.AppCode ELSE C.Alias END AS Alias,MP.DueDate AS MailPieceDueDate,PCD.EnvelopeId
- ,D.BREEnvelopeId,E.EnvelopeName,CASE WHEN BE.EnvelopeName IS NULL THEN MP.Inserts ELSE CASE WHEN MP.Inserts IS NULL OR MP.Inserts='' THEN BE.EnvelopeName ELSE BE.EnvelopeName+','+MP.Inserts END END AS BREEnvelopeName
-  ,E.PartNumber AS EnvelopePartNo,BE.PartNumber AS BREPartNo,E.EnvelopeName AS EnvelopeDesc,BE.EnvelopeName AS BREDesc
+ ,D.BREEnvelopeId,E.EnvelopeName,E.PartNumber AS EnvelopePartNo,E.EnvelopeName AS EnvelopeDesc
   ,(SELECT [Value] FROM AM.MailPieceCustomInfo MPC WHERE MPC.[Key]='CustomerId' AND MPC.MailPieceId=MP.Id) AS CustomerId
   ,CAST((CASE WHEN LEN(LTRIM(RTRIM(MP.RcptAddressCountry))) >0 THEN 1 ELSE 0 END )AS BIT) AS IsForeignAddress,MP.ShipperId, MP.Inserts
   ,PC.DocumentCode
@@ -29,7 +28,6 @@ BEGIN
  INNER JOIN Common.PnSConfig PC ON PCD.PnSConfigId=PC.Id
  INNER JOIN Common.Clients C ON C.Id=BS.ClientId
  LEFT OUTER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id
- LEFT OUTER JOIN Common.Envelopes BE ON D.BREEnvelopeId=BE.Id
  WHERE BS.PipelineStatus='Prepped' AND  IsPrepped = 1 AND IsSubmitted = 0 AND REQ.PrintTrailBatchId IS NULL
  AND BS.PrintTrailId=@printTrailId
 	
