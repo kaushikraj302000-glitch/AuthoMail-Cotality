@@ -155,7 +155,7 @@ namespace AuthoMailAPI_UnitTest
 
             SetDefaultExpectedValuesJson(expectedValues, mailPiece, files);
 
-            bool isRegistered = RegisterTestCase(mailPiece.Id.ToString(), expectedValues.ToString(), this.GetMethodName());
+            bool isRegistered = RegisterTestCase(mailPiece.Id.ToString(), mailPiece.ClientCode, expectedValues.ToString(), this.GetMethodName());
 
             Assert.AreEqual(true, isRegistered);
 
@@ -3209,13 +3209,13 @@ namespace AuthoMailAPI_UnitTest
             }
         }
 
-        public bool RegisterTestCase(string mailPieceId, string expectedValuesJson, string methodName = "")
+        public bool RegisterTestCase(string mailPieceId, string clientName, string expectedValuesJson, string methodName = "")
         {
             try
             {
                 using (var ldb = CreateDbConnection())
                 {
-                    ldb.Execute("Insert Into APITestResult (MailPieceId, TestCaseName, ExpectedResult, CreatedTime) Values (:MailPieceId, :TestCaseName, :ExpectedResult, :CreatedTime)", new { MailPieceId = mailPieceId, TestCaseName = methodName, ExpectedResult = expectedValuesJson, CreatedTime = DateTime.Now.ToString() });
+                    ldb.Execute("Insert Into APITestResult (MailPieceId, ClientName, TestCaseName, ExpectedResult, CreatedTime) Values (:MailPieceId, :TestCaseName, :ExpectedResult, :CreatedTime)", new { MailPieceId = mailPieceId, ClientName = clientName, TestCaseName = methodName, ExpectedResult = expectedValuesJson, CreatedTime = DateTime.Now.ToString() });
                 }
 
                 return true;
