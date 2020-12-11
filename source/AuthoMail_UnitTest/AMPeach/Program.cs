@@ -23,11 +23,11 @@ namespace AMPeach
             ldb = CreateDbConnection();
 
             //we expect that all files are same extension and content in folder
-            reportMailPeices = Directory.GetFiles(ConfigurationManager.AppSettings["DeliveryReportPath"], "*.json")
-                                     .Select(f => JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(f)))
-                                     .Select(a => a.Id.ToString())
-                                     .GroupBy(u => u)
-                                     .ToDictionary(x => (string)x.Key, x => x.Count());
+            //reportMailPeices = Directory.GetFiles(ConfigurationManager.AppSettings["DeliveryReportPath"], "*.json")
+            //                         .Select(f => JsonConvert.DeserializeObject<dynamic>(File.ReadAllText(f)))
+            //                         .Select(a => a.Id.ToString())
+            //                         .GroupBy(u => u)
+            //                         .ToDictionary(x => (string)x.Key, x => x.Count());
 
             IEnumerable<string> mailPieceIds = new List<string>();
 
@@ -42,12 +42,43 @@ namespace AMPeach
                 mailPieceIds = ldb.Query<string>("Select MailPieceId From APITestResult Where TestResult is null");
             }
 
+            reportMailPeices = mailPieceIds.ToDictionary(s => s, s => 0);
+
+            var outComes = ValidateMailPiece(mailPieceIds);
+
+            //todo search here for report check
+            var outComesReportGrp = outComes.GroupBy(g => g.ClientCode);
+
+            foreach (var ccode in outComesReportGrp)
+            {
+                string clientPath = Path.Combine(ConfigurationManager.AppSettings["DeliveryReportPath"], ccode.Key, "Reports");
+                var files = Directory.GetFiles(clientPath, "*.*");
+
+                var mailPiecees = ccode.Select(t => t);
+
+                foreach (var f in files)
+                {
+                    var content = File.ReadAllText(f);
+
+                    //mailPieceIds.Where(s => content.Contains(s)).Select(s => new { Id = s, count = s.Count() });
+
+                    foreach (var m in mailPiecees)
+                    {
+                        if (content.Contains(m.MailPieceId))
+                        {
+                            //reportMailPeices[m] = reportMailPeices[m]++;
+                            m.DeliveryReport = m.DeliveryReport + 1;
+                        }
+                    }
+                }
+            }
+
             int passcount = 0;
-            foreach (var mailPieceId in mailPieceIds)
+            foreach (var outCome in outComes)
             {
                 try
                 {
-                    bool isPassed = ProcessMailPiece(mailPieceId);
+                    bool isPassed = ProcessMailPiece(outCome);
 
                     if (isPassed)
                     {
@@ -68,8 +99,22 @@ namespace AMPeach
             Console.ReadKey();
         }
 
-        private static bool ProcessMailPiece(string mailPieceId)
+        private static bool ProcessMailPiece(TestOutcome t)
         {
+            if (t == null)
+            {
+                Console.WriteLine($"{Environment.NewLine}The given package is not valid.");
+                return false;
+            }
+
+            string mailPieceId = t.MailPieceId;
+
+            if (string.IsNullOrWhiteSpace(mailPieceId))
+            {
+                Console.WriteLine($"{Environment.NewLine}The given package hasn't mail piece id.");
+                return false;
+            }
+
             // check whether the mailpiece id exists in sqlite db
             // if not, print message on console: The package with {mailPieceId} is not yet registered. return
             var mailPiece = ldb.QuerySingleOrDefault<APITestResult>("Select * From APITestResult Where MailPieceId = :MailPieceId", new { MailPieceId = mailPieceId });
@@ -80,13 +125,13 @@ namespace AMPeach
                 return false;
             }
 
-            TestOutcome t = new TestOutcome() { MailPieceId = mailPiece.MailPieceId, TestCaseName = mailPiece.TestCaseName };
+            //t.TestCaseName = mailPiece.TestCaseName;
 
             double minDiff = (DateTime.Now - DateTime.Parse(mailPiece.CreatedTime)).TotalMinutes;
             if (minDiff < double.Parse(ConfigurationManager.AppSettings["ProcessDelayMinutes"]))
             {
                 string msg = $"The package with {mailPieceId} is registered in system before {(int)minDiff} minutes, so wait for {(int)(double.Parse(ConfigurationManager.AppSettings["ProcessDelayMinutes"]) - (int)minDiff)} minutes to process.";
-                t.Message = msg;
+                t.Message += msg;
                 Console.WriteLine(JsonConvert.SerializeObject(t));
                 return false;
             }
@@ -131,7 +176,7 @@ namespace AMPeach
             if (string.IsNullOrWhiteSpace(actualJson))
             {
                 //log into lite db as fail
-                t.Message = "Record not found in SQL database.";
+                t.Message += "Record not found in SQL database.";
 
                 //ldb.Execute("Update APITestResult Set TestOutcome = :TestOutcome, TestResult = :TestResult, ProcessedTime = :ProcessedTime Where MailPieceId = :MailPieceId", new { MailPieceId = mailPieceId, TestOutcome = JsonConvert.SerializeObject(t), TestResult = "F", ProcessedTime = DateTime.Now });
                 Console.WriteLine($"{Environment.NewLine}{JsonConvert.SerializeObject(t)}");
@@ -141,13 +186,14 @@ namespace AMPeach
 
             string testResult = EqualValues(t, mailPiece.ExpectedResult, actualJson);
 
-            t.DelivReport = reportMailPeices.Any(m => m.Key.ToLower() == t.MailPieceId.ToLower() && m.Value == 1);
+            //t.DelivReport = reportMailPeices.Count(m => m.Key.ToLower() == t.MailPieceId.ToLower() && m.Value == 1);
 
             if (t.TestResult.Count > 0)
             {
-                t.Message = $"Failed due to '{t.TestResult.Count}' Expected and Actual values not matched.";
+                t.Message += $"Failed due to '{t.TestResult.Count}' Expected and Actual values not matched.";
             }
-            else if (!t.DelivReport)
+
+            if (t.DeliveryReport == 0)
             {
                 t.Message += $"Failed due to delivery report not found in given folder.";
             }
@@ -170,6 +216,34 @@ namespace AMPeach
             });
 
             return result == "P";
+        }
+
+        private static List<TestOutcome> ValidateMailPiece(IEnumerable<string> mailPieceIds)
+        {
+            List<TestOutcome> tocs;
+
+            tocs = mailPieceIds.Select(mid => new TestOutcome() { MailPieceId = mid }).ToList();
+
+            var registered = ldb.Query<APITestResult>("Select MailPieceId, TestCaseName, ClientCode From APITestResult Where MailPieceId in :MailPieceIds", new { MailPieceIds = mailPieceIds }).ToList();
+
+            foreach (var t in tocs)
+            {
+                var mailPiece = registered.SingleOrDefault(s => s.MailPieceId == t.MailPieceId);
+
+                //TestOutcome toc = new TestOutcome() { MailPieceId = mailPieceId };
+
+                if (mailPiece == null)
+                {
+                    t.Message = $"{Environment.NewLine}The package with {t.MailPieceId} is not yet registered.";
+
+                    continue;
+                }
+
+                t.TestCaseName = mailPiece.TestCaseName;
+                t.ClientCode = mailPiece.ClientCode;
+            }
+
+            return tocs;
         }
 
         private static DbConnection CreateDbConnection(string connectionStringName = "AMTesting")
@@ -226,6 +300,7 @@ namespace AMPeach
     public class APITestResult
     {
         public string MailPieceId { get; set; }
+        public string ClientCode { get; set; }
         public string TestCaseName { get; set; }
         public string ExpectedResult { get; set; }
         public string CreatedTime { get; set; }
@@ -237,9 +312,10 @@ namespace AMPeach
     public class TestOutcome
     {
         public string MailPieceId { get; set; }
+        public string ClientCode { get; set; }
         public string TestCaseName { get; set; }
         public string Message { get; set; }
-        public bool DelivReport { get; set; }
+        public int DeliveryReport { get; set; }
         public bool VendorZip { get; set; }
 
         public List<TestResult> TestResult { get; set; }
