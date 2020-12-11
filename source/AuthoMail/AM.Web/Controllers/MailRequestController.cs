@@ -61,10 +61,12 @@ namespace AM.Web.Controllers
         {
             try
             {
+                string tempZipFilePath = Path.Combine(Config.MailRequestAPI_FilesDownloadPath, "TempZipFiles");
+
                 mailPiece.DocumentOrPackage.IncludePatternBaseString = true;
-                //create zip and response
-                string zipFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.zip", mailBatch.Id));
-                string triggerFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.GO", mailBatch.Id));
+                //create zip and response in local path first
+                string zipFilePath = Path.Combine(tempZipFilePath, string.Format("{0}.zip", mailBatch.Id));
+                string triggerFilePath = Path.Combine(tempZipFilePath, string.Format("{0}.GO", mailBatch.Id));
 
                 string xml = XmlUtil.Serialize(mailBatch);
 
@@ -99,6 +101,13 @@ bufferSize: 4096, useAsync: true)) { }
                     File.SetLastWriteTime(triggerFilePath, receivedOn);
                 }
 
+                //Once files are created to it local path. then after we will move zip and then trigger to its shared path
+                string destZipFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.zip", mailBatch.Id));
+                string destTriggerFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.GO", mailBatch.Id));
+
+                File.Move(zipFilePath, destZipFilePath);
+                File.Move(triggerFilePath, destTriggerFilePath);
+
                 if (File.Exists(mailPiece.DocumentOrPackage.Path)) File.Delete(mailPiece.DocumentOrPackage.Path);
 
                 var res = new MailAPIResponse
@@ -131,7 +140,7 @@ bufferSize: 4096, useAsync: true)) { }
             var requestSize = Request.Content.Headers.ContentLength.Value;
             // Logging Request Size just to confirm actual value
             //log.DebugFormat("Files Downloaded: {0}", sw.Elapsed.TotalSeconds);
-            log.DebugFormat("RequestSizeByte: {0}, RequestSizeKB: {1}",requestSize, requestSize / 1024f);
+            log.DebugFormat("RequestSizeByte: {0}, RequestSizeKB: {1}", requestSize, requestSize / 1024f);
             var mailPiece = new MailPiece();
             bool isCLPackageId = false;
             string[] manifest = new string[] { };
@@ -171,7 +180,7 @@ bufferSize: 4096, useAsync: true)) { }
                 }
 
                 // Logging Request Size with MailPieceId just to confirm actual value
-                log.DebugFormat("MailPieceId: {0}, RequestSizeByte: {1}, RequestSizeKB: {2}",mpId, requestSize, requestSize / 1024f);
+                log.DebugFormat("MailPieceId: {0}, RequestSizeByte: {1}, RequestSizeKB: {2}", mpId, requestSize, requestSize / 1024f);
                 addPackageResult = await pnsApiSvc.AddPackage(mpId, User.Identity.GetClientId().Value, receivedOn, requestSize / 1024f);
                 HttpStatusCode httpStatusCode = (HttpStatusCode)addPackageResult.HTTPStatusCode;
 
