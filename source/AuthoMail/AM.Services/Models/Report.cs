@@ -22,6 +22,7 @@ namespace AM.Services
         public int Id { get; set; }
         public string Name { get; set; }
         public string AppCode { get; set; }
+        public string GroupAlias { get; set; }
     }
 
     public class DallasBatch

@@ -338,9 +338,16 @@
                         if (response.Object != null) {
                             $("#clientselect").empty();
                             var data = response.Object;
-                            $.each(data, function (i, v) {
-                                var sel = $("#ClientName").text() == v.Name ? "selected" : "";
-                                $("#clientselect").append('<option value="' + v.Id + '" ' + sel+'>'+v.Name+'</option>');
+                            var groupedData = _.groupBy(data, function (d) { return d.GroupAlias });
+                            var $select = $('#clientselect');
+                            $.each(groupedData, function (key, value) {
+                                var group = $('<optgroup label="' + key + '" />');
+                                $.each(value, function (k,v) {
+                                    console.log(value,key)
+                                    var sel = $("#ClientName").text() == v.Name ? "selected" : "";
+                                    $('<option ' + sel + ' value="' + v.Id +'" />').html(v.Name).appendTo(group);
+                                });
+                               group.appendTo($select);
                             });
                             $("#clientselect").selectpicker();
                             ClientSelectEvent();

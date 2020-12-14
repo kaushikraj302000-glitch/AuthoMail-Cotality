@@ -194,7 +194,19 @@ namespace AM.Web.Controllers
             ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeName");
             if (User.IsInRole(AMRoles.Admin))
             {
-                ViewBag.ClientId = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
+                var list = new List<SelectListItem>();
+                var clientGroup = homeSvc.GetAllActiveClient().GroupBy(s => s.GroupAlias);
+                foreach (var group in clientGroup)
+                {
+                    var groupName = new SelectListGroup { Name = group.Key };
+                    foreach (var value in group)
+                    {
+                        SelectListItem item = new SelectListItem { Text = value.Name, Value = value.Id.ToString(), Group = groupName };
+                        list.Add(item);
+                    }
+                }
+                //ViewBag.ClientId = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
+                ViewBag.ClientId = list;
             }
             else
             {
