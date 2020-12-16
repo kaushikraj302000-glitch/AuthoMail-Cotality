@@ -117,6 +117,10 @@ namespace AM.Services
         public int PagesShipped { get; set; }
         public int BlankPages { get; set; }
         public string Status { get; set; }
-
+        public string Inserts { get; set; }
+        public string PrintFileName { get; set; }
+        public string EnvelopeName { get; set; }
+        public DateTime? DeliveryDate { get; set; }
+        public string DeliveryStatus { get; set; }      
     }
 }

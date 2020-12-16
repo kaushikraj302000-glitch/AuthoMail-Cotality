@@ -17,6 +17,11 @@ namespace AM.Web.Models
         public string ShippingCarrier { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
-        
+        public string Inserts { get; set; }
+        public string PrintFileName { get; set; }
+        public string EnvelopeName { get; set; }
+        public DateTime? DeliveryDate { get; set; }
+        public string DeliveryStatus { get; set; }
+
     }
 }

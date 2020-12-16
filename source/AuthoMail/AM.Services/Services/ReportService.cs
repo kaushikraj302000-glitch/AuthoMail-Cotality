@@ -393,12 +393,17 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 	 ,b.BatchName as BatchId,b.ReceivedOn,m.DocTypeId,m.IsEDeliveryRequested,m.FileName,
 	 d.DocTypeName as DocType,(pcd.ShippingCarrier + '-' + pcd.ShippingServiceType) as ShippingMethod,
      m.DocumentOrPackageType,m.TotalPages as PagesShipped,m.TotalBlankPages as BlankPages,
+     m.DeliveryStatus,m.DeliveryDate,m.Inserts,
 	 ch.Title as Channel,
-     c.AppCode as ClientCode
+     c.AppCode as ClientCode,
+	 e.EnvelopeName,ptb.PrintBatchName as PrintFileName
 	 FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
 	 LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id	 
 	 left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
-left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
+	 left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
+	 LEFT OUTER JOIN Common.Envelopes e ON pcd.EnvelopeId=e.Id
+	LEFT OUTER JOIN PnS.MRDFRequest req ON m.UniqueId=req.UniqueId
+	LEFT OUTER JOIN PnS.PrintTrailBatches ptb on req.PrintTrailBatchId=ptb.Id
 	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id";
             DynamicParameters parameter = new DynamicParameters();
             if (clientId != null && clientId.Count > 0)

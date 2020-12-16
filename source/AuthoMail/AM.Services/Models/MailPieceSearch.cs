@@ -185,6 +185,10 @@ namespace AM.Services
 
         public string ShipmentStatus { get; set; }
         public DateTime? ShipmentStatusUpdatedOn { get; set; }
+        public DateTime? DeliveryDate { get; set; }
+        public string DeliveryStatus { get; set; }
+        public string EnvelopeName { get; set; }
+        public string PrintFileName { get; set; }
     }
     public class MailBatches
     {
@@ -520,7 +524,11 @@ namespace AM.Services
         public string PrintLocation { get; set; }
         public string ShipmentStatus { get; set; }
         public DateTime? ShipmentStatusUpdatedOn { get; set; }
-
+        public string Inserts { get; set; }
+        public string PrintFileName { get; set; }
+        public string EnvelopeName { get; set; }
+        public DateTime? DeliveryDate { get; set; }
+        public string DeliveryStatus { get; set; }
     }
 
 
@@ -561,6 +569,11 @@ namespace AM.Services
         //        return string.Format(@"ReturnPdfs\{0}\{1}\{2}-{3}-{4}_{5}", this.AppCode, this.JobId, this.JobId, this.PieceId, this.MailPieceId, this.FileName);
         //    }
         //}
+        public string Inserts { get; set; }
+        public string PrintFileName { get; set; }
+        public string EnvelopeName { get; set; }
+        public DateTime? DeliveryDate { get; set; }
+        public string DeliveryStatus { get; set; }
     }
 
 }
