@@ -22,6 +22,7 @@ namespace AM.Services
         public int Id { get; set; }
         public string Name { get; set; }
         public string AppCode { get; set; }
+        public string GroupAlias { get; set; }
     }
 
     public class DallasBatch
@@ -116,6 +117,10 @@ namespace AM.Services
         public int PagesShipped { get; set; }
         public int BlankPages { get; set; }
         public string Status { get; set; }
-
+        public string Inserts { get; set; }
+        public string PrintFileName { get; set; }
+        public string EnvelopeName { get; set; }
+        public DateTime? DeliveryDate { get; set; }
+        public string DeliveryStatus { get; set; }      
     }
 }

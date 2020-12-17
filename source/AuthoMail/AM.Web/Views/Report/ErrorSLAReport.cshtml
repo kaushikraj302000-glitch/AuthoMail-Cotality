@@ -116,6 +116,11 @@
                 <th style="display:none;">Tracking Number</th>
                 <th class="BatchIds">Tracking Number</th>
                 <th>SLA</th>
+                <th>Inserts</th>
+                <th>Envelope Name</th>
+                <th>Print File Name</th>
+                <th>Delivery Date</th>
+                <th>Delivery Status</th>
                 <th class="ErrorCode">Error Code</th>
                 <th class="ErrorText">Error Text</th>
                 <th class="BatchId">BatchId</th>
@@ -142,6 +147,11 @@
                 <td style="display:none;"><span>{TrackingNoFormatted}</span></td>
                 <td><span>{TrackingNo}</span></td>
                 <td><span>{SLAStatus}</span></td>
+                <td><span>{Inserts}</span></td>
+                <td><span>{EnvelopeName}</span></td>
+                <td><span>{PrintFileName}</span></td>
+                <td><span>{DeliveryDateFormatted}</span></td>
+                <td><span>{DeliveryStatus}</span></td>
                 <td><span>{ErrorDescPopover}</span></td>
                 <td><span>{ErrorDesc}</span></td>
                 <td>{BatchId}</td>
@@ -333,6 +343,7 @@
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                this.DeliveryDateFormatted = this.DeliveryDate == null ? "--" : moment(this.DeliveryDate).format("MM/DD/YY HH:mm:ss");
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
                 var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
                 this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
