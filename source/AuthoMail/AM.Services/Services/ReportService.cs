@@ -446,7 +446,7 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
                 List<string> shipCarrier = new List<string>();
                 shippingMethod.ForEach(s => shipCarrier.Add(s.Split('-').First()));
                 shippingMethod.ForEach(s => shipMethod.Add(s.Split('-')[1]));
-                query = string.Format("{0} and d.ShippingServiceType in @shippingMethod and d.ShippingCarrier in @shippingCarrier", query);
+                query = string.Format("{0} and pcd.ShippingServiceType in @shippingMethod and pcd.ShippingCarrier in @shippingCarrier", query);
                 parameter.Add("@shippingMethod", shipMethod);
                 parameter.Add("@shippingCarrier", shipCarrier);
             }
