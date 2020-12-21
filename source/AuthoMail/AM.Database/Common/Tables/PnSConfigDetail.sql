@@ -27,6 +27,7 @@
     [SatEndTime]             TIME (7)      NULL,
     [SunStartTime]           TIME (7)      NULL,
     [SunEndTime]             TIME (7)      NULL,
+    [IsPrintReady] BIT NULL, 
     CONSTRAINT [PK_PnSConfigDetail] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
     CONSTRAINT [FK_PnSConfigDetail_Envelopes] FOREIGN KEY ([EnvelopeId]) REFERENCES [Common].[Envelopes] ([Id]),
     CONSTRAINT [FK_PnSConfigDetail_PnSConfig] FOREIGN KEY ([PnSConfigId]) REFERENCES [Common].[PnSConfig] ([Id])
