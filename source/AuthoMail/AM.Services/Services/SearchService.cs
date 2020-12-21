@@ -32,14 +32,18 @@ namespace AM.Services
      inner join Common.Clients c on m.ClientId=c.Id     
 	 left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
      left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
-	 left outer JOIN Profile.Users u ON m.PulledBackRequestedBy=u.Id	 
+	 left outer JOIN Profile.Users u ON m.PulledBackRequestedBy=u.Id
+     LEFT OUTER JOIN Common.Envelopes e ON pcd.EnvelopeId=e.Id
+	 LEFT OUTER JOIN PnS.MRDFRequest req ON m.UniqueId=req.UniqueId
+	 LEFT OUTER JOIN PnS.PrintTrailBatches ptb on req.PrintTrailBatchId=ptb.Id
 	 WHERE m.ClientId=@clientId";
             string fields = @"m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
 	 m.RcptAddressState as [State],m.PickedUpOn,m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.IsEDeliveryRequested,m.Inserts,m.ShipmentStatus,m.ShipmentStatusUpdatedOn,
 	 b.ReceivedOn,m.DocTypeId,
 	 d.DocTypeName as DocType,pcd.ShippingServiceType as ShippingMethod,pcd.ShippingCarrier,
-	 ch.Title as Channel";
+	 ch.Title as Channel,m.DeliveryStatus,m.DeliveryDate,m.Inserts,
+	e.EnvelopeName,ptb.PrintBatchName as PrintFileName";
             DynamicParameters parameter = new DynamicParameters();
             parameter.Add("@clientId", clientId);
             if (!string.IsNullOrWhiteSpace(businessFriendlyIdName))

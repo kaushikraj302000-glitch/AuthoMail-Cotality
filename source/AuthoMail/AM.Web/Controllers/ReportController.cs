@@ -174,17 +174,13 @@ namespace AM.Web.Controllers
         [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA )]
         public ActionResult SupplyInventoryReport()
         {
-            ViewBag.Envelopes = new SelectList(invSvc.GetEnvelopes(), "Id", "Id");
+            ViewBag.Envelopes = new SelectList(invSvc.GetEnvelopes(), "Id", "EnvelopeName");
             return View();
         }
         [HttpPost, Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
         public ActionResult _SupplyInventoryReport(List<string> envelopes)
         {
             var model = repoSvc.SupplyInventoryReport(envelopes);
-            foreach (var item in model)
-            {
-                item.StockUsed = model.Where(m => m.GetEnvelopeId() == item.GetEnvelopeId()).Sum(m => m.ReceivedQuantity) - item.Envelopes.CurrentQuantity;
-            }
             return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
         }
         [HttpGet]
@@ -194,7 +190,19 @@ namespace AM.Web.Controllers
             ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeName");
             if (User.IsInRole(AMRoles.Admin))
             {
-                ViewBag.ClientId = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
+                var list = new List<SelectListItem>();
+                var clientGroup = homeSvc.GetAllActiveClient().GroupBy(s => s.GroupAlias);
+                foreach (var group in clientGroup)
+                {
+                    var groupName = new SelectListGroup { Name = group.Key };
+                    foreach (var value in group)
+                    {
+                        SelectListItem item = new SelectListItem { Text = value.Name, Value = value.Id.ToString(), Group = groupName };
+                        list.Add(item);
+                    }
+                }
+                //ViewBag.ClientId = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
+                ViewBag.ClientId = list;
             }
             else
             {

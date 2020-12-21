@@ -83,8 +83,8 @@
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @RenderSection("scripts", required: false)
-    <script>
-        //?
+<script>
+       var baseUrl = '@Url.Content("~/")';
         function getParameterByName(name) {
             name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
             var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
@@ -145,6 +145,6 @@
             }
 
         });
-    </script>
+</script>
 </body>
 </html>

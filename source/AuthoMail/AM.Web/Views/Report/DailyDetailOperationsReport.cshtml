@@ -115,6 +115,7 @@
                 <th>Date Mailed <span class="fontcapitalize">(Local)</span></th>
                 <th>File Name</th>
                 <th>Client Code</th>
+                <th>Inserts</th>
                 <th>Shipment Status</th>
                 <th>Shipping Method</th>
                 <th>First Name</th>
@@ -123,6 +124,10 @@
                 <th>Recipient City</th>
                 <th>Recipient State</th>
                 <th>Recipient Zip</th>
+                <th>Envelope Name</th>
+                <th>Print File Name</th>
+                <th>Delivery Date</th>
+                <th>Delivery Status</th>
                 <th>Print Location</th>
                 <th>Pages Shipped</th>
                 <th>Blank Pages</th>
@@ -150,6 +155,7 @@
                 <td><span>{MailedOnFormatted}</span></td>
                 <td><span>{FileName}</span></td>
                 <td><span>{ClientCode}</span></td>
+                <td><span>{Inserts}</span></td>
                 <td><span>{ShipmentStatus}</span></td>
                 <td><span>{ShippingMethod}</span></td>
                 <td><span>{FirstName}</span></td>
@@ -158,6 +164,10 @@
                 <td><span>{City}</span></td>
                 <td><span>{State}</span></td>
                 <td><span>{ZIP}</span></td>
+                <td><span>{EnvelopeName}</span></td>
+                <td><span>{PrintFileName}</span></td>
+                <td><span>{DeliveryDateFormatted}</span></td>
+                <td><span>{DeliveryStatus}</span></td>
                 <td><span>{PrintLocation}</span></td>
                 <td><span>{TotalPages}</span></td>
                 <td><span>{TotalBlankPages}</span></td>
@@ -288,6 +298,7 @@
                 this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
+                this.DeliveryDateFormatted = this.DeliveryDate == null ? "--" : moment(this.DeliveryDate).format("MM/DD/YY HH:mm:ss");
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.TrackingNo = trackingNo;
                 this.TrackingNoFormatted = trackingFormatted;
