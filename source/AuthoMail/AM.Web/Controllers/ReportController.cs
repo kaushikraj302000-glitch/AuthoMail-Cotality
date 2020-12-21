@@ -174,17 +174,13 @@ namespace AM.Web.Controllers
         [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA )]
         public ActionResult SupplyInventoryReport()
         {
-            ViewBag.Envelopes = new SelectList(invSvc.GetEnvelopes(), "Id", "Id");
+            ViewBag.Envelopes = new SelectList(invSvc.GetEnvelopes(), "Id", "EnvelopeName");
             return View();
         }
         [HttpPost, Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
         public ActionResult _SupplyInventoryReport(List<string> envelopes)
         {
             var model = repoSvc.SupplyInventoryReport(envelopes);
-            foreach (var item in model)
-            {
-                item.StockUsed = model.Where(m => m.GetEnvelopeId() == item.GetEnvelopeId()).Sum(m => m.ReceivedQuantity) - item.Envelopes.CurrentQuantity;
-            }
             return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
         }
         [HttpGet]

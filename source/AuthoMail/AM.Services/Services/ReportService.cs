@@ -30,7 +30,7 @@ namespace AM.Services
         MailPieces GetMailPiecesDataFromMailBatchIdAndUniqueId(int mailBatchId, Guid uniqueId);
         List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate);
         List<DALLASSubmittedBatchDetail> GetDALLASReconReport(DateTime startDate, DateTime endDate);
-        List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes);
+        List<SupplyInventoryVM> SupplyInventoryReport(List<string> envelopes);
         MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
         List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo);
         List<FedExReport> GetFedExData(int[] isPickedUp = null);
@@ -343,24 +343,21 @@ GROUP BY C.AppCode,pcd.ShippingCarrier,pcd.ShippingServiceType";
             return db.Query<DALLASSubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
         }
 
-        public List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes)
+        public List<SupplyInventoryVM> SupplyInventoryReport(List<string> envelopes)
         {
             envelopes.RemoveAll(e => e == "");
-            string query = @"select et.*,e.Id,e.EnvelopeName,e.CurrentQuantity,e.PartNumber from Common.EnvelopeInventory et
-inner join Common.Envelopes e on et.EnvelopeId=e.Id";
+            string query = @"SELECT E.Id, E.EnvelopeName,E.PartNumber,S.PrintLocation,S.PrintVendorCode, EI.ReceivedOn,EI.ReceivedQuantity,EI.UnitPrice,ES.CurrentQuantity
+FROM  Common.Envelopes E
+LEFT OUTER JOIN Common.EnvelopeStock ES ON E.Id=ES.EnvelopeId
+LEFT OUTER JOIN Common.EnvelopeInventory EI ON EI.EnvelopeId=E.Id AND EI.ShipperId=ES.ShipperId
+LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             DynamicParameters parameter = new DynamicParameters();
             if (envelopes != null && envelopes.Count > 0)
             {
                 query = string.Format("{0} where e.Id in @envelopes", query);
                 parameter.Add("@envelopes", envelopes);
             }
-            return db.Query<EnvelopeInventory, Envelopes, EnvelopeInventory>(query,
-                (t, e) =>
-                {
-                    t.Envelopes = e;
-                    return t;
-                },
-                parameter).ToList();
+            return db.Query<SupplyInventoryVM>(query,parameter).ToList();
         }
 
         public MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId)

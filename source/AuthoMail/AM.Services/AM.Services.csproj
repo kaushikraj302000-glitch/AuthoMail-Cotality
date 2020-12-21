@@ -143,6 +143,7 @@
     <Compile Include="Models\SigningRoomRequest.cs" />
     <Compile Include="Models\SigningRoomResponse.cs" />
     <Compile Include="Models\StockDetails.cs" />
+    <Compile Include="Models\SupplyInventoryVM.cs" />
     <Compile Include="Models\SupportModel.cs" />
     <Compile Include="Models\CustomModels.cs" />
     <Compile Include="Models\MailPieceSearch.cs" />
