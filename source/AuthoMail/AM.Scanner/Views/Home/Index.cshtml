@@ -331,7 +331,7 @@
                                         batchbgcolor = "background-color:#C6EFCE !important;color:#006100 !important;"
                                     }
 
-                                    tbody += "<td class='aligncenter'><a title='" + v[0] + " : " + response.headers[j] + "' href='Scan/Index?clientCode=" + v[0] + "&batchName=" + response.headers[j] + "'><pre class='preclass ' style='" + batchbgcolor + ";" + cellBGColor + "' >" + v[j] + "</pre></a></td>";
+                                    tbody += "<td class='aligncenter'><a title='" + v[0] + " : " + response.headers[j] + "' href='" +baseUrl+"Scan/Index?clientCode=" + v[0] + "&batchName=" + response.headers[j] + "'><pre class='preclass ' style='" + batchbgcolor + ";" + cellBGColor + "' >" + v[j] + "</pre></a></td>";
                                 }
 
                             }
@@ -341,7 +341,7 @@
 
 
                 }
-                tbody += "<td class='aligncenter'><a title='" + v[0] + " Report' class='link' href='/Reports/ScanedDocuments?clientCode=" + v[0] + "'> <i class='glyphicon glyphicon-th-list'></i> </a></td>";
+                tbody += "<td class='aligncenter'><a title='" + v[0] + " Report' class='link' href='" + baseUrl +"Reports/ScanedDocuments?clientCode=" + v[0] + "'> <i class='glyphicon glyphicon-th-list'></i> </a></td>";
                 tbody += "</tr>";
                 if (colorcnt == 1) {
                     colorcnt = -1;

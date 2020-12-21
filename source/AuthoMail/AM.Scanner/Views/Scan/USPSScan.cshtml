@@ -513,7 +513,7 @@
                                 else if (code == "RESNotFound") {
                                     $("#message").empty();
                                     $("#message").show();
-                                    $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>Please scan front and rear barcode first.Please <a href='/Scan/Index?clientCode=" + clientCode + "' target='_blank'>click here</a> to scan </div>");
+                                    $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Oops! </strong>Please scan front and rear barcode first.Please <a href='" + baseUrl +"Scan/Index?clientCode=" + clientCode + "' target='_blank'>click here</a> to scan </div>");
                                     $("#code1").val("");
                                     $("#code2").val("");
                                     //$("#code1").focus();
