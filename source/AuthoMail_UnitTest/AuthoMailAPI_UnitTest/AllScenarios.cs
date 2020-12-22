@@ -89,7 +89,7 @@ namespace AuthoMailAPI_UnitTest
             }
             MailPiece mailPiece = new MailPiece()
             {
-                Id = Guid.Parse("00232F45-5C55-4AE2-8E73-32718928F66D"),//Guid.NewGuid(),mpId,
+                Id = Guid.NewGuid(),//mpId,
                 ClientCode = "AMAPITEST",
                 BusinessFriendlyIdName = "Loan Number",
                 BusinessFriendlyIdValue = "123456789",
@@ -148,14 +148,19 @@ namespace AuthoMailAPI_UnitTest
             //expectedValues.SweepTime = "";
             //this is not in view
             expectedValues.PdfFileSize = 70;
-            expectedValues.ShippingStatus = "Shipped";
+
             expectedValues.IsPulledBack = 0;
-            expectedValues.IsQCPerformed = false;
-            expectedValues.ErrCode = "No_Error";
 
             SetDefaultExpectedValuesJson(expectedValues, mailPiece, files);
 
-            bool isRegistered = RegisterTestCase(mailPiece.Id.ToString(), mailPiece.ClientCode, expectedValues.ToString(), this.GetMethodName());
+            // CHANGE MANUALLY IF NEEDED
+
+            //expectedValues.ErrCode = "No_Error";
+            //expectedValues.IsQCPerformed = false;
+            //expectedValues.ShippingStatus = "Shipped";
+
+
+            bool isRegistered = RegisterTestCase(mailPiece.Id.ToString(), expectedValues.ToString(), this.GetMethodName());
 
             Assert.AreEqual(true, isRegistered);
 
@@ -314,11 +319,11 @@ namespace AuthoMailAPI_UnitTest
                 ClientCode = "AMAPITEST",
                 BusinessFriendlyIdName = "Loan Number",
                 BusinessFriendlyIdValue = "123456789",
-                DocumentOrPackageType = "Initial Disclosures",
+                DocumentOrPackageType = "Disclosures",
                 DocumentOrPackage = new DocumentOrPackage()
                 {
                     Files = new List<string> { "F1" },
-                    Inserts = "TEST_BRE"
+                    Inserts = "TEST_BRE,ABC,XYZ,DEF"
                 },
                 RecipientInfo = new RecipientInfo()
                 {
@@ -357,7 +362,7 @@ namespace AuthoMailAPI_UnitTest
             Assert.AreEqual("Your request is queued for processing.", response.Message);
             Assert.AreEqual("Acknowledgement", response.MailingStatus);
         }
-
+        
         [TestMethod]
         public async Task AM_InsertsOnlyValid()
         {
@@ -410,7 +415,7 @@ namespace AuthoMailAPI_UnitTest
             Assert.AreEqual("Your request is queued for processing.", response.Message);
             Assert.AreEqual("Acknowledgement", response.MailingStatus);
         }
-
+  
         #endregion
 
         #region InvalidScenarios
@@ -3080,7 +3085,7 @@ namespace AuthoMailAPI_UnitTest
             try
             {
                 var t1 = GenerateLocalResponse(files, mailPiece);
-                Thread.Sleep(1000);
+                await Task.Delay(1000);
                 var t2 = await GenerateLocalResponse(files, mailPiece);
                 Assert.AreEqual("Error", t2.MailingStatus);
                 Assert.AreEqual("NotAcceptable", t2.ErrorCode);
@@ -3093,6 +3098,214 @@ namespace AuthoMailAPI_UnitTest
         }
 
         #endregion
+
+        // CREATED BY NIRAV
+        #region New Cases
+
+        [TestMethod]
+        public async Task AM_CheckByPageNumber()
+        {
+            var files = new List<string>();
+            if (ConfigurationManager.AppSettings["TokenURL"] == "https://authomail.corelogic.com/token")
+            {
+                files.Add(@"PdfSample\1.pdf");
+            }
+            else
+            {
+                files.Add(@"PdfSample\encryptedsample1newkey.pdf");
+            }
+
+            MailPiece mailPiece = new MailPiece()
+            {
+                Id = Guid.NewGuid(),//mpId,
+                ClientCode = "AMAPITEST",
+                BusinessFriendlyIdName = "Loan Number",
+                BusinessFriendlyIdValue = "123456789",
+                DocumentOrPackageType = "Credit Disclosures",
+                DocumentOrPackage = new DocumentOrPackage()
+                {
+                    Files = new List<string> { "F1" }
+                },
+                RecipientInfo = new RecipientInfo()
+                {
+                    Recipient = new Recipient()
+                    {
+                        FirstName = "Test_FName",
+                        LastName = "Test_LName"
+                    },
+                    Address = new Address()
+                    {
+                        Street = "1363 Henery Street",
+                        City = "Wichita",
+                        State = "KS",
+                        Zip = "67203"
+                    }
+                },
+                ReturnInfo = new ReturnInfo()
+                {
+                    Recipient = new Recipient()
+                    {
+                        FirstName = "Test_FName",
+                        LastName = "Test_LName"
+                    },
+                    Address = new Address()
+                    {
+                        Street = "1363 Henery Street",
+                        City = "Wichita",
+                        State = "KS",
+                        Zip = "67203"
+                    }
+                }
+            };
+
+            dynamic expectedValues = new JObject();
+
+            expectedValues.ShippingCarrier = "USPS";
+            expectedValues.PrintFormat = "Simplex";
+            expectedValues.IsBRE = false;
+            expectedValues.PrintLocation = "Las Vegas";
+
+            expectedValues.QCPercent = 0;
+            expectedValues.TotalPages = 1;
+            expectedValues.PrintTrailName = "GENERIC_PRIEXP";
+            //this is not in view
+            expectedValues.VendorName = "ADE_NORDIS";
+            //this is not in view
+            expectedValues.EnvelopeName = "TEST_USPS_PRIEXP";
+            //expectedValues.SweepTime = "";
+            //this is not in view
+            expectedValues.PdfFileSize = 88;
+
+            expectedValues.IsPulledBack = 0;
+
+            SetDefaultExpectedValuesJson(expectedValues, mailPiece, files);
+
+            // CHANGE MANUALLY IF NEEDED
+
+            //expectedValues.ErrCode = "No_Error";
+            //expectedValues.IsQCPerformed = false;
+            //expectedValues.ShippingStatus = "Shipped";
+            //expectedValues.IsPulledBack = 0;
+
+            bool isRegistered = RegisterTestCase(mailPiece.Id.ToString(), expectedValues.ToString(), this.GetMethodName());
+
+            Assert.AreEqual(true, isRegistered);
+
+            if (isRegistered)
+            {
+                var response = await GenerateLocalResponse(files, mailPiece);
+                Assert.AreEqual(mailPiece.Id, response.Id);
+                Assert.AreEqual("Your request is queued for processing.", response.Message);
+                Assert.AreEqual("Acknowledgement", response.MailingStatus);
+            }
+        }
+
+        // IsBRE
+
+        [TestMethod]
+        public async Task AM_IsBREValid()
+        {
+            var files = new List<string>();
+            if (ConfigurationManager.AppSettings["TokenURL"] == "https://authomail.corelogic.com/token")
+            {
+                files.Add(@"PdfSample\1.pdf");
+            }
+            else
+            {
+                files.Add(@"PdfSample\encryptedsample1newkey.pdf");
+            }
+
+            MailPiece mailPiece = new MailPiece()
+            {
+                Id = Guid.NewGuid(),//mpId,
+                ClientCode = "AMAPITEST",
+                BusinessFriendlyIdName = "Loan Number",
+                BusinessFriendlyIdValue = "123456789",
+                DocumentOrPackageType = "Stand Alone - Closing Disclosure",
+                DocumentOrPackage = new DocumentOrPackage()
+                {
+                    Files = new List<string> { "F1" }
+                },
+                RecipientInfo = new RecipientInfo()
+                {
+                    Recipient = new Recipient()
+                    {
+                        FirstName = "Test_FName",
+                        LastName = "Test_LName"
+                    },
+                    Address = new Address()
+                    {
+                        Street = "1363 Henery Street",
+                        City = "Wichita",
+                        State = "KS",
+                        Zip = "67203"
+                    }
+                },
+                ReturnInfo = new ReturnInfo()
+                {
+                    Recipient = new Recipient()
+                    {
+                        FirstName = "Test_FName",
+                        LastName = "Test_LName"
+                    },
+                    Address = new Address()
+                    {
+                        Street = "1363 Henery Street",
+                        City = "Wichita",
+                        State = "KS",
+                        Zip = "67203"
+                    }
+                }
+            };
+
+            dynamic expectedValues = new JObject();
+
+            expectedValues.ShippingCarrier = "USPS";
+            expectedValues.PrintFormat = "Simplex";
+            expectedValues.IsBRE = true;
+            expectedValues.PrintLocation = "CL_DALLAS"; 
+
+            //expectedValues.QCPercent = 0;
+            expectedValues.TotalPages = 1;
+            expectedValues.PrintTrailName = "GENERIC_DALLAS";
+            //this is not in view
+            expectedValues.VendorName = "CL_DALLAS";
+            //this is not in view
+            expectedValues.EnvelopeName = "TEST_TYVEK";
+            //expectedValues.SweepTime = "";
+            //this is not in view
+            expectedValues.PdfFileSize = 88;
+
+            //expectedValues.IsPulledBack = 0;
+
+            SetDefaultExpectedValuesJson(expectedValues, mailPiece, files);
+
+            // CHANGE MANUALLY IF NEEDED
+
+            //expectedValues.ErrCode = "No_Error";
+            //expectedValues.IsQCPerformed = false;
+            //expectedValues.ShippingStatus = "Shipped";
+            //expectedValues.IsPulledBack = 0;
+
+            bool isRegistered = RegisterTestCase(mailPiece.Id.ToString(), expectedValues.ToString(), this.GetMethodName());
+
+            Assert.AreEqual(true, isRegistered);
+
+            if (isRegistered)
+            {
+                var response = await GenerateLocalResponse(files, mailPiece);
+                Assert.AreEqual(mailPiece.Id, response.Id);
+                Assert.AreEqual("Your request is queued for processing.", response.Message);
+                Assert.AreEqual("Acknowledgement", response.MailingStatus);
+            }
+        }
+
+        // IsBRE-Inserts
+
+
+        #endregion
+
+
 
         private static async Task<MailAPIResponse> GenerateLocalResponse(List<string> files, MailPiece mailPiece, int timeoutSec = 300)
         {
@@ -3179,6 +3392,12 @@ namespace AuthoMailAPI_UnitTest
             //todo db view does not configured
             expectedValues.Inserts = mailPiece.DocumentOrPackage.Inserts;
 
+            expectedValues.IsQCPerformed = false;
+            expectedValues.IsPulledBack = 0;
+
+            expectedValues.ErrCode = "No_Error";
+            expectedValues.ShippingStatus = "Shipped";
+
             #region PDFCount Check
             //todo this will going to static value for pdf page count
             //int pagecount = 0;
@@ -3209,13 +3428,13 @@ namespace AuthoMailAPI_UnitTest
             }
         }
 
-        public bool RegisterTestCase(string mailPieceId, string clientName, string expectedValuesJson, string methodName = "")
+        public bool RegisterTestCase(string mailPieceId, string expectedValuesJson, string methodName = "")
         {
             try
             {
                 using (var ldb = CreateDbConnection())
                 {
-                    ldb.Execute("Insert Into APITestResult (MailPieceId, ClientName, TestCaseName, ExpectedResult, CreatedTime) Values (:MailPieceId, :TestCaseName, :ExpectedResult, :CreatedTime)", new { MailPieceId = mailPieceId, ClientName = clientName, TestCaseName = methodName, ExpectedResult = expectedValuesJson, CreatedTime = DateTime.Now.ToString() });
+                    ldb.Execute("Insert Into APITestResult (MailPieceId, TestCaseName, ExpectedResult, CreatedTime) Values (:MailPieceId, :TestCaseName, :ExpectedResult, :CreatedTime)", new { MailPieceId = mailPieceId, TestCaseName = methodName, ExpectedResult = expectedValuesJson, CreatedTime = DateTime.Now.ToString() });
                 }
 
                 return true;

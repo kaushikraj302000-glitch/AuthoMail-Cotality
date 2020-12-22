@@ -30,7 +30,7 @@ namespace AM.Services
         MailPieces GetMailPiecesDataFromMailBatchIdAndUniqueId(int mailBatchId, Guid uniqueId);
         List<PCISubmittedBatchDetail> GetPCIReconReport(DateTime startDate, DateTime endDate);
         List<DALLASSubmittedBatchDetail> GetDALLASReconReport(DateTime startDate, DateTime endDate);
-        List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes);
+        List<SupplyInventoryVM> SupplyInventoryReport(List<string> envelopes);
         MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
         List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo);
         List<FedExReport> GetFedExData(int[] isPickedUp = null);
@@ -343,24 +343,21 @@ GROUP BY C.AppCode,pcd.ShippingCarrier,pcd.ShippingServiceType";
             return db.Query<DALLASSubmittedBatchDetail>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
         }
 
-        public List<EnvelopeInventory> SupplyInventoryReport(List<string> envelopes)
+        public List<SupplyInventoryVM> SupplyInventoryReport(List<string> envelopes)
         {
             envelopes.RemoveAll(e => e == "");
-            string query = @"select et.*,e.Id,e.EnvelopeName,e.CurrentQuantity,e.PartNumber from Common.EnvelopeInventory et
-inner join Common.Envelopes e on et.EnvelopeId=e.Id";
+            string query = @"SELECT E.Id, E.EnvelopeName,E.PartNumber,S.PrintLocation,S.PrintVendorCode, EI.ReceivedOn,EI.ReceivedQuantity,EI.UnitPrice,ES.CurrentQuantity
+FROM  Common.Envelopes E
+LEFT OUTER JOIN Common.EnvelopeStock ES ON E.Id=ES.EnvelopeId
+LEFT OUTER JOIN Common.EnvelopeInventory EI ON EI.EnvelopeId=E.Id AND EI.ShipperId=ES.ShipperId
+LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             DynamicParameters parameter = new DynamicParameters();
             if (envelopes != null && envelopes.Count > 0)
             {
                 query = string.Format("{0} where e.Id in @envelopes", query);
                 parameter.Add("@envelopes", envelopes);
             }
-            return db.Query<EnvelopeInventory, Envelopes, EnvelopeInventory>(query,
-                (t, e) =>
-                {
-                    t.Envelopes = e;
-                    return t;
-                },
-                parameter).ToList();
+            return db.Query<SupplyInventoryVM>(query,parameter).ToList();
         }
 
         public MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId)
@@ -393,12 +390,17 @@ inner join Common.Envelopes e on et.EnvelopeId=e.Id";
 	 ,b.BatchName as BatchId,b.ReceivedOn,m.DocTypeId,m.IsEDeliveryRequested,m.FileName,
 	 d.DocTypeName as DocType,(pcd.ShippingCarrier + '-' + pcd.ShippingServiceType) as ShippingMethod,
      m.DocumentOrPackageType,m.TotalPages as PagesShipped,m.TotalBlankPages as BlankPages,
+     m.DeliveryStatus,m.DeliveryDate,m.Inserts,
 	 ch.Title as Channel,
-     c.AppCode as ClientCode
+     c.AppCode as ClientCode,
+	 e.EnvelopeName,ptb.PrintBatchName as PrintFileName
 	 FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
 	 LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id	 
 	 left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
-left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
+	 left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
+	 LEFT OUTER JOIN Common.Envelopes e ON pcd.EnvelopeId=e.Id
+	LEFT OUTER JOIN PnS.MRDFRequest req ON m.UniqueId=req.UniqueId
+	LEFT OUTER JOIN PnS.PrintTrailBatches ptb on req.PrintTrailBatchId=ptb.Id
 	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id";
             DynamicParameters parameter = new DynamicParameters();
             if (clientId != null && clientId.Count > 0)
@@ -441,7 +443,7 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
                 List<string> shipCarrier = new List<string>();
                 shippingMethod.ForEach(s => shipCarrier.Add(s.Split('-').First()));
                 shippingMethod.ForEach(s => shipMethod.Add(s.Split('-')[1]));
-                query = string.Format("{0} and d.ShippingServiceType in @shippingMethod and d.ShippingCarrier in @shippingCarrier", query);
+                query = string.Format("{0} and pcd.ShippingServiceType in @shippingMethod and pcd.ShippingCarrier in @shippingCarrier", query);
                 parameter.Add("@shippingMethod", shipMethod);
                 parameter.Add("@shippingCarrier", shipCarrier);
             }

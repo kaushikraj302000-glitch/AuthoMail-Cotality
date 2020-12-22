@@ -34,7 +34,6 @@
     [NoOfCopies]                          INT            NOT NULL,
     [BREEnvelopeId]                       INT            NULL,
     [RetRcptAddressCountry]               VARCHAR (255)  NULL,
-    [IsPrintReady]                        BIT            NULL,
     [PnSConfigId]                         INT            NULL,
     [PrintFormat] VARCHAR(255) NULL, 
     CONSTRAINT [PK_DocTypes] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),

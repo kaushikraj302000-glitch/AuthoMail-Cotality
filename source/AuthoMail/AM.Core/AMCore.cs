@@ -534,7 +534,14 @@ namespace AM.Core
                                     endLetterPdfPaths.Add(response.CoverLetterPath);
                                 }
 
-                                //TODO: Print Inserts in coverletter
+                                //Here we are finally updating BRE  envelope in inserts field because now shipping method is not going to change.
+                                if (docType.IsBRE)
+                                {
+                                    var breEnvelopeName = commonSvc.GetEnvelopeCodeByEnvelopeId(docType.BREEnvelopeId);
+                                    mailPiece.Inserts = $"{breEnvelopeName},{mailPiece.Inserts}".TrimEnd(',');
+                                }
+
+                                //Print Inserts in coverletter
 
                                 if (mailPiece.PrintLocation == "Dallas CL" && !string.IsNullOrWhiteSpace(mailPiece.Inserts))
                                 {
@@ -579,14 +586,7 @@ namespace AM.Core
                                     mailPiece.TotalPages = response.TotalPages;
                                 }
 
-                                mailPiece.TotalSheets = docType.PrintFormat == "Duplex" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;
-
-                                //Here we are finally updating BRE  envelope in inserts field because now shipping method is not going to change.
-                                if (docType.IsBRE)
-                                {
-                                    var breEnvelopeName = commonSvc.GetEnvelopeCodeByEnvelopeId(docType.BREEnvelopeId);
-                                    mailPiece.Inserts = $"{breEnvelopeName},{mailPiece.Inserts}".TrimEnd(',');
-                                }
+                                mailPiece.TotalSheets = docType.PrintFormat == "Duplex" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;                               
 
                                 mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                             }

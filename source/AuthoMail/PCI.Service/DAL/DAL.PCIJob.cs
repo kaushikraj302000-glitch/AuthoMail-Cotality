@@ -81,7 +81,6 @@ namespace PCI.Service
                     ShippingServiceType = row.Field<string>("ShippingServiceType"),
                     MailPieceDueDate = row.Field<DateTime>("MailPieceDueDate"),
                     EnvelopeId = row.Field<int?>("EnvelopeId"),
-                    BREEnvelopeId = row.Field<int?>("BREEnvelopeId"),
                     CustomerId = row.Field<string>("CustomerId"),
                     IsForeignAddress = row.Field<bool>("IsForeignAddress"),
                     ShipperId = row.Field<int>("ShipperId"),
