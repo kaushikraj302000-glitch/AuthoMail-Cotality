@@ -59,7 +59,7 @@ namespace AM.Console
                 }
                 foreach (DirectoryInfo amSubDir in amSubDirs)
                 {
-                    amSubDir.Delete(true); 
+                    amSubDir.Delete(true);
                 }
             }
 
@@ -70,7 +70,7 @@ namespace AM.Console
                 var pnsSubDirs = destDir.EnumerateDirectories().Where(d => d.LastWriteTime < startDate).ToList();
                 foreach (DirectoryInfo pnsSubDir in pnsSubDirs)
                 {
-                    pnsSubDir.Delete(true); 
+                    pnsSubDir.Delete(true);
                 }
             }
             #endregion
@@ -137,7 +137,7 @@ namespace AM.Console
             }
             catch (Exception ex)
             {
-                var msg = "Error occured while PURGING directories and files: {0} ".Fill(ex.Message);
+                var msg = "Error occured while PURGING directories and files for client {0}: {1} ".Fill(client.AppCode, ex.ToString());
                 log.Error(msg, ex);
                 MailUtility.SendUnexpectedExceptionEmail(msg);
             }
