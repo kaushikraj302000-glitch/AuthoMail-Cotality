@@ -32,8 +32,8 @@ BEGIN
 
 	EXEC usp_MapClientSFTChannels @ClientCode,@ChannelCode
 
-	INSERT INTO AM.DocTypes (DocTypeName, IsBRE, BREEnvelopeId, ClientId, QCPercent, IsReturnInfoSpecified, RetRcptAddressStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, IsActive, ModifiedOn, CreatedOn, CreatedBy, ModifiedBy, NoOfCopies, IsPrintReady, PnSConfigId)
-	SELECT DocTypeName, IsBRE, BREEnvelopeId, @newClientId, QCPercent, IsReturnInfoSpecified, RetRcptAddressStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, IsActive, ModifiedOn, CreatedOn, CreatedBy, ModifiedBy, NoOfCopies, IsPrintReady, PnSConfigId FROM AM.DocTypes WHERE ClientId=(SELECT Id FROM Common.Clients WHERE AppCode='DELFUS')
+	INSERT INTO AM.DocTypes (DocTypeName, IsBRE, BREEnvelopeId, ClientId, QCPercent, IsReturnInfoSpecified, RetRcptAddressStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, IsActive, ModifiedOn, CreatedOn, CreatedBy, ModifiedBy, NoOfCopies, PnSConfigId)
+	SELECT DocTypeName, IsBRE, BREEnvelopeId, @newClientId, QCPercent, IsReturnInfoSpecified, RetRcptAddressStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, IsActive, ModifiedOn, CreatedOn, CreatedBy, ModifiedBy, NoOfCopies, PnSConfigId FROM AM.DocTypes WHERE ClientId=(SELECT Id FROM Common.Clients WHERE AppCode='DELFUS')
 
 	INSERT INTO [Common].[PnSSweepTimings]([BundleSeqNo],[AppCode],[VendorCode],[WeekDayType],[SweepType],[SweepTime])
 	SELECT [BundleSeqNo],@ClientCode,[VendorCode],[WeekDayType],[SweepType],[SweepTime] FROM [Common].[PnSSweepTimings] WHERE AppCode='DELFUS'
