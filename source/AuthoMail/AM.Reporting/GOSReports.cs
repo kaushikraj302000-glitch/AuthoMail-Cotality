@@ -157,7 +157,7 @@ namespace AM.Reporting
             reconReport.AppendLine();
             foreach (var batch in gosBatchDetails)
             {
-                var line = String.Join(",", batch.AppCode, batch.BatchName, batch.ReceivedOnEst, batch.LoanNumber, batch.ProductCode, batch.DocumentOrPackageType, batch.FileName, batch.TrackingNo, batch.ShippingStatus, batch.TotalPages, batch.ShippedOnEst, batch.PrintLocation, batch.DeliveryStatus, batch.DeliveryDateTime, batch.ShipmentStatus, batch.ReturnTrackingNo, batch.ReturnDeliveryStatus, batch.ReturnDeliveryDate, batch.ErrorDesc);
+                var line = String.Join(",", batch.AppCode, batch.BatchName, batch.ReceivedOnEst, batch.LoanNumber, batch.ProductCode, batch.DocumentOrPackageType, batch.FileName, batch.TrackingNo, batch.ShippingStatus, batch.TotalPages, batch.ShippedOnEst, batch.PrintLocation, batch.DeliveryStatus.ToCsvString(), batch.DeliveryDateTime, batch.ShipmentStatus.ToCsvString(), batch.ReturnTrackingNo, batch.ReturnDeliveryStatus.ToCsvString(), batch.ReturnDeliveryDate, batch.ErrorDesc.ToCsvString());
                 reconReport.AppendLine(line);
             }
 
@@ -165,25 +165,26 @@ namespace AM.Reporting
 
 
             StringBuilder sb = new StringBuilder(File.ReadAllText(AppConfig.GOSDataPointEMailTemplate));
-            var fedexOWRecords = gosBatchDetails.Where(x => x.ShippingCarrier == "FEDEX");
+            var fedexOWRecords = gosBatchDetails.Where(x => x.ShippingCarrier == "FedEx");
             var uspsOWRecords = gosBatchDetails.Where(x => x.ShippingCarrier == "USPS");
 
-            var fedexRetRecords = gosBatchDetails.Where(x => x.ReturnShippingCarrier == "FEDEX");
+            var fedexRetRecords = gosBatchDetails.Where(x => x.ReturnShippingCarrier == "FedEx");
             var uspsRetRecords = gosBatchDetails.Where(x => x.ReturnShippingCarrier == "USPS");
 
-            sb = sb.Replace("<%FedEx_ODelivered%>", fedexOWRecords.Count(t => t.DeliveryStatus.ToLower().Contains("delivered")).ToString());
-            sb = sb.Replace("<%FedEx_OInTransit%>", fedexOWRecords.Count(t => !t.DeliveryStatus.ToLower().Contains("delivered") && !t.DeliveryStatus.ToLower().Contains("created")).ToString());
-            sb = sb.Replace("<%FedEx_OPending%>", fedexOWRecords.Count(t => t.DeliveryStatus.ToLower().Contains("created")).ToString());
-            sb = sb.Replace("<%FedEx_RDelivered%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus.ToLower().Contains("delivered")).ToString());
-            sb = sb.Replace("<%FedEx_RInTransit%>", fedexRetRecords.Count(t => !t.ReturnDeliveryStatus.ToLower().Contains("delivered") && !t.DeliveryStatus.ToLower().Contains("created")).ToString());
-            sb = sb.Replace("<%FedEx_RPending%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus.ToLower().Contains("created")).ToString());
+            sb = sb.Replace("<%FedEx_ODelivered%>", fedexOWRecords.Count(t => t.DeliveryStatus == "Delivered").ToString());
+            sb = sb.Replace("<%FedEx_OInTransit%>", fedexOWRecords.Count(t => t.DeliveryStatus != "Delivered" && t.DeliveryStatus != null).ToString());
+            sb = sb.Replace("<%FedEx_OPending%>", fedexOWRecords.Count(t => t.DeliveryStatus.IsNullOrEmpty()).ToString());
 
-            sb = sb.Replace("<%USPS_ODelivered%>", uspsOWRecords.Count(t => t.DeliveryStatus.ToLower().Contains("delivered")).ToString());
-            sb = sb.Replace("<%USPS_OInTransit%>", uspsOWRecords.Count(t => !t.DeliveryStatus.ToLower().Contains("delivered") && !t.DeliveryStatus.ToLower().Contains("created")).ToString());
-            sb = sb.Replace("<%USPS_OPending%>", uspsOWRecords.Count(t => t.DeliveryStatus.ToLower().Contains("created")).ToString());
-            sb = sb.Replace("<%USPS_RDelivered%>", uspsRetRecords.Count(t => t.ReturnDeliveryStatus.ToLower().Contains("delivered")).ToString());
-            sb = sb.Replace("<%USPS_RInTransit%>", uspsRetRecords.Count(t => !t.ReturnDeliveryStatus.ToLower().Contains("delivered") && !t.DeliveryStatus.ToLower().Contains("created")).ToString());
-            sb = sb.Replace("<%USPS_RPending%>", uspsRetRecords.Count(t => t.ReturnDeliveryStatus.ToLower().Contains("created")).ToString());
+            sb = sb.Replace("<%FedEx_RDelivered%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus == "Delivered").ToString());
+            sb = sb.Replace("<%FedEx_RInTransit%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus != "Delivered" && t.ReturnDeliveryStatus != null).ToString());
+            sb = sb.Replace("<%FedEx_RPending%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus.IsNullOrEmpty()).ToString());
+
+            sb = sb.Replace("<%USPS_ODelivered%>", uspsOWRecords.Count(t => t.DeliveryStatus.StartsWith("Delivered")).ToString());
+            sb = sb.Replace("<%USPS_OInTransit%>", uspsOWRecords.Count(t => !t.DeliveryStatus.StartsWith("Delivered") && !t.DeliveryStatus.IsNullOrWhiteSpace()).ToString());
+            sb = sb.Replace("<%USPS_OPending%>", uspsOWRecords.Count(t => t.DeliveryStatus.IsNullOrWhiteSpace()).ToString());
+            sb = sb.Replace("<%USPS_RDelivered%>", uspsRetRecords.Count(t => t.ReturnDeliveryStatus.StartsWith("Delivered")).ToString());
+            sb = sb.Replace("<%USPS_RInTransit%>", uspsRetRecords.Count(t => !t.ReturnDeliveryStatus.StartsWith("Delivered") && !t.ReturnDeliveryStatus.IsNullOrWhiteSpace()).ToString());
+            sb = sb.Replace("<%USPS_RPending%>", uspsRetRecords.Count(t => t.ReturnDeliveryStatus.StartsWith("Delivered")).ToString());
 
             SendReportToCLTeam(reportFilePath, currentTime, subject, sb.ToString());
         }

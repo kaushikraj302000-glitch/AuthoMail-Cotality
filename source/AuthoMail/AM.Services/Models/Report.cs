@@ -105,7 +105,7 @@ namespace AM.Services
                 {
                     if (ReturnTrackingNo.StartsWith("7") || ReturnTrackingNo.StartsWith("3"))
                     {
-                        return "FEDEX";
+                        return "FedEx";
                     }
                     else
                     {

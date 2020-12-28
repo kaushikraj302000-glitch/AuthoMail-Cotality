@@ -119,7 +119,7 @@ namespace AM.Reporting
                         List<TrackID> trackIDs = new List<TrackID>();
                         returnTrackingInfo.Skip(trackedRequests).Take(maxTrackRequest).ToList().ForEach(r =>
                         {
-                            trackIDs.Add(new TrackID() { ID = r.TrackingNo });
+                            trackIDs.Add(new TrackID() { ID = r.ReturnTrackingNo });
                         });
 
                         TrackFieldAPIRequest trackFieldRequest = new TrackFieldAPIRequest()

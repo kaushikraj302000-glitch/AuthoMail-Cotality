@@ -103,6 +103,12 @@ namespace AM.Services
         private void GetTrackReplyAndUpdateValue(TrackReply reply, DateTime jobRunTime, bool isReturnTrackingInfo = false)
         {
             List<FedExPickedPackagesDetail> fedExPickedPackageDetails = new List<FedExPickedPackagesDetail>();
+
+            if (reply.CompletedTrackDetails == null)
+            {
+                return;
+            }
+
             // Track details for each package
             foreach (CompletedTrackDetail completedTrackDetail in reply.CompletedTrackDetails)
             {
@@ -146,7 +152,7 @@ namespace AM.Services
             }
         }
 
-        private static TrackRequest CreateTrackRequest(List<FedExReport> takenMailPieces, FedExAccountInfo fedExAccountDetails)
+        private static TrackRequest CreateTrackRequest(List<FedExReport> takenMailPieces, FedExAccountInfo fedExAccountDetails, bool isReturnTracking = false)
         {
             TrackRequest request = new TrackRequest();
             //Credentials
@@ -169,7 +175,7 @@ namespace AM.Services
             {
                 TrackSelectionDetail trackSelection = new TrackSelectionDetail();
                 trackSelection.PackageIdentifier = new TrackPackageIdentifier();
-                trackSelection.PackageIdentifier.Value = mailPiece.TrackingNo;
+                trackSelection.PackageIdentifier.Value = isReturnTracking ? mailPiece.ReturnTrackingNo : mailPiece.TrackingNo;
                 trackSelection.PackageIdentifier.Type = TrackIdentifierType.TRACKING_NUMBER_OR_DOORTAG;
                 trackSelections.Add(trackSelection);
             }
@@ -229,7 +235,7 @@ namespace AM.Services
                         var takenMailPieces = returnTrackingMps.Skip(checkedMailPieceCount).Take(maxRequest).ToList();
                         checkedMailPieceCount += maxRequest;
 
-                        TrackRequest request = CreateTrackRequest(takenMailPieces, fedExAccountDetails);
+                        TrackRequest request = CreateTrackRequest(takenMailPieces, fedExAccountDetails, true);
                         TrackPortTypeClient service = new TrackPortTypeClient();
                         service.Endpoint.Address = new System.ServiceModel.EndpointAddress(Config.Common_FedExTrackingUrl);
 

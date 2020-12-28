@@ -599,8 +599,8 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             //This will provide previous and today's not picked up records
             var data = db.Query<FedExReport>(query, new
             {
-                startDueDate,
-                endDueDate
+                startDueDate = startDueDate.EstToUtc(),
+                endDueDate = endDueDate.EstToUtc()
             }).ToList();
             return data;
         }
@@ -686,8 +686,8 @@ LEFT OUTER JOIN Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
             //This will provide previous and today's not picked up records
             var data = db.Query<USPSeVSReport>(query, new
             {
-                startDueDate,
-                endDueDate
+                startDueDate = startDueDate.EstToUtc(),
+                endDueDate = endDueDate.EstToUtc()
             }).ToList();
             return data;
         }
