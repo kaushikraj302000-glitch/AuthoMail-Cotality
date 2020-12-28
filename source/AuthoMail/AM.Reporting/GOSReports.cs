@@ -56,10 +56,10 @@ namespace AM.Reporting
 
             File.WriteAllText(reportFilePath, reconReport.ToString());
 
-            SendReportToCLTeam(reportFilePath, currentTime, subject, $"GOS Report For : {currentTime:MM/dd/yyyy}");
+            SendReportToCLTeam(reportFilePath, currentTime, subject, $"GOS Report For : {currentTime:MM/dd/yyyy}", AppConfig.GOSReconEMailTo, AppConfig.GOSReconEMailCc);
         }
 
-        private static bool SendReportToCLTeam(string reconReportPath, DateTime todayCutOffTime, string subject, string body)
+        private static bool SendReportToCLTeam(string reconReportPath, DateTime todayCutOffTime, string subject, string body, string to, string cc)
         {
             bool isEmailSent = false;
 
@@ -70,8 +70,8 @@ namespace AM.Reporting
                     using (MailMessage msg = new MailMessage())
                     {
                         msg.IsBodyHtml = true;
-                        msg.To.Add(AppConfig.GOSReconEMailTo);
-                        msg.CC.Add(AppConfig.GOSReconEMailCc);
+                        msg.To.Add(to);
+                        msg.CC.Add(cc);
                         msg.Subject = $"{Config.Common_Environment} : {subject.Fill(todayCutOffTime.ToString("MM/dd/yyyy"))}";
                         msg.Priority = MailPriority.Normal;
                         msg.Body = body;
@@ -186,7 +186,7 @@ namespace AM.Reporting
             sb = sb.Replace("<%USPS_RInTransit%>", uspsRetRecords.Count(t => !t.ReturnDeliveryStatus.StartsWith("Delivered") && !t.ReturnDeliveryStatus.IsNullOrWhiteSpace()).ToString());
             sb = sb.Replace("<%USPS_RPending%>", uspsRetRecords.Count(t => t.ReturnDeliveryStatus.StartsWith("Delivered")).ToString());
 
-            SendReportToCLTeam(reportFilePath, currentTime, subject, sb.ToString());
+            SendReportToCLTeam(reportFilePath, currentTime, subject, sb.ToString(), AppConfig.GOSDataPointEMailTo, AppConfig.GOSDataPointEMailCc);
         }
     }
 }
