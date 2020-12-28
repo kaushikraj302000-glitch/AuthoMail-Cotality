@@ -641,6 +641,10 @@ namespace AM.Console
                                         {
                                             mailPieceDTO.ShippingServiceType = cstmInfo.Value;
                                         }
+                                        else if (cstmInfo.Key == "ReturnTrackingNumber")
+                                        {
+                                            mailPieceDTO.ReturnTrackingNo = cstmInfo.Value;
+                                        }
                                     }
 
                                     customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = cstmInfo.Key, DataType = cstmInfo.DataType, Value = cstmInfo.Value };
