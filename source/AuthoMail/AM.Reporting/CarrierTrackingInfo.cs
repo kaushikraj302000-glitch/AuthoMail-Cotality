@@ -17,7 +17,7 @@ namespace AM.Reporting
     class CarrierTrackingInfo
     {
         private static log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        internal static void CheckForShipmentTracking()
+        internal static void CheckForShipmentTracking(string alias = null)
         {
             try
             {
@@ -31,7 +31,7 @@ namespace AM.Reporting
                     DateTime dueDateEndTime = Common.Now.UtcToEst().ToEndDateTime();
                     log.Info("FedEx Tracking Process For Date And Time {0}".Fill(dueDateEndTime));
                     //UPDATE Pickupon list before generating reports.
-                    fedExTrackingSvc.UpdateFedExShipmentInfo(dueDateStartTime, dueDateEndTime);
+                    fedExTrackingSvc.UpdateFedExShipmentInfo(dueDateStartTime, dueDateEndTime, alias);
                 }
                 log.Info("FedEx Pickup Process Completed");
             }
@@ -41,7 +41,7 @@ namespace AM.Reporting
             }
         }
 
-        internal static void CheckForUSPSeVSShipmentTracking()
+        internal static void CheckForUSPSeVSShipmentTracking(string alias = null)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace AM.Reporting
                     DateTime dueDateEndTime = Common.Now.UtcToEst().ToEndDateTime();
                     log.Info("USPS Tracking Process For Date And Time {0}".Fill(dueDateEndTime));
 
-                    List<USPSeVSReport> mailPieces = reportSvc.GetUSPSeVSDataForTracking(dueDateStartTime, dueDateEndTime);
+                    List<USPSeVSReport> mailPieces = reportSvc.GetUSPSeVSDataForTracking(dueDateStartTime, dueDateEndTime, alias);
 
                     if (mailPieces == null || mailPieces.Count == 0)
                         return;
@@ -66,6 +66,8 @@ namespace AM.Reporting
                     int maxTrackRequest = 35;
                     int trackedRequests = 0;
                     double loopCount = Math.Ceiling(requestTrackingCount / (float)maxTrackRequest);
+
+                    var returnTrackingInfo = mailPieces.Where(mp => !string.IsNullOrWhiteSpace(mp.ReturnTrackingNo) && mp.ReturnTrackingNo.StartsWith("9"));
 
                     for (double i = 0; i < loopCount; i++)
                     {
@@ -106,7 +108,52 @@ namespace AM.Reporting
 
                                 var shipmentStatus = $"{trackInfo.TrackSummary.Event} on {shipmentDateTimeUTC} UTC at ({trackInfo.TrackSummary.EventCity},{trackInfo.TrackSummary.EventState})";
 
-                                mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(shipmentStatus, trackInfo.ID, Common.Now, trackInfo.TrackSummary.Event, shipmentDateTimeUTC);
+                                mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(shipmentStatus, trackInfo.ID, Common.Now, trackInfo.TrackSummary.Event, shipmentDateTimeUTC, false);
+                            }
+                        }
+                    }
+
+                    trackedRequests = 0;
+                    for (double i = 0; i < loopCount; i++)
+                    {
+                        List<TrackID> trackIDs = new List<TrackID>();
+                        returnTrackingInfo.Skip(trackedRequests).Take(maxTrackRequest).ToList().ForEach(r =>
+                        {
+                            trackIDs.Add(new TrackID() { ID = r.TrackingNo });
+                        });
+
+                        TrackFieldAPIRequest trackFieldRequest = new TrackFieldAPIRequest()
+                        {
+                            TrackID = trackIDs
+                        };
+
+                        var trackingInfos = uspsSvc.GetTrackingDetailsAsync(commonSvc.GetSystemUserId(), trackFieldRequest).Result;
+
+                        if (trackingInfos.HasError)
+                        {
+                            log.Error($"Error occured while tracking shipment info for USPS {trackingInfos.Error}");
+                            continue;
+                        }
+
+                        trackedRequests += maxTrackRequest;
+
+                        using (IMailPieceService mailPieceSvc = new MailPieceService())
+                        {
+                            foreach (var trackInfo in trackingInfos.TrackInfo)
+                            {
+                                log.Debug(trackInfo.ID);
+                                if (trackInfo == null || trackInfo.TrackSummary == null)
+                                {
+                                    log.Error("Tracking info not found.");
+                                    continue;
+                                }
+                                var shipmentDateTimeEst = (trackInfo.TrackSummary.EventDate + " " + trackInfo.TrackSummary.EventTime).Trim().AnyFormatToDateTime();
+
+                                var shipmentDateTimeUTC = shipmentDateTimeEst.HasValue ? (DateTime?)shipmentDateTimeEst.Value.EstToUtc() : null;
+
+                                var shipmentStatus = $"{trackInfo.TrackSummary.Event} on {shipmentDateTimeUTC} UTC at ({trackInfo.TrackSummary.EventCity},{trackInfo.TrackSummary.EventState})";
+
+                                mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(shipmentStatus, trackInfo.ID, Common.Now, trackInfo.TrackSummary.Event, shipmentDateTimeUTC, true);
                             }
                         }
                     }

@@ -85,10 +85,37 @@ namespace AM.Services
         public string FileName { get; set; }
         public string TrackingNo { get; set; }
         public int TotalPages { get; set; }
+        public string ProductCode { get; set; }
+        public string ShippingCarrier { get; set; }
         public string ShippingStatus { get; set; }
+        public string ShipmentStatus { get; set; }
+        public string DeliveryStatus { get; set; }
+        public DateTime DeliveryDateTime { get; set; }
         public DateTime ShippedOnEst { get; set; }
         public string PrintLocation { get; set; }
         public string ErrorDesc { get; set; }
+        public string ReturnTrackingNo { get; set; }
+        public string ReturnDeliveryStatus { get; set; }
+        public DateTime? ReturnDeliveryDate { get; set; }
+        public string ReturnShippingCarrier
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(ReturnTrackingNo))
+                {
+                    if (ReturnTrackingNo.StartsWith("7") || ReturnTrackingNo.StartsWith("3"))
+                    {
+                        return "FEDEX";
+                    }
+                    else
+                    {
+                        return "USPS";
+                    }
+                }
+
+                return null;
+            }
+        }
     }
     public class ReportWizard
     {
@@ -121,6 +148,6 @@ namespace AM.Services
         public string PrintFileName { get; set; }
         public string EnvelopeName { get; set; }
         public DateTime? DeliveryDate { get; set; }
-        public string DeliveryStatus { get; set; }      
+        public string DeliveryStatus { get; set; }
     }
 }

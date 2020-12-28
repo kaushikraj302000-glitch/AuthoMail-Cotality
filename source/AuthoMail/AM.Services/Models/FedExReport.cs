@@ -37,6 +37,9 @@ namespace AM.Services
         public string PickUpStatus { get; set; }
         public DateTime? ShipmentStatusUpdatedOn { get; set; }
         public string ShipmentStatus { get; set; }
+        public string ReturnTrackingNo { get; set; }
+        public string ReturnDeliveryStatus { get; set; }
+        public DateTime? ReturnDeliveryDate { get; set; }
     }
 
     public class USPSeVSReport
@@ -70,5 +73,8 @@ namespace AM.Services
         public string PickUpStatus { get; set; }
         public DateTime? ShipmentStatusUpdatedOn { get; set; }
         public string ShipmentStatus { get; set; }
+        public string ReturnTrackingNo { get; set; }
+        public string ReturnDeliveryStatus { get; set; }
+        public DateTime? ReturnDeliveryDate { get; set; }
     }
 }

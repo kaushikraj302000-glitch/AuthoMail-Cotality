@@ -108,6 +108,9 @@ namespace AM.Entities
         public DateTime ReceivedOn { get; set; }
         public List<MailPieceCustomInfo> MailPieceCustomInfo { get; set; }
         public string EnvelopeName { get; set; }
+        public string ReturnTrackingNo { get; set; }
+        public string ReturnDeliveryStatus { get; set; }
+        public DateTime? ReturnDeliveryDate { get; set; }
     }
 
     public class MailPieceCustomInfo
