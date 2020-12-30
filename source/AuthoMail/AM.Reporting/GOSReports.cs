@@ -56,10 +56,10 @@ namespace AM.Reporting
 
             File.WriteAllText(reportFilePath, reconReport.ToString());
 
-            SendReportToCLTeam(reportFilePath, currentTime, subject, $"GOS Report For : {currentTime:MM/dd/yyyy}", AppConfig.GOSReconEMailTo, AppConfig.GOSReconEMailCc);
+            SendReportToCLTeam(reportFilePath, subject.Fill(currentTime.ToString("MM/dd/yyyy")), $"GOS Report For : {currentTime:MM/dd/yyyy}", AppConfig.GOSReconEMailTo, AppConfig.GOSReconEMailCc);
         }
 
-        private static bool SendReportToCLTeam(string reconReportPath, DateTime todayCutOffTime, string subject, string body, string to, string cc)
+        private static bool SendReportToCLTeam(string reconReportPath, string subject, string body, string to, string cc)
         {
             bool isEmailSent = false;
 
@@ -72,7 +72,7 @@ namespace AM.Reporting
                         msg.IsBodyHtml = true;
                         msg.To.Add(to);
                         msg.CC.Add(cc);
-                        msg.Subject = $"{Config.Common_Environment} : {subject.Fill(todayCutOffTime.ToString("MM/dd/yyyy"))}";
+                        msg.Subject = $"{Config.Common_Environment} : {subject}";
                         msg.Priority = MailPriority.Normal;
                         msg.Body = body;
 
@@ -124,20 +124,51 @@ namespace AM.Reporting
             try
             {
                 log.Debug("GOS Data Point report Execution Triggered at {0} Est".Fill(Common.Now.UtcToEst()));
-                List<GOSMailPieceData> gosBatchDetails;
                 DateTime endTime = Common.EstToday.AddDays(-1);
                 DateTime startTime = endTime.AddDays(-7);
                 using (IReportService reportSvc = new ReportService())
                 {
-                    CarrierTrackingInfo.CheckForShipmentTracking("GOS");
-                    CarrierTrackingInfo.CheckForUSPSeVSShipmentTracking("GOS");
+                    //CarrierTrackingInfo.CheckForShipmentTracking("GOS");
+                    //CarrierTrackingInfo.CheckForUSPSeVSShipmentTracking("GOS");
                     //NOTE : Please change UTC to EST code when Daylight saving is off in service call
-                    gosBatchDetails = reportSvc.GetGOSDataPointReport(startTime, endTime);
+                    var gosBatchDetails = reportSvc.GetGOSDataPointReport(startTime, endTime);
+
+                    var reportGOS = gosBatchDetails.Select(r => new { r.AppCode, r.BatchName, r.BorrowerName, r.LoanNumber, r.ProductCode, r.DocumentOrPackageType, r.FileName, r.ReceivedOnEst, r.ShippedOnEst, r.TotalPages, r.TrackingNo, r.DeliveryStatus, r.DeliveryDate, r.ReturnTrackingNo, r.ReturnDeliveryStatus, r.ReturnDeliveryDate, r.Week }).ToList();
 
                     if (gosBatchDetails.Count > 0)
                     {
-                        string reportFilePath = Path.Combine(AppConfig.GOSReconReportPath, $"GOSDataPointReport_{startTime:MMddyyyy}_To_{endTime:MMddyyyy}.csv");
-                        SendEmailNotificationToGOSDataPoints(gosBatchDetails, endTime, reportFilePath, AppConfig.GOSDataPointEMailSubject);
+                        string reportFilePath = Path.Combine(AppConfig.GOSReconReportPath, $"GOSDataPointReport_{startTime:MMddyyyy}_To_{endTime:MMddyyyy}.xls");
+
+                        var dt = reportGOS.ToDataTable();
+
+                        XLS excel = new XLS(AppConfig.GOSDataPointReportTemplate);
+
+                        excel.LoadData("Sheet1", dt, true);
+                        excel.SaveAs(reportFilePath);
+
+                        StringBuilder sb = new StringBuilder(File.ReadAllText(AppConfig.GOSDataPointEMailTemplate));
+                        var fedexOWRecords = gosBatchDetails.Where(x => x.ShippingCarrier == "FedEx");
+                        var uspsOWRecords = gosBatchDetails.Where(x => x.ShippingCarrier == "USPS");
+
+                        var fedexRetRecords = gosBatchDetails.Where(x => x.ReturnShippingCarrier == "FedEx");
+                        var uspsRetRecords = gosBatchDetails.Where(x => x.ReturnShippingCarrier == "USPS");
+
+                        sb = sb.Replace("<%FedEx_ODelivered%>", fedexOWRecords.Count(t => t.DeliveryStatus == "Delivered").ToString());
+                        sb = sb.Replace("<%FedEx_OInTransit%>", fedexOWRecords.Count(t => t.DeliveryStatus != "Delivered" && t.DeliveryStatus != null).ToString());
+                        sb = sb.Replace("<%FedEx_OPending%>", fedexOWRecords.Count(t => t.DeliveryStatus.IsNullOrEmpty()).ToString());
+
+                        sb = sb.Replace("<%FedEx_RDelivered%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus == "Delivered").ToString());
+                        sb = sb.Replace("<%FedEx_RInTransit%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus != "Delivered" && t.ReturnDeliveryStatus != null).ToString());
+                        sb = sb.Replace("<%FedEx_RPending%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus.IsNullOrEmpty()).ToString());
+
+                        sb = sb.Replace("<%USPS_ODelivered%>", uspsOWRecords.Count(t => t.DeliveryStatus.StartsWith("Delivered")).ToString());
+                        sb = sb.Replace("<%USPS_OInTransit%>", uspsOWRecords.Count(t => !t.DeliveryStatus.StartsWith("Delivered") && !t.DeliveryStatus.IsNullOrWhiteSpace()).ToString());
+                        sb = sb.Replace("<%USPS_OPending%>", uspsOWRecords.Count(t => t.DeliveryStatus.IsNullOrWhiteSpace()).ToString());
+                        sb = sb.Replace("<%USPS_RDelivered%>", uspsRetRecords.Count(t => t.ReturnDeliveryStatus.StartsWith("Delivered")).ToString());
+                        sb = sb.Replace("<%USPS_RInTransit%>", uspsRetRecords.Count(t => !t.ReturnDeliveryStatus.StartsWith("Delivered") && !t.ReturnDeliveryStatus.IsNullOrWhiteSpace()).ToString());
+                        sb = sb.Replace("<%USPS_RPending%>", uspsRetRecords.Count(t => t.ReturnDeliveryStatus.StartsWith("Delivered")).ToString());
+
+                        SendReportToCLTeam(reportFilePath, $"GOS Tracking Status Report From {startTime:mm/dd/yyyy} To {endTime:mm/dd/yyyy}", sb.ToString(), AppConfig.GOSDataPointEMailTo, AppConfig.GOSDataPointEMailCc);
                     }
                 }
                 log.Debug("GOS Data Point report Execution completed at {0} Est".Fill(Common.Now.UtcToEst()));
@@ -146,46 +177,6 @@ namespace AM.Reporting
             {
                 log.Error("Error occured while generating GOS recon report", ex);
             }
-        }
-
-        private static void SendEmailNotificationToGOSDataPoints(List<GOSMailPieceData> gosBatchDetails, DateTime currentTime, string reportFilePath, string subject)
-        {          
-            var columnName = String.Join(",", "Client Code", "Batch Name", "Borrower Name", "Loan Number", "Product Code", "Document Type", "File Name", "Received On (Est)", "Shipped On (Est)", "Total Pages", "Ongoing Tracking Number", "Delivery Status", "Delivery Date", "Shipment Status", "Return Tracking Number", "Return Delivery Status", "Return Delivery Date", "Week");
-
-            StringBuilder reconReport = new StringBuilder(columnName);
-
-            reconReport.AppendLine();
-            foreach (var batch in gosBatchDetails)
-            {
-                var line = String.Join(",", batch.AppCode, batch.BatchName.ToCsvString(), batch.BorrowerName.ToCsvString(), batch.LoanNumber.ToCsvString(), batch.ProductCode.ToCsvString(), batch.DocumentOrPackageType, batch.FileName, batch.ReceivedOnEst, batch.ShippedOnEst, batch.TotalPages, batch.TrackingNo.ToCsvString(), batch.DeliveryStatus.ToCsvString(), batch.DeliveryDate, batch.ShipmentStatus.ToCsvString(), batch.ReturnTrackingNo.ToCsvString(), batch.ReturnDeliveryStatus.ToCsvString(), batch.ReturnDeliveryDate, batch.Week.ToCsvString());
-                reconReport.AppendLine(line);
-            }
-
-            File.WriteAllText(reportFilePath, reconReport.ToString());
-
-            StringBuilder sb = new StringBuilder(File.ReadAllText(AppConfig.GOSDataPointEMailTemplate));
-            var fedexOWRecords = gosBatchDetails.Where(x => x.ShippingCarrier == "FedEx");
-            var uspsOWRecords = gosBatchDetails.Where(x => x.ShippingCarrier == "USPS");
-
-            var fedexRetRecords = gosBatchDetails.Where(x => x.ReturnShippingCarrier == "FedEx");
-            var uspsRetRecords = gosBatchDetails.Where(x => x.ReturnShippingCarrier == "USPS");
-
-            sb = sb.Replace("<%FedEx_ODelivered%>", fedexOWRecords.Count(t => t.DeliveryStatus == "Delivered").ToString());
-            sb = sb.Replace("<%FedEx_OInTransit%>", fedexOWRecords.Count(t => t.DeliveryStatus != "Delivered" && t.DeliveryStatus != null).ToString());
-            sb = sb.Replace("<%FedEx_OPending%>", fedexOWRecords.Count(t => t.DeliveryStatus.IsNullOrEmpty()).ToString());
-
-            sb = sb.Replace("<%FedEx_RDelivered%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus == "Delivered").ToString());
-            sb = sb.Replace("<%FedEx_RInTransit%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus != "Delivered" && t.ReturnDeliveryStatus != null).ToString());
-            sb = sb.Replace("<%FedEx_RPending%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus.IsNullOrEmpty()).ToString());
-
-            sb = sb.Replace("<%USPS_ODelivered%>", uspsOWRecords.Count(t => t.DeliveryStatus.StartsWith("Delivered")).ToString());
-            sb = sb.Replace("<%USPS_OInTransit%>", uspsOWRecords.Count(t => !t.DeliveryStatus.StartsWith("Delivered") && !t.DeliveryStatus.IsNullOrWhiteSpace()).ToString());
-            sb = sb.Replace("<%USPS_OPending%>", uspsOWRecords.Count(t => t.DeliveryStatus.IsNullOrWhiteSpace()).ToString());
-            sb = sb.Replace("<%USPS_RDelivered%>", uspsRetRecords.Count(t => t.ReturnDeliveryStatus.StartsWith("Delivered")).ToString());
-            sb = sb.Replace("<%USPS_RInTransit%>", uspsRetRecords.Count(t => !t.ReturnDeliveryStatus.StartsWith("Delivered") && !t.ReturnDeliveryStatus.IsNullOrWhiteSpace()).ToString());
-            sb = sb.Replace("<%USPS_RPending%>", uspsRetRecords.Count(t => t.ReturnDeliveryStatus.StartsWith("Delivered")).ToString());
-
-            SendReportToCLTeam(reportFilePath, currentTime, subject, sb.ToString(), AppConfig.GOSDataPointEMailTo, AppConfig.GOSDataPointEMailCc);
         }
     }
 }

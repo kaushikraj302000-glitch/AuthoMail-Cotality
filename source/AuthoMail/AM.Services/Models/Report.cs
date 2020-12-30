@@ -91,8 +91,8 @@ namespace AM.Services
         public string ShippingStatus { get; set; }
         public string ShipmentStatus { get; set; }
         public string DeliveryStatus { get; set; }
-        public DateTime DeliveryDate { get; set; }
-        public DateTime ShippedOnEst { get; set; }
+        public DateTime? DeliveryDate { get; set; }
+        public DateTime? ShippedOnEst { get; set; }
         public string PrintLocation { get; set; }
         public string ErrorDesc { get; set; }
         public string ReturnTrackingNo { get; set; }
@@ -123,7 +123,7 @@ namespace AM.Services
             {
                 if (DeliveryDate != null && ReceivedOnEst != null)
                 {
-                    var dayDiff = (DeliveryDate.Date - ReceivedOnEst.Date).Days;
+                    var dayDiff = (DeliveryDate.Value.Date - ReceivedOnEst.Date).Days;
                     return $"Week-{Math.Ceiling(dayDiff / 7f)}";
                 }
                 return "";

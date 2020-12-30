@@ -155,6 +155,53 @@ namespace AM.Lib
                 return null;
         }
 
+        public static DataTable ToDataTable<T>(this IList<T> data)
+        {
+            try
+            {
+                PropertyDescriptorCollection props =
+                        TypeDescriptor.GetProperties(typeof(T));
+                DataTable table = new DataTable();
+                for (int i = 0; i < props.Count; i++)
+                {
+                    PropertyDescriptor prop = props[i];
+                    DataColumn dc = new DataColumn();
+                    if (Nullable.GetUnderlyingType(prop.PropertyType) != null)
+                    {
+                        if (prop.PropertyType == typeof(DateTime?))
+                        {
+                            dc.ColumnName = prop.Name;
+                            dc.DataType = typeof(DateTime);
+                            dc.AllowDBNull = true;
+                        }
+                    }
+                    else
+                    {
+                        dc.ColumnName = prop.Name;
+                        dc.DataType = prop.PropertyType;
+                        dc.AllowDBNull = true;
+                    }
+
+                    table.Columns.Add(dc);
+                }
+                object[] values = new object[props.Count];
+                foreach (T item in data)
+                {
+                    for (int i = 0; i < values.Length; i++)
+                    {
+                        values[i] = props[i].GetValue(item);
+                    }
+                    table.Rows.Add(values);
+                }
+                return table;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
         public static string RemoveCSVStringFormat(this string str)
         {
             return str.Replace("\"", "");
