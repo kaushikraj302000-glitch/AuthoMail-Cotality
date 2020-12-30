@@ -1,5 +1,6 @@
 ﻿using AM.Lib;
 using AM.Services;
+using AM.Services.Models;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Mail;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace AM.Reporting
 {
@@ -149,20 +149,19 @@ namespace AM.Reporting
         }
 
         private static void SendEmailNotificationToGOSDataPoints(List<GOSMailPieceData> gosBatchDetails, DateTime currentTime, string reportFilePath, string subject)
-        {
-            var columnName = String.Join(",", "Client Code", "Batch Name", "Received On (Est)", "Loan Number", "Product Code", "Document Type", "File Name", "Tracking Number", "Shipping Status", "Total Pages", "Shipped On (Est)", "Print Location", "Delivery Status", "Delivery Date", "Shipment Status", "Return Tracking Number", "Return Delivery Status", "Return Delivery Date", "Error Description");
+        {          
+            var columnName = String.Join(",", "Client Code", "Batch Name", "Borrower Name", "Loan Number", "Product Code", "Document Type", "File Name", "Received On (Est)", "Shipped On (Est)", "Total Pages", "Ongoing Tracking Number", "Delivery Status", "Delivery Date", "Shipment Status", "Return Tracking Number", "Return Delivery Status", "Return Delivery Date", "Week");
 
             StringBuilder reconReport = new StringBuilder(columnName);
 
             reconReport.AppendLine();
             foreach (var batch in gosBatchDetails)
             {
-                var line = String.Join(",", batch.AppCode, batch.BatchName, batch.ReceivedOnEst, batch.LoanNumber, batch.ProductCode, batch.DocumentOrPackageType, batch.FileName, batch.TrackingNo, batch.ShippingStatus, batch.TotalPages, batch.ShippedOnEst, batch.PrintLocation, batch.DeliveryStatus.ToCsvString(), batch.DeliveryDateTime, batch.ShipmentStatus.ToCsvString(), batch.ReturnTrackingNo, batch.ReturnDeliveryStatus.ToCsvString(), batch.ReturnDeliveryDate, batch.ErrorDesc.ToCsvString());
+                var line = String.Join(",", batch.AppCode, batch.BatchName.ToCsvString(), batch.BorrowerName.ToCsvString(), batch.LoanNumber.ToCsvString(), batch.ProductCode.ToCsvString(), batch.DocumentOrPackageType, batch.FileName, batch.ReceivedOnEst, batch.ShippedOnEst, batch.TotalPages, batch.TrackingNo.ToCsvString(), batch.DeliveryStatus.ToCsvString(), batch.DeliveryDate, batch.ShipmentStatus.ToCsvString(), batch.ReturnTrackingNo.ToCsvString(), batch.ReturnDeliveryStatus.ToCsvString(), batch.ReturnDeliveryDate, batch.Week.ToCsvString());
                 reconReport.AppendLine(line);
             }
 
             File.WriteAllText(reportFilePath, reconReport.ToString());
-
 
             StringBuilder sb = new StringBuilder(File.ReadAllText(AppConfig.GOSDataPointEMailTemplate));
             var fedexOWRecords = gosBatchDetails.Where(x => x.ShippingCarrier == "FedEx");

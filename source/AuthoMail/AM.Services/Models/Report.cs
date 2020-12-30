@@ -79,6 +79,7 @@ namespace AM.Services
     {
         public string AppCode { get; set; }
         public string BatchName { get; set; }
+        public string BorrowerName { get; set; }
         public DateTime ReceivedOnEst { get; set; }
         public string LoanNumber { get; set; }
         public string DocumentOrPackageType { get; set; }
@@ -90,7 +91,7 @@ namespace AM.Services
         public string ShippingStatus { get; set; }
         public string ShipmentStatus { get; set; }
         public string DeliveryStatus { get; set; }
-        public DateTime DeliveryDateTime { get; set; }
+        public DateTime DeliveryDate { get; set; }
         public DateTime ShippedOnEst { get; set; }
         public string PrintLocation { get; set; }
         public string ErrorDesc { get; set; }
@@ -114,6 +115,18 @@ namespace AM.Services
                 }
 
                 return null;
+            }
+        }
+        public string Week
+        {
+            get
+            {
+                if (DeliveryDate != null && ReceivedOnEst != null)
+                {
+                    var dayDiff = (DeliveryDate.Date - ReceivedOnEst.Date).Days;
+                    return $"Week-{Math.Ceiling(dayDiff / 7f)}";
+                }
+                return "";
             }
         }
     }
