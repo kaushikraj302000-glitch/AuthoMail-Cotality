@@ -26,7 +26,7 @@ namespace PCI.Service
 
         static PCIJobMonitor()
         {
-            MRDFRequestSchema = DAL.GetMRDFRequestSchema();
+            5.TimesAttempt(() => MRDFRequestSchema = DAL.GetMRDFRequestSchema());
         }
 
         #region Submit Batches To Print Vendors
