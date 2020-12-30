@@ -438,9 +438,19 @@ namespace AM.Web.Controllers
                                 sb.Replace("{{url}}", "https://authomail.corelogic.com");
                                 emails = supportSvc.GetEmailsFromClientDomain(user.Email);
                             }
-                            else if (Config.Common_Environment == Env.Staging)
+                            else if (Config.Common_Environment == Env.QA)
                             {
                                 sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
+                                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+                            }
+                            else if (Config.Common_Environment == Env.Performance)
+                            {
+                                sb.Replace("{{url}}", "https://authomailperftest.corelogic.com");
+                                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+                            }
+                            else if (Config.Common_Environment == Env.Stage)
+                            {
+                                sb.Replace("{{url}}", "https://authomailkittest.corelogic.com");
                                 emails = supportSvc.GetEmailsFromClientDomain(user.Email);
                             }
                             else
@@ -541,13 +551,24 @@ namespace AM.Web.Controllers
                                 string str = string.Format("{0}://{1}", u.Scheme, u.Host);
                                 callbackUrl = callbackUrl.Replace(str, "https://authomail.corelogic.com");
                             }
-                            else if (Config.Common_Environment == Env.Staging)
+                            else if (Config.Common_Environment == Env.QA)
                             {
                                 var u = new Uri(callbackUrl);
                                 string str = string.Format("{0}://{1}", u.Scheme, u.Host);
                                 callbackUrl = callbackUrl.Replace(str, "https://authomailuat.corelogic.com");
                             }
-
+                            else if (Config.Common_Environment == Env.Performance)
+                            {
+                                var u = new Uri(callbackUrl);
+                                string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                                callbackUrl = callbackUrl.Replace(str, "https://authomailperftest.corelogic.com");
+                            }
+                            else if (Config.Common_Environment == Env.Stage)
+                            {
+                                var u = new Uri(callbackUrl);
+                                string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                                callbackUrl = callbackUrl.Replace(str, "https://authomailkittest.corelogic.com");
+                            }
                             sb.Replace("{{action_url}}", callbackUrl);
                             UserManager.AddToRole(user.Id, AMRoles.Client);
                             await UserManager.SendEmailAsync(user.Id, "Confirm your account", sb.ToString());
@@ -586,13 +607,24 @@ namespace AM.Web.Controllers
                     string str = string.Format("{0}://{1}", u.Scheme, u.Host);
                     callbackUrl = callbackUrl.Replace(str, "https://authomail.corelogic.com");
                 }
-                else if (Config.Common_Environment == Env.Staging)
+                else if (Config.Common_Environment == Env.QA)
                 {
                     var u = new Uri(callbackUrl);
                     string str = string.Format("{0}://{1}", u.Scheme, u.Host);
                     callbackUrl = callbackUrl.Replace(str, "https://authomailuat.corelogic.com");
                 }
-
+                else if (Config.Common_Environment == Env.Performance)
+                {
+                    var u = new Uri(callbackUrl);
+                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                    callbackUrl = callbackUrl.Replace(str, "https://authomailperftest.corelogic.com");
+                }
+                else if (Config.Common_Environment == Env.Stage)
+                {
+                    var u = new Uri(callbackUrl);
+                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                    callbackUrl = callbackUrl.Replace(str, "https://authomailkittest.corelogic.com");
+                }
                 sb.Replace("{{action_url}}", callbackUrl);
                 await UserManager.SendEmailAsync(user.Id, "Confirm your account", sb.ToString());
                 return Json(true, JsonRequestBehavior.AllowGet);
@@ -668,9 +700,19 @@ namespace AM.Web.Controllers
                 sb.Replace("{{url}}", "https://authomail.corelogic.com");
                 emails = supportSvc.GetEmailsFromClientDomain(user.Email);
             }
-            else if (Config.Common_Environment == Env.Staging)
+            else if (Config.Common_Environment == Env.QA)
             {
                 sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
+                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+            }
+            else if (Config.Common_Environment == Env.Performance)
+            {
+                sb.Replace("{{url}}", "https://authomailperftest.corelogic.com");
+                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+            }
+            else if (Config.Common_Environment == Env.Stage)
+            {
+                sb.Replace("{{url}}", "https://authomailkittest.corelogic.com");
                 emails = supportSvc.GetEmailsFromClientDomain(user.Email);
             }
             else
@@ -785,11 +827,23 @@ namespace AM.Web.Controllers
                     string str = string.Format("{0}://{1}", u.Scheme, u.Host);
                     callbackUrl = callbackUrl.Replace(str, "https://authomail.corelogic.com");
                 }
-                else if (Config.Common_Environment == Env.Staging)
+                else if (Config.Common_Environment == Env.QA)
                 {
                     var u = new Uri(callbackUrl);
                     string str = string.Format("{0}://{1}", u.Scheme, u.Host);
                     callbackUrl = callbackUrl.Replace(str, "https://authomailuat.corelogic.com");
+                }
+                else if (Config.Common_Environment == Env.Performance)
+                {
+                    var u = new Uri(callbackUrl);
+                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                    callbackUrl = callbackUrl.Replace(str, "https://authomailperftest.corelogic.com");
+                }
+                else if (Config.Common_Environment == Env.Stage)
+                {
+                    var u = new Uri(callbackUrl);
+                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                    callbackUrl = callbackUrl.Replace(str, "https://authomailkittest.corelogic.com");
                 }
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ForgotPassword.html")));
                 sb.Replace("{{name}}", user.FirstName);

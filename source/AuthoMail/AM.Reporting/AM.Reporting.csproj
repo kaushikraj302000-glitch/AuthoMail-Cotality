@@ -112,12 +112,16 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="EmailTemplates\GOSDataPointNotification.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="EmailTemplates\DallasNotification.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DALLASReconReport\" />
+    <Folder Include="GOSReconReport\" />
     <Folder Include="PCIReconReport\" />
     <Folder Include="USAAReport\ErrorReports\" />
     <Folder Include="USAAReport\MonthlyReconReports\" />

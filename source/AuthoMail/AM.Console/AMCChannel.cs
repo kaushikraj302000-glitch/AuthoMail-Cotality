@@ -1031,59 +1031,58 @@ namespace AM.Console
 
         private string UploadBaseReportToAMC(MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
         {
-            string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-            //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
-            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-            StringBuilder errorData = amcSvc.AMCErrorReport(mailPieces);
-            if (errorData != null)
+            using (ICommonService commonSvc = new CommonService())
             {
-                File.WriteAllText(errorReportPath, errorData.ToString());
+                string errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
+
+                string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                StringBuilder errorData = amcSvc.AMCErrorReport(mailPieces);
+                if (errorData != null)
+                {
+                    File.WriteAllText(errorReportPath, errorData.ToString());
+                }
+                else
+                    errorReportPath = "";
+
+                if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
+                {
+                    // Batch status Report Prepped
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
+
+                    //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
+                    commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
+                    MailUtility.SendSubscribedErrorNotificationEmail(mbi, mailPieces, commonSvc.GetErrorNotificationEmailSubscriberList(mbi.Client.Id));
+                }
+                else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
+                {
+                    string errorGoFileName = "ErrReport.go";
+                    string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
+                    string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
+
+                    SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+                    sftSite.Connect();
+
+                    var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
+
+                    sftSite.UploadFile(errorReportPath, ftpUploadPath);
+
+                    // Upload Error.GO file after uploading error report
+                    File.WriteAllText(errorGoFilePath, string.Empty);
+
+                    sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
+
+                    if (sftSite.IsConnected)
+                        sftSite.Disconnect();
+
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now).Wait();
+                }
+                else
+                {
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now).Wait();
+                }
+                return errorReportPath;
             }
-            else
-                errorReportPath = "";
-
-            //TODO: Remove after proper naming convention
-            Thread.Sleep(1000);
-
-            if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.Invalid)
-            {
-                // Batch status Report Prepped
-                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
-
-                //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
-                commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
-                MailUtility.SendSubscribedErrorNotificationEmail(mbi, mailPieces, commonSvc.GetErrorNotificationEmailSubscriberList(mbi.Client.Id));
-            }
-            else if (mbi.MailBatch.ValidationStatus == BatchValidationStatus.PartiallyValid)
-            {
-                string errorGoFileName = "ErrReport.go";
-                string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
-                string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
-
-                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
-                sftSite.Connect();
-
-                var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
-
-                sftSite.UploadFile(errorReportPath, ftpUploadPath);
-
-                // Upload Error.GO file after uploading error report
-                File.WriteAllText(errorGoFilePath, string.Empty);
-
-                sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
-
-                if (sftSite.IsConnected)
-                    sftSite.Disconnect();
-
-                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now).Wait();
-            }
-            else
-            {
-                commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now).Wait();
-            }
-
-            return errorReportPath;
         }
 
         private MailPieceValidationResult ValidatePackgeInfoNode(XmlNode xmlPiece)

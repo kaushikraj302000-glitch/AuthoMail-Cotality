@@ -139,8 +139,10 @@ namespace AM.Console
 
                     if (File.Exists(localArchivePath))
                         File.Delete(localArchivePath);
-
-                    File.Move(localCsvFilePath, localArchivePath);
+                    
+                    if(File.Exists(localCsvFilePath))
+                        File.Move(localCsvFilePath, localArchivePath);
+                    
                     //Deleting Local Directory 
                     if (Directory.Exists(localCsvDirPath))
                         Directory.Delete(localCsvDirPath, true);
@@ -347,8 +349,8 @@ namespace AM.Console
             mbi.AMRequestPath.CreateDirectoryIfNotExist();
             mbi.AMResponsePath.CreateDirectoryIfNotExist();
 
-            if (!string.IsNullOrEmpty(localCsvFilePath))
-                File.Move(localCsvFilePath, Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".csv"));
+            //if (!string.IsNullOrEmpty(localCsvFilePath))
+            //    File.Move(localCsvFilePath, Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".csv"));
 
             //For Invalid Batch, we will generate err file 
             string invalidBatchFileName = "{0}_InvalidCsvfile.err".Fill(mailBatch.BatchName);

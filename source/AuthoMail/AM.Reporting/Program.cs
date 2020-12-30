@@ -51,6 +51,9 @@ namespace AM.Reporting
                         case "Recon":
                             GOSReports.GenerateGOSReconReport();
                             break;
+                        case "DataPoints":
+                            GOSReports.GenerateGOSDataPointReport();
+                            break;
                         default:
                             break;
                     }

@@ -12,6 +12,7 @@ using AM.Lib;
 using AM.USPSLib;
 using AM.Entities;
 using ServiceType = AM.USPSLib.ServiceType;
+using System.Security;
 
 namespace AM.Core
 {
@@ -272,10 +273,12 @@ namespace AM.Core
             #endregion
         }
 
-        public SmartDocResponse GenerateDoc(List<string> coverLetterPDFPaths, string pdfAttachmentPath, string outputDocumentPath, float contentScalePercent, int noOfCopies, List<string> endPagePDFPaths = null)
+        public SmartDocResponse GenerateDoc(List<string> coverLetterPDFPaths, string pdfAttachmentPath, string outputDocumentPath, float contentScalePercent, int noOfCopies, string printFormat, List<string> endPagePDFPaths = null)
         {
             List<string> mergePdfCollection = new List<string>();
             SmartDocResponse response = new SmartDocResponse();
+
+            string blankPdfPath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Common_BlankPage);
 
             string outputDirPath = Path.GetDirectoryName(outputDocumentPath);
             string flattenPDFPath = Path.Combine(outputDirPath, "Flatten_" + Path.GetFileName(pdfAttachmentPath));
@@ -299,25 +302,27 @@ namespace AM.Core
 
                 #region Merge Final Document
 
-                if (endPagePDFPaths.Count > 0)
+                if (coverLetterPDFPaths.Count > 0)
                 {
                     mergePdfCollection.AddRange(coverLetterPDFPaths);
-                    for (int i = 0; i < noOfCopies; i++)
-                    {
-                        mergePdfCollection.Add(mergeReadyFilePath);
-                    }
-                    mergePdfCollection.AddRange(endPagePDFPaths);
-                    mergePdfCollection.Add(outputDocumentPath);
 
-                    PdfUtil.MergePDFs(mergePdfCollection.ToArray());
-                }
-                else if (coverLetterPDFPaths.Count > 0)
-                {
-                    mergePdfCollection.AddRange(coverLetterPDFPaths);
+                    //Here if print format is Duplex than system is adding one blank page after coverletter / label.
+                    if (printFormat == "Duplex")
+                    {
+                        mergePdfCollection.Add(blankPdfPath);
+                    }
+
                     for (int i = 0; i < noOfCopies; i++)
                     {
                         mergePdfCollection.Add(mergeReadyFilePath);
                     }
+
+                    //Here system will add end page if any
+                    if (endPagePDFPaths.Count > 0)
+                    {
+                        mergePdfCollection.AddRange(endPagePDFPaths);
+                    }
+
                     mergePdfCollection.Add(outputDocumentPath);
 
                     PdfUtil.MergePDFs(mergePdfCollection.ToArray());
@@ -328,14 +333,16 @@ namespace AM.Core
                     {
                         mergePdfCollection.Add(mergeReadyFilePath);
                     }
+
                     mergePdfCollection.Add(outputDocumentPath);
+
                     if (mergePdfCollection.Count == 2)
                     {
+                        //Here we are just renaming file as a output document because we are not merging any cover letter for it
                         File.Move(mergePdfCollection[0], mergePdfCollection[1]);
                     }
                     else
                     {
-                        //Here we are just renaming file as a output document because we are not merging any cover letter for it
                         PdfUtil.MergePDFs(mergePdfCollection.ToArray());
                     }
                 }
@@ -384,6 +391,42 @@ namespace AM.Core
             }
 
             return response;
+        }
+
+        public void WriteTextOnLabel(string inputPath, string text)
+        {
+            var temp = Path.Combine(Path.GetDirectoryName(inputPath), Path.GetRandomFileName());
+            using (var reader = new PdfReader(inputPath))
+            {
+                using (var fileStream = new FileStream(temp, FileMode.Create, FileAccess.Write))
+                {
+                    var document = new Document(reader.GetPageSizeWithRotation(1));
+                    var writer = PdfWriter.GetInstance(document, fileStream);
+
+                    document.Open();
+
+                    document.NewPage();
+
+                    var baseFont = BaseFont.CreateFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
+                    var importedPage = writer.GetImportedPage(reader, 1);
+
+                    var contentByte = writer.DirectContent;
+
+                    contentByte.BeginText();
+                    contentByte.SetFontAndSize(baseFont, 8);
+
+                    contentByte.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, text, importedPage.Width - 200, importedPage.Height - 750, 0);
+
+                    contentByte.EndText();
+                    contentByte.AddTemplate(importedPage, 0, 0);
+
+                    document.Close();
+                    writer.Close();
+                }
+            }
+            if (File.Exists(inputPath))
+                File.Delete(inputPath);
+            File.Move(temp, inputPath);
         }
 
         public SmartDocResponse GenerateLastPageWithBarcode(string endPageTemplatePath, string outputDocumentPath, Dictionary<string, string> mailPieceData)

@@ -108,6 +108,11 @@
                 <th>Recipient City</th>
                 <th>Recipient State</th>
                 <th>Recipient Zip</th>
+                <th>Inserts</th>
+                <th>Envelope Name</th>
+                <th>Print File Name</th>
+                <th>Delivery Date</th>
+                <th>Delivery Status</th>
                 <th>Print Location</th>
                 <th>Pages Shipped</th>
                 <th>Blank Pages</th>
@@ -145,6 +150,11 @@
                 <td><span>{City}</span></td>
                 <td><span>{State}</span></td>
                 <td><span>{ZIP}</span></td>
+                <td><span>{Inserts}</span></td>
+                <td><span>{EnvelopeName}</span></td>
+                <td><span>{PrintFileName}</span></td>
+                <td><span>{DeliveryDateFormatted}</span></td>
+                <td><span>{DeliveryStatus}</span></td>
                 <td><span>{PrintLocation}</span></td>
                 <td><span>{TotalPages}</span></td>
                 <td><span>{TotalBlankPages}</span></td>
@@ -253,6 +263,7 @@
                 this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
+                this.DeliveryDateFormatted = this.DeliveryDate == null ? "--" : moment(this.DeliveryDate).format("MM/DD/YY HH:mm:ss");
                 //this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + (this.ErrorDesc == null ? "--" : this.ErrorDesc) + '" data-placement="left"><a>' + this.ErrorCode + '</a></span>';
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
                 var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);

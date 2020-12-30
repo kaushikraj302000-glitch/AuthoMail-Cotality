@@ -185,15 +185,17 @@ namespace AM.Core
                                 #endregion
 
                                 #region Prepare dictionary of placeholders/tags to fill the PDF template.
-                                Dictionary<string, string> mailPieceData = new Dictionary<string, string>();
-                                mailPieceData.Add("FromAddress", fromAddress.Trim());
-                                mailPieceData.Add("ToAddress", toAddress.Trim());
-                                mailPieceData.Add("MailPieceId", mailPieceId.ToString());
-                                mailPieceData.Add("Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy"));//USAA Specific
-                                mailPieceData.Add("Free3OF9Barcode", "*" + mailPiece.Id.ToString() + "*");//Barcode for non-IMBarcode cover letter
-                                mailPieceData.Add("UniqueId", "*" + mailPieceId.ToString() + "*");//Humanreadable code which is used for barcode
-                                mailPieceData.Add("MailPieceZip", mailPiece.RcptAddressZIP);
-                                mailPieceData.Add("LoanNbr", mailPiece.BusinessFriendlyIdValue);
+                                Dictionary<string, string> mailPieceData = new Dictionary<string, string>
+                                {
+                                    { "FromAddress", fromAddress.Trim() },
+                                    { "ToAddress", toAddress.Trim() },
+                                    { "MailPieceId", mailPieceId.ToString() },
+                                    { "Date", Common.Now.UtcToEst().ToString("MMMM dd, yyyy") },//USAA Specific
+                                    { "Free3OF9Barcode", "*" + mailPiece.Id.ToString() + "*" },//Barcode for non-IMBarcode cover letter
+                                    { "UniqueId", "*" + mailPieceId.ToString() + "*" },//Humanreadable code which is used for barcode
+                                    { "MailPieceZip", mailPiece.RcptAddressZIP },
+                                    { "LoanNbr", mailPiece.BusinessFriendlyIdValue }
+                                };
                                 #endregion
 
                                 List<PnSConfigDetailCoverLetter> coverLetters = docTypeSvc.GetDocumentCoverLetterTemplates(mailPiece.PnSConfigDetailId.Value);
@@ -532,17 +534,44 @@ namespace AM.Core
                                     endLetterPdfPaths.Add(response.CoverLetterPath);
                                 }
 
+                                //Here we are finally updating BRE  envelope in inserts field because now shipping method is not going to change.
+                                if (docType.IsBRE)
+                                {
+                                    var breEnvelopeName = commonSvc.GetEnvelopeCodeByEnvelopeId(docType.BREEnvelopeId);
+                                    mailPiece.Inserts = $"{breEnvelopeName},{mailPiece.Inserts}".TrimEnd(',');
+                                }
+
+                                //Print Inserts in coverletter
+
+                                if (mailPiece.PrintLocation == "Dallas CL" && !string.IsNullOrWhiteSpace(mailPiece.Inserts))
+                                {
+                                    doc.WriteTextOnLabel(coverLetterPdfPaths.First(), mailPiece.Inserts);
+                                }
+
+                                string blankPdfPath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Common_BlankPage);
+
                                 if (!File.Exists(pdfFilePath) && docType.AllowInsertsOnly)
                                 {
                                     if (File.Exists(outputFilePath))
                                         File.Delete(outputFilePath);
 
-                                    File.Move(coverLetterPdfPaths.First(), outputFilePath);
+                                    if (docType.PrintFormat == "Duplex")
+                                    {
+                                        PdfUtil.MergePDFs(coverLetterPdfPaths.First(), blankPdfPath, outputFilePath);
+
+                                        if (File.Exists(coverLetterPdfPaths.First()))
+                                        {
+                                            File.Delete(coverLetterPdfPaths.First());
+                                        }
+                                    }
+                                    else
+                                        File.Move(coverLetterPdfPaths.First(), outputFilePath);
+
                                     mailPiece.TotalPages = PdfUtil.GetPageCount(outputFilePath);
                                 }
                                 else
                                 {
-                                    response = doc.GenerateDoc(coverLetterPdfPaths, pdfFilePath, outputFilePath, docType.ContentScalePercent, docType.NoOfCopies, endLetterPdfPaths);
+                                    response = doc.GenerateDoc(coverLetterPdfPaths, pdfFilePath, outputFilePath, docType.ContentScalePercent, docType.NoOfCopies, docType.PrintFormat, endLetterPdfPaths);
 
                                     if (response.HasError)
                                     {
@@ -557,10 +586,9 @@ namespace AM.Core
                                     mailPiece.TotalPages = response.TotalPages;
                                 }
 
-                                mailPiece.TotalSheets = docType.PrintFormat == "Duplex" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;
+                                mailPiece.TotalSheets = docType.PrintFormat == "Duplex" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;                               
 
                                 mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-
                             }
 
                             try
@@ -645,9 +673,8 @@ namespace AM.Core
                         string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
                         string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
 
-                        string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-                        //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                        //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                        string errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
+
                         string localErrorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
                         string ftpErrorReportPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
 
@@ -757,9 +784,6 @@ namespace AM.Core
 
             if (sftSite.IsConnected)
                 sftSite.Disconnect();
-
-            //TODO: Remove after proper naming convention
-            Thread.Sleep(1000);
         }
 
         private static eVSLabelRequest GenerateEVSLabelRequest(MailPieceDTO mailPiece, string clientName, AM.USPSLib.ServiceType serviceType)
@@ -940,9 +964,7 @@ namespace AM.Core
                         string errorGoFileName = "ErrReport.go";
                         string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
 
-                        string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-                        //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                        //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                        string errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
 
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
@@ -968,19 +990,6 @@ namespace AM.Core
                         commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
                     }
                     break;
-                case "HSBC":
-                    using (IHSBCService hsbcSvc = new HSBCService())
-                    {
-                        string errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
-                        string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-                        StringBuilder errorData = hsbcSvc.HSBCErrorReport(mailPieces, mbi.Client.TimeZone, deliverable.Delimeter);
-                        if (errorData != null)
-                        {
-                            File.WriteAllText(errorReportPath, errorData.ToString());
-                        }
-                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
-                    }
-                    break;
                 default:
                     using (IGeneralService generalSvc = new GeneralService())
                     {
@@ -999,9 +1008,6 @@ namespace AM.Core
                     }
                     break;
             }
-
-            //TODO: Remove after proper naming convention
-            Thread.Sleep(1000);
         }
 
         #endregion
@@ -1273,7 +1279,6 @@ namespace AM.Core
 
             using (IMailBatchService mailBatchService = new MailBatchService())
             {
-
                 var responseReceivedPrintBatches = mailBatchService.GetResponseReceivedPrintBatchDetails();
 
                 if (responseReceivedPrintBatches.Count == 0)
@@ -1346,6 +1351,8 @@ namespace AM.Core
 
                             MailBatches mailBatch = reportSvc.GetMailBatchDataFromMailBatchId(printBatch.MailBatchId);
 
+                            Client client = clientSvc.GetClientById(mailBatch.ClientId.Value);
+
                             if (increamentalReportingChannels.Contains(channelCode))
                             {
                                 string amResponsePath = Path.Combine(Config.Common_AuthoMailRootFolder, printBatch.AppCode, Util.AMResponseFolderName, printBatch.PrintBatchId.ToString());
@@ -1361,16 +1368,13 @@ namespace AM.Core
 
                                             if (deliveryReport != null)
                                             {
-                                                string deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                                string deliveryReportFileName = $"Delivery-{mailBatch.BatchName}-{client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
 
-                                                //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                                                //string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                                                 string deliveryReportPath = Path.Combine(amResponsePath, deliveryReportFileName);
 
                                                 File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
                                             }
                                         }
-                                        Thread.Sleep(1000);
                                         break;
                                     default:
                                         using (IGeneralService generalSvc = new GeneralService())
@@ -1499,9 +1503,6 @@ namespace AM.Core
 
                                     if (isReportGenerated)
                                         commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
-
-                                    //TODO: Remove after proper naming convention
-                                    Thread.Sleep(1000);
                                 }
                                 catch (Exception ex)
                                 {
@@ -1549,10 +1550,8 @@ namespace AM.Core
                                 {
                                     StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(pulledBackMailPieces);
 
-                                    string deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                    string deliveryReportFileName = $"Delivery-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
 
-                                    //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                                    //string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                                     string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
                                     File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
@@ -1561,10 +1560,8 @@ namespace AM.Core
                                 StringBuilder errorReport = amcSvc.AMCErrorReport(mailPieces);
                                 if (errorReport != null)
                                 {
-                                    string errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                                    string errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
 
-                                    //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                                    //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                                     string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
                                     File.WriteAllText(errorReportPath, errorReport.ToString());

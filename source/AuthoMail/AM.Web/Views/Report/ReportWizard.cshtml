@@ -158,7 +158,7 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="ClientId">Clients</label>
-                                    @Html.DropDownList("ClientId", ViewBag.ClientId as SelectList, htmlAttributes: new { @class = "selectpicker", @multiple = "multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
+                                    @Html.DropDownList("ClientId", ViewBag.ClientId as IEnumerable<SelectListItem>, htmlAttributes: new { @class = "selectpicker", @multiple = "multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
                                 </div>
 
                             </div>
@@ -971,7 +971,7 @@
                     status: $("#Status").val(),
                     channel: $("#Channel").val(),
                     shippingMethod: $('#ShippingMethod').val(),
-                    trackingNumber: $("#TrackingNumber").val(),
+                    trackingNo: $("#TrackingNumber").val(),
                     timezoneOffset: new Date().getTimezoneOffset()
                 }),
                 contentType: "application/json; charset=utf-8",

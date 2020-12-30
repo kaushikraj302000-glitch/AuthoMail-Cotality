@@ -15,7 +15,7 @@ namespace AM.Services
         FedExAccountInfo GetFedExAccountDetailsByAccountCode(string accountCode);
         void UpdateFedExTrackingInfo();
 
-        void UpdateFedExShipmentInfo(DateTime dueDateStartTime, DateTime dueDateEndTime);
+        void UpdateFedExShipmentInfo(DateTime dueDateStartTime, DateTime dueDateEndTime, string alias = null);
     }
     public class FedExService : ServiceBase, IFedExService
     {
@@ -100,9 +100,15 @@ namespace AM.Services
             }
         }
 
-        private void GetTrackReplyAndUpdateValue(TrackReply reply, DateTime jobRunTime)
+        private void GetTrackReplyAndUpdateValue(TrackReply reply, DateTime jobRunTime, bool isReturnTrackingInfo = false)
         {
             List<FedExPickedPackagesDetail> fedExPickedPackageDetails = new List<FedExPickedPackagesDetail>();
+
+            if (reply.CompletedTrackDetails == null)
+            {
+                return;
+            }
+
             // Track details for each package
             foreach (CompletedTrackDetail completedTrackDetail in reply.CompletedTrackDetails)
             {
@@ -113,9 +119,13 @@ namespace AM.Services
                         var trackEvent = trackDetail.Events.FirstOrDefault();
                         if (trackEvent != null)
                         {
+                            //todo change in class make separate props Delivery Status and the Delivery Date
                             FedExPickedPackagesDetail pickupDetail = new FedExPickedPackagesDetail();
                             pickupDetail.TrackingNo = trackDetail.TrackingNumber;
                             pickupDetail.PickedTimeStamp = trackEvent.Timestamp.ToUniversalTime();
+                            //todo separate this data to new prop Delivery Status and the Delivery Date
+                            pickupDetail.DeliveryStatus = trackEvent.EventDescription;
+                            pickupDetail.DeliveryDate = trackEvent.Timestamp.ToUniversalTime();
                             pickupDetail.ShipmentStatus = $"{trackEvent.EventDescription} on {trackEvent.Timestamp.ToUniversalTime()} UTC at ( {trackEvent.Address.City}, { trackEvent.Address.StateOrProvinceCode} )";
                             fedExPickedPackageDetails.Add(pickupDetail);
                         }
@@ -125,14 +135,24 @@ namespace AM.Services
 
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             {
-                foreach (var pickedUpDetail in fedExPickedPackageDetails)
+                if (isReturnTrackingInfo)
                 {
-                    mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(pickedUpDetail.ShipmentStatus, pickedUpDetail.TrackingNo, jobRunTime);
+                    foreach (var pickedUpDetail in fedExPickedPackageDetails)
+                    {
+                        mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(pickedUpDetail.ShipmentStatus, pickedUpDetail.TrackingNo, jobRunTime, pickedUpDetail.DeliveryStatus, pickedUpDetail.DeliveryDate, true);
+                    }
+                }
+                else
+                {
+                    foreach (var pickedUpDetail in fedExPickedPackageDetails)
+                    {
+                        mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(pickedUpDetail.ShipmentStatus, pickedUpDetail.TrackingNo, jobRunTime, pickedUpDetail.DeliveryStatus, pickedUpDetail.DeliveryDate, false);
+                    }
                 }
             }
         }
 
-        private static TrackRequest CreateTrackRequest(List<FedExReport> takenMailPieces, FedExAccountInfo fedExAccountDetails)
+        private static TrackRequest CreateTrackRequest(List<FedExReport> takenMailPieces, FedExAccountInfo fedExAccountDetails, bool isReturnTracking = false)
         {
             TrackRequest request = new TrackRequest();
             //Credentials
@@ -155,7 +175,7 @@ namespace AM.Services
             {
                 TrackSelectionDetail trackSelection = new TrackSelectionDetail();
                 trackSelection.PackageIdentifier = new TrackPackageIdentifier();
-                trackSelection.PackageIdentifier.Value = mailPiece.TrackingNo;
+                trackSelection.PackageIdentifier.Value = isReturnTracking ? mailPiece.ReturnTrackingNo : mailPiece.TrackingNo;
                 trackSelection.PackageIdentifier.Type = TrackIdentifierType.TRACKING_NUMBER_OR_DOORTAG;
                 trackSelections.Add(trackSelection);
             }
@@ -166,12 +186,12 @@ namespace AM.Services
             return request;
         }
 
-        public void UpdateFedExShipmentInfo(DateTime dueDateStartTime, DateTime dueDateEndTime)
+        public void UpdateFedExShipmentInfo(DateTime dueDateStartTime, DateTime dueDateEndTime, string alias = null)
         {
             List<FedExReport> mailPieces;
             using (IReportService reportSvc = new ReportService())
             {
-                mailPieces = reportSvc.GetFedExDataForTracking(dueDateStartTime, dueDateEndTime);
+                mailPieces = reportSvc.GetFedExDataForTracking(dueDateStartTime, dueDateEndTime, alias);
             }
 
             if (mailPieces == null || mailPieces.Count == 0)
@@ -180,7 +200,10 @@ namespace AM.Services
             DateTime jobRunTime = Common.Now;
             int totalMailPieceCount = mailPieces.Count;
             int checkedMailPieceCount = 0;
-            double loopCount = Math.Ceiling(mailPieces.Count / 30.0f);
+            int maxRequest = 30;
+            double loopCount = Math.Ceiling(totalMailPieceCount / (float)maxRequest);
+
+            var returnTrackingMps = mailPieces.Where(mp => !string.IsNullOrWhiteSpace(mp.ReturnTrackingNo) && (mp.ReturnTrackingNo.StartsWith("7") || mp.ReturnTrackingNo.StartsWith("3")));
 
             using (IFedExService fedExSvc = new FedExService())
             {
@@ -189,8 +212,8 @@ namespace AM.Services
                 {
                     for (double i = 0; i < loopCount; i++)
                     {
-                        var takenMailPieces = mailPieces.Skip(checkedMailPieceCount).Take(30).ToList();
-                        checkedMailPieceCount += 30;
+                        var takenMailPieces = mailPieces.Skip(checkedMailPieceCount).Take(maxRequest).ToList();
+                        checkedMailPieceCount += maxRequest;
 
                         TrackRequest request = CreateTrackRequest(takenMailPieces, fedExAccountDetails);
                         TrackPortTypeClient service = new TrackPortTypeClient();
@@ -203,6 +226,26 @@ namespace AM.Services
                         if (reply.HighestSeverity == NotificationSeverityType.SUCCESS || reply.HighestSeverity == NotificationSeverityType.NOTE || reply.HighestSeverity == NotificationSeverityType.WARNING)
                         {
                             GetTrackReplyAndUpdateValue(reply, jobRunTime);
+                        }
+                    }
+
+                    checkedMailPieceCount = 0;
+                    for (double i = 0; i < loopCount; i++)
+                    {
+                        var takenMailPieces = returnTrackingMps.Skip(checkedMailPieceCount).Take(maxRequest).ToList();
+                        checkedMailPieceCount += maxRequest;
+
+                        TrackRequest request = CreateTrackRequest(takenMailPieces, fedExAccountDetails, true);
+                        TrackPortTypeClient service = new TrackPortTypeClient();
+                        service.Endpoint.Address = new System.ServiceModel.EndpointAddress(Config.Common_FedExTrackingUrl);
+
+                        ServicePointManager.Expect100Continue = true;
+                        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                        // Call the Track web service passing in a TrackRequest and returning a TrackReply
+                        TrackReply reply = service.track(request);
+                        if (reply.HighestSeverity == NotificationSeverityType.SUCCESS || reply.HighestSeverity == NotificationSeverityType.NOTE || reply.HighestSeverity == NotificationSeverityType.WARNING)
+                        {
+                            GetTrackReplyAndUpdateValue(reply, jobRunTime, true);
                         }
                     }
                 }

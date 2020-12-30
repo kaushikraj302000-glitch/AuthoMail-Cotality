@@ -31,6 +31,7 @@
     [IsReqBlankPageValidation] BIT NULL, 
     [IsEncrypted] BIT NULL, 
     [RetentionPeriod] INT NULL, 
+    [GroupAlias] VARCHAR(255) NULL, 
     CONSTRAINT [PK_Clients] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_Clients_BusinessUnit] FOREIGN KEY ([BusinessUnit]) REFERENCES [Common].[BusinessUnit] ([Id]),
     CONSTRAINT [FK_CreatedBy_Clients_User] FOREIGN KEY ([CreatedBy]) REFERENCES [Profile].[Users] ([Id]),

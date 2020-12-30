@@ -100,15 +100,14 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
-                <th>Receive Date <span class="fontcapitalize">(Local)</span></th>
-                <th>Inventory Id</th>
-                <th>Envelope Type</th>
+                <th>Envelope Name</th>
                 <th>Part Number</th>
-                <th>Description</th>
+                <th>Print Location</th>
+                <th>Print Vendor Code</th>
+                <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Unit Price </th>
                 <th>Stock Received Quantity</th>
-                <th>Stock used</th>
-                <th>Currently in Stock</th>
+                <th>Current Stock</th>
             </tr>
         </thead>
         <tbody id="SLAbodyContent"></tbody>
@@ -118,15 +117,14 @@
     <table>
         <tbody id="SLABody">
             <tr class="row-small">
-                <td><span>{ReceivedOnFormatted}</span></td>
-                <td><span>{Id}</span></td>
                 <td><span>{EnvelopeName}</span></td>
                 <td><span>{PartNumber}</span></td>
-                <td><span>{Description}</span></td>
+                <td><span>{PrintLocation}</span></td>
+                <td><span>{PrintVendorCode}</span></td>
+                <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{UnitPrice}</span></td>
                 <td><span>{ReceivedQuantity}</span></td>
-                <td><span>{StockUsed}</span></td>
-                <td><span>{InStock}</span></td>
+                <td><span>{CurrentQuantity}</span></td>
             </tr>
         </tbody>
     </table>
@@ -284,21 +282,10 @@
             });
         }
         function FormatObject(Model) {
-            
             $(Model).each(function () {
-
-                this.Id = this.Id;
-                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-                this.EnvelopeId = this.Envelopes.Id;
-                this.EnvelopeName = this.Envelopes.EnvelopeName;
-                this.PartNumber = this.Envelopes.PartNumber;
-                this.Description = this.Description != null ? this.Description.replace(/"/g, '\'') : "";
-                this.UnitPrice = this.UnitPrice;
-                this.ReceivedQuantity = this.ReceivedQuantity;
-                this.StockUsed = this.StockUsed; 
-                this.InStock = this.Envelopes.CurrentQuantity;
+                this.ReceivedOnFormatted = this.ReceivedOn !=null? moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss"):'--';
+                this.EnvelopeId = this.Id;
             });
-            console.log(Model);
             return Model;
         }
         $("#filterData").click(function () {

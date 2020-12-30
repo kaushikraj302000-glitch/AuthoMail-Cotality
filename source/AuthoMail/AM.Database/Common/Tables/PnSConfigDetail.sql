@@ -3,7 +3,6 @@
     [PnSConfigId]            INT           NOT NULL,
     [PrintSize]              VARCHAR (255) NULL,
     [ContentScalePercent]    FLOAT (53)    CONSTRAINT [DF_PnSConfigDetail_ContentScalePercent] DEFAULT ((100)) NULL,
-    [PrintFormat]            VARCHAR (255) NULL,
     [ShippingCarrier]        VARCHAR (255) NULL,
     [ShippingServiceType]    VARCHAR (255) NULL,
     [ShippingAccountCode]    VARCHAR (255) NULL,
@@ -28,6 +27,7 @@
     [SatEndTime]             TIME (7)      NULL,
     [SunStartTime]           TIME (7)      NULL,
     [SunEndTime]             TIME (7)      NULL,
+    [IsPrintReady] BIT NULL, 
     CONSTRAINT [PK_PnSConfigDetail] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
     CONSTRAINT [FK_PnSConfigDetail_Envelopes] FOREIGN KEY ([EnvelopeId]) REFERENCES [Common].[Envelopes] ([Id]),
     CONSTRAINT [FK_PnSConfigDetail_PnSConfig] FOREIGN KEY ([PnSConfigId]) REFERENCES [Common].[PnSConfig] ([Id])

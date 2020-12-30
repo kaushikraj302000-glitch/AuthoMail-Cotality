@@ -11,7 +11,7 @@ m.Id AS PkgId
 ,sftc.Code AS ChannelCode
 ,d.DocTypeName
 ,m.TrackingNo
-,PCD.PrintFormat
+,d.PrintFormat
 ,PCD.PrintSize
 ,PCD.EnvelopeId AS EnvPartNo
 ,IsBRE

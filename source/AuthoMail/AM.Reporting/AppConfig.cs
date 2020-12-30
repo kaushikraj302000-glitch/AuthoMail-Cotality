@@ -44,6 +44,10 @@ namespace AM.Reporting
         public static string GOSReceivedBatchEMailSubject { get; private set; }
         public static string GOSReconReportPath { get; private set; }
 
+        public static string GOSDataPointEMailTo { get; private set; }
+        public static string GOSDataPointEMailCc { get; private set; }
+        public static string GOSDataPointEMailSubject { get; private set; }
+        public static string GOSDataPointEMailTemplate { get; private set; }
 
         public static string USAAMTDEmailTo { get; private set; }
         public static string USAAMTDEmailCc { get; private set; }
@@ -84,6 +88,12 @@ namespace AM.Reporting
             GOSReconEMailSubject = ConfigurationManager.AppSettings["GOSReconEMailSubject"].Trim();
             GOSReceivedBatchEMailSubject = ConfigurationManager.AppSettings["GOSReceivedBatchEMailSubject"].Trim();
             GOSReconReportPath = ConfigurationManager.AppSettings["GOSReconReportPath"].Trim();
+
+            GOSDataPointEMailTo = ConfigurationManager.AppSettings["GOSDataPointEMailTo"].Trim();
+            GOSDataPointEMailCc = ConfigurationManager.AppSettings["GOSDataPointEMailCc"].Trim();
+            GOSDataPointEMailSubject = ConfigurationManager.AppSettings["GOSDataPointEMailSubject"].Trim();
+            GOSDataPointEMailTemplate = ConfigurationManager.AppSettings["GOSDataPointEMailTemplate"].Trim();
+
 
             USAAMTDEmailTo = ConfigurationManager.AppSettings["USAAMTDEmailTo"].Trim();
             USAAMTDEmailCc = ConfigurationManager.AppSettings["USAAMTDEmailCc"].Trim();
