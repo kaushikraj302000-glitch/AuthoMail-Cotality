@@ -429,7 +429,7 @@ namespace AM.Console
 
                         if (deliveryReport != null)
                         {
-                            deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            deliveryReportFileName = $"Delivery-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
 
                             //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
                             //string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));

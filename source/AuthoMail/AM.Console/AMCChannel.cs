@@ -1033,7 +1033,9 @@ namespace AM.Console
         {
             using (ICommonService commonSvc = new CommonService())
             {
-                string errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
+                //string errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
+
+                string errorReportFileName = $"Error-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
 
                 string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
