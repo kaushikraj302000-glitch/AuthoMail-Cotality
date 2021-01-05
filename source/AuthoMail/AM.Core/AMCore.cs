@@ -693,6 +693,8 @@ namespace AM.Core
 
                             if (File.Exists(localErrorReportPath))
                                 File.Move(localErrorReportPath, Path.ChangeExtension(localErrorReportPath, ".Uploaded"));
+
+                            Thread.Sleep(1000);
                         }
                     }
                     break;
@@ -976,6 +978,7 @@ namespace AM.Core
                             File.WriteAllText(errorReportPath, errorData.ToString());
 
                             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
+                            Thread.Sleep(1000);
                         }
                     }
                     break;
@@ -1376,6 +1379,8 @@ namespace AM.Core
                                                 string deliveryReportPath = Path.Combine(amResponsePath, deliveryReportFileName);
 
                                                 File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+
+                                                Thread.Sleep(1000);
                                             }
                                         }
                                         break;
@@ -1559,6 +1564,8 @@ namespace AM.Core
                                     string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
                                     File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+
+                                    Thread.Sleep(1000);
                                 }
 
                                 StringBuilder errorReport = amcSvc.AMCErrorReport(mailPieces);
@@ -1570,6 +1577,8 @@ namespace AM.Core
                                     string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
                                     File.WriteAllText(errorReportPath, errorReport.ToString());
+
+                                    Thread.Sleep(1000);
                                 }
                             }
                             break;

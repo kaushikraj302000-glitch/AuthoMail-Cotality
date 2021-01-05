@@ -315,6 +315,8 @@ namespace AM.Console
                             File.WriteAllText(errorReportPath, errorReport.ToString());
                             reportToMail.Add(errorReportPath);
                         }
+
+                        Thread.Sleep(1000);
                     }
                     break;
                 case "API_ELLIEMAE":
