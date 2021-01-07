@@ -296,8 +296,7 @@ namespace AM.Console
 
                         if (deliveryReport != null)
                         {
-                            //deliveryReportFileName = $"Delivery-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
-                            deliveryReportFileName = $"Delivery-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
+                            deliveryReportFileName = $"Delivery-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
                             deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
                             File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
@@ -308,15 +307,12 @@ namespace AM.Console
 
                         if (errorReport != null)
                         {
-                            //errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
-                            errorReportFileName = $"Error-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
+                            errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
                             errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
                             File.WriteAllText(errorReportPath, errorReport.ToString());
                             reportToMail.Add(errorReportPath);
                         }
-
-                        Thread.Sleep(1000);
                     }
                     break;
                 case "API_ELLIEMAE":

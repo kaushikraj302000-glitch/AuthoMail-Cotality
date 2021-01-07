@@ -673,8 +673,7 @@ namespace AM.Core
                         string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
                         string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
 
-                        //string errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
-                        string errorReportFileName = $"Error-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
+                        string errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
 
                         string localErrorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
                         string ftpErrorReportPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
@@ -693,8 +692,6 @@ namespace AM.Core
 
                             if (File.Exists(localErrorReportPath))
                                 File.Move(localErrorReportPath, Path.ChangeExtension(localErrorReportPath, ".Uploaded"));
-
-                            Thread.Sleep(1000);
                         }
                     }
                     break;
@@ -967,8 +964,7 @@ namespace AM.Core
                         string errorGoFileName = "ErrReport.go";
                         string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
 
-                        //string errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
-                        string errorReportFileName = $"Error-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
+                        string errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
 
                         string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
@@ -978,7 +974,6 @@ namespace AM.Core
                             File.WriteAllText(errorReportPath, errorData.ToString());
 
                             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
-                            Thread.Sleep(1000);
                         }
                     }
                     break;
@@ -1373,14 +1368,11 @@ namespace AM.Core
 
                                             if (deliveryReport != null)
                                             {
-                                                //string deliveryReportFileName = $"Delivery-{mailBatch.BatchName}-{client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
-                                                string deliveryReportFileName = $"Delivery-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
+                                                string deliveryReportFileName = $"Delivery-{mailBatch.BatchName}-{client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
 
                                                 string deliveryReportPath = Path.Combine(amResponsePath, deliveryReportFileName);
 
                                                 File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
-
-                                                Thread.Sleep(1000);
                                             }
                                         }
                                         break;
@@ -1558,27 +1550,21 @@ namespace AM.Core
                                 {
                                     StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(pulledBackMailPieces);
 
-                                    //string deliveryReportFileName = $"Delivery-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
-                                    string deliveryReportFileName = $"Delivery-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
+                                    string deliveryReportFileName = $"Delivery-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
 
                                     string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
                                     File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
-
-                                    Thread.Sleep(1000);
                                 }
 
                                 StringBuilder errorReport = amcSvc.AMCErrorReport(mailPieces);
                                 if (errorReport != null)
                                 {
-                                    //string errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
-                                    string errorReportFileName = $"Error-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
+                                    string errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
 
                                     string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
                                     File.WriteAllText(errorReportPath, errorReport.ToString());
-
-                                    Thread.Sleep(1000);
                                 }
                             }
                             break;
