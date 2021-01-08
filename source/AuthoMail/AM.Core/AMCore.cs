@@ -214,8 +214,6 @@ namespace AM.Core
                                 //Folder structure and file naming convention should be Root/AppCode/AppCode_DocTypeCode_SeqNo.pdf
                                 string coverLetterTemplatePath = docTypeLetter == null ? string.Empty : Path.Combine(Config.Core_CoverTemplateFolder, client.AppCode, docTypeLetter.CoverLetterTemplatePath);
 
-
-
                                 SmartDocResponse response = new SmartDocResponse();
 
                                 var shippingServiceType = docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>();
@@ -230,6 +228,7 @@ namespace AM.Core
                                 {
                                     if (shippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS)
                                     {
+                                        #region USPS Priority Express Logic
                                         while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                         {
                                             var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, shippingServiceType);
@@ -330,10 +329,12 @@ namespace AM.Core
                                             mailPiece.PrintTrailId = null;
                                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                             continue;
-                                        }
+                                        } 
+                                        #endregion
                                     }
                                     else if (shippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
-                                    {                                        
+                                    {
+                                        #region USPS Priority Logic
                                         while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                         {
                                             var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
@@ -373,10 +374,12 @@ namespace AM.Core
                                             mailPiece.PrintTrailId = null;
                                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                             continue;
-                                        }
+                                        } 
+                                        #endregion
                                     }
                                     else if (docType.ShippingServiceType == ShippingServiceType.IMB.ToString())
                                     {
+                                        #region USPS IMB Logic
                                         if (Path.GetExtension(coverLetterTemplatePath) == ".docx")
                                         {
                                             var coversheetData = mailPieceSvc.GetCoversheetData(mailPieceId);
@@ -405,7 +408,8 @@ namespace AM.Core
 
                                         coverLetterPdfPaths.Add(response.CoverLetterPath);
                                         mailPiece.TrackingNo = response.TrackingCode;
-                                        mailPiece.ShippingCost = response.PostageCost;
+                                        mailPiece.ShippingCost = response.PostageCost; 
+                                        #endregion
                                     }
 
                                     // Shipping Service Type is First Class or  client is print ready then we don't need to do anything.
@@ -418,6 +422,7 @@ namespace AM.Core
 
                                     CreateFedExLabel createFedExLabel = new CreateFedExLabel();
 
+                                    #region FedEx Logic
                                     while (attemptCount < Config.Core_NoOfAttemptOnFailure)
                                     {
                                         response = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi, shipperInfo);
@@ -631,7 +636,8 @@ namespace AM.Core
                                         mailPiece.ErrorDesc = string.Format("{0}|{1}", OutComeCodes.Invalid_ShippingDetail, response.ExceptionDetail);
                                         mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                         continue;
-                                    }
+                                    } 
+                                    #endregion
                                 }
                                 else
                                 {

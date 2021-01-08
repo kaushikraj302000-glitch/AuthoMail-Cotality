@@ -343,5 +343,10 @@ namespace AM.Lib
             return values;
         }
 
+        public static bool IsCountryUS(this string value)
+        {
+            return value.IsNullOrWhiteSpace() || (!value.IsNullOrWhiteSpace() && (value.Contains("USA") || value.Contains("US") || value.Contains("The United States of America") || value.Contains("United States of America") || value.Contains("United States")));
+        }
+
     }
 }
