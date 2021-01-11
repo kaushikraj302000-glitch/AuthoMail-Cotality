@@ -230,6 +230,9 @@ namespace AM.Services
                     }
 
                     checkedMailPieceCount = 0;
+
+                    loopCount = Math.Ceiling(returnTrackingMps.Count() / (float)maxRequest);
+
                     for (double i = 0; i < loopCount; i++)
                     {
                         var takenMailPieces = returnTrackingMps.Skip(checkedMailPieceCount).Take(maxRequest).ToList();

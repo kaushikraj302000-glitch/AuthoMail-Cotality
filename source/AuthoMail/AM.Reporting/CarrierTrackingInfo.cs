@@ -114,6 +114,9 @@ namespace AM.Reporting
                     }
 
                     trackedRequests = 0;
+
+                    loopCount = Math.Ceiling(returnTrackingInfo.Count() / (float)maxTrackRequest);
+
                     for (double i = 0; i < loopCount; i++)
                     {
                         List<TrackID> trackIDs = new List<TrackID>();
