@@ -415,7 +415,7 @@ namespace AM.Core
                     contentByte.BeginText();
                     contentByte.SetFontAndSize(baseFont, 8);
 
-                    contentByte.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, text, importedPage.Width - 200, importedPage.Height - 750, 0);
+                    contentByte.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, text, importedPage.Width - 200, importedPage.Height - 700, 0);
 
                     contentByte.EndText();
                     contentByte.AddTemplate(importedPage, 0, 0);
