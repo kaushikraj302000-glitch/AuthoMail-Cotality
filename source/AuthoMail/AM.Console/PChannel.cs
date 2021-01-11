@@ -401,38 +401,16 @@ namespace AM.Console
 
             switch (sftChannelDetail.GetChannelCode().ToUpper())
             {
-                case "HSBC":
-                    using (IHSBCService hsbcSvc = new HSBCService())
-                    {
-
-                        StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailPieces, mbi.Client.TimeZone, deliveryReportDeliverable.Delimeter);
-
-                        deliveryReportFileName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
-                        deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
-
-                        File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
-                        reportToMail.Add(deliveryReportPath);
-
-                        StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailPieces, mbi.Client.TimeZone, errorReportDeliverable.Delimeter);
-
-                        errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
-                        errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                        File.WriteAllText(errorReportPath, errorReport.ToString());
-                        reportToMail.Add(errorReportPath);
-                    }
-                    break;
                 case "AMC":
                     using (IAMCService amcSvc = new AMCService())
+                    using (ICommonService commonSvc = new CommonService())
                     {
                         StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailPieces);
 
                         if (deliveryReport != null)
                         {
-                            deliveryReportFileName = $"Delivery-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
+                            deliveryReportFileName = $"Delivery-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
 
-                            //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                            //string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                             deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
                             File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
@@ -443,10 +421,7 @@ namespace AM.Console
 
                         if (errorReport != null)
                         {
-                            errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-
-                            //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                            //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
                             errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
                             File.WriteAllText(errorReportPath, errorReport.ToString());
@@ -484,10 +459,6 @@ namespace AM.Console
                     break;
 
             }
-
-            //TODO: Remove after proper naming convention
-            Thread.Sleep(1000);
-
             MailUtility.SendProductionNotificationEmail(mbi, mailPieces, reportToMail, deliveryReportDeliverable.EmailChannel);
             //After Sending An Email Change its extention to "EmailAttachment" to identify that report is sent as an attachments
             foreach (var reportPath in reportToMail)

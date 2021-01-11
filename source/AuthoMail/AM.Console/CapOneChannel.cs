@@ -421,7 +421,7 @@ namespace AM.Console
             caponeValues.LoanNumber = values[15].RemoveCSVStringFormat();
             caponeValues.NoticeDate = values[18].RemoveCSVStringFormat().AnyFormatToDateTimeString();
             caponeValues.ClientId = values[22].RemoveCSVStringFormat();
-            caponeValues.ClientCode = values[23].RemoveCSVStringFormat();
+            caponeValues.ClientCode = values[23].RemoveCSVStringFormat().Trim();
             return caponeValues;
         }
 

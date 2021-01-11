@@ -11,3 +11,7 @@ GO
 CREATE NONCLUSTERED INDEX [Idx_EnvelopeUsage_PrintTrailBatchId]
     ON [PnS].[EnvelopeUsage]([PrintTrailBatchId] ASC);
 
+
+GO
+
+CREATE INDEX [IX_EnvelopeUsage_EnvelopeId] ON [PnS].[EnvelopeUsage] ([EnvelopeId])
