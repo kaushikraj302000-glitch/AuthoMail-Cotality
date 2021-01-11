@@ -128,8 +128,8 @@ namespace AM.Reporting
                 DateTime startTime = endTime.AddDays(-7);
                 using (IReportService reportSvc = new ReportService())
                 {
-                    //CarrierTrackingInfo.CheckForShipmentTracking("GOS");
-                    //CarrierTrackingInfo.CheckForUSPSeVSShipmentTracking("GOS");
+                    CarrierTrackingInfo.CheckForShipmentTracking("GOS");
+                    CarrierTrackingInfo.CheckForUSPSeVSShipmentTracking("GOS");
                     //NOTE : Please change UTC to EST code when Daylight saving is off in service call
                     var gosBatchDetails = reportSvc.GetGOSDataPointReport(startTime, endTime);
 
