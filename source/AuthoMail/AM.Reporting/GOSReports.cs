@@ -153,22 +153,23 @@ namespace AM.Reporting
                         var fedexRetRecords = gosBatchDetails.Where(x => x.ReturnShippingCarrier == "FedEx");
                         var uspsRetRecords = gosBatchDetails.Where(x => x.ReturnShippingCarrier == "USPS");
 
-                        sb = sb.Replace("<%FedEx_ODelivered%>", fedexOWRecords.Count(t => t.DeliveryStatus == "Delivered").ToString());
-                        sb = sb.Replace("<%FedEx_OInTransit%>", fedexOWRecords.Count(t => t.DeliveryStatus != "Delivered" && t.DeliveryStatus != null).ToString());
-                        sb = sb.Replace("<%FedEx_OPending%>", fedexOWRecords.Count(t => t.DeliveryStatus.IsNullOrEmpty()).ToString());
+                        sb = sb.Replace("<%FedEx_ODelivered%>", fedexOWRecords.Count(t => t.DeliveryStatus != null && t.DeliveryStatus.ToLower().Contains("delivered")).ToString());
+                        sb = sb.Replace("<%FedEx_OInTransit%>", fedexOWRecords.Count(t => t.DeliveryStatus != null && !t.DeliveryStatus.ToLower().Contains("delivered")).ToString());
+                        sb = sb.Replace("<%FedEx_OPending%>", fedexOWRecords.Count(t => t.DeliveryStatus.IsNullOrWhiteSpace()).ToString());
 
-                        sb = sb.Replace("<%FedEx_RDelivered%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus == "Delivered").ToString());
-                        sb = sb.Replace("<%FedEx_RInTransit%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus != "Delivered" && t.ReturnDeliveryStatus != null).ToString());
-                        sb = sb.Replace("<%FedEx_RPending%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus.IsNullOrEmpty()).ToString());
+                        sb = sb.Replace("<%FedEx_RDelivered%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus != null && t.ReturnDeliveryStatus.ToLower().Contains("delivered")).ToString());
+                        sb = sb.Replace("<%FedEx_RInTransit%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus != null && !t.ReturnDeliveryStatus.ToLower().Contains("delivered")).ToString());
+                        sb = sb.Replace("<%FedEx_RPending%>", fedexRetRecords.Count(t => t.ReturnDeliveryStatus.IsNullOrWhiteSpace()).ToString());
 
-                        sb = sb.Replace("<%USPS_ODelivered%>", uspsOWRecords.Count(t => t.DeliveryStatus.StartsWith("Delivered")).ToString());
-                        sb = sb.Replace("<%USPS_OInTransit%>", uspsOWRecords.Count(t => !t.DeliveryStatus.StartsWith("Delivered") && !t.DeliveryStatus.IsNullOrWhiteSpace()).ToString());
+                        sb = sb.Replace("<%USPS_ODelivered%>", uspsOWRecords.Count(t => t.DeliveryStatus != null && t.DeliveryStatus.ToLower().Contains("delivered")).ToString());
+                        sb = sb.Replace("<%USPS_OInTransit%>", uspsOWRecords.Count(t => t.DeliveryStatus != null && !t.DeliveryStatus.ToLower().Contains("delivered")).ToString());
                         sb = sb.Replace("<%USPS_OPending%>", uspsOWRecords.Count(t => t.DeliveryStatus.IsNullOrWhiteSpace()).ToString());
-                        sb = sb.Replace("<%USPS_RDelivered%>", uspsRetRecords.Count(t => t.ReturnDeliveryStatus.StartsWith("Delivered")).ToString());
-                        sb = sb.Replace("<%USPS_RInTransit%>", uspsRetRecords.Count(t => !t.ReturnDeliveryStatus.StartsWith("Delivered") && !t.ReturnDeliveryStatus.IsNullOrWhiteSpace()).ToString());
-                        sb = sb.Replace("<%USPS_RPending%>", uspsRetRecords.Count(t => t.ReturnDeliveryStatus.StartsWith("Delivered")).ToString());
 
-                        SendReportToCLTeam(reportFilePath, $"GOS Tracking Status Report From {startTime:mm/dd/yyyy} To {endTime:mm/dd/yyyy}", sb.ToString(), AppConfig.GOSDataPointEMailTo, AppConfig.GOSDataPointEMailCc);
+                        sb = sb.Replace("<%USPS_RDelivered%>", uspsRetRecords.Count(t => t.ReturnDeliveryStatus != null && t.ReturnDeliveryStatus.ToLower().Contains("delivered")).ToString());
+                        sb = sb.Replace("<%USPS_RInTransit%>", uspsRetRecords.Count(t => t.ReturnDeliveryStatus != null && !t.ReturnDeliveryStatus.ToLower().Contains("delivered")).ToString());
+                        sb = sb.Replace("<%USPS_RPending%>", uspsRetRecords.Count(t => t.ReturnDeliveryStatus.IsNullOrWhiteSpace()).ToString());
+
+                        SendReportToCLTeam(reportFilePath, $"GOS Tracking Status Report From {startTime:MM/dd/yyyy} To {endTime:MM/dd/yyyy}", sb.ToString(), AppConfig.GOSDataPointEMailTo, AppConfig.GOSDataPointEMailCc);
                     }
                 }
                 log.Debug("GOS Data Point report Execution completed at {0} Est".Fill(Common.Now.UtcToEst()));
