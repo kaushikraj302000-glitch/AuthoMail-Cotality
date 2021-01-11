@@ -155,7 +155,7 @@ namespace AM.Console
                         // Parallel submit
                         var responseBatches = mailAPIResponses
                             .Batch(sftChannelDetails.APIMaxResponseCount);
-                        
+
                         foreach (var resBatches in responseBatches.Batch(Config.MailResponseAPI_MaxParallelCallBack))
                         {
                             var outResponse = resBatches.Select(responseBatch => SubmitBatchResponse(httpClient, responseBatch, sftChannelDetails));
@@ -401,38 +401,16 @@ namespace AM.Console
 
             switch (sftChannelDetail.GetChannelCode().ToUpper())
             {
-                case "HSBC":
-                    using (IHSBCService hsbcSvc = new HSBCService())
-                    {
-
-                        StringBuilder deliveryReport = hsbcSvc.HSBCDeliveryReport(mailPieces, mbi.Client.TimeZone, deliveryReportDeliverable.Delimeter);
-
-                        deliveryReportFileName = "{0}.DeliveryReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
-                        deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
-
-                        File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
-                        reportToMail.Add(deliveryReportPath);
-
-                        StringBuilder errorReport = hsbcSvc.HSBCErrorReport(mailPieces, mbi.Client.TimeZone, errorReportDeliverable.Delimeter);
-
-                        errorReportFileName = "{0}.ErrorReport_{1}.csv".Fill(mbi.BatchName.Split('[')[0], mbi.MailBatch.ReceivedOn.Value.UtcToClientTimeZone(mbi.Client.TimeZone).ToString("htt"));
-                        errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                        File.WriteAllText(errorReportPath, errorReport.ToString());
-                        reportToMail.Add(errorReportPath);
-                    }
-                    break;
                 case "AMC":
                     using (IAMCService amcSvc = new AMCService())
+                    using (ICommonService commonSvc = new CommonService())
                     {
                         StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(mailPieces);
 
                         if (deliveryReport != null)
                         {
-                            deliveryReportFileName = "Delivery-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            deliveryReportFileName = $"Delivery-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
 
-                            //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                            //string deliveryReportFileName = "Delivery-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
                             deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
 
                             File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
@@ -443,10 +421,7 @@ namespace AM.Console
 
                         if (errorReport != null)
                         {
-                            errorReportFileName = "Error-{0}.txt".Fill(Common.Now.ToString("yyyyMMdd-HHmmss"));
-
-                            //TODO: Comment below and uncomment above if don't want to move new naming convention and tab delimited report to Production environment
-                            //string errorReportFileName = "Error-{0}-{1}-{2}-{3}.txt".Fill(mbi.BatchName, mbi.Client.AppCode, mbi.MailBatch.Id, Common.Now.ToString("yyyyMMdd-HHmmss"));
+                            errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
                             errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
                             File.WriteAllText(errorReportPath, errorReport.ToString());
@@ -484,10 +459,6 @@ namespace AM.Console
                     break;
 
             }
-
-            //TODO: Remove after proper naming convention
-            Thread.Sleep(1000);
-
             MailUtility.SendProductionNotificationEmail(mbi, mailPieces, reportToMail, deliveryReportDeliverable.EmailChannel);
             //After Sending An Email Change its extention to "EmailAttachment" to identify that report is sent as an attachments
             foreach (var reportPath in reportToMail)
@@ -800,7 +771,11 @@ namespace AM.Console
                 //Get validate Addresses for each records
                 List<AddressResponse> addressResponses = new List<AddressResponse>();
                 List<AddressRequest> addressRequestes = new List<AddressRequest>();
-                foreach (var mailPiece in validMailPieces.Where(mp => ((mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested) || (!mp.RcptAddressCountry.IsNullOrWhiteSpace() && (mp.RcptAddressCountry.Contains("USA") || mp.RcptAddressCountry.Contains("US") || mp.RcptAddressCountry.Contains("The United States of America") || mp.RcptAddressCountry.Contains("United States of America") || mp.RcptAddressCountry.Contains("United States"))))) // Here system will verify only those address which have fallbackrequested=true or Edeliveryrequested=false and if country exist than it will check for country name must be from above metioned one
+
+                var usMPs = validMailPieces.Where(mp => (((mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested) && mp.RcptAddressCountry.IsCountryUS())).ToList();
+
+                // Here system will verify only those address which have fallbackrequested=true or Edeliveryrequested=false and if country exist than it will check for country name must be from above metioned one
+                foreach (var mailPiece in usMPs)
                 {
                     AddressRequest addressRequest = new AddressRequest() { Id = mailPiece.UniqueId.ToString(), StreetAddress = mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet, City = mailPiece.RcptAddressCity, State = mailPiece.RcptAddressState, Zip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4), Zip5 = mailPiece.RcptAddressZIP.SeparateZip4And5(5) };
 
@@ -843,12 +818,14 @@ namespace AM.Console
                     //Document Or Package Type validation
                     var docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
 
-                    var addressResponse = addressResponses.Single(c => c.Id.ToLower() == mailPiece.UniqueId.ToString().ToLower());
+                    var addressResponse = addressResponses.SingleOrDefault(c => c.Id.ToLower() == mailPiece.UniqueId.ToString().ToLower());
 
-                    mailPiece.RcptAddressTypes = string.Join(",", addressResponse.AddressTypes);
+                    if (addressResponse != null)
+                    {
+                        mailPiece.RcptAddressTypes = string.Join(",", addressResponse.AddressTypes);
+                    }
 
-
-                    if (addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
+                    if (addressResponse != null && addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
                     {
                         mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                         mailPiece.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
@@ -857,14 +834,14 @@ namespace AM.Console
                         continue;
                     }
 
-                    if (!mailPiece.RcptAddressCountry.IsNullOrWhiteSpace() && (!mailPiece.RcptAddressCountry.Contains("USA") || !mailPiece.RcptAddressCountry.Contains("US") || !mailPiece.RcptAddressCountry.Contains("The United States of America") || !mailPiece.RcptAddressCountry.Contains("United States of America") || !mailPiece.RcptAddressCountry.Contains("United States")))
+                    if (!mailPiece.RcptAddressCountry.IsCountryUS())
                     {
                         mailPiece.RcptAddressTypes = AddressType.FOREIGN.ToString();
                     }
 
                     if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                     {
-                        if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
+                        if (!(addressResponse != null && addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
                         {
                             var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
 
@@ -883,7 +860,6 @@ namespace AM.Console
                                 }
 
                                 docType = fbPriority;
-
                             }
 
                             mailPiece.DocTypeId = docType.Id;
@@ -909,6 +885,7 @@ namespace AM.Console
                                 mailPiece.RetRcptAddressCity = docType.RetRcptAddressCity;
                                 mailPiece.RetRcptAddressState = docType.RetRcptAddressState;
                                 mailPiece.RetRcptAddressZIP = docType.RetRcptAddressZIP;
+                                mailPiece.RetRcptAddressCountry = docType.RetRcptAddressCountry;
                             }
                         }
                     }

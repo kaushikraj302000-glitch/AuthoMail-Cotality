@@ -670,7 +670,10 @@ namespace AM.Console
                     //Get validate Addresses for each records
                     List<AddressResponse> addressResponses = new List<AddressResponse>();
                     List<AddressRequest> addressRequestes = new List<AddressRequest>();
-                    foreach (var mailPiece in validMailPieces.Where(mp => ((mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested) || (!mp.RcptAddressCountry.IsNullOrWhiteSpace() && (mp.RcptAddressCountry.Contains("USA") || mp.RcptAddressCountry.Contains("US") || mp.RcptAddressCountry.Contains("The United States of America") || mp.RcptAddressCountry.Contains("United States of America") || mp.RcptAddressCountry.Contains("United States"))))) // Here system will verify only those address which have fallbackrequested=true or Edeliveryrequested=false and if country exist than it will check for country name must be from above metioned one
+
+                    var usMPs = validMailPieces.Where(mp => (((mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested) && mp.RcptAddressCountry.IsCountryUS())).ToList();
+
+                    foreach (var mailPiece in usMPs) // Here system will verify only those address which have fallbackrequested=true or Edeliveryrequested=false and if country exist than it will check for country name must be from above metioned one
                     {
                         AddressRequest addressRequest = new AddressRequest() { Id = mailPiece.UniqueId.ToString(), StreetAddress = mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet, City = mailPiece.RcptAddressCity, State = mailPiece.RcptAddressState, Zip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4), Zip5 = mailPiece.RcptAddressZIP.SeparateZip4And5(5) };
 
@@ -706,19 +709,21 @@ namespace AM.Console
                         }
                     }
                     #endregion
+
                     foreach (MailPieceDTO mailPiece in validMailPieces.Where(mp => (mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested))
                     {
                         string documentOrPackageType = mailPiece.DocumentOrPackageType;
-
                         //Document Or Package Type validation
                         var docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
 
-                        var addressResponse = addressResponses.Single(c => c.Id.ToLower() == mailPiece.UniqueId.ToString().ToLower());
+                        var addressResponse = addressResponses.SingleOrDefault(c => c.Id.ToLower() == mailPiece.UniqueId.ToString().ToLower());
 
-                        mailPiece.RcptAddressTypes = string.Join(",", addressResponse.AddressTypes);
+                        if (addressResponse != null)
+                        {
+                            mailPiece.RcptAddressTypes = string.Join(",", addressResponse.AddressTypes);
+                        }
 
-
-                        if (addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
+                        if (addressResponse != null && addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
                         {
                             mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                             mailPiece.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
@@ -727,14 +732,14 @@ namespace AM.Console
                             continue;
                         }
 
-                        if (!mailPiece.RcptAddressCountry.IsNullOrWhiteSpace() && (!mailPiece.RcptAddressCountry.Contains("USA") || !mailPiece.RcptAddressCountry.Contains("US") || !mailPiece.RcptAddressCountry.Contains("The United States of America") || !mailPiece.RcptAddressCountry.Contains("United States of America") || !mailPiece.RcptAddressCountry.Contains("United States")))
+                        if (!mailPiece.RcptAddressCountry.IsCountryUS())
                         {
                             mailPiece.RcptAddressTypes = AddressType.FOREIGN.ToString();
                         }
 
                         if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                         {
-                            if (!(addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
+                            if (!(addressResponse != null && addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
                             {
                                 var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
 
@@ -779,6 +784,7 @@ namespace AM.Console
                                     mailPiece.RetRcptAddressCity = docType.RetRcptAddressCity;
                                     mailPiece.RetRcptAddressState = docType.RetRcptAddressState;
                                     mailPiece.RetRcptAddressZIP = docType.RetRcptAddressZIP;
+                                    mailPiece.RetRcptAddressCountry = docType.RetRcptAddressCountry;
                                 }
                             }
                         }

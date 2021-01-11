@@ -336,6 +336,7 @@ namespace AM.Console
                         mailBatch.RetRcptAddressCity = returnAddressElement.SelectSingleNode("./x:City/text()", nsManager)?.Value;
                         mailBatch.RetRcptAddressState = returnAddressElement.SelectSingleNode("./x:State/text()", nsManager)?.Value;
                         mailBatch.RetRcptAddressZIP = returnAddressElement.SelectSingleNode("./x:Zip/text()", nsManager)?.Value;
+                        mailBatch.RetRcptAddressCountry = returnAddressElement.SelectSingleNode("./x:Country/text()", nsManager)?.Value;
                     }
                 }
                 else
@@ -763,6 +764,7 @@ namespace AM.Console
                                     mailPieceDTO.RcptAddressCity = requests.RecipientInfo.Address.City.TrimIfNotNull();
                                     mailPieceDTO.RcptAddressState = requests.RecipientInfo.Address.State.TrimIfNotNull();
                                     mailPieceDTO.RcptAddressZIP = requests.RecipientInfo.Address.Zip.TrimIfNotNull();
+                                    mailPieceDTO.RcptAddressCountry = requests.RecipientInfo.Address.Country.TrimIfNotNull();
                                 }
                             }
                             else
@@ -823,6 +825,7 @@ namespace AM.Console
                                     mailPieceDTO.RetRcptAddressCity = mailBatch.RetRcptAddressCity.TrimIfNotNull();
                                     mailPieceDTO.RetRcptAddressState = mailBatch.RetRcptAddressState.TrimIfNotNull();
                                     mailPieceDTO.RetRcptAddressZIP = mailBatch.RetRcptAddressZIP.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptAddressCountry = mailBatch.RetRcptAddressCountry.TrimIfNotNull();
                                 }
                             }
                             else
@@ -857,6 +860,7 @@ namespace AM.Console
                                     mailPieceDTO.RetRcptAddressCity = requests.ReturnInfo.Address.City.TrimIfNotNull();
                                     mailPieceDTO.RetRcptAddressState = requests.ReturnInfo.Address.State.TrimIfNotNull();
                                     mailPieceDTO.RetRcptAddressZIP = requests.ReturnInfo.Address.Zip.TrimIfNotNull();
+                                    mailPieceDTO.RetRcptAddressCountry = requests.ReturnInfo.Address.Country.TrimIfNotNull();
                                 }
                             }
 
@@ -1205,7 +1209,7 @@ namespace AM.Console
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not provided in package." };
 
 
-            if (!mailPiece.RcptAddressZIP.IsNullOrWhiteSpace() && (mailPiece.RcptAddressCountry.IsNullOrWhiteSpace() || (!mailPiece.RcptAddressCountry.IsNullOrWhiteSpace() && (mailPiece.RcptAddressCountry == "USA" || mailPiece.RcptAddressCountry == "US" || mailPiece.RcptAddressCountry == "The United States of America" || mailPiece.RcptAddressCountry == "United States of America" || mailPiece.RcptAddressCountry == "United States"))))
+            if (!mailPiece.RcptAddressZIP.IsNullOrWhiteSpace() && (mailPiece.RcptAddressCountry.IsNullOrWhiteSpace() || mailPiece.RcptAddressCountry.IsCountryUS()))
             {
                 if (!Regex.Match(mailPiece.RcptAddressZIP, @"^(?(^00000(|-0000))|\d{5}(?:|[-\s]+\d{4}))$").Success)
                 {
@@ -1213,7 +1217,7 @@ namespace AM.Console
                 }
             }
 
-            if (!mailPiece.RetRcptAddressZIP.IsNullOrWhiteSpace() && (mailPiece.RetRcptAddressCountry.IsNullOrWhiteSpace() || (!mailPiece.RetRcptAddressCountry.IsNullOrWhiteSpace() && (mailPiece.RetRcptAddressCountry == "USA" || mailPiece.RetRcptAddressCountry == "US" || mailPiece.RetRcptAddressCountry == "The United States of America" || mailPiece.RetRcptAddressCountry == "United States of America" || mailPiece.RetRcptAddressCountry == "United States"))))
+            if (!mailPiece.RetRcptAddressZIP.IsNullOrWhiteSpace() && (mailPiece.RetRcptAddressCountry.IsNullOrWhiteSpace() || mailPiece.RcptAddressCountry.IsCountryUS()))
             {
                 if (!Regex.Match(mailPiece.RetRcptAddressZIP, @"^(?(^00000(|-0000))|\d{5}(?:|[-\s]+\d{4}))$").Success)
                 {

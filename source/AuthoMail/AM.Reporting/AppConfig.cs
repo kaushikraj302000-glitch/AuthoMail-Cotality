@@ -48,6 +48,7 @@ namespace AM.Reporting
         public static string GOSDataPointEMailCc { get; private set; }
         public static string GOSDataPointEMailSubject { get; private set; }
         public static string GOSDataPointEMailTemplate { get; private set; }
+        public static string GOSDataPointReportTemplate { get; private set; }
 
         public static string USAAMTDEmailTo { get; private set; }
         public static string USAAMTDEmailCc { get; private set; }
@@ -93,6 +94,7 @@ namespace AM.Reporting
             GOSDataPointEMailCc = ConfigurationManager.AppSettings["GOSDataPointEMailCc"].Trim();
             GOSDataPointEMailSubject = ConfigurationManager.AppSettings["GOSDataPointEMailSubject"].Trim();
             GOSDataPointEMailTemplate = ConfigurationManager.AppSettings["GOSDataPointEMailTemplate"].Trim();
+            GOSDataPointReportTemplate = ConfigurationManager.AppSettings["GOSDataPointReportTemplate"].Trim();
 
 
             USAAMTDEmailTo = ConfigurationManager.AppSettings["USAAMTDEmailTo"].Trim();

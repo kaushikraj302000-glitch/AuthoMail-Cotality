@@ -1008,6 +1008,7 @@ namespace AM.Console
                             //NOTE : After Sending an Email change extention only if partially valid because when system generates final reports then it will not upload duplicate records
                             if (File.Exists(emailErrorReportPath) && mbi.MailBatch.ValidationStatus != BatchValidationStatus.Invalid)
                                 File.Move(emailErrorReportPath, Path.ChangeExtension(emailErrorReportPath, ".Uploaded"));
+                            
                         }
                         catch (Exception ex)
                         {

@@ -91,7 +91,7 @@ namespace AM.Console
                             //string deliveryReportPath = Path.Combine(@"D:\", deliveryReportFileName);
 
                             //File.WriteAllText(deliveryReportPath, responseReport);
-                            var readIds = File.ReadAllLines(@"C:\Users\sagar.g\Desktop\PrintBatchIds.txt").Select(r => int.Parse(r)).ToList();
+                            var readIds = File.ReadAllLines(@"C:\Users\sagar.g\Desktop\MailPieceIds.txt").Select(r => int.Parse(r)).ToList();
                             List<MailPieces> mailPieces = reportSvc.GetMailPiecesDataFromMailPieceId(readIds);
 
                             var erroredRecords = mailPieces.Where(p => p.ShippingStatus == ShippingStatus.Error.ToString()).ToList();

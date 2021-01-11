@@ -21,11 +21,12 @@ namespace AM.Core
 
         private static Random random = new Random();
         private static readonly List<string> fallBackCodes = new List<string>() { "3051", "3049", "3052" };
-        private static readonly List<string> fallBackDescriptions = new List<string>() { "Recipient Postal Code not Served", "Recipient Postal Code not found", "Recipient Postal-State Mismatch" };
+        private static readonly List<string> fallBackDescriptions = new List<string>() { "Recipient Postal Code not found", "Recipient Postal-State Mismatch", "DPO that does not allow the requested mail service", "does not allow the requested mail service", "service not supported" };
         private static readonly List<string> fedExExceptionCodes = new List<string>() { "3022", "1000", "2998", "Unknown_Error" };
         private static readonly List<string> fedExExceptionDescriptions = new List<string>() { "General Failure" };
         private static readonly List<string> uspsExceptionCodes = new List<string>() { "80040B18", "Unknown_Error" };
         private static readonly List<string> uspsExceptionDescriptions = new List<string>() { "error has occurred with the service", "connected party did not properly respond", "existing connection was forcibly closed", "contact the system administrator", "an unexpected system error has occurred", "underlying connection was closed" };
+        private static readonly List<string> uspsKnownExceptionDescriptions = new List<string>() { "zip code you have entered is invalid", "may not exceed 50 characters", "must be specified when sending", "may not exceed 100 characters", "may not exceed 28 characters", "invalid value" };
 
         #region PrepPnSJob
         internal static bool PrepPnSJobs()
@@ -54,13 +55,18 @@ namespace AM.Core
                     {
                         try
                         {
+                            string systemUserId = commonSvc.GetSystemUserId();
+
                             Client client = clientSvc.GetClientById(mailBatch.ClientId);
+
                             MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
                             var batchData = mailBatchSvc.GetMailBatchDetailsByBatchId(mbi.MailBatch.Id);
 
                             List<MailPieceDTO> validMailPieces = batchData.MailPieces.Where(c => c.ErrorCode == OutComeCodes.No_Error && c.ShippingStatus == ShippingStatus.InProgress.ToString() && ((string.IsNullOrWhiteSpace(c.TrackingNo)) || c.IsPrintReady)).ToList();
+
                             List<MailPieceDTO> errorMailPieces = batchData.MailPieces.Where(c => c.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
+
                             foreach (MailPieceDTO mailPiece in validMailPieces)
                             {
                                 int attemptCount = 0;
@@ -210,55 +216,106 @@ namespace AM.Core
 
                                 SmartDocResponse response = new SmartDocResponse();
 
+                                var shippingServiceType = docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>();
+
+                                int reTrycnt = 0;
+
                                 if (docType.IsPrintReady)
                                 {
                                     //Do nothing
                                 }
                                 else if (docType.ShippingCarrier == Carrier.USPS.ToString())
                                 {
-                                    if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS.ToString())
+                                    if (shippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS)
                                     {
-                                        int reTrycnt = 0;
+                                        #region USPS Priority Express Logic
                                         while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                         {
-                                            eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>());
+                                            var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, shippingServiceType);
 
-                                            response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
+                                            response = MakeUSPSRequest(eVSRequest, shippingServiceType, mailPiece, mbi, systemUserId);
 
-
-                                            if (response.HasError && (uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())) || string.IsNullOrWhiteSpace(response.ExceptionDetail)))
+                                            if (!response.HasError)
                                             {
-                                                //NOTE: Here system is check for unusal error like connection issue or timeout issue if occure then system will retry to generate label
-                                                log.Error("Priority Express had some unexpected error {0}".Fill(response.ExceptionDetail));
-                                                System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
-                                                reTrycnt++;
+                                                coverLetterPdfPaths.Add(response.CoverLetterPath);
+                                                mailPiece.TrackingNo = response.TrackingCode;
+                                                mailPiece.ShippingCost = response.PostageCost;
+                                                break;
                                             }
-                                            else if (response.HasError)
+                                            else if (response.HasError && uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())))
                                             {
-                                                var msg = "USPS Priority Express is not supporting shipping to provided address for MailPieceId : {0} with Error :{1}. So AM is doing fallback to other shipping service.".Fill(mailPiece.Id, response.ExceptionDetail);
+                                                mailPiece.TotalPages = 0;
+                                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                                mailPiece.ErrorDesc = response.ExceptionDetail;
+                                                mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
+                                                mailPiece.DueDate = null;
+                                                mailPiece.PrintLocation = null;
+                                                mailPiece.PrintTrailId = null;
+                                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                                continue;
+                                            }
+                                            else if (response.HasError && (fallBackCodes.Any(code => code == response.ExceptionCode) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower()))))
+                                            {
+                                                var msg = $"USPS Priority Express is not supporting shipping to provided address for MailPieceId : {mailPiece.Id} with Error :{response.ExceptionDetail}. So AM is doing fallback to other shipping service.";
+
                                                 log.Debug(msg);
+
                                                 //NOTE: Here system is check for not deliverable or any other error if occure then system will fall back to USPS Priority service and try to generate label
+
                                                 var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
 
                                                 if (fbPriority == null)
                                                 {
                                                     //Consider as an Error Because system didn't find Fallback document type apart from USPS Priority
+                                                    msg = $"USPS Priority is not configured for MailPieceId : {mailPiece.Id} with Error :{response.ExceptionDetail}.";
+
+                                                    log.Debug(msg);
                                                     break;
                                                 }
 
                                                 //NOTE :Need to update Document Type level details like DueDate, PrintLocation, PrintTrailId because system is changing document type and if may have vary configurations.
+
                                                 docType = fbPriority;
 
                                                 commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
-                                                eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
+                                                shippingServiceType = docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>();
 
-                                                response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
-                                                break;
+                                                eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
+
+                                                response = MakeUSPSRequest(eVSRequest, shippingServiceType, mailPiece, mbi, systemUserId);
+
+                                                if (!response.HasError)
+                                                {
+                                                    coverLetterPdfPaths.Add(response.CoverLetterPath);
+                                                    mailPiece.TrackingNo = response.TrackingCode;
+                                                    mailPiece.ShippingCost = response.PostageCost;
+                                                    break;
+                                                }
+                                                else if (response.HasError || uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())))
+                                                {
+                                                    mailPiece.TotalPages = 0;
+                                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                                    mailPiece.ErrorDesc = response.ExceptionDetail;
+                                                    mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
+                                                    mailPiece.DueDate = null;
+                                                    mailPiece.PrintLocation = null;
+                                                    mailPiece.PrintTrailId = null;
+                                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                                    continue;
+                                                }
+                                                else
+                                                {
+                                                    log.Error($"Priority had some unexpected error {response.ExceptionDetail}");
+                                                    System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
+                                                    reTrycnt++;
+                                                }
                                             }
                                             else
                                             {
-                                                break;
+                                                log.Error("Priority Express had some unexpected error {0}".Fill(response.ExceptionDetail));
+                                                System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
+                                                reTrycnt++;
                                             }
                                         }
 
@@ -274,31 +331,36 @@ namespace AM.Core
                                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                             continue;
                                         }
-
-                                        coverLetterPdfPaths.Add(response.CoverLetterPath);
-                                        mailPiece.TrackingNo = response.TrackingCode;
-                                        mailPiece.ShippingCost = response.PostageCost;
+                                        #endregion
                                     }
-                                    else if (docType.ShippingServiceType == AM.USPSLib.ServiceType.PRIORITY.ToString())
+                                    else if (shippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
                                     {
-                                        int reTrycnt = 0;
+                                        #region USPS Priority Logic
                                         while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                         {
-                                            eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
+                                            var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
-                                            response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
+                                            response = MakeUSPSRequest(eVSRequest, shippingServiceType, mailPiece, mbi, systemUserId);
 
-                                            if (response.HasError && (uspsExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())) || string.IsNullOrWhiteSpace(response.ExceptionDetail)))
+                                            if (!response.HasError)
                                             {
-                                                //NOTE: Here system is check for unusal error like connection issue or timeout issue if occure then system will retry to generate label
-                                                log.Error("Priority had some unexpected error {0}".Fill(response.ExceptionDetail));
-                                                System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
-                                                reTrycnt++;
+                                                coverLetterPdfPaths.Add(response.CoverLetterPath);
+                                                mailPiece.TrackingNo = response.TrackingCode;
+                                                mailPiece.ShippingCost = response.PostageCost;
+                                                break;
+                                            }
+                                            else if (response.HasError && (uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower()))))
+                                            {
+                                                log.Error($"{response.HasError} , {response.ExceptionCode} , {response.ExceptionDetail}");
+
+                                                break;
                                             }
                                             else
                                             {
-                                                log.Debug($"{response.HasError} , {response.ExceptionCode} , {response.ExceptionDetail}");
-                                                break;
+                                                log.Error($"Priority had some unexpected error code {response.ExceptionCode} and error description {response.ExceptionDetail}");
+
+                                                System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
+                                                reTrycnt++;
                                             }
                                         }
 
@@ -314,13 +376,11 @@ namespace AM.Core
                                             mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                             continue;
                                         }
-
-                                        coverLetterPdfPaths.Add(response.CoverLetterPath);
-                                        mailPiece.TrackingNo = response.TrackingCode;
-                                        mailPiece.ShippingCost = response.PostageCost;
+                                        #endregion
                                     }
                                     else if (docType.ShippingServiceType == ShippingServiceType.IMB.ToString())
                                     {
+                                        #region USPS IMB Logic
                                         if (Path.GetExtension(coverLetterTemplatePath) == ".docx")
                                         {
                                             var coversheetData = mailPieceSvc.GetCoversheetData(mailPieceId);
@@ -350,6 +410,7 @@ namespace AM.Core
                                         coverLetterPdfPaths.Add(response.CoverLetterPath);
                                         mailPiece.TrackingNo = response.TrackingCode;
                                         mailPiece.ShippingCost = response.PostageCost;
+                                        #endregion
                                     }
 
                                     // Shipping Service Type is First Class or  client is print ready then we don't need to do anything.
@@ -357,11 +418,16 @@ namespace AM.Core
                                 else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
                                 {
                                     FedExAccountInfo fedExAccInfo = fedExSvc.GetFedExAccountDetailsByAccountCode(docType.ShippingAccountCode);
+
                                     ShipperInformation shipperInfo = commonSvc.GetShipperInformationByPrintLocation(mailPiece.PrintLocation, mailPiece.PrintTrailId.Value);
+
                                     CreateFedExLabel createFedExLabel = new CreateFedExLabel();
+
+                                    #region FedEx Logic
                                     while (attemptCount < Config.Core_NoOfAttemptOnFailure)
                                     {
                                         response = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi, shipperInfo);
+
                                         if (!response.HasError)
                                         {
                                             coverLetterPdfPaths.Add(response.CoverLetterPath);
@@ -369,103 +435,172 @@ namespace AM.Core
                                             mailPiece.ShippingCost = response.PostageCost;
                                             break;
                                         }
-                                        else if (response.HasError && (fedExExceptionCodes.Any(code => response.ExceptionCode == code) || fedExExceptionDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
+                                        else if (response.HasError && (fallBackCodes.Any(code => code == response.ExceptionCode) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower()))))
                                         {
-                                            System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
-                                            attemptCount++;
-                                            var msg = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, response.ExceptionDetail);
-                                            //Setting as an error suppose FedEx is failing continueously then System will consider as an unknown error for that mail piece
-                                            mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                            mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
-                                            mailPiece.ErrorDesc = msg;
-                                            log.Error(msg + "For MailPiece Id - {0}".Fill(mailPiece.Id));
-                                            SendUnexpectedExceptionEmail("Error occured while generating FedEx label for MailPiece Id {0}<br/> System will try again...<br/>".Fill(mailPiece.Id) + msg);
-                                        }
-                                        else
-                                        {
-                                            if (response.HasError && (fallBackCodes.Any(code => code == response.ExceptionCode) || fallBackDescriptions.Any(desc => response.ExceptionDetail.Contains(desc))))
+                                            var msg = $"FedEx is not supporting shipping to provided address for MailPieceId : {mailPiece.Id} with Error :{response.ExceptionDetail}. So AM is doing fallback to other shipping carrier.";
+
+                                            log.Debug(msg);
+
+                                            //First try to generate eVS label with USPS Priority Express
+                                            var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
+
+                                            if (fbPriorityExpress != null)
                                             {
-                                                var msg = "FedEx is not supporting shipping to provided address for MailPieceId : {0} with Error :{1}. So AM is doing fallback to other shipping carrier.".Fill(mailPiece.Id, response.ExceptionDetail);
-                                                log.Debug(msg);
-                                                //First try to generate eVS label with USPS Priority Express
-                                                var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
+                                                docType = fbPriorityExpress;
 
-                                                if (fbPriorityExpress != null)
+                                                mailPiece.DocTypeId = docType.Id;
+
+                                                //Update Due Date and its other calculation based on updated document type.
+                                                commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
+
+                                                shippingServiceType = docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>();
+
+                                                var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, shippingServiceType);
+
+                                                response = MakeUSPSRequest(eVSRequest, shippingServiceType, mailPiece, mbi, systemUserId);
+
+                                                if (!response.HasError)
                                                 {
-                                                    docType = fbPriorityExpress;
+                                                    coverLetterPdfPaths.Add(response.CoverLetterPath);
+                                                    mailPiece.TrackingNo = response.TrackingCode;
+                                                    mailPiece.ShippingCost = response.PostageCost;
+                                                    break;
+                                                }
+                                                else if (response.HasError && uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())))
+                                                {
+                                                    mailPiece.TotalPages = 0;
+                                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                                    mailPiece.ErrorDesc = response.ExceptionDetail;
+                                                    mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
+                                                    mailPiece.DueDate = null;
+                                                    mailPiece.PrintLocation = null;
+                                                    mailPiece.PrintTrailId = null;
+                                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                                    continue;
+                                                }
+                                                else if (response.HasError && (fallBackCodes.Any(code => code == response.ExceptionCode) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower()))))
+                                                {
+                                                    msg = $"USPS Priority Express is not supporting shipping to provided address for MailPieceId : {mailPiece.Id} with Error :{response.ExceptionDetail}. So AM is doing fallback to other shipping service.";
 
-                                                    mailPiece.DocTypeId = docType.Id;
-                                                    //Update Due Date and its other calculation based on updated document type.
+                                                    log.Debug(msg);
+
+                                                    //NOTE: Here system is check for not deliverable or any other error if occure then system will fall back to USPS Priority service and try to generate label
+                                                    var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
+
+                                                    if (fbPriority == null)
+                                                    {
+                                                        //Consider as an Error Because system didn't find Fallback document type apart from USPS Priority
+                                                        msg = $"USPS Priority is not configured for MailPieceId : {mailPiece.Id} with Error :{response.ExceptionDetail}.";
+                                                        log.Debug(msg);
+                                                        break;
+                                                    }
+
+                                                    //NOTE :Need to update Document Type level details like DueDate, PrintLocation, PrintTrailId because system is changing document type and if may have vary configurations.
+                                                    docType = fbPriority;
+
                                                     commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
-                                                    eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>());
+                                                    shippingServiceType = docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>();
 
-                                                    response = doc.GenerateeVSPriorityExpressCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
+                                                    eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
-                                                    if (response.HasError)
+                                                    response = MakeUSPSRequest(eVSRequest, shippingServiceType, mailPiece, mbi, systemUserId);
+
+                                                    if (!response.HasError)
                                                     {
-                                                        msg = "USPS Priority Express is not supporting shipping to provided address for MailPieceId : {0} with Error :{1}.".Fill(mailPiece.Id, response.ExceptionDetail);
-                                                        log.Debug(msg);
-                                                        var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
-
-                                                        if (fbPriority == null)
-                                                        {
-                                                            //Consider as an Error package
-                                                            break;
-                                                        }
-
-                                                        docType = fbPriority;
-
-                                                        mailPiece.DocTypeId = docType.Id;
-
-                                                        //Update Due Date and its other calculation based on updated document type.
-                                                        commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
-
-                                                        eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
-
-                                                        response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
+                                                        coverLetterPdfPaths.Add(response.CoverLetterPath);
+                                                        mailPiece.TrackingNo = response.TrackingCode;
+                                                        mailPiece.ShippingCost = response.PostageCost;
+                                                        break;
+                                                    }
+                                                    else if (response.HasError && uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())))
+                                                    {
+                                                        mailPiece.TotalPages = 0;
+                                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                                        mailPiece.ErrorDesc = response.ExceptionDetail;
+                                                        mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
+                                                        mailPiece.DueDate = null;
+                                                        mailPiece.PrintLocation = null;
+                                                        mailPiece.PrintTrailId = null;
+                                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                                        continue;
+                                                    }
+                                                    else
+                                                    {
+                                                        log.Error("Priority Express had some unexpected error {0}".Fill(response.ExceptionDetail));
+                                                        System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
+                                                        reTrycnt++;
                                                     }
                                                 }
                                                 else
                                                 {
-                                                    var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
-
-                                                    if (fbPriority == null)
-                                                    {
-                                                        //Consider as an Error package
-                                                        break;
-                                                    }
-
-                                                    docType = fbPriority;
-
-                                                    mailPiece.DocTypeId = docType.Id;
-
-                                                    //Update Due Date and its other calculation based on updated document type.
-                                                    commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
-
-                                                    eVSLabelRequest eVSReq = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
-
-                                                    response = doc.GenerateeVSPriorityCoverLetter(commonSvc.GetSystemUserId(), mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSReq, mailPiece.EnvelopeName);
+                                                    log.Error("Priority Express had some unexpected error {0}".Fill(response.ExceptionDetail));
+                                                    System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
+                                                    reTrycnt++;
                                                 }
+                                            }
+                                            else
+                                            {
+                                                var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
 
-                                                if (response.HasError)
+                                                if (fbPriority == null)
                                                 {
-                                                    msg = "After FallBack, USPS Priority is not supporting shipping to provided address for MailPieceId : {0} with Error :{1}.".Fill(mailPiece.Id, response.ExceptionDetail);
+                                                    msg = $"USPS Priority is not configured for MailPieceId : {mailPiece.Id} with Error :{response.ExceptionDetail}.";
                                                     log.Debug(msg);
-                                                    //Consider as an Error package
                                                     break;
                                                 }
 
-                                                var sweepTimings = commonSvc.GetSweepTimings();
+                                                docType = fbPriority;
 
-                                                coverLetterPdfPaths.Add(response.CoverLetterPath);
-                                                mailPiece.TrackingNo = response.TrackingCode;
-                                                mailPiece.ShippingCost = response.PostageCost;
+                                                mailPiece.DocTypeId = docType.Id;
 
-                                                break;
+                                                //Update Due Date and its other calculation based on updated document type.
+                                                commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
+
+                                                shippingServiceType = docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>();
+
+                                                var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
+
+                                                response = MakeUSPSRequest(eVSRequest, shippingServiceType, mailPiece, mbi, systemUserId);
+
+                                                if (!response.HasError)
+                                                {
+                                                    coverLetterPdfPaths.Add(response.CoverLetterPath);
+                                                    mailPiece.TrackingNo = response.TrackingCode;
+                                                    mailPiece.ShippingCost = response.PostageCost;
+                                                    break;
+                                                }
+                                                else if (response.HasError && uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())))
+                                                {
+                                                    mailPiece.TotalPages = 0;
+                                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                                    mailPiece.ErrorDesc = response.ExceptionDetail;
+                                                    mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
+                                                    mailPiece.DueDate = null;
+                                                    mailPiece.PrintLocation = null;
+                                                    mailPiece.PrintTrailId = null;
+                                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                                    continue;
+                                                }
+                                                else
+                                                {
+                                                    log.Error("Priority Express had some unexpected error {0}".Fill(response.ExceptionDetail));
+                                                    System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
+                                                    reTrycnt++;
+                                                }
                                             }
-                                            //Consider as an Error package
-                                            break;
+                                        }
+                                        else
+                                        {
+                                            var msg = string.Format("{0}|{1}", OutComeCodes.Unknown_Error, response.ExceptionDetail);
+
+                                            log.Error(msg + "For MailPiece Id - {0}".Fill(mailPiece.Id));
+
+                                            Thread.Sleep(Config.Core_FailureAttemptInterval);
+
+                                            attemptCount++;
+
+                                            SendUnexpectedExceptionEmail("Error occured while generating FedEx label for MailPiece Id {0}<br/> System will try again...<br/>".Fill(mailPiece.Id) + msg);
                                         }
                                     }
 
@@ -482,6 +617,7 @@ namespace AM.Core
                                         mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                                         continue;
                                     }
+                                    #endregion
                                 }
                                 else
                                 {
@@ -586,7 +722,7 @@ namespace AM.Core
                                     mailPiece.TotalPages = response.TotalPages;
                                 }
 
-                                mailPiece.TotalSheets = docType.PrintFormat == "Duplex" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;                               
+                                mailPiece.TotalSheets = docType.PrintFormat == "Duplex" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;
 
                                 mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                             }
@@ -649,6 +785,24 @@ namespace AM.Core
             }
             log.Debug("PrepPnSJob Completed");
             return true;
+        }
+
+        private static SmartDocResponse MakeUSPSRequest(eVSLabelRequest eVSRequest, USPSLib.ServiceType serviceType, MailPieceDTO mailPiece, MailBatchInfo mbi, string systemUserId)
+        {
+            SmartDocResponse response = new SmartDocResponse();
+
+            SmartDocs doc = new SmartDocs();
+
+            if (serviceType == USPSLib.ServiceType.PRIORITY_EXPRESS)
+            {
+                return doc.GenerateeVSPriorityExpressCoverLetter(systemUserId, mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSRequest, mailPiece.EnvelopeName);
+            }
+            else if (serviceType == USPSLib.ServiceType.PRIORITY)
+            {
+                return doc.GenerateeVSPriorityCoverLetter(systemUserId, mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSRequest, mailPiece.EnvelopeName);
+            }
+
+            return response;
         }
 
         private static void GenerateLabelErrorReport(IClientService clientSvc, ICommonService commonSvc, MailBatchInfo mbi, List<MailPieces> mailPieces, Deliverable deliverable)
