@@ -216,7 +216,7 @@ namespace AM.Core
 
                                 SmartDocResponse response = new SmartDocResponse();
 
-                                var shippingServiceType = docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>();
+                                var shippingServiceType = docType.ShippingServiceType.ParseEnum<ShippingServiceType>();
 
                                 int reTrycnt = 0;
 
@@ -226,14 +226,14 @@ namespace AM.Core
                                 }
                                 else if (docType.ShippingCarrier == Carrier.USPS.ToString())
                                 {
-                                    if (shippingServiceType == AM.USPSLib.ServiceType.PRIORITY_EXPRESS)
+                                    if (shippingServiceType == ShippingServiceType.PRIORITY_EXPRESS)
                                     {
                                         #region USPS Priority Express Logic
                                         while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                         {
-                                            var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, shippingServiceType);
+                                            var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY_EXPRESS);
 
-                                            response = MakeUSPSRequest(eVSRequest, shippingServiceType, mailPiece, mbi, systemUserId);
+                                            response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY_EXPRESS, mailPiece, mbi, systemUserId);
 
                                             if (!response.HasError)
                                             {
@@ -279,11 +279,9 @@ namespace AM.Core
 
                                                 commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
-                                                shippingServiceType = docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>();
-
                                                 eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
-                                                response = MakeUSPSRequest(eVSRequest, shippingServiceType, mailPiece, mbi, systemUserId);
+                                                response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId);
 
                                                 if (!response.HasError)
                                                 {
@@ -333,14 +331,14 @@ namespace AM.Core
                                         }
                                         #endregion
                                     }
-                                    else if (shippingServiceType == AM.USPSLib.ServiceType.PRIORITY)
+                                    else if (shippingServiceType == ShippingServiceType.PRIORITY)
                                     {
                                         #region USPS Priority Logic
                                         while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                         {
                                             var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
-                                            response = MakeUSPSRequest(eVSRequest, shippingServiceType, mailPiece, mbi, systemUserId);
+                                            response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId);
 
                                             if (!response.HasError)
                                             {
@@ -378,7 +376,7 @@ namespace AM.Core
                                         }
                                         #endregion
                                     }
-                                    else if (docType.ShippingServiceType == ShippingServiceType.IMB.ToString())
+                                    else if (shippingServiceType == ShippingServiceType.IMB)
                                     {
                                         #region USPS IMB Logic
                                         if (Path.GetExtension(coverLetterTemplatePath) == ".docx")
@@ -453,11 +451,9 @@ namespace AM.Core
                                                 //Update Due Date and its other calculation based on updated document type.
                                                 commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
-                                                shippingServiceType = docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>();
+                                                var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY_EXPRESS);
 
-                                                var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, shippingServiceType);
-
-                                                response = MakeUSPSRequest(eVSRequest, shippingServiceType, mailPiece, mbi, systemUserId);
+                                                response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY_EXPRESS, mailPiece, mbi, systemUserId);
 
                                                 if (!response.HasError)
                                                 {
@@ -500,11 +496,10 @@ namespace AM.Core
 
                                                     commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
-                                                    shippingServiceType = docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>();
 
                                                     eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
-                                                    response = MakeUSPSRequest(eVSRequest, shippingServiceType, mailPiece, mbi, systemUserId);
+                                                    response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId);
 
                                                     if (!response.HasError)
                                                     {
@@ -557,11 +552,10 @@ namespace AM.Core
                                                 //Update Due Date and its other calculation based on updated document type.
                                                 commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
-                                                shippingServiceType = docType.ShippingServiceType.ParseEnum<AM.USPSLib.ServiceType>();
 
                                                 var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
-                                                response = MakeUSPSRequest(eVSRequest, shippingServiceType, mailPiece, mbi, systemUserId);
+                                                response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId);
 
                                                 if (!response.HasError)
                                                 {

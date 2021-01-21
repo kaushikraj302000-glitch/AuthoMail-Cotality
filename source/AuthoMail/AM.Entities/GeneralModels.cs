@@ -347,7 +347,8 @@ namespace AM.Entities
         STANDARD_OVERNIGHT = 7,
         USPS_EXPRESSMAIL = 8,
         PRIORITY_EXPRESS = 9,
-        PRIORITY = 10
+        PRIORITY = 10,
+        FIRSTCLASS = 11
     }
 
     public static class SLAType
