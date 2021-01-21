@@ -811,6 +811,8 @@ namespace PCI.Service
                     File.Delete(Path.Combine(bundlingRootPath, Path.GetFileName(localResponseFilePath)));
 
                 File.Move(localResponseFilePath, Path.Combine(bundlingRootPath, Path.GetFileName(localResponseFilePath)));
+                
+                log.Debug($"MRDF Response File {fileName} Received On {responseReceivedOn} For PrintTrailBatchId : {printTrailBatchId}");
 
                 log.DebugFormat("Response moved in proper batch folder : {0} after batch identified.", printTrailBatchId);
             }
