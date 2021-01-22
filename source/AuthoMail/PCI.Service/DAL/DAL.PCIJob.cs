@@ -71,7 +71,7 @@ namespace PCI.Service
                     MailPieceStatus = row.Field<string>("MailPieceStatus"),
                     PDFFileName = row.Field<string>("PDFFileName"),
                     PieceId = row.Field<int>("PieceId"),
-                    TotalPages = row.Field<int>("TotalSheets"),
+                    TotalPages = row.Field<int>("TotalPages"),
                     TotalSheets = row.Field<int>("TotalSheets"),
                     Feeder4_Sel = int.Parse(row.Field<string>("Feeder4_Sel")),
                     UniqueId = row.Field<Guid>("UniqueId"),
