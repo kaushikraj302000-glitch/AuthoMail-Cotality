@@ -79,6 +79,7 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
+                <th>Piece Id</th>
                 <th>Batch Id</th>
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
                 <th>Status</th>
@@ -93,7 +94,7 @@
     <table>
         <tbody id="pullBody">
             <tr>
-
+                <td><span>{MailPieces.Id}</span></td>
                 <td><span>{MailPieces.MailBatches.ClientBatchId}</span></td>
                 <td><span>{MailPieces.BusinessFriendlyIdValue}</span></td>
                 <td><span>{Status}</span></td>
