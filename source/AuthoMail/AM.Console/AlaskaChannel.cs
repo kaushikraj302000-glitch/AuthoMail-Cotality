@@ -73,6 +73,12 @@ namespace AM.Console
                     string shortBatchName = batchName.Replace("PSManifest", "");
                     string documentOrPackageType = shortBatchName.Substring(0, shortBatchName.IndexOf("["));
 
+                    DateTime lastModifiedTime = Common.Now;
+                    if (channelType == ChannelType.Trigger)
+                    {
+                        lastModifiedTime = sftSite.LastModifiedTimeOfFile(xmlFilePath);
+                    }
+
                     MailBatchDTO mailBatch = new MailBatchDTO
                     {
                         ClientId = client.Id,
@@ -81,22 +87,13 @@ namespace AM.Console
                         ClientBatchId = batchName,
                         UniqueId = Guid.NewGuid(),
                         Priority = Priority.Medium.ToString(),
-                        DocumentOrPackageType = documentOrPackageType
+                        DocumentOrPackageType = documentOrPackageType,
+                        PipelineStatus = BatchPipelineStatus.Received,
+                        BatchStatus = BatchStatus.InProgress.ToString(),
+                        ReceivedOn = lastModifiedTime
                     };
 
-                    //Insert New Batch Entry
                     mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
-
-                    DateTime lastModifiedTime = Common.Now;
-                    if (channelType == ChannelType.Trigger)
-                    {
-                        lastModifiedTime = sftSite.LastModifiedTimeOfFile(xmlFilePath);
-                    }
-
-                    //Update Pipeline Status of Batch Received
-                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, lastModifiedTime).Wait();
-
-                    commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString()).Wait();
                 }
                 catch (Exception ex)
                 {
