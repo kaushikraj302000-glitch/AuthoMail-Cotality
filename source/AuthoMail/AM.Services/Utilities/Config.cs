@@ -32,6 +32,8 @@ namespace AM.Services
         public static string Common_FedExTrackingAccountCode { get; private set; }
         public static string Common_FedExTrackingUrl { get; private set; }
         public static string Common_ErrorSubscribedEmailSubject { get; private set; }
+        public static string Common_DuplicateEmailSubject { get; private set; }
+        public static string Common_DuplicateEmailTemplate { get; private set; }
         public static string Common_ErrorSubscribedEmailCc { get; private set; }
         public static string Common_ErrorSubscribedEmailTemplate { get; private set; }
         public static string Common_LandscapeUSPSLabels { get; private set; }
