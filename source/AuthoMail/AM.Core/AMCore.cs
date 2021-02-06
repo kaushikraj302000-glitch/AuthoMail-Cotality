@@ -673,7 +673,7 @@ namespace AM.Core
 
                                 //Print Inserts in coverletter
 
-                                if (mailPiece.PrintLocation == "Dallas CL" && !string.IsNullOrWhiteSpace(mailPiece.Inserts))
+                                if (mailPiece.PrintLocation == "Dallas CL" && !string.IsNullOrWhiteSpace(mailPiece.Inserts) && (coverLetterPdfPaths != null && coverLetterPdfPaths.Count() > 0))
                                 {
                                     doc.WriteTextOnLabel(coverLetterPdfPaths.First(), mailPiece.Inserts);
                                 }
