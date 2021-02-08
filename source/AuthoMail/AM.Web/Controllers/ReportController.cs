@@ -86,6 +86,9 @@ namespace AM.Web.Controllers
             {
                 m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
                 m.ShippedOn = m.ShippedOn.HasValue ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : m.ShippedOn;
+                m.SubmittedOn = m.SubmittedOn.HasValue ? m.SubmittedOn.Value.AddMinutes(-timezoneOffset) : m.SubmittedOn;
+                m.PulledBackOn = m.PulledBackOn.HasValue ? m.PulledBackOn.Value.AddMinutes(-timezoneOffset) : m.PulledBackOn;
+                m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
             });
             var dataTable = ExcelHelper.ToDataTable<MonthlyReconReportViewModel>(model);
             var memoryStream = ExcelHelper.ExportDataSet(dataTable);
@@ -171,7 +174,7 @@ namespace AM.Web.Controllers
             var model = repoSvc.GetPullbackRequestReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.RequestedOn) }), JsonRequestBehavior.AllowGet);
         }
-        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA )]
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
         public ActionResult SupplyInventoryReport()
         {
             ViewBag.Envelopes = new SelectList(invSvc.GetEnvelopes(), "Id", "EnvelopeName");
@@ -276,6 +279,35 @@ namespace AM.Web.Controllers
                 return new EmptyResult();
             }
 
+        }
+
+        public ActionResult PVReconReport()
+        {
+            return View();
+        }
+
+        public ActionResult DownloadPVReconReport(int? pvId, string startDate, string endDate, string fileName, int timezoneOffset)
+        {
+            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToStartDateTime().EstToUtc();
+            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToEndDateTime().EstToUtc();
+            var data = repoSvc.GetPVReconReport(pvId, exactStartDate, exactEndDate);
+            var model = Mapper.Map<List<MonthlyReconReportViewModel>>(data);
+            model.ForEach(m =>
+            {
+                m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
+                m.ShippedOn = m.ShippedOn.HasValue ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : m.ShippedOn;
+                m.SubmittedOn = m.SubmittedOn.HasValue ? m.SubmittedOn.Value.AddMinutes(-timezoneOffset) : m.SubmittedOn;
+                m.PulledBackOn = m.PulledBackOn.HasValue ? m.PulledBackOn.Value.AddMinutes(-timezoneOffset) : m.PulledBackOn;
+                m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
+            });
+            var dataTable = ExcelHelper.ToDataTable<MonthlyReconReportViewModel>(model);
+            var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            var fileNameArry = new string[] { fileName, exactStartDate.ToString("MMddyyy"), "TO", exactEndDate.ToString("MMddyyy"), pvId.ToString() };
+            fileName = string.Join("_", fileNameArry.Where(s => s != "").ToArray());
+            fileName = string.Format("{0}.xlsx", fileName);
+            return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
     }
 }

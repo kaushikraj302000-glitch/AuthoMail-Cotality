@@ -614,6 +614,8 @@
     <Content Include="Views\Admin\CreateOrEditEnvelope.cshtml" />
     <Content Include="Views\Admin\_ShipperWiseStockDetails.cshtml" />
     <Content Include="Views\Admin\ManageEnvelopesInventoryStock.cshtml" />
+    <Content Include="Views\Report\PVReconReport.cshtml" />
+    <Content Include="Views\Common\_PrintVendorList.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
