@@ -20,7 +20,7 @@ namespace AM.Reporting
             try
             {
                 log.Info("FedEx Pickup Process Started");
-                List<FedExReport> mailPieces = new List<FedExReport>();
+                List<TrackingReport> mailPieces = new List<TrackingReport>();
                 using (IFedExService fedExTrackingSvc = new FedExService())
                 using (IReportService reportSvc = new ReportService())
                 {
@@ -67,7 +67,7 @@ namespace AM.Reporting
             }
         }
 
-        private static string GenerateNotPickedEmailBody(List<FedExReport> notPickedMailPieces)
+        private static string GenerateNotPickedEmailBody(List<TrackingReport> notPickedMailPieces)
         {
             string bodyContent = @"<center><b>Not Picked Up Loans Details</b></center><br/><table border='1'><tbody><%REPLACE%></tbody></table>";
             StringBuilder fullContent = new StringBuilder();
@@ -79,14 +79,14 @@ namespace AM.Reporting
             return bodyContent.Replace("<%REPLACE%>", fullContent.ToString());
         }
 
-        private static StringBuilder GetFedExReport(List<FedExReport> mailPieces)
+        private static StringBuilder GetFedExReport(List<TrackingReport> mailPieces)
         {
             var columnName = String.Join(",", "Batch Name", "Loan Number", "Borrower Name", "Property Address", "Property City", "Property State", "Property Zip", "Tracking Number", "Received Date (Local)", "Document Type", "FedEx Status", "Status Time");
 
             //generate using report format and send it to CL team
             StringBuilder mailPiecesReport = new StringBuilder(columnName);
             mailPiecesReport.AppendLine();
-            foreach (FedExReport mailPiece in mailPieces)
+            foreach (TrackingReport mailPiece in mailPieces)
             {
                 var line = String.Join(",",
                     mailPiece.BatchName,
