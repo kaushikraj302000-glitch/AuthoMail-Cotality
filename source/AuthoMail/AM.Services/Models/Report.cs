@@ -162,5 +162,13 @@ namespace AM.Services
         public string EnvelopeName { get; set; }
         public DateTime? DeliveryDate { get; set; }
         public string DeliveryStatus { get; set; }
+        public string ReturnTrackingNo { get; set; }
+        public DateTime? ReturnDeliveryDate { get; set; }
+        public string ReturnDeliveryStatus { get; set; }
+        public string RequestorName { get; set; }
+        public string PropertyStreetAddress { get; set; }
+        public string PropertyCity { get; set; }
+        public string PropertyState { get; set; }
+        public string PropertyZip { get; set; }
     }
 }

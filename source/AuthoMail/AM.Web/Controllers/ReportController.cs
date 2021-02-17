@@ -238,6 +238,8 @@ namespace AM.Web.Controllers
                     m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
                     m.PrintedOn = m.PrintedOn.HasValue ? m.PrintedOn.Value.AddMinutes(-timezoneOffset) : m.PrintedOn;
                     m.MailedOn = m.MailedOn.HasValue ? m.MailedOn.Value.AddMinutes(-timezoneOffset) : m.MailedOn;
+                    m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
+                    m.ReturnDeliveryDate = m.ReturnDeliveryDate.HasValue ? m.ReturnDeliveryDate.Value.AddMinutes(-timezoneOffset) : m.ReturnDeliveryDate;
                 });
                 var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
                 var memoryStream = ExcelHelper.ExportDataSet(dataTable);
