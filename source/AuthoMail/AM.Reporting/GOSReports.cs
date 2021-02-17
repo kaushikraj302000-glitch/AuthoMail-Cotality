@@ -187,10 +187,8 @@ namespace AM.Reporting
                 log.Debug("GOS Consolidated report Execution Triggered at {0} Est".Fill(Common.Now.UtcToEst()));
                 var today = Common.EstToday;
                 var month = new DateTime(today.Year, today.Month, 1);
-                //var startTime = month.AddMonths(-1);
-                //var endTime = month.AddDays(-1);
-                var startTime = new DateTime(2020, 10, 1);
-                var endTime = new DateTime(2021, 2, 5);
+                var startTime = month.AddMonths(-1);
+                var endTime = month.AddDays(-1);
 
                 using (IReportService reportSvc = new ReportService())
                 {
@@ -202,7 +200,7 @@ namespace AM.Reporting
                     //NOTE : Please change UTC to EST code when Daylight saving is off in service call
                     var gosBatchDetails = reportSvc.GetGOSDataPointReport(startTime, endTime, clientCodes);
 
-                    var reportGOS = gosBatchDetails.Select(r => new { r.AppCode, r.BatchName, r.BorrowerName, r.LoanNumber, r.ProductCode, r.DocumentOrPackageType, r.FileName, r.ReceivedOnEst, r.ShippedOnEst, r.TotalPages, r.TrackingNo, r.DeliveryStatus, r.DeliveryDate, r.ReturnTrackingNo, r.ReturnDeliveryStatus, r.ReturnDeliveryDate, r.Week }).ToList();
+                    var reportGOS = gosBatchDetails.Select(r => new { r.AppCode, r.BatchName, r.BorrowerName, r.LoanNumber, r.ProductCode, r.DocumentOrPackageType, r.FileName, r.ReceivedOnEst, r.ShippedOnEst, r.TotalPages, r.TrackingNo, r.ShipmentStatus , r.DeliveryStatus, r.DeliveryDate, r.ReturnTrackingNo, r.ReturnDeliveryStatus, r.ReturnDeliveryDate, r.Week }).ToList();
 
                     if (gosBatchDetails.Count > 0)
                     {
