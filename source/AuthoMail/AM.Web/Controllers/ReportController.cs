@@ -242,7 +242,21 @@ namespace AM.Web.Controllers
                     m.ReturnDeliveryDate = m.ReturnDeliveryDate.HasValue ? m.ReturnDeliveryDate.Value.AddMinutes(-timezoneOffset) : m.ReturnDeliveryDate;
                 });
                 var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
-                var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+
+                List<Client> floodClients;
+                using (IClientService clientSvc = new ClientService())
+                {
+                    floodClients = clientSvc.GetClientsByAlias("Flood Integration");
+                }
+                if (!floodClients.Select(x => x.Id).Intersect(clientId).Any())
+                {
+                    dataTable.Columns.Remove("RequestorName");
+                    dataTable.Columns.Remove("PropertyStreetAddress");
+                    dataTable.Columns.Remove("PropertyCity");
+                    dataTable.Columns.Remove("PropertyState");
+                    dataTable.Columns.Remove("PropertyZip");
+                }
+                    var memoryStream = ExcelHelper.ExportDataSet(dataTable);
                 memoryStream.Seek(0, SeekOrigin.Begin);
 
                 string fileGuid = Guid.NewGuid().ToString();
