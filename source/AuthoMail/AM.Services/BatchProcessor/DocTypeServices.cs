@@ -22,6 +22,7 @@ namespace AM.Services
         List<PnSConfigDetailCoverLetter> GetDocumentRearLetterTemplates(int pnSConfigDetailId);
         DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId);
         bool AllowInsertsOnlyDocumentType(int clientId, string docType);
+        List<DocTypeReport> GetDocTypeList();
     }
 
     public class DocTypeService : ServiceBase, IDocTypeService
@@ -162,6 +163,20 @@ namespace AM.Services
             string query = "SELECT AllowInsertsOnly FROM AM.DocTypes WHERE ClientId=@clientId AND IsActive=1 AND DocTypeName=@docType";
 
             return db.QuerySingleOrDefault<bool>(query, new { clientId, docType });
+        }
+
+        public List<DocTypeReport> GetDocTypeList()
+        {
+            string query = @"SELECT D.*,C.AppCode,E.EnvelopeName,E.PartNumber AS EnvelopePartNumber, BE.EnvelopeName AS BREName, BE.PartNumber AS BREPartNumber,
+                PT.TrailName AS PrintTrailName, PV.VendorCode AS PrintVendor
+                FROM [dbo].[v_DocTypes] D 
+                LEFT OUTER JOIN Common.Clients C ON D.ClientId=C.Id
+                LEFT OUTER JOIN Common.Envelopes E ON D.EnvelopeId=E.Id
+                LEFT OUTER JOIN Common.Envelopes BE ON D.BREEnvelopeId=BE.Id
+                LEFT OUTER JOIN Common.PrintTrails PT ON D.PrintTrailId=PT.Id
+                LEFT OUTER JOIN Common.PrintVendors PV ON PT.PrintVendorId=PV.Id
+                WHERE C.Id>0 ORDER BY C.AppCode";
+            return db.Query<DocTypeReport>(query).ToList();
         }
     }
 }

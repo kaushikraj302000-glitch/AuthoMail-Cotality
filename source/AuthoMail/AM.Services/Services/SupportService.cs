@@ -22,7 +22,7 @@ namespace AM.Services
         List<UserRequestSignUp> GetUsersRequestSignUp(string userId);
         KeyValuePair<bool, string> UpdateUsersRequestSignUp(string Id, string status, string closedBy);
         //DocTypes
-        List<DocTypes> GetDocTypes();
+        List<DocTypeVM> GetDocTypes();
         List<DocTypeVM> GetDocTypesByClientId(int ClientId);
         List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id);
         KeyValuePair<bool, string> SaveDocTypeCoverLetter(PnSConfigDetailCoverLetter dtcl);
@@ -548,21 +548,14 @@ where cd.Id=@Id";
         }
 
         #endregion docType
-        public List<DocTypes> GetDocTypes()
+        public List<DocTypeVM> GetDocTypes()
         {
-            string query = @"select d.*,c.Name as ClientName,d.DocTypeName as ClientDocTypesName,c.Name as ClientName from AM.DocTypes d
-inner join Common.Clients c on d.ClientId=c.Id";
-            var model = db.Query<DocTypes>(query).ToList();
-            //var list = GetDocTypesToClientDocTypes(model);
-            return model;
-            //string query = "SELECT d.*,c.* FROM [AM].[DocTypes] d,[Common].[Clients] c WHERE d.ClientId=c.Id";
-            //return db.Query<DocTypes, Clients, DocTypes>(query,
-            //    (d, c) =>
-            //    {
-            //        d.Client = c;
-            //        return d;
-            //    }
-            //    ).ToList();
+            string query = @"SELECT D.*,C.AppCode, C.Name AS ClientName, BE.EnvelopeName AS BREName, BE.PartNumber AS BREPartNumber
+                FROM [AM].[DocTypes] D 
+                LEFT OUTER JOIN Common.Clients C ON D.ClientId=C.Id
+                LEFT OUTER JOIN Common.Envelopes BE ON D.BREEnvelopeId=BE.Id
+                WHERE C.Id>0 ORDER BY C.AppCode";
+            return db.Query<DocTypeVM>(query).ToList();
         }
         public List<SFTChannels> GetSFTChannels()
         {

@@ -40,14 +40,6 @@ namespace AM.Services
         public string Message { get; set; }
     }
 
-    public class DocTypeVM
-    {
-        public int Id { get; set; }
-        public int ClientId { get; set; }
-        public string DocTypeCode { get; set; }
-        public string ClientName { get; set; }
-        public string AppCode { get; set; }
-    }
     public class DocTypeCoverLetterVM
     {
         public int DocTypeId { get; set; }
