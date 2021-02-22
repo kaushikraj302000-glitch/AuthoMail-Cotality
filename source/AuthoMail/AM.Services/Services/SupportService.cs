@@ -67,6 +67,7 @@ namespace AM.Services
         List<EmailAllowedDomain> GetUserManagerList();
         string GetEmailsFromClientDomain(string clientEmail);
         TrackingDetailViewModel GetTrackingDetailByTrackingNo(string trackingNo);
+        List<PnSConfigDetail> GetPnSConfigDetailsByPnSConfigId(int pnsConfigId);
     }
     public class SupportService : ServiceBase, ISupportService
     {
@@ -975,6 +976,14 @@ where cd.Id=@Id";
             return db.QuerySingle<PrintTrail>("select * from Common.PrintTrails where Id=@Id", new { Id = Id });
         }
 
-
+        public List<PnSConfigDetail> GetPnSConfigDetailsByPnSConfigId(int pnsConfigId)
+        {
+            string query = @"SELECT PCD.*,PT.TrailName,E.EnvelopeName,E.PartNumber, PV.VendorCode
+                            FROM Common.PnSConfigDetail PCD
+                            LEFT OUTER JOIN Common.PrintTrails PT ON PCD.PrintTrailId = PT.Id
+                            LEFT OUTER JOIN Common.Envelopes E ON PCD.EnvelopeId = E.Id
+                            LEFT OUTER JOIN Common.PrintVendors PV ON PT.PrintVendorId = PV.Id WHERE PnSConfigId=@PnSConfigId";
+            return db.Query<PnSConfigDetail>(query, new { PnSConfigId = pnsConfigId }).ToList();
+        }
     }
 }

@@ -117,7 +117,7 @@ namespace AM.Entities
         public string AllowInsertsOnly { get; set; }
         public string BREName { get; set; }
         public string BREPartNumber { get; set; }
-        public string IsReturnInfoSpecified { get; set; }
+        public bool IsReturnInfoSpecified { get; set; }
         public string BREEnvelopeName_PartNumber
         {
             get
@@ -129,6 +129,28 @@ namespace AM.Entities
                 return "NA";
             }
         }
+
+        public string RetRcptPrefix { get; set; }
+        public string RetRcptFirstName { get; set; }
+        public string RetRcptMiddleName { get; set; }
+        public string RetRcptLastName { get; set; }
+        public string RetRcptSuffix { get; set; }
+        public string RetRcptPhone { get; set; }
+        public string RetRcptOrganization { get; set; }
+        public string RetRcptAddrOptionalLine1AboveStreet { get; set; }
+        public string RetRcptAddrOptionalLine2AboveStreet { get; set; }
+        public string RetRcptAddressStreet { get; set; }
+        public string RetRcptAddressAptOrSuiteOrOther { get; set; }
+        public string RetRcptAddrOptionalLine1BelowStreet { get; set; }
+        public string RetRcptAddrOptionalLine2BelowStreet { get; set; }
+        public string RetRcptAddressCity { get; set; }
+        public string RetRcptAddressState { get; set; }
+        public string RetRcptAddressZIP { get; set; }
+        public string RetRcptAddressCountry { get; set; }
+        public string ClientEmails { get; set; }
+        public string ClientContactNo { get; set; }
+        public string SupportEmails { get; set; }
+        public string SupportContactNo { get; set; }
     }
     public class DocTypeReport
     {

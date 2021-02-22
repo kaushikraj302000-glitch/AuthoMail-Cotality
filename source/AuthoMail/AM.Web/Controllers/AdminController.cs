@@ -918,7 +918,13 @@ namespace AM.Web.Controllers
             }
         }
         #endregion
-
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult _PrintConfigurationByPnSConfigId(int pnsConfigId, string documentType)
+        {
+            ViewBag.PnSConfigId = pnsConfigId;
+            ViewBag.DocumentType = documentType;
+            return PartialView(supportSvc.GetPnSConfigDetailsByPnSConfigId(pnsConfigId));
+        }
         #region PrintTrailMaps
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult PrintTrailMapByDocId(int id)
