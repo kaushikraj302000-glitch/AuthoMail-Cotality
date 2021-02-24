@@ -370,7 +370,7 @@ where MB.PipelineStatus=@PipelineStatus AND IsReportPrepped=1 AND IsReportedBack
 
         public bool IsDuplicateRecord(MailPieceDTO mailPiece)
         {
-            string query = @"SELECT CAST(CASE WHEN (SELECT COUNT(*) FROM [AM].[MailPieces] WHERE RcptFirstName = @RcptFirstName AND RcptLastName = @RcptLastName AND RcptAddressStreet = @RcptAddressStreet AND RcptAddressCity = @RcptAddressCity AND RcptAddressState = @RcptAddressState AND RcptAddressZIP = @RcptAddressZIP AND BusinessFriendlyIdValue = @BusinessFriendlyIdValue AND FileName = @FileName AND DocumentOrPackageType = @DocumentOrPackageType AND CAST(EffectiveReceivedOnEst AS DATE) BETWEEN DATEADD(DAY,-5,CAST(@EffectiveReceivedOnEst AS DATE)) AND CAST(@EffectiveReceivedOnEst AS DATE)) > 0 THEN 1 ELSE 0 END AS BIT)";
+            string query = @"SELECT CAST(CASE WHEN (SELECT COUNT(*) FROM [AM].[MailPieces] WHERE ClientId = @ClientId AND RcptFirstName = @RcptFirstName AND RcptLastName = @RcptLastName AND RcptAddressStreet = @RcptAddressStreet AND RcptAddressCity = @RcptAddressCity AND RcptAddressState = @RcptAddressState AND RcptAddressZIP = @RcptAddressZIP AND BusinessFriendlyIdValue = @BusinessFriendlyIdValue AND [FileName] = @FileName AND DocumentOrPackageType = @DocumentOrPackageType AND CAST(EffectiveReceivedOnEst AS DATE) BETWEEN DATEADD(DAY,-5,CAST(@EffectiveReceivedOnEst AS DATE)) AND CAST(@EffectiveReceivedOnEst AS DATE)) > 0 THEN 1 ELSE 0 END AS BIT)";
 
             return db.ExecuteScalar<bool>(query, mailPiece);
         }
