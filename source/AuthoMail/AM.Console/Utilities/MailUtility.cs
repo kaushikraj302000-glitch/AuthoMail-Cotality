@@ -409,5 +409,54 @@ namespace AM.Console
 
             return isEmailSent;
         }
+
+        public static bool SendDuplicateRecordNotificationEmail(MailPieceDTO mailPiece, DateTime receivedOnest, string batchName, string appCode, string clientToEmail, string clientCcEmail)
+        {
+            bool isEmailSent = false;
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(clientToEmail))
+                {
+                    return true;
+                }
+
+                using (SmtpClient smtpClient = new SmtpClient())
+                {
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = true;
+                        msg.To.Add(clientToEmail);
+                        msg.CC.Add(Config.Common_ErrorSubscribedEmailCc);
+                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, appCode, Config.Common_DuplicateEmailSubject);
+                        msg.Priority = MailPriority.High;
+
+                        StringBuilder sb = new StringBuilder(File.ReadAllText(Config.Common_DuplicateEmailTemplate));
+                        sb = sb.Replace("<%BatchName%>", batchName);
+                        sb = sb.Replace("<%yyyymmdd%>", receivedOnest.ToString("yyyy-MM-dd hh:mm:ss"));
+                        sb = sb.Replace("<%BusinessIdentifierIdName%>", mailPiece.BusinessFriendlyIdName);
+                        sb = sb.Replace("<%LoanNumber%>", mailPiece.BusinessFriendlyIdValue);
+                        sb = sb.Replace("<%RecipientName%>", $"{mailPiece.RcptLastName}, {mailPiece.RcptFirstName}");
+                        sb = sb.Replace("<%DocumentType%>", mailPiece.DocumentOrPackageType);
+                        sb = sb.Replace("<%FileName%>", mailPiece.FileName);
+                        sb = sb.Replace("<%AddressStreet%>", mailPiece.RcptAddressStreet);
+                        sb = sb.Replace("<%City%>", mailPiece.RcptAddressCity);
+                        sb = sb.Replace("<%State%>", mailPiece.RcptAddressState);
+                        sb = sb.Replace("<%Zip%>", mailPiece.RcptAddressZIP);
+                        
+                        msg.Body = sb.ToString();
+
+                        smtpClient.Send(msg);
+                        isEmailSent = true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
+
+            return isEmailSent;
+        }
     }
 }

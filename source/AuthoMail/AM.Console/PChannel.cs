@@ -753,9 +753,22 @@ namespace AM.Console
                     mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
                     mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
                 }
+
                 mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+
+                CheckForDuplicateRecord(mailPieceSvc, mailPiece, mailBatch, client);
             }
             log.Debug("Calculation of Due Date and Print location Job is ended.");
+        }
+
+        private static void CheckForDuplicateRecord(IMailPieceService mailPieceSvc, MailPieceDTO mailPiece, MailBatchDTO mailBatch, Client client)
+        {
+            var isDuplicate = mailPieceSvc.IsDuplicateRecord(mailPiece);
+
+            if (isDuplicate)
+            {
+                MailUtility.SendDuplicateRecordNotificationEmail(mailPiece, mailBatch.ReceivedOn.Value.UtcToEst(), mailBatch.BatchName, client.AppCode, client.Contact1Email, client.Contact2Email);
+            }
         }
 
         #endregion

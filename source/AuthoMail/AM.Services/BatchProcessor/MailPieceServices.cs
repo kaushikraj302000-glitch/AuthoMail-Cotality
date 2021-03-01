@@ -37,6 +37,7 @@ namespace AM.Services
         int DeletePrintBatchDetails(int printBatchId);
         dynamic GetCoversheetData(int mailPieceId);
         List<string> GetInvalidInserts(List<string> inserts);
+        bool IsDuplicateRecord(MailPieceDTO mailPiece);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -134,7 +135,7 @@ namespace AM.Services
             else
             {
                 query = @"UPDATE [AM].[MailPieces] SET [ShipmentStatus] = @ShipmentStatus,[ShipmentStatusUpdatedOn]=@jobRunTime, DeliveryStatus = @DeliveryStatus, DeliveryDate = @DeliveryDate WHERE Id = (SELECT TOP 1 Id FROM [AM].[MailPieces] WHERE [TrackingNo] = @TrackingNo ORDER BY EffectiveReceivedOnEst DESC)";
-            }             
+            }
 
             return db.ExecuteScalar<int>(query, new { ShipmentStatus = shipmentStatus, TrackingNo = trackingNo, jobRunTime, DeliveryStatus = deliveryStatus, DeliveryDate = deliveryDate });
         }
@@ -365,6 +366,13 @@ where MB.PipelineStatus=@PipelineStatus AND IsReportPrepped=1 AND IsReportedBack
 
             return db.QueryAsync<BatchResponse>(query, new { SFTChannelId = sftChannelId, PipelineStatus = BatchPipelineStatus.ReportPrepped });
 
+        }
+
+        public bool IsDuplicateRecord(MailPieceDTO mailPiece)
+        {
+            string query = @"SELECT CAST(CASE WHEN (SELECT COUNT(*) FROM [AM].[MailPieces] WHERE ClientId = @ClientId AND RcptFirstName = @RcptFirstName AND RcptLastName = @RcptLastName AND RcptAddressStreet = @RcptAddressStreet AND RcptAddressCity = @RcptAddressCity AND RcptAddressState = @RcptAddressState AND RcptAddressZIP = @RcptAddressZIP AND BusinessFriendlyIdValue = @BusinessFriendlyIdValue AND [FileName] = @FileName AND DocumentOrPackageType = @DocumentOrPackageType AND CAST(EffectiveReceivedOnEst AS DATE) BETWEEN DATEADD(DAY,-5,CAST(@EffectiveReceivedOnEst AS DATE)) AND CAST(@EffectiveReceivedOnEst AS DATE)) > 0 THEN 1 ELSE 0 END AS BIT)";
+
+            return db.ExecuteScalar<bool>(query, mailPiece);
         }
     }
 }
