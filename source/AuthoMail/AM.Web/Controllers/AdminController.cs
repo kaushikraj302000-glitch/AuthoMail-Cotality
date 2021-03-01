@@ -42,8 +42,10 @@ namespace AM.Web.Controllers
         IConfigService confSvc;
         IInventoryService inventorySvc;
         IProjectRequestService projectRequestSvc;
+        IDocTypeService docTypeSvc;
+
         private readonly IClientPermissionService clientPermissionSvc;
-        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc, IProjectRequestService projectRequestSvc, IClientPermissionService clientPermissionSvc)
+        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc, IProjectRequestService projectRequestSvc, IClientPermissionService clientPermissionSvc, IDocTypeService docTypeSvc)
         {
             UserManager = userManager;
             this.supportSvc = supportSvc;
@@ -52,6 +54,7 @@ namespace AM.Web.Controllers
             this.inventorySvc = inventorySvc;
             this.projectRequestSvc = projectRequestSvc;
             this.clientPermissionSvc = clientPermissionSvc;
+            this.docTypeSvc = docTypeSvc;
         }
         // GET: Admin
         #region SignUp Request
@@ -892,8 +895,36 @@ namespace AM.Web.Controllers
             //ViewBag.EnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => !s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = clientDocTypes.DocTypes.BREEnvelopeId == s.Id }).ToList();
         }
 
-        #endregion
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult _DownloadDocTypeLists()
+        {
+            try
+            {
+                var result = docTypeSvc.GetDocTypeList();
 
+                var dataTable = ExcelHelper.ToDataTable<DocTypeReport>(result);
+                var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                string fileGuid = Guid.NewGuid().ToString();
+
+                string fileName = $"DocTypeList_{DateTime.UtcNow.ToString("MMddyyyy")}.xlsx";
+
+                return File(memoryStream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        #endregion
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult _PrintConfigurationByPnSConfigId(int pnsConfigId, string documentType)
+        {
+            ViewBag.PnSConfigId = pnsConfigId;
+            ViewBag.DocumentType = documentType;
+            return PartialView(supportSvc.GetPnSConfigDetailsByPnSConfigId(pnsConfigId));
+        }
         #region PrintTrailMaps
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult PrintTrailMapByDocId(int id)

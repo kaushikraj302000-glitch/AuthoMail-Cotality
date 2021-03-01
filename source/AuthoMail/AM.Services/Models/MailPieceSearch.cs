@@ -382,7 +382,18 @@ namespace AM.Services
         public int NoOfCopies { get; set; }
         public int? MinPage { get; set; }
         public int? MaxPage { get; set; }
-
+        public string EnvelopeName { get; set; }
+        public string PartNumber { get; set; }
+        public string TrailName { get; set; }
+        public string VendorCode { get; set; }
+        public bool IsFallBack { get; set; }
+        public bool IsPrintReady { get; set; }
+        public TimeSpan? BizdayStartTime { get; set; }
+        public TimeSpan? BizdayEndTime { get; set; }
+        public TimeSpan? SatStartTime { get; set; }
+        public TimeSpan? SatEndTime { get; set; }
+        public TimeSpan? SunStartTime { get; set; }
+        public TimeSpan? SunEndTime { get; set; }
     }
     public class DocTypePageRange
     {
