@@ -69,8 +69,6 @@ namespace AM.Core
 
                             foreach (MailPieceDTO mailPiece in validMailPieces)
                             {
-                                int attemptCount = 0;
-
                                 DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
 
                                 int mailPieceId = mailPiece.Id;
@@ -422,7 +420,7 @@ namespace AM.Core
                                     CreateFedExLabel createFedExLabel = new CreateFedExLabel();
 
                                     #region FedEx Logic
-                                    while (attemptCount < Config.Core_NoOfAttemptOnFailure)
+                                    while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                     {
                                         response = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi, shipperInfo);
 
@@ -592,7 +590,7 @@ namespace AM.Core
 
                                             Thread.Sleep(Config.Core_FailureAttemptInterval);
 
-                                            attemptCount++;
+                                            reTrycnt++;
 
                                             SendUnexpectedExceptionEmail("Error occured while generating FedEx label for MailPiece Id {0}<br/> System will try again...<br/>".Fill(mailPiece.Id) + msg);
                                         }
