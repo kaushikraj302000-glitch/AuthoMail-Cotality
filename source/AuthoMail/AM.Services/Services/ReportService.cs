@@ -385,24 +385,57 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             if (!startDate.HasValue && businessFriendlyIdValue.IsNullOrWhiteSpace() && trackingNo.IsNullOrWhiteSpace())
                 throw new Exception("Date filter required.");
 
-            string query = @"SELECT m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
-	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,m.RcptAddressStreet,
-	 m.RcptAddressState as [State], m.ShippedOn as MailedOn ,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.PrintedOn
-	 ,b.BatchName as BatchId,b.ReceivedOn,m.DocTypeId,m.IsEDeliveryRequested,m.FileName,
-	 d.DocTypeName as DocType,(pcd.ShippingCarrier + '-' + pcd.ShippingServiceType) as ShippingMethod,
-     m.DocumentOrPackageType,m.TotalPages as PagesShipped,m.TotalBlankPages as BlankPages,
-     m.DeliveryStatus,m.DeliveryDate,m.Inserts,
-	 ch.Title as Channel,
-     c.AppCode as ClientCode,
-	 e.EnvelopeName,ptb.PrintBatchName as PrintFileName
-	 FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
-	 LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id	 
-	 left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
-	 left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
-	 LEFT OUTER JOIN Common.Envelopes e ON pcd.EnvelopeId=e.Id
-	LEFT OUTER JOIN PnS.MRDFRequest req ON m.UniqueId=req.UniqueId
-	LEFT OUTER JOIN PnS.PrintTrailBatches ptb on req.PrintTrailBatchId=ptb.Id
-	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id";
+            List<Client> floodClients;
+            using (IClientService clientSvc = new ClientService())
+            {
+                floodClients = clientSvc.GetClientsByAlias("Flood Integration");
+            }
+            string floodColumns = string.Empty;
+            string floodQuery = string.Empty;
+
+            if (floodClients.Select(x => x.Id).Intersect(clientId).Any())
+            {
+                floodColumns = " , CST.[RequestorName], CST.[PropertyStreetAddress], CST.[PropertyCity], CST.[PropertyState], CST.[PropertyZip]";
+
+                floodQuery = @"
+                    LEFT OUTER JOIN 
+                    (
+	                    SELECT *
+	                    FROM 
+	                    (
+		                    SELECT 
+		                    [MailPieceId],[Key], [Value]
+		                    FROM AM.MailPieceCustomInfo
+	                    ) AS S
+	                    PIVOT
+	                    (
+		                    MAX([Value])
+		                    FOR [Key] IN ([RequestorName],[PropertyStreetAddress],[PropertyCity],[PropertyState],[PropertyZip])
+	                    )AS PVT
+                    )CST on CST.MailPieceId=M.Id";
+            }
+
+            string query = $@"
+                    SELECT M.Id as MailPieceId, M.BusinessFriendlyIdValue as LoanNumber, M.ShippingStatus as [Status], M.UniqueId,
+                    M.RcptFirstName as FirstName, M.RcptLastName as LastName, M.RcptAddressCity as [City], M.RcptAddressZip as ZIP,
+                    M.RcptAddressStreet, M.RcptAddressState as [State], M.ShippedOn as MailedOn,M.TrackingNo, M.DueDate, M.ErrorCode, M.ErrorDesc,
+                    M.PrintLocation, M.PrintedOn ,B.BatchName as BatchId, B.ReceivedOn, M.DocTypeId, M.IsEDeliveryRequested, M.FileName,
+                    D.DocTypeName as DocType, (PCD.ShippingCarrier + '-' + PCD.ShippingServiceType) as ShippingMethod, M.DocumentOrPackageType,
+                    M.TotalPages as PagesShipped,M.TotalBlankPages as BlankPages, M.DeliveryStatus, M.DeliveryDate, M.Inserts, CH.Title as Channel,
+                    C.AppCode as ClientCode, E.EnvelopeName, PTB.PrintBatchName as PrintFileName, M.ReturnDeliveryStatus, M.ReturnDeliveryDate,
+                    M.ReturnTrackingNo {floodColumns}
+                    FROM [AM].[MailPieces] M
+                    INNER JOIN [AM].[MailBatches] B ON M.MailBatchId=B.Id
+                    INNER JOIN [Common].[Clients] C ON M.ClientId=C.Id
+                    INNER JOIN [Common].[SFTChannels] CH ON B.SFTChannelId=CH.Id
+                    LEFT OUTER JOIN [Profile].[Users] U ON M.PulledBackRequestedBy=U.Id
+                    LEFT OUTER JOIN [AM].[DocTypes] D ON M.DocTypeId=D.Id 
+                    LEFT OUTER JOIN Common.PnSConfigDetail PCD ON M.PnSConfigDetailId = PCD.Id
+                    LEFT OUTER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id
+                    LEFT OUTER JOIN PnS.MRDFRequest REQ ON M.UniqueId=REQ.UniqueId
+                    LEFT OUTER JOIN PnS.PrintTrailBatches PTB on REQ.PrintTrailBatchId=PTB.Id
+                    {floodQuery} WHERE 1=1";
+
             DynamicParameters parameter = new DynamicParameters();
             if (clientId != null && clientId.Count > 0)
             {

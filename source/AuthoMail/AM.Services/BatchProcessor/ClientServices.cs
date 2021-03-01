@@ -19,6 +19,7 @@ namespace AM.Services
         Task<SFTChannel> GetSFTChannelDetailsBySFTChannelId(int sftChannelId);
         SFTChannel GetSFTChannelDetailsBySFTChannelCode(string sftChannelCode);
         List<ClientAMCCustIdMap> GetAMCClientIdMaps();
+        List<Client> GetClientsByAlias(string alias);
     }
     public class ClientService : ServiceBase, IClientService //It implements Interfaces 
     {
@@ -72,6 +73,12 @@ namespace AM.Services
             string query = "SELECT [ClientId],[AMCCustId] FROM [AM].[ClientAMCCustIdMap]";
 
             return db.Query<ClientAMCCustIdMap>(query, null).ToList();
+        }
+
+        public List<Client> GetClientsByAlias(string alias)
+        {
+            string query = "SELECT * FROM [Common].[Clients] WHERE IsAMActive=1 and GroupAlias = @alias";
+            return db.Query<Client>(query, new { Alias = alias }).ToList();
         }
     }
 }
