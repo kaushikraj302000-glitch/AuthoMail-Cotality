@@ -11,12 +11,16 @@ using AM.Entities;
 using System.Security.Claims;
 using Microsoft.Owin.Security;
 using System.Threading.Tasks;
+using System.Net.Http;
+using System.IO;
 
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus)]
     public class CommonController : BaseController
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         IReportService repoSvc;
         IHomeService homeSvc;
         private AMSignInManager _signInManager;
@@ -111,6 +115,40 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse("You don't have access for this client."), JsonRequestBehavior.AllowGet);
             }
 
+        }
+
+        [HttpGet]
+        public async Task<ActionResult> DownloadPdf(string fileName)
+        {
+            try
+            {
+                HttpClient client = new HttpClient();
+                client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
+                HttpResponseMessage response = new HttpResponseMessage();
+                response = await client.GetAsync($@"{Config.Web_Pdf_API_Url}\DownloadPdf?fileName={fileName}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var stream = await response.Content.ReadAsByteArrayAsync();
+                    //return Json(JsonResponseFactory.SuccessResponse(
+                    //new
+                    //{
+                    //    fileName = Path.GetFileNameWithoutExtension(fileName),
+                    //    stream = Convert.ToBase64String(stream)
+                    //}
+                    //));
+                    var pdfFileName = Path.GetFileName(fileName);
+                    return File(stream, "application/pdf", pdfFileName);
+                }
+                else
+                {
+                    return Json(JsonResponseFactory.ErrorResponse("File not found."));
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex.ToString());
+                return Json(JsonResponseFactory.ErrorResponse(ex.Message));
+            }
         }
     }
 }
