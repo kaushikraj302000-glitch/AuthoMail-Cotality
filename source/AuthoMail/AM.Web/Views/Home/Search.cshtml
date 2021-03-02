@@ -659,7 +659,7 @@
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
 
-<script type="text/javascript">
+    <script type="text/javascript">
         $(document).ready(function () {
             //window.clui.dateTimePickerInit();
             var dateTemplate = '<div class="daterangepicker dropdown-menu">' + '<div class="calendar left">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="calendar right">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="ranges">' + '<div class="range_inputs">' + '<button class="applyBtn" disabled="disabled" type="button"></button> ' + '<button class="cancelBtn" type="button"></button>' + '</div>' + '</div>' + '</div>';
@@ -692,34 +692,6 @@
             });
             // JSON.useDateParser(false);
         });
-
-        function DownloadPdf(obj) {
-            //alert("call");
-            var fileName = $(obj).data("filename");
-            $.ajax({
-                type: "GET",
-                url: baseUrl + "Common/DownloadPdf",
-                data: {
-                    fileName: fileName
-                },
-                //contentType: "application/json; charset=utf-8",
-                success: function (response) {
-                    //console.log(response);
-                    if (response.Success) {
-                        if (response.Object != null) {
-                            
-                        }
-                    } else {                      
-                        $("#showerror").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + response.ErrorMessage + "</span></div>");
-                    }
-                },
-                error: function (xhr, ajaxOptions, thrownError) {
-                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
-                    $("#showerror").html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + msg + "</span></div>");
-                }
-            });
-        }
-
 
         function ViewDetails(obj) {
             //alert("call");
@@ -933,7 +905,7 @@
                 this.TrackingNoFormatted = trackingNo;
                 //this.TrackingNo == null ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
                 this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
-                this.FileFormatted = this.RequestedPdf != null ? '<span  style="cursor: pointer;font-size:1.2em;margin-right:10%;" class="btn btn-transparent-red btn-sm" data-filename="' + this.RequestedPdf + '" onclick="DownloadPdf(this)"><i class=" fa fa-file-pdf-o"></i> </span>' : '--';
+                this.FileFormatted = this.RequestedPdf != null ? '<a href="' + baseUrl + 'Common/DownloadPdf?fileName=' + this.PDFFileName + '&appCode='+this.AppCode+'&id='+this.JobId+'"  style="cursor: pointer;font-size:1.2em;margin-right:10%;" class="btn btn-transparent-red btn-sm" data-filename="' + this.RequestedPdf + '" ><i class=" fa fa-file-pdf-o"></i> </a>' : '--';
             });
             return Model;
         }
@@ -1197,7 +1169,7 @@
 
             });
         });
-</script>
+    </script>
 }
 
 
