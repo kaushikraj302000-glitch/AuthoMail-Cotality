@@ -932,6 +932,7 @@ namespace AM.Web.Controllers
                 model.Add(
                     new AMAllUsersReportVM
                     {
+                        ClientName = user.Clients,
                         Email = user.Email,
                         EmailConfirmed = user.EmailConfirmed,
                         DisplayName = user.DisplayName,

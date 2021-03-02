@@ -58,6 +58,7 @@ namespace AM.Services
     }
     public class AMAllUsersReportVM
     {
+        public string ClientName { get; set; }
         public string Email { get; set; }
         public bool EmailConfirmed { get; set; }
         public string DisplayName { get; set; }

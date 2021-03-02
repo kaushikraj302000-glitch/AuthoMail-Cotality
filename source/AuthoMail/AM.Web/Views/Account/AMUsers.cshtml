@@ -422,9 +422,9 @@
         function EditRoleClientEvent() {
             $('table tbody').on('click', '.editroleclient', function () {
                 var userId = $(this).data('id');
-                $('#EditRoleClientModal').modal('show');
                 $('#useridmodal').val(userId);
                 BindRole(userId);
+                $('#EditRoleClientModal').modal('show');
             });
 
         }
