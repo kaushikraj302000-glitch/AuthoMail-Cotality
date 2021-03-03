@@ -17,21 +17,23 @@ namespace AM.Reporting
     class CarrierTrackingInfo
     {
         private static log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        internal static void CheckForShipmentTracking(string alias = null)
+        internal static void CheckForShipmentTracking(string alias = null, List<string> clientCodes = null, DateTime? startDateTime = null, DateTime? endDateTime = null)
         {
             try
             {
                 log.Info("FedEx Pickup Process Started");
-                List<FedExReport> mailPieces = new List<FedExReport>();
+                List<TrackingReport> mailPieces = new List<TrackingReport>();
                 using (IFedExService fedExTrackingSvc = new FedExService())
                 using (IReportService reportSvc = new ReportService())
                 {
-                    DateTime dueDateStartTime = Common.Now.UtcToEst().AddDays(-10).ToStartDateTime();
+                    DateTime dueDateStartTime = startDateTime.HasValue ? startDateTime.Value.ToStartDateTime() : Common.Now.UtcToEst().AddDays(-10).ToStartDateTime();
+
                     //Here we are passing dates in EST format because we are looking for est dates column
-                    DateTime dueDateEndTime = Common.Now.UtcToEst().ToEndDateTime();
+                    DateTime dueDateEndTime = endDateTime.HasValue ? endDateTime.Value.ToEndDateTime() : Common.Now.UtcToEst().ToEndDateTime();
+
                     log.Info("FedEx Tracking Process For Date And Time {0}".Fill(dueDateEndTime));
                     //UPDATE Pickupon list before generating reports.
-                    fedExTrackingSvc.UpdateFedExShipmentInfo(dueDateStartTime, dueDateEndTime, alias);
+                    fedExTrackingSvc.UpdateFedExShipmentInfo(dueDateStartTime, dueDateEndTime, alias, clientCodes);
                 }
                 log.Info("FedEx Pickup Process Completed");
             }
@@ -41,7 +43,7 @@ namespace AM.Reporting
             }
         }
 
-        internal static void CheckForUSPSeVSShipmentTracking(string alias = null)
+        internal static void CheckForUSPSeVSShipmentTracking(string alias = null, List<string> clientCodes = null, DateTime? startDateTime = null, DateTime? endDateTime = null)
         {
             try
             {
@@ -50,116 +52,37 @@ namespace AM.Reporting
                 using (IUSPSService uspsSvc = new USPSService())
                 using (ICommonService commonSvc = new CommonService())
                 using (IReportService reportSvc = new ReportService())
+                using (IGeneralService generalSvc = new GeneralService())
+                using (IFedExService fedExSvc = new FedExService())
                 {
-                    DateTime dueDateStartTime = Common.Now.UtcToEst().AddDays(-10).ToStartDateTime();
+                    DateTime dueDateStartTime = startDateTime.HasValue ? startDateTime.Value.ToStartDateTime() : Common.Now.UtcToEst().AddDays(-10).ToStartDateTime();
+
                     //Here we are passing dates in EST format because we are looking for est dates column
-                    DateTime dueDateEndTime = Common.Now.UtcToEst().ToEndDateTime();
+                    DateTime dueDateEndTime = endDateTime.HasValue ? endDateTime.Value.ToEndDateTime() : Common.Now.UtcToEst().ToEndDateTime();
                     log.Info("USPS Tracking Process For Date And Time {0}".Fill(dueDateEndTime));
 
-                    List<USPSeVSReport> mailPieces = reportSvc.GetUSPSeVSDataForTracking(dueDateStartTime, dueDateEndTime, alias);
+                    List<TrackingReport> mailPieces = reportSvc.GetUSPSeVSDataForTracking(dueDateStartTime, dueDateEndTime, alias, clientCodes);
 
                     if (mailPieces == null || mailPieces.Count == 0)
                         return;
 
+                    var pendingUSPSTrackingMps = mailPieces.Where(mp => mp.DeliveryStatus.IsNullOrWhiteSpace() || (!mp.DeliveryStatus.IsNullOrWhiteSpace() && !mp.DeliveryStatus.ToLower().Contains("delivered"))).ToList();
 
-                    int requestTrackingCount = mailPieces.Count;
-                    int maxTrackRequest = 35;
-                    int trackedRequests = 0;
-                    double loopCount = Math.Ceiling(requestTrackingCount / (float)maxTrackRequest);
+                    generalSvc.USPSTrackingCall(pendingUSPSTrackingMps, false);
 
-                    var returnTrackingInfo = mailPieces.Where(mp => !string.IsNullOrWhiteSpace(mp.ReturnTrackingNo) && mp.ReturnTrackingNo.StartsWith("9"));
+                    var returnUSPSTrackingInfo = mailPieces.Where(mp => !string.IsNullOrWhiteSpace(mp.ReturnTrackingNo) && mp.ReturnTrackingNo.StartsWith("9")).ToList();
 
-                    for (double i = 0; i < loopCount; i++)
-                    {
-                        List<TrackID> trackIDs = new List<TrackID>();
-                        mailPieces.Skip(trackedRequests).Take(maxTrackRequest).ToList().ForEach(r =>
-                        {
-                            trackIDs.Add(new TrackID() { ID = r.TrackingNo });
-                        });
+                    var pendingUSPSReturnTrackingMps = returnUSPSTrackingInfo.Where(mp => mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() || (!mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() && !mp.ReturnDeliveryStatus.ToLower().Contains("delivered"))).ToList();
 
-                        TrackFieldAPIRequest trackFieldRequest = new TrackFieldAPIRequest()
-                        {
-                            TrackID = trackIDs
-                        };
+                    generalSvc.USPSTrackingCall(pendingUSPSReturnTrackingMps, true);
 
-                        var trackingInfos = uspsSvc.GetTrackingDetailsAsync(commonSvc.GetSystemUserId(), trackFieldRequest).Result;
+                    var returnFedExTrackingInfo = mailPieces.Where(mp => !string.IsNullOrWhiteSpace(mp.ReturnTrackingNo) && (mp.ReturnTrackingNo.StartsWith("3") || mp.ReturnTrackingNo.StartsWith("7"))).ToList();
 
-                        if (trackingInfos.HasError)
-                        {
-                            log.Error($"Error occured while tracking shipment info for USPS {trackingInfos.Error}");
-                            continue;
-                        }
+                    var pendingFedExReturnTrackingMps = returnFedExTrackingInfo.Where(mp => mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() || (!mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() && !mp.ReturnDeliveryStatus.ToLower().Contains("delivered"))).ToList();
 
-                        trackedRequests += maxTrackRequest;
+                    fedExSvc.FedExTrackingCall(pendingFedExReturnTrackingMps, true);
 
-                        using (IMailPieceService mailPieceSvc = new MailPieceService())
-                        {
-                            foreach (var trackInfo in trackingInfos.TrackInfo)
-                            {
-                                log.Debug(trackInfo.ID);
-                                if (trackInfo == null || trackInfo.TrackSummary == null)
-                                {
-                                    log.Error("Tracking info not found.");
-                                    continue;
-                                }
-                                var shipmentDateTimeEst = (trackInfo.TrackSummary.EventDate + " " + trackInfo.TrackSummary.EventTime).Trim().AnyFormatToDateTime();
 
-                                var shipmentDateTimeUTC = shipmentDateTimeEst.HasValue ? (DateTime?)shipmentDateTimeEst.Value.EstToUtc() : null;
-
-                                var shipmentStatus = $"{trackInfo.TrackSummary.Event} on {shipmentDateTimeUTC} UTC at ({trackInfo.TrackSummary.EventCity},{trackInfo.TrackSummary.EventState})";
-
-                                mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(shipmentStatus, trackInfo.ID, Common.Now, trackInfo.TrackSummary.Event, shipmentDateTimeUTC, false);
-                            }
-                        }
-                    }
-
-                    trackedRequests = 0;
-
-                    loopCount = Math.Ceiling(returnTrackingInfo.Count() / (float)maxTrackRequest);
-
-                    for (double i = 0; i < loopCount; i++)
-                    {
-                        List<TrackID> trackIDs = new List<TrackID>();
-                        returnTrackingInfo.Skip(trackedRequests).Take(maxTrackRequest).ToList().ForEach(r =>
-                        {
-                            trackIDs.Add(new TrackID() { ID = r.ReturnTrackingNo });
-                        });
-
-                        TrackFieldAPIRequest trackFieldRequest = new TrackFieldAPIRequest()
-                        {
-                            TrackID = trackIDs
-                        };
-
-                        var trackingInfos = uspsSvc.GetTrackingDetailsAsync(commonSvc.GetSystemUserId(), trackFieldRequest).Result;
-
-                        if (trackingInfos.HasError)
-                        {
-                            log.Error($"Error occured while tracking shipment info for USPS {trackingInfos.Error}");
-                            continue;
-                        }
-
-                        trackedRequests += maxTrackRequest;
-
-                        using (IMailPieceService mailPieceSvc = new MailPieceService())
-                        {
-                            foreach (var trackInfo in trackingInfos.TrackInfo)
-                            {
-                                log.Debug(trackInfo.ID);
-                                if (trackInfo == null || trackInfo.TrackSummary == null)
-                                {
-                                    log.Error("Tracking info not found.");
-                                    continue;
-                                }
-                                var shipmentDateTimeEst = (trackInfo.TrackSummary.EventDate + " " + trackInfo.TrackSummary.EventTime).Trim().AnyFormatToDateTime();
-
-                                var shipmentDateTimeUTC = shipmentDateTimeEst.HasValue ? (DateTime?)shipmentDateTimeEst.Value.EstToUtc() : null;
-
-                                var shipmentStatus = $"{trackInfo.TrackSummary.Event} on {shipmentDateTimeUTC} UTC at ({trackInfo.TrackSummary.EventCity},{trackInfo.TrackSummary.EventState})";
-
-                                mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(shipmentStatus, trackInfo.ID, Common.Now, trackInfo.TrackSummary.Event, shipmentDateTimeUTC, true);
-                            }
-                        }
-                    }
                 }
                 log.Info("USPS eVS Tracking Process Completed");
             }

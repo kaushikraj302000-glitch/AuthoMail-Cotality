@@ -33,14 +33,14 @@ namespace AM.Services
         List<SupplyInventoryVM> SupplyInventoryReport(List<string> envelopes);
         MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
         List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo);
-        List<FedExReport> GetFedExData(int[] isPickedUp = null);
+        List<TrackingReport> GetFedExData(int[] isPickedUp = null);
         string GetAppcodeByClientid(int clientId);
         List<string> GetMonthlyReconDate(int clientId);
         List<GOSMailPieceData> GetGOSDailyReconReport(DateTime currentDate);
-        List<GOSMailPieceData> GetGOSDataPointReport(DateTime startDate, DateTime endDate);
-        List<FedExReport> GetFedExDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null);
+        List<GOSMailPieceData> GetGOSDataPointReport(DateTime startDate, DateTime endDate, List<string> clientCodes = null);
+        List<TrackingReport> GetFedExDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null, List<string> clientCodes = null);
         List<MailPieces> GetMailPiecesDataBetweenDates(DateTime startDate, DateTime endDate, int clientId);
-        List<USPSeVSReport> GetUSPSeVSDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null);
+        List<TrackingReport> GetUSPSeVSDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null, List<string> clientCodes = null);
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(List<int> printBatchIds);
         List<MailPieces> GetMailPiecesDataFromMailPieceId(List<int> mpIds);
         MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate);
@@ -502,7 +502,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             return data;
         }
 
-        public List<FedExReport> GetFedExData(int[] isPickedUp)
+        public List<TrackingReport> GetFedExData(int[] isPickedUp)
         {
             isPickedUp = isPickedUp ?? new int[0];
             //Possible values are for isPickedUp parameter is : 1-for today's pickedup records, 0-for today's not pickedup records and default -1 for previous not pickedup records
@@ -517,7 +517,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             if (isPickedUp.Any(i => i == 0) && isPickedUp.Any(i => i == -1))
             {
                 //This will provide previous and today's not picked up records
-                var data = db.Query<FedExReport>(queryPreviousNotPickedUp + " UNION " + queryTodayNotPickedUp, new
+                var data = db.Query<TrackingReport>(queryPreviousNotPickedUp + " UNION " + queryTodayNotPickedUp, new
                 {
                     todayEffectiveDate = Common.EstToday,
                 }).ToList();
@@ -526,7 +526,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             else if (isPickedUp.Any(i => i == 0) && isPickedUp.Any(i => i == 1))
             {
                 //This will provide today's not picked up and picked up records
-                var data = db.Query<FedExReport>(queryTodayNotPickedUp + " UNION " + queryTodayPickedUp, new
+                var data = db.Query<TrackingReport>(queryTodayNotPickedUp + " UNION " + queryTodayPickedUp, new
                 {
                     todayEffectiveDate = Common.EstToday,
                 }).ToList();
@@ -535,7 +535,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             else if (isPickedUp.Any(i => i == 0))
             {
                 //This will provide today's not picked up records
-                var data = db.Query<FedExReport>(queryTodayNotPickedUp, new
+                var data = db.Query<TrackingReport>(queryTodayNotPickedUp, new
                 {
                     todayEffectiveDate = Common.EstToday,
                 }).ToList();
@@ -544,7 +544,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             else if (isPickedUp.Any(i => i == -1))
             {
                 //This will provide today's not picked up records
-                var data = db.Query<FedExReport>(queryPreviousNotPickedUp, new
+                var data = db.Query<TrackingReport>(queryPreviousNotPickedUp, new
                 {
                     todayEffectiveDate = Common.EstToday,
                 }).ToList();
@@ -553,7 +553,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             else
             {
                 //This will provide today's picked up records
-                var data = db.Query<FedExReport>(queryTodayPickedUp, new
+                var data = db.Query<TrackingReport>(queryTodayPickedUp, new
                 {
                     todayEffectiveDate = Common.EstToday,
                 }).ToList();
@@ -587,9 +587,16 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             return db.Query<GOSMailPieceData>(query, new { EffectiveReceivedOn = currentDate }).ToList();
         }
 
-        public List<GOSMailPieceData> GetGOSDataPointReport(DateTime startDate, DateTime endDate)
+        public List<GOSMailPieceData> GetGOSDataPointReport(DateTime startDate, DateTime endDate, List<string> clientCodes = null)
         {
-            string query = @"With cte AS
+            var filterByAppCode = string.Empty;
+
+            if (clientCodes != null)
+            {
+                filterByAppCode = " AND AppCode IN @AppCodes";
+            }
+
+            string query = $@"With cte AS
                             (
 	                            SELECT P.Id, C.AppCode, B.BatchName, dbo.ufn_UTCToEST(B.ReceivedOn) AS ReceivedOnEst, P.BusinessfriendlyIdValue AS LoanNumber,
 	                            P.DocumentOrPackageType,P.FileName, P.RcptFirstName +' '+ P.RcptLastName AS BorrowerName,P.TrackingNo,P.ShippingStatus,P.TotalPages,  dbo.ufn_UTCToEST(ShippedOn) AS ShippedOnEst,
@@ -598,7 +605,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
 	                            INNER JOIN AM.MailBatches B ON P.MailBatchId=B.Id 
 	                            INNER JOIN Common.Clients C ON P.ClientId=C.Id
                                 INNER JOIN Common.PnSConfigDetail PCD ON P.PnSConfigDetailId=PCD.Id
-	                            WHERE B.ClientId IN (SELECT Id FROM Common.Clients WHERE Alias='GOS') 
+	                            WHERE B.ClientId IN (SELECT Id FROM Common.Clients WHERE Alias='GOS' {filterByAppCode}) 
 	                            AND CAST(P.EffectiveReceivedOnEst AS DATE) BETWEEN @StartDate AND @EndDate
                             ), cte2 AS
                             (
@@ -611,7 +618,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
 		                            WHERE MailPieceId IN 
 		                            (
 			                            SELECT Id FROM AM.MailPieces 
-			                            WHERE ClientId IN (SELECT Id FROM Common.Clients WHERE Alias='GOS')
+			                            WHERE ClientId IN (SELECT Id FROM Common.Clients WHERE Alias='GOS' {filterByAppCode})
 			                            AND CAST(EffectiveReceivedOnEst AS DATE) BETWEEN @StartDate AND @EndDate
 		                            )
 		                            AND [Key]='ProductCode'
@@ -625,23 +632,29 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
                             SELECT * 
                             FROM cte
                             LEFT OUTER JOIN cte2 ON cte.Id=cte2.MailPieceId";
-            return db.Query<GOSMailPieceData>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
+            return db.Query<GOSMailPieceData>(query, new { StartDate = startDate, EndDate = endDate, AppCodes = clientCodes }).ToList();
         }
 
-        public List<FedExReport> GetFedExDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null)
+        public List<TrackingReport> GetFedExDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null, List<string> clientCodes = null)
         {
-            string query = "SELECT * FROM [dbo].[view_FedExData] WHERE DueDate BETWEEN @startDueDate AND @endDueDate AND (ShipmentStatus NOT LIKE '%delivered%' OR ShipmentStatus NOT LIKE '%Delivered%' OR ShipmentStatus IS NULL)";
+            string query = "SELECT * FROM [dbo].[view_FedExData] WHERE DueDate BETWEEN @startDueDate AND @endDueDate AND ((DeliveryStatus NOT LIKE '%delivered%' OR DeliveryStatus NOT LIKE '%Delivered%' OR DeliveryStatus IS NULL) OR (ReturnDeliveryStatus NOT LIKE '%delivered%' OR ReturnDeliveryStatus NOT LIKE '%Delivered%' OR ReturnDeliveryStatus IS NULL))";
 
             if (!alias.IsNullOrWhiteSpace())
             {
                 query += $" AND ClientId IN (SELECT Id FROM Common.Clients WHERE Alias='{alias}')";
             }
 
+            if (clientCodes != null)
+            {
+                query += $" AND ClientId IN (SELECT Id FROM Common.Clients WHERE AppCode IN @AppCodes)";
+            }
+
             //This will provide previous and today's not picked up records
-            var data = db.Query<FedExReport>(query, new
+            var data = db.Query<TrackingReport>(query, new
             {
                 startDueDate = startDueDate.EstToUtc(),
-                endDueDate = endDueDate.EstToUtc()
+                endDueDate = endDueDate.EstToUtc(),
+                AppCodes = clientCodes
             }).ToList();
             return data;
         }
@@ -716,20 +729,26 @@ LEFT OUTER JOIN Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
 
         }
 
-        public List<USPSeVSReport> GetUSPSeVSDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null)
+        public List<TrackingReport> GetUSPSeVSDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null, List<string> clientCodes = null)
         {
-            string query = "SELECT * FROM [dbo].[view_USPSData] WHERE DueDate BETWEEN @startDueDate AND @endDueDate AND (ShipmentStatus NOT LIKE '%delivered%' OR ShipmentStatus NOT LIKE '%Delivered%' OR ShipmentStatus IS NULL)";
+            string query = "SELECT * FROM [dbo].[view_USPSData] WHERE DueDate BETWEEN @startDueDate AND @endDueDate AND ((DeliveryStatus NOT LIKE '%delivered%' OR DeliveryStatus NOT LIKE '%Delivered%' OR DeliveryStatus IS NULL) OR (ReturnDeliveryStatus NOT LIKE '%delivered%' OR ReturnDeliveryStatus NOT LIKE '%Delivered%' OR ReturnDeliveryStatus IS NULL))";
 
-            if (!query.IsNullOrWhiteSpace())
+            if (!alias.IsNullOrWhiteSpace())
             {
                 query += $" AND ClientId IN (SELECT Id FROM Common.Clients WHERE Alias='{alias}')";
             }
 
+            if (clientCodes != null)
+            {
+                query += $" AND ClientId IN (SELECT Id FROM Common.Clients WHERE AppCode IN @AppCodes)";
+            }
+
             //This will provide previous and today's not picked up records
-            var data = db.Query<USPSeVSReport>(query, new
+            var data = db.Query<TrackingReport>(query, new
             {
                 startDueDate = startDueDate.EstToUtc(),
-                endDueDate = endDueDate.EstToUtc()
+                endDueDate = endDueDate.EstToUtc(),
+                AppCodes = clientCodes
             }).ToList();
             return data;
         }

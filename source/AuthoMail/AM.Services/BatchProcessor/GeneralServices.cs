@@ -1,6 +1,7 @@
 ﻿using AM.Entities;
 using AM.Lib;
 using AM.Services.Services;
+using AM.USPSLib.TrackV2;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Asn1.Ocsp;
@@ -30,6 +31,8 @@ namespace AM.Services
         string GeneralJsonReport(string mpUniqueId);
         Task<HttpResponseMessage> SendAPIResponse(HttpClient httpClient, string responseURL, IEnumerable<MailAPIResponse> responseReport);
         string GeneralXMLReport(List<MailPieces> mailPieces, string clientCode);
+
+        void USPSTrackingCall(List<TrackingReport> mailPieces, bool isReturnTracking);
     }
 
     public class GeneralService : ServiceBase, IGeneralService
@@ -351,6 +354,58 @@ namespace AM.Services
             catch (Exception ex)
             {
                 return ex.ToString();
+            }
+        }
+
+        public void USPSTrackingCall(List<TrackingReport> mailPieces, bool isReturnTracking)
+        {
+            int requestTrackingCount = mailPieces.Count;
+            int maxTrackRequest = 35;
+            int trackedRequests = 0;
+            double loopCount = Math.Ceiling(requestTrackingCount / (float)maxTrackRequest);
+            using (IUSPSService uspsSvc = new USPSService())
+            using (ICommonService commonSvc = new CommonService())
+            {
+                for (double i = 0; i < loopCount; i++)
+                {
+                    List<TrackID> trackIDs = new List<TrackID>();
+                    mailPieces.Skip(trackedRequests).Take(maxTrackRequest).ToList().ForEach(r =>
+                    {
+                        trackIDs.Add(new TrackID() { ID = isReturnTracking ? r.ReturnTrackingNo : r.TrackingNo });
+                    });
+
+                    TrackFieldAPIRequest trackFieldRequest = new TrackFieldAPIRequest()
+                    {
+                        TrackID = trackIDs
+                    };
+
+                    var trackingInfos = uspsSvc.GetTrackingDetailsAsync(commonSvc.GetSystemUserId(), trackFieldRequest).Result;
+
+                    if (trackingInfos.HasError)
+                    {
+                        continue;
+                    }
+
+                    trackedRequests += maxTrackRequest;
+
+                    using (IMailPieceService mailPieceSvc = new MailPieceService())
+                    {
+                        foreach (var trackInfo in trackingInfos.TrackInfo)
+                        {
+                            if (trackInfo == null || trackInfo.TrackSummary == null)
+                            {
+                                continue;
+                            }
+                            var shipmentDateTimeEst = (trackInfo.TrackSummary.EventDate + " " + trackInfo.TrackSummary.EventTime).Trim().AnyFormatToDateTime();
+
+                            var shipmentDateTimeUTC = shipmentDateTimeEst.HasValue ? (DateTime?)shipmentDateTimeEst.Value.EstToUtc() : null;
+
+                            var shipmentStatus = $"{trackInfo.TrackSummary.Event} on {shipmentDateTimeUTC} UTC at ({trackInfo.TrackSummary.EventCity},{trackInfo.TrackSummary.EventState})";
+
+                            mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(shipmentStatus, trackInfo.ID, Common.Now, trackInfo.TrackSummary.Event, shipmentDateTimeUTC, isReturnTracking);
+                        }
+                    }
+                }
             }
         }
     }
