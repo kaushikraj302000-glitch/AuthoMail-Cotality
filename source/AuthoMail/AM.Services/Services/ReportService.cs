@@ -44,6 +44,8 @@ namespace AM.Services
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(List<int> printBatchIds);
         List<MailPieces> GetMailPiecesDataFromMailPieceId(List<int> mpIds);
         MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate);
+        List<PrintVendor> GetActivePrintVendors();
+        List<MonthlyReconReportViewModel> GetPVReconReport(int? pvId, DateTime startDate, DateTime endDate);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -72,6 +74,7 @@ namespace AM.Services
                 ).ToList();
             return data;
         }
+
         public List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
         {
             string query = "[dbo].[uspweb_ErrorReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
@@ -192,6 +195,11 @@ namespace AM.Services
             string query = "SELECT Code,Title FROM [Common].[SFTChannels] WHERE IsActive=1 AND Id in (select SFTChannelId from [Common].[ClientSFTChannels] WHERE ClientId=@clientId)";
             var channelList = db.Query<ChannelCodeTitle>(query, new { clientId = clientId }).ToList();
             return channelList;
+        }
+
+        public List<PrintVendor> GetActivePrintVendors()
+        {
+            return db.Query<PrintVendor>("SELECT * FROM Common.PrintVendors WHERE IsActive=1").ToList();
         }
 
         public List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate)
@@ -637,6 +645,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             }).ToList();
             return data;
         }
+
         public List<MailPieces> GetMailPiecesDataBetweenDates(DateTime startDate, DateTime endDate, int clientId)
         {
             var mailPieceDictionary = new Dictionary<int, MailPieces>();
@@ -787,6 +796,21 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
                     MPIds = mpIds
                 }, splitOn: "Id,Id,MailPieceId").Distinct().ToList();
             return data;
+        }
+
+        public List<MonthlyReconReportViewModel> GetPVReconReport(int? pvId, DateTime startDate, DateTime endDate)
+        {
+            string query = "[dbo].[uspweb_PVReconReport] @pvId, @startDate, @endDate";
+            startDate = startDate.ToStartDateTime();
+            endDate = endDate.ToEndDateTime();
+            var data = db.Query<MonthlyReconReportViewModel>(query,
+                new
+                {
+                    pvId = pvId,
+                    startDate = startDate,
+                    endDate = endDate
+                }).ToList();
+            return data != null ? data.OrderBy(d => d.SubmittedOn).ToList() : data;
         }
     }
 }

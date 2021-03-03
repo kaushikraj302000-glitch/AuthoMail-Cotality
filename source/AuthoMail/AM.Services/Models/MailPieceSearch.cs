@@ -545,46 +545,40 @@ namespace AM.Services
 
     public class MonthlyReconReportViewModel
     {
-        public Guid UniqueId { get; set; }
+        public string AppCode { get; set; }
         public string BatchName { get; set; }
+        public Guid UniqueId { get; set; }
         public string LoanNumber { get; set; }
-        public string FileName { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Address { get; set; }
         public string City { get; set; }
         public string State { get; set; }
         public string ZIP { get; set; }
-        public string DocType { get; set; }
-        public bool IsEDeliveryRequested { get; set; }
         public string Channel { get; set; }
-        public string PrintLocation { get; set; }
-        public string ShippingMethod { get; set; }
-        public string TrackingNo { get; set; }
-        public int TotalPages { get; set; }
-        public int TotalBlankPages { get; set; }
+        public string DocType { get; set; }
         public DateTime? ReceivedOn { get; set; }
-        //public DateTime? PrintedOn { get; set; }
         public DateTime? ShippedOn { get; set; }
-        //public DateTime? PickedUpOn { get; set; }
+        public DateTime? PulledBackOn { get; set; }
+        public string PrintLocation { get; set; }
         public string Status { get; set; }
-        public string AppCode { get; set; }
-        //public int? JobId { get; set; }
-        //public int? PieceId { get; set; }
-        public string ErrorDesc { get; set; }
-        //public string PdfReceivedPath
-        //{
-        //    get
-        //    {
-        //        if (this.JobId == null || this.PieceId == null) return null;
-        //        return string.Format(@"ReturnPdfs\{0}\{1}\{2}-{3}-{4}_{5}", this.AppCode, this.JobId, this.JobId, this.PieceId, this.MailPieceId, this.FileName);
-        //    }
-        //}
-        public string Inserts { get; set; }
-        public string PrintFileName { get; set; }
+        public string TrackingNo { get; set; }
+        public string FileName { get; set; }
+        public int TotalPages { get; set; }
+        public int TotalSheets { get; set; }
+        public int LetterPageCount { get; set; }
+        public int LegalPageCount { get; set; }
+        public int TotalBlankPages { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
+        public string ShippingMethod { get; set; }
         public string EnvelopeName { get; set; }
+        public string ErrorDesc { get; set; }
+        public string Inserts { get; set; }
+        public string PrintBatchName { get; set; }
+        public DateTime? SubmittedOn { get; set; }
         public DateTime? DeliveryDate { get; set; }
         public string DeliveryStatus { get; set; }
+        public decimal ShippingCost { get; set; }
     }
 
 }

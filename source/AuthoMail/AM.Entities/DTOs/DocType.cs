@@ -234,6 +234,7 @@ namespace AM.Entities
         public string BusinessCode { get; set; }
         public string VendorCode { get; set; }
         public int ShipperId { get; set; }
+        public bool IsActive { get; set; }
     }
 
     public class PrintTrail

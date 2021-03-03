@@ -1,0 +1,89 @@
+﻿@{
+    ViewBag.Title = "Print Vendor Recon Report";
+}
+
+<link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
+<script src="~/clui/dist/js/vendor/moment.js"></script>
+<style>
+    .col-md-1, .col-md-2, .col-md-3 {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    .show-calendar {
+        width: 484px !important;
+    }
+
+    #dateFilter .bootstrap-select, #DocTypeSize .bootstrap-select {
+        width: 100% !important;
+    }
+
+    .bootstrap-select {
+        width: 205px !important;
+    }
+</style>
+<div class="panel-group">
+    <div class="panel panel-default">
+        <div class="panel-heading" id="headingOne">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#metaItem1">
+                <div class="panel-title">
+                    Print Vendor Recon Report
+                    <div class="collapsed-icon pull-right">
+                        <i class="fa fa-caret-left"></i>
+                    </div>
+                    <div class="expanded-icon pull-right">
+                        <i class="fa fa-caret-down"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div id="metaItem1" class="panel-collapse collapse in">
+            <div class="panel-body">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="date"><span id="ByDate">Print Vendor Submitted Date</span> (EST)</label>
+                        <div class="input-group daterange" id="datepicker4">
+                            <input type="text" class="form-control" id="date">
+                            <span class="input-group-addon">
+                                <i class="fa fa-calendar"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="Channel">Print Vendors</label>
+                        @Html.Action("_PrintVendorList", "Common")
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <div class="form-group ">
+                        <label for="input1"></label>
+                        <button type="button" id="filterData" class="btn btn-primary" style=" padding-top: 6%;">
+                            <span class="sr-only">Filter</span>
+                            <i class="fa fa-download"></i> Download Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- end table template code -->
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            window.clui.dateTimePickerInit();
+            window.clui.tooltipInit();
+        });
+
+        $("#filterData").click(function () {
+            debugger;
+            var selectedData = $("#date").val().split('-');
+            var startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
+            var endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
+            var url = baseUrl + "Report/DownloadPVReconReport?startDate=<startDate>&endDate=<endDate>&pvId=<channel>&fileName=<fileName>&timezoneOffset=<timezoneOffset>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#PrintVendors").val()).replace("<fileName>", "PVReconReport").replace("<timezoneOffset>", new Date().getTimezoneOffset());
+            window.location = url;
+        });
+    </script>
+}
