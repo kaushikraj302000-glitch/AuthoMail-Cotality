@@ -126,16 +126,10 @@ namespace PCI.Service
 
         private static void SubmitBatches(List<PrintTrailBatch> ptBatchList, string pvCode)
         {
-            var job = new List<Task>();
-            foreach (PrintTrailBatch ptBatch in ptBatchList)
+            Parallel.ForEach(ptBatchList, (ptBatch) =>
             {
-                log.Info("Task execution started for PrintTrailBatchId : {0}".Fill(ptBatch.Id));
-                var task = Task.Run(() => { ProcessPrintTrailBatches(ptBatch, pvCode); });
-                log.Info("Task execution completed for PrintTrailBatchId : {0}".Fill(ptBatch.Id));
-                job.Add(task);
-                Thread.Sleep(2000);
-            }
-            Task.WhenAll(job).Wait();
+                ProcessPrintTrailBatches(ptBatch, pvCode);
+            });
         }
 
         private static void ProcessPrintTrailBatches(PrintTrailBatch ptBatch, string pvCode)
@@ -811,7 +805,7 @@ namespace PCI.Service
                     File.Delete(Path.Combine(bundlingRootPath, Path.GetFileName(localResponseFilePath)));
 
                 File.Move(localResponseFilePath, Path.Combine(bundlingRootPath, Path.GetFileName(localResponseFilePath)));
-                
+
                 log.Debug($"MRDF Response File {fileName} Received On {responseReceivedOn} For PrintTrailBatchId : {printTrailBatchId}");
 
                 log.DebugFormat("Response moved in proper batch folder : {0} after batch identified.", printTrailBatchId);
