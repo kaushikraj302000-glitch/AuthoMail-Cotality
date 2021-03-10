@@ -26,6 +26,7 @@ namespace AM.Entities
         public string CommunityCode { get; set; }
         public string ClientId { get; set; }
         public string ClientCode { get; set; }
+        public string RequestorName { get; set; }
     }
 
     public class CustomTemplate

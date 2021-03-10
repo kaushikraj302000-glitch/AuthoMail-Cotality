@@ -267,6 +267,7 @@ namespace AM.Console
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CommunityName", Value = loanInfo.CommunityName });
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CommunityCode", Value = loanInfo.CommunityCode });
                         mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "ClientId", Value = loanInfo.ClientId });
+                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "RequestorName", Value = loanInfo.RequestorName });
 
                         mp.RecipientInfo = recipientInfo;
                         mp.CustomInfo = mpCustInfo;
@@ -420,6 +421,7 @@ namespace AM.Console
             caponeValues.CommunityCode = values[14].RemoveCSVStringFormat();
             caponeValues.LoanNumber = values[15].RemoveCSVStringFormat();
             caponeValues.NoticeDate = values[18].RemoveCSVStringFormat().AnyFormatToDateTimeString();
+            caponeValues.RequestorName = values[21].RemoveCSVStringFormat().Trim();
             caponeValues.ClientId = values[22].RemoveCSVStringFormat();
             caponeValues.ClientCode = values[23].RemoveCSVStringFormat().Trim();
             return caponeValues;
