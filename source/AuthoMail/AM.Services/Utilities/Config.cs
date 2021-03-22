@@ -280,6 +280,10 @@ namespace AM.Services
 
         #endregion             
 
+        #region Web Pdf File API Url
+        [Description("Web Pdf File API Url")]
+        public static string Web_Pdf_API_Url { get; private set; }
+        #endregion
 
         private static List<string> errors;
         static Config()
