@@ -300,8 +300,10 @@ namespace PCI.Service
 
         private static void PrepAndUploadStage(PrintTrailBatch ptBatchDetails)
         {
+            log.Info($"PrepAndUploadStage Processing Started For PrintTrailBatchId : {ptBatchDetails.Id}");
             var ptDetails = DAL.GetPrintTrailDetailByPrintTrailId(ptBatchDetails.PrintTrailId);
 
+            log.Info($"Fetching MailPiece List : {ptBatchDetails.Id}");
             var mpList = DAL.GetMRDFRequestListByPrintTrailBatchId(ptBatchDetails.Id);
 
             if (mpList.Count == 0)
@@ -314,17 +316,20 @@ namespace PCI.Service
             {
                 if (ptDetails.VendorCode == "CL_DALLAS")
                 {
-                    log.InfoFormat("Uploading Started For PrintTrailBatchId : {0}", ptBatchDetails.Id);
+                    log.InfoFormat("Uploading Dallas Started For PrintTrailBatchId : {0}", ptBatchDetails.Id);
                     CreateDallasBatch(mpList, ptDetails);
-                    log.InfoFormat("Uploading Completd For PrintTrailBatchId : {0}", ptBatchDetails.Id);
+                    log.InfoFormat("Uploading Dallas Completd For PrintTrailBatchId : {0}", ptBatchDetails.Id);
                 }
                 else
                 {
+                    log.InfoFormat("Preparing Nordis Started For PrintTrailBatchId : {0}", ptBatchDetails.Id);
+
                     //NOTE: Bundling folder structure will be like : BundlingRoot/PrintTrailBatchId/Request & Response
                     var batchRequestPath = Path.Combine(Common.BundlingRootFolder, ptBatchDetails.Id.ToString(), Common.BundlingRequestFolderName);
 
                     var batchResponsePath = Path.Combine(Common.BundlingRootFolder, ptBatchDetails.Id.ToString(), Common.BundlingResponseFolderName);
 
+                    log.InfoFormat("Creating Batch Folders For PrintTrailBatchId : {0}", ptBatchDetails.Id);
                     batchRequestPath.CreateDirectoryIfNotExist();
                     Thread.Sleep(1000);
                     batchResponsePath.CreateDirectoryIfNotExist();
@@ -332,14 +337,20 @@ namespace PCI.Service
                     //For NORDIS OR Any Other Print Vendor
                     var zipFilePath = Path.Combine(batchRequestPath, ptBatchDetails.PrintBatchName + ".zip");
                     var xmlFilePath = Path.Combine(batchRequestPath, ptBatchDetails.PrintBatchName + ".xml");
-
+                   
+                    log.InfoFormat("Creating Batch For PrintTrailBatchId : {0}", ptBatchDetails.Id);
                     string batchPath = CreateNordisBatch(mpList, ptBatchDetails, zipFilePath, xmlFilePath);
+                    log.InfoFormat("Creating Batch For PrintTrailBatchId : {0}", ptBatchDetails.Id);
 
                     log.InfoFormat("Uploading Started For PrintTrailBatchId : {0}", ptBatchDetails.Id);
                     UploadBatchToPrintVendorSite(batchPath, ptDetails);
                     log.InfoFormat("Uploading Completd For PrintTrailBatchId : {0}", ptBatchDetails.Id);
+
+                    log.InfoFormat("Preparing Nordis Completd For PrintTrailBatchId : {0}", ptBatchDetails.Id);
                 }
             }
+
+            log.Info($"PrepAndUploadStage Processing Completed For PrintTrailBatchId : {ptBatchDetails.Id}");
         }
 
         private static void SubmitStage(PrintTrailBatch ptBatchDetails)
