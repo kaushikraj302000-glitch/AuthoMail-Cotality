@@ -29,6 +29,7 @@ namespace AM.Services
         List<MailPieceDTO> GetMailPiecesForUATBridge(DateTime utcStartDate, int clientId);
         List<MailPieceCustomInfo> GetMailPieceCustomInfos(int mailPieceId);
         BatchResponse GetMailPieceDetailsByMailPieceUniqueId(string uniqueId);
+        MailPieceDTO GetMailPieceDetailsByMailPieceUniqueIdTest(string uniqueId);
         Task<IEnumerable<BatchResponse>> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId);
         List<MBInfo> GetReportedBackRecordsFromUATBridge();
         List<MBInfo> GetPnSReportedBackRecordsFromUATBridge();
@@ -282,14 +283,92 @@ namespace AM.Services
 
         public BatchResponse GetMailPieceDetailsByMailPieceUniqueId(string uniqueId)
         {
-            string query = @"SELECT MP.*,MB.ReceivedOn,CC.AppCode,D.ShippingCarrier,D.ShippingServiceType from AM.MailPieces MP 
+//            string query = @"SELECT MP.*,MB.ReceivedOn,CC.AppCode,D.ShippingCarrier,D.ShippingServiceType from AM.MailPieces MP 
+//inner join AM.MailBatches MB ON MP.MailBatchId = MB.Id
+//inner join Common.Clients CC ON MP.ClientId = CC.Id
+//left outer join [dbo].[v_DocTypes] D ON MP.DocTypeId=D.Id and MP.PnSConfigDetailId = D.PnSConfigDetailId
+//where MP.UniqueId = @UniqueId
+//";
+
+            string query = @"SELECT * FROM
+(
+SELECT MP.*,MB.ReceivedOn,CC.AppCode,D.ShippingCarrier,D.ShippingServiceType from AM.MailPieces MP 
 inner join AM.MailBatches MB ON MP.MailBatchId = MB.Id
 inner join Common.Clients CC ON MP.ClientId = CC.Id
 left outer join [dbo].[v_DocTypes] D ON MP.DocTypeId=D.Id and MP.PnSConfigDetailId = D.PnSConfigDetailId
 where MP.UniqueId = @UniqueId
+)X
+INNER JOIN 
+(
+SELECT * FROM AM.MailPieceCustomInfo
+WHERE MailPieceId = (SELECT Id FROM AM.MailPieces WHERE UniqueId=@UniqueId)
+)Y ON Y.MailPieceId=X.Id
 ";
 
-            return db.QuerySingleOrDefault<BatchResponse>(query, new { UniqueId = uniqueId });
+            var mailPieceDictionary = new Dictionary<int, BatchResponse>();
+
+            var data = db.Query<BatchResponse, MailPieceCustomInfo, BatchResponse>(query,
+            (m, c) =>
+            {
+                BatchResponse mp;
+
+                if (!mailPieceDictionary.TryGetValue(m.Id, out mp))
+                {
+                    mp = m;
+                    mp.MailPieceCustomInfo = new List<MailPieceCustomInfo>();
+                    mailPieceDictionary.Add(mp.Id, mp);
+                }
+
+                mp.MailPieceCustomInfo.Add(c);
+                return mp;
+            },
+            new
+            {
+                UniqueId = uniqueId
+            }, splitOn: "Id,MailPieceId").Distinct().ToList();
+            return data.SingleOrDefault();
+            //return db.QuerySingleOrDefault<BatchResponse>(query, new { UniqueId = uniqueId });
+        }
+
+        public MailPieceDTO GetMailPieceDetailsByMailPieceUniqueIdTest(string uniqueId)
+        {
+            string query = @"SELECT * FROM
+(
+SELECT MP.*,MB.ReceivedOn,CC.AppCode,D.ShippingCarrier,D.ShippingServiceType from AM.MailPieces MP 
+inner join AM.MailBatches MB ON MP.MailBatchId = MB.Id
+inner join Common.Clients CC ON MP.ClientId = CC.Id
+left outer join [dbo].[v_DocTypes] D ON MP.DocTypeId=D.Id and MP.PnSConfigDetailId = D.PnSConfigDetailId
+where MP.UniqueId = @UniqueId
+)X
+INNER JOIN 
+(
+SELECT * FROM AM.MailPieceCustomInfo
+WHERE MailPieceId = (SELECT Id FROM AM.MailPieces WHERE UniqueId=@UniqueId)
+)Y ON Y.MailPieceId=X.Id
+";
+
+            var mailPieceDictionary = new Dictionary<int, MailPieceDTO>();
+
+            var data = db.Query<MailPieceDTO, MailPieceCustomInfo, MailPieceDTO>(query,
+            (m, c) =>
+            {
+                MailPieceDTO mp;
+
+                if (!mailPieceDictionary.TryGetValue(m.Id, out mp))
+                {
+                    mp = m;
+                    mp.MailPieceCustomInfo = new List<MailPieceCustomInfo>();
+                    mailPieceDictionary.Add(mp.Id, mp);
+                }
+
+                mp.MailPieceCustomInfo.Add(c);
+                return mp;
+            },
+            new
+            {
+                UniqueId = uniqueId
+            }, splitOn: "Id,MailPieceId").Distinct().ToList();
+            return data.SingleOrDefault();
         }
 
         public List<MBInfo> GetReportedBackRecordsFromUATBridge()
