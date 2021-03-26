@@ -247,9 +247,11 @@ namespace AM.Web.Controllers
                 var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
 
                 List<Client> floodClients;
+                List<Client> gosClients;
                 using (IClientService clientSvc = new ClientService())
                 {
                     floodClients = clientSvc.GetClientsByAlias("Flood Integration");
+                    gosClients = clientSvc.GetClientsByAlias("GOS-Print Ready");
                 }
                 if (!floodClients.Select(x => x.Id).Intersect(clientId).Any())
                 {
@@ -259,7 +261,12 @@ namespace AM.Web.Controllers
                     dataTable.Columns.Remove("PropertyState");
                     dataTable.Columns.Remove("PropertyZip");
                 }
-                    var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+
+                if (!gosClients.Select(x => x.Id).Intersect(clientId).Any())
+                {
+                    dataTable.Columns.Remove("ProductCode");
+                }
+                var memoryStream = ExcelHelper.ExportDataSet(dataTable);
                 memoryStream.Seek(0, SeekOrigin.Begin);
 
                 string fileGuid = Guid.NewGuid().ToString();

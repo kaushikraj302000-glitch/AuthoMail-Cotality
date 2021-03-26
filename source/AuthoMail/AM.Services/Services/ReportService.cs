@@ -394,18 +394,35 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
                 throw new Exception("Date filter required.");
 
             List<Client> floodClients;
+            List<Client> gosClients;
             using (IClientService clientSvc = new ClientService())
             {
                 floodClients = clientSvc.GetClientsByAlias("Flood Integration");
+                gosClients = clientSvc.GetClientsByAlias("GOS-Print Ready");
             }
-            string floodColumns = string.Empty;
-            string floodQuery = string.Empty;
+
+            string extraColumns = string.Empty;
+            string extraQuery = string.Empty;
+            string columnList = string.Empty;
 
             if (floodClients.Select(x => x.Id).Intersect(clientId).Any())
             {
-                floodColumns = " , CST.[RequestorName], CST.[PropertyStreetAddress], CST.[PropertyCity], CST.[PropertyState], CST.[PropertyZip]";
+                extraColumns = " ,CST.[RequestorName], CST.[PropertyStreetAddress], CST.[PropertyCity], CST.[PropertyState], CST.[PropertyZip]";
 
-                floodQuery = @"
+                columnList = "[RequestorName],[PropertyStreetAddress],[PropertyCity],[PropertyState],[PropertyZip]";
+            }
+
+
+            if (gosClients.Select(x => x.Id).Intersect(clientId).Any())
+            {
+                extraColumns = extraColumns.IsNullOrWhiteSpace() ? " ,CST.[ProductCode]" : extraColumns + " ,CST.[ProductCode]";
+
+                columnList = columnList.IsNullOrWhiteSpace() ? "[ProductCode]" : columnList + ",[ProductCode]";
+            }
+
+            if (!columnList.IsNullOrWhiteSpace())
+            {
+                extraQuery = $@"
                     LEFT OUTER JOIN 
                     (
 	                    SELECT *
@@ -418,10 +435,11 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
 	                    PIVOT
 	                    (
 		                    MAX([Value])
-		                    FOR [Key] IN ([RequestorName],[PropertyStreetAddress],[PropertyCity],[PropertyState],[PropertyZip])
+		                    FOR [Key] IN ({columnList})
 	                    )AS PVT
                     )CST on CST.MailPieceId=M.Id";
             }
+
 
             string query = $@"
                     SELECT M.Id as MailPieceId, M.BusinessFriendlyIdValue as LoanNumber, M.ShippingStatus as [Status], M.UniqueId,
@@ -431,7 +449,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
                     D.DocTypeName as DocType, (PCD.ShippingCarrier + '-' + PCD.ShippingServiceType) as ShippingMethod, M.DocumentOrPackageType,
                     M.TotalPages as PagesShipped,M.TotalBlankPages as BlankPages, M.DeliveryStatus, M.DeliveryDate, M.Inserts, CH.Title as Channel,
                     C.AppCode as ClientCode, E.EnvelopeName, PTB.PrintBatchName as PrintFileName, M.ReturnDeliveryStatus, M.ReturnDeliveryDate,
-                    M.ReturnTrackingNo {floodColumns}
+                    M.ReturnTrackingNo {extraColumns}
                     FROM [AM].[MailPieces] M
                     INNER JOIN [AM].[MailBatches] B ON M.MailBatchId=B.Id
                     INNER JOIN [Common].[Clients] C ON M.ClientId=C.Id
@@ -442,7 +460,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
                     LEFT OUTER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id
                     LEFT OUTER JOIN PnS.MRDFRequest REQ ON M.UniqueId=REQ.UniqueId
                     LEFT OUTER JOIN PnS.PrintTrailBatches PTB on REQ.PrintTrailBatchId=PTB.Id
-                    {floodQuery} WHERE 1=1";
+                    {extraQuery} WHERE 1=1";
 
             DynamicParameters parameter = new DynamicParameters();
             if (clientId != null && clientId.Count > 0)
