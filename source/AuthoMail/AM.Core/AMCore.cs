@@ -419,10 +419,13 @@ namespace AM.Core
 
                                     CreateFedExLabel createFedExLabel = new CreateFedExLabel();
 
+                                    //Here maintain original doc type for retry in unexpected errors
+                                    var originDocType = docType;
+
                                     #region FedEx Logic
                                     while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                     {
-                                        response = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi, shipperInfo);
+                                        response = createFedExLabel.Create(mailPiece, fedExAccInfo, originDocType, mbi, shipperInfo);
 
                                         if (!response.HasError)
                                         {
@@ -462,15 +465,8 @@ namespace AM.Core
                                                 }
                                                 else if (response.HasError && uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())))
                                                 {
-                                                    mailPiece.TotalPages = 0;
-                                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                                    mailPiece.ErrorDesc = response.ExceptionDetail;
-                                                    mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
-                                                    mailPiece.DueDate = null;
-                                                    mailPiece.PrintLocation = null;
-                                                    mailPiece.PrintTrailId = null;
-                                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                                    continue;
+                                                    //Known error so break from while loop and error out record
+                                                    break;
                                                 }
                                                 else if (response.HasError && (fallBackCodes.Any(code => code == response.ExceptionCode) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower()))))
                                                 {
@@ -508,19 +504,12 @@ namespace AM.Core
                                                     }
                                                     else if (response.HasError && uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())))
                                                     {
-                                                        mailPiece.TotalPages = 0;
-                                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                                        mailPiece.ErrorDesc = response.ExceptionDetail;
-                                                        mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
-                                                        mailPiece.DueDate = null;
-                                                        mailPiece.PrintLocation = null;
-                                                        mailPiece.PrintTrailId = null;
-                                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                                        continue;
+                                                        //Known error so break from while loop and error out record
+                                                        break;
                                                     }
                                                     else
                                                     {
-                                                        log.Error("Priority Express had some unexpected error {0}".Fill(response.ExceptionDetail));
+                                                        log.Error("Priority had some unexpected error {0}".Fill(response.ExceptionDetail));
                                                         System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
                                                         reTrycnt++;
                                                     }
@@ -564,15 +553,8 @@ namespace AM.Core
                                                 }
                                                 else if (response.HasError && uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())))
                                                 {
-                                                    mailPiece.TotalPages = 0;
-                                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                                    mailPiece.ErrorDesc = response.ExceptionDetail;
-                                                    mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
-                                                    mailPiece.DueDate = null;
-                                                    mailPiece.PrintLocation = null;
-                                                    mailPiece.PrintTrailId = null;
-                                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                                    continue;
+                                                    //Known error so break from while loop and error out record
+                                                    break;
                                                 }
                                                 else
                                                 {
