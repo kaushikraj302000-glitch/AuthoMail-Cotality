@@ -165,6 +165,7 @@ namespace AM.Services
         public string ReturnTrackingNo { get; set; }
         public DateTime? ReturnDeliveryDate { get; set; }
         public string ReturnDeliveryStatus { get; set; }
+        public string ProductCode { get; set; }
         public string RequestorName { get; set; }
         public string PropertyStreetAddress { get; set; }
         public string PropertyCity { get; set; }
