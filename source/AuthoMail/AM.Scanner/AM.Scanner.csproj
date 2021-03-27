@@ -172,6 +172,7 @@
     <Compile Include="Controllers\DelfusTemplateAPIController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\BaseAPIController.cs" />
+    <Compile Include="Controllers\PdfOperationAPIController.cs" />
     <Compile Include="Controllers\ReportsController.cs" />
     <Compile Include="Controllers\ScanController.cs" />
     <Compile Include="Global.asax.cs">
@@ -319,6 +320,7 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Views\Base\" />
+    <Folder Include="Views\PdfOperationAPI\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />

@@ -782,7 +782,11 @@ namespace AM.Console
             using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
             {
                 pageCount = reader.NumberOfPages;
-                blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
+
+                if (mbi.Client.IsReqBlankPageValidation)
+                {
+                    blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
+                }
             }
 
 

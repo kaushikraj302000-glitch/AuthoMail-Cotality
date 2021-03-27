@@ -26,7 +26,11 @@ DECLARE	@jobid INT,
 		@clientName VARCHAR(255),
 		@bt VARCHAR(255),
 		@PrintTrailBatchId INT = NULL,
-		@minDate DATETIME =NULL
+		@minDate DATETIME =NULL,
+		@shippingCarrier VARCHAR(255),
+		@shippingServiceType VARCHAR(255),
+		@weightMeasured DECIMAL(7,4),
+		@postageCost DECIMAL(7,4)
 	BEGIN TRY
 	
 		SET @trackno = REPLACE(@trackno, 'AUT','')
@@ -54,6 +58,7 @@ DECLARE	@jobid INT,
 		@pieceid=req.[PieceId],@PrintTrailBatchId=req.[PrintTrailBatchId], @jobid=req.[JobId],@mrdfreqdate=req.[Date],@pdffilename=req.[PDFFileName],
 		@clientAppCode=c.[AppCode],@clientName=c.[Name],
 		@bt=(SELECT [BatchName] FROM #dallasBatchesTimes WHERE EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=PCD.ShippingCarrier AND ShippingServiceType=PCD.ShippingServiceType AND AppCode=c.AppCode)
+		,@shippingCarrier=PCD.ShippingCarrier,@shippingServiceType=PCD.ShippingServiceType
 		FROM [AM].[MailPieces] m
 		INNER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
 		INNER JOIN Common.PnSConfigDetail PCD ON m.PnSConfigDetailId = PCD.Id
@@ -116,12 +121,16 @@ DECLARE	@jobid INT,
 			SET @code = 'Valid'
 		END
 
+		SET @postageCost = CASE WHEN @shippingCarrier='USPS' AND ( @shippingServiceType='IMB' OR @shippingServiceType='FIRSTCLASS') THEN (SELECT PostageCost FROM Common.DallasPostages WHERE @totalsheet BETWEEN MinPage AND MaxPage) WHEN @shippingCarrier='USPS' AND @shippingServiceType='PRIORITY' THEN 7.400 ELSE 0.00 END
+
+		SET @weightMeasured = CASE WHEN @shippingCarrier='USPS' AND ( @shippingServiceType='IMB' OR @shippingServiceType='FIRSTCLASS') THEN (SELECT [Weight] FROM Common.DallasPostages WHERE @totalsheet BETWEEN MinPage AND MaxPage) ELSE 0.00 END
+
 		-- Start Transaction
 		BEGIN TRANSACTION	
 			-- insert data into MRDFResponse table
 			INSERT INTO [PnS].[MRDFResponse] ([JobId],[PieceId],[Date],[Feeder2_Fed],[OperatorId],[MachineId],[ProcessingTimeStamp],[DetailedErrorId],[Disposition],[Input_Fed],[Feeder3_Fed],[Feeder4_Fed],[Feeder5_Fed],[ComputedWeight],[MeterDate],[StatusSource],[PostageMetered],[WeightMeasured],[ExitLocation],[TotalSheets],[PDFFileName],[PackageTrackingNumber])
 			VALUES(@PrintTrailBatchId ,@pieceid,@mrdfreqdate,0,@operatorid,@machineid,GETUTCDATE(),'4691'
-			,@disposition,'00','0','0','0','0.000','00000000', @printlocationcl,'0.000','0.000',@printlocationcl
+			,@disposition,'00','0','0','0','0.000','00000000', @printlocationcl,@postageCost,@weightMeasured,@printlocationcl
 			,@totalsheet,@pdffilename,NULL)				
 			
 				UPDATE [PnS].[MRDFRequest] SET MailPieceStatus = @mailpiecestatus

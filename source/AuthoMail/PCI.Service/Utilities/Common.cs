@@ -135,10 +135,10 @@ namespace PCI.Service
                 NORDIS_Issue_Email_To = invalidNordisResponseEmailChannel.To;
                 NORDIS_Issue_Email_Cc = invalidNordisResponseEmailChannel.Cc;
 
-                var unexpectedEmailChannel = DAL.GetEmailChannelByTitleName("PnS_UnexpectedEmail");
-                UnexpectedEmail_Subject = unexpectedEmailChannel.Subject;
-                UnexpectedEmail_ToEmail = unexpectedEmailChannel.To;
-                UnexpectedEmail_CcEmail = unexpectedEmailChannel.Cc;
+                //var unexpectedEmailChannel = DAL.GetEmailChannelByTitleName("PnS_UnexpectedEmail");
+                UnexpectedEmail_Subject = ConfigurationManager.AppSettings["UnexpectedEmail_Subject"].Trim();
+                UnexpectedEmail_ToEmail = ConfigurationManager.AppSettings["UnexpectedEmail_ToEmail"].Trim();
+                UnexpectedEmail_CcEmail = ConfigurationManager.AppSettings["UnexpectedEmail_CcEmail"].Trim();
             }
             catch (Exception ex)
             {

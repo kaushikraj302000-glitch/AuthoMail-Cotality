@@ -540,6 +540,17 @@ namespace AM.Services
         public string EnvelopeName { get; set; }
         public DateTime? DeliveryDate { get; set; }
         public string DeliveryStatus { get; set; }
+        public int JobId { get; set; }
+        public string AppCode { get; set; }
+        public string PDFFileName { get; set; }
+        public string RequestedPdf
+        {
+            get
+            {
+                if (this.PDFFileName.IsNullOrWhiteSpace()) return null;
+                return $@"{Config.PnS_PCIRootFolder}/{this.AppCode}/{this.JobId}/PCIRequest/{PDFFileName}";
+            }
+        }
     }
 
 
