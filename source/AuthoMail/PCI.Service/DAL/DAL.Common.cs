@@ -75,10 +75,22 @@ namespace PCI.Service
             return db.ExecuteScalar("usp_GetSystemSettingsById", keyId).ToString();
         }
 
+        public static List<AMSystemSetting> GetSystemSettings()
+        {
+            var sysData = db.ExecuteDataSet(CommandType.Text, "SELECT * FROM Common.SystemSettings");
+            return sysData.DataTableAccessor<AMSystemSetting>(false).ToList();
+        }
+
         public static EmailChannel GetEmailChannelByTitleName(string titleName)
         {
             var emailChannel = db.ExecuteDataSet(CommandType.Text, "SELECT * FROM Common.EmailChannels WHERE Title='{0}'".Fill(titleName));
             return emailChannel.DataTableAccessor<EmailChannel>(false).Single();
+        }
+
+        public static List<EmailChannel> GetEmailChannels()
+        {
+            var emailChannel = db.ExecuteDataSet(CommandType.Text, "SELECT * FROM Common.EmailChannels");
+            return emailChannel.DataTableAccessor<EmailChannel>(false).ToList();
         }
 
         public static List<DallasBatch> GetDallasBatches(DateTime estToday)

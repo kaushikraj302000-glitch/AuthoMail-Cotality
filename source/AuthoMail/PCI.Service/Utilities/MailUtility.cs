@@ -11,7 +11,7 @@ namespace PCI.Service
 {
     public class MailUtility
     {
-        private static readonly ILog log = LogManager.GetLogger(typeof(PnSCoreService));
+        private static readonly ILog log = LogManager.GetLogger(typeof(MailUtility));
         public static bool SendBatchSubmittedNotificationEmail(string vendorCode, string printVendorCode, string fileName, int mailPiecesCount, int totalPages)
         {
             bool isEmailSent = false;

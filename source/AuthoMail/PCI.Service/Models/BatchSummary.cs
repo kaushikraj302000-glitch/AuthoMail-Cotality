@@ -231,4 +231,10 @@ namespace PCI.Service
         public string BodyTemplate { get; set; }
         public bool IsBodyHTML { get; set; }
     }
+
+    public class AMSystemSetting
+    {
+        public string Id { get; set; }
+        public string Value { get; set; }
+    }
 }

@@ -242,15 +242,10 @@ namespace AM.Core
                                             }
                                             else if (response.HasError && uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())))
                                             {
-                                                mailPiece.TotalPages = 0;
-                                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                                mailPiece.ErrorDesc = response.ExceptionDetail;
-                                                mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
-                                                mailPiece.DueDate = null;
-                                                mailPiece.PrintLocation = null;
-                                                mailPiece.PrintTrailId = null;
-                                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                                continue;
+
+                                                //Known error so break from while loop and error out record
+                                                log.Error($"{response.HasError} , {response.ExceptionCode} , {response.ExceptionDetail}");
+                                                break;
                                             }
                                             else if (response.HasError && (fallBackCodes.Any(code => code == response.ExceptionCode) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower()))))
                                             {
@@ -290,15 +285,9 @@ namespace AM.Core
                                                 }
                                                 else if (response.HasError || uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())))
                                                 {
-                                                    mailPiece.TotalPages = 0;
-                                                    mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                                                    mailPiece.ErrorDesc = response.ExceptionDetail;
-                                                    mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
-                                                    mailPiece.DueDate = null;
-                                                    mailPiece.PrintLocation = null;
-                                                    mailPiece.PrintTrailId = null;
-                                                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                                                    continue;
+                                                    //Known error so break from while loop and error out record
+                                                    log.Error($"{response.HasError} , {response.ExceptionCode} , {response.ExceptionDetail}");
+                                                    break;
                                                 }
                                                 else
                                                 {
@@ -347,8 +336,8 @@ namespace AM.Core
                                             }
                                             else if (response.HasError && (uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower()))))
                                             {
+                                                //Known error so break from while loop and error out record
                                                 log.Error($"{response.HasError} , {response.ExceptionCode} , {response.ExceptionDetail}");
-
                                                 break;
                                             }
                                             else
@@ -466,6 +455,7 @@ namespace AM.Core
                                                 else if (response.HasError && uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())))
                                                 {
                                                     //Known error so break from while loop and error out record
+                                                    log.Error($"{response.HasError} , {response.ExceptionCode} , {response.ExceptionDetail}");
                                                     break;
                                                 }
                                                 else if (response.HasError && (fallBackCodes.Any(code => code == response.ExceptionCode) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower()))))
@@ -505,6 +495,7 @@ namespace AM.Core
                                                     else if (response.HasError && uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())))
                                                     {
                                                         //Known error so break from while loop and error out record
+                                                        log.Error($"{response.HasError} , {response.ExceptionCode} , {response.ExceptionDetail}");
                                                         break;
                                                     }
                                                     else
@@ -554,6 +545,7 @@ namespace AM.Core
                                                 else if (response.HasError && uspsKnownExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower())))
                                                 {
                                                     //Known error so break from while loop and error out record
+                                                    log.Error($"{response.HasError} , {response.ExceptionCode} , {response.ExceptionDetail}");
                                                     break;
                                                 }
                                                 else
