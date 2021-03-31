@@ -199,6 +199,7 @@ namespace AM.Services
         {
             using (IMailPieceService mailPieceService = new MailPieceService())
             {
+                // BatchResponse mailpieceResponse = mailPieceService.GetMailPieceDetailsByMailPieceUniqueIdTest(mpUniqueId);
                 BatchResponse batchResponse = mailPieceService.GetMailPieceDetailsByMailPieceUniqueId(mpUniqueId);
 
                 if (batchResponse == null)
@@ -245,6 +246,7 @@ namespace AM.Services
 
         public MailAPIResponse GenerateMailAPIResponse(BatchResponse batchResponse)
         {
+            List<APIMetaData> customInfos = batchResponse.MailPieceCustomInfo.Select(r => new APIMetaData() { Key = r.Key, Value = r.Value }).Where(r => !r.Key.StartsWith("AM:")).ToList();
             MailAPIResponse response = new MailAPIResponse()
             {
                 Id = batchResponse.UniqueId,
@@ -281,6 +283,7 @@ namespace AM.Services
                         Country = batchResponse.RcptAddressCountry
                     }
                 },
+                CustomInfo = customInfos,
                 MailingStatus = batchResponse.ShippingStatus,
                 ErrorCode = batchResponse.ErrorCode,
                 ErrorDesc = batchResponse.ErrorDesc,

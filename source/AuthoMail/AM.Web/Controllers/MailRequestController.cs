@@ -485,7 +485,7 @@ bufferSize: 4096, useAsync: true)) { }
                                 using (var reader = new PdfReader(decryptedFilePath))
                                 {
                                     var pageCount = reader.NumberOfPages;
-                                    mailPiece.CustomInfo.Add(new Metadata { Key = file.Key, Value = "FileName:{0} | PageCount: {1}".Fill(file.Value.Headers.ContentDisposition.FileName.Replace("\"", ""), pageCount) });
+                                    mailPiece.CustomInfo.Add(new Metadata { Key = "AM:{0}".Fill(file.Key), Value = "FileName:{0} | PageCount: {1}".Fill(file.Value.Headers.ContentDisposition.FileName.Replace("\"", ""), pageCount) });
                                     totalPdfPages += pageCount;
                                     //open document
                                     if (!doc.IsOpen()) doc.Open();
