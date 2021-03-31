@@ -76,9 +76,16 @@ namespace PCI.Service
             try
             {
                 DatabaseFactory.SetDatabaseProviderFactory(new DatabaseProviderFactory());
-                Remove_ImmediateErrFiles = DAL.GetSystemSettingsValue("PnS_Remove_ImmediateErrFiles").Trim() == "0" ? false : true;
-                FontPathDir = DAL.GetSystemSettingsValue("PnS_FontsDirPath").Trim();
-                PCIRootFolder = DAL.GetSystemSettingsValue("PnS_PCIRootFolder").Trim();
+
+                List<AMSystemSetting> amSysSettings = null;
+
+                5.TimesAttempt(() => amSysSettings = DAL.GetSystemSettings());
+
+                var sysSettings = amSysSettings.ToDictionary(k => k.Id, k => k.Value);
+
+                Remove_ImmediateErrFiles = sysSettings["PnS_Remove_ImmediateErrFiles"].Trim() == "0" ? false : true;
+                FontPathDir = sysSettings["PnS_FontsDirPath"].Trim();
+                PCIRootFolder = sysSettings["PnS_PCIRootFolder"].Trim();
                 PCIRootFolder.CreateDirectoryIfNotExist();
 
                 BundlingRootFolder = Path.Combine(PCIRootFolder, "BundlingRoot");
@@ -91,46 +98,49 @@ namespace PCI.Service
                 PCIRequestFolderName = "PCIRequest";
                 PCIResponseFolderName = "PCIResponse";
 
-                PCIRootReturnPDFsZipFolder = DAL.GetSystemSettingsValue("PnS_PCIRootReturnPDFsZipFolder").Trim();
+                PCIRootReturnPDFsZipFolder = sysSettings["PnS_PCIRootReturnPDFsZipFolder"].Trim();
                 PCIRootReturnPDFsZipFolder.CreateDirectoryIfNotExist();
-                MRDFResponseLength = int.Parse(DAL.GetSystemSettingsValue("PnS_MRDFResponseLength").Trim());                
+                MRDFResponseLength = int.Parse(sysSettings["PnS_MRDFResponseLength"].Trim());
 
-                ApplicationEnvironment = DAL.GetSystemSettingsValue("Common_Environment");
+                ApplicationEnvironment = sysSettings["Common_Environment"];
 
-                PnS_SFTChannelCode = DAL.GetSystemSettingsValue("PnS_SFTChannelCode").Trim() + "_" + ApplicationEnvironment;
+                PnS_SFTChannelCode = sysSettings["PnS_SFTChannelCode"].Trim() + "_" + ApplicationEnvironment;
+
+                var emailList = DAL.GetEmailChannels();
+
                 Email_SMTPClient = new SmtpClient();
 
-                var suspendedEmailChannel = DAL.GetEmailChannelByTitleName("PnS_SuspendEmail");
+                var suspendedEmailChannel = emailList.SingleOrDefault(title => title.Title == "PnS_SuspendEmail");
                 SuspendEmail_To = suspendedEmailChannel.To;
                 SuspendEmail_Cc = suspendedEmailChannel.Cc;
                 SuspendBatchEmailSubject = suspendedEmailChannel.Subject;
                 SuspendBatchEmailTemplate = suspendedEmailChannel.BodyTemplate;
 
-                var submitNordisBatchEmailChannel = DAL.GetEmailChannelByTitleName("PnS_SubmitNordisBatchEmail");
+                var submitNordisBatchEmailChannel = emailList.SingleOrDefault(title => title.Title == "PnS_SubmitNordisBatchEmail");
                 SubmitNordisBatchEmailSubject = submitNordisBatchEmailChannel.Subject;
                 SubmitNordisBatchEmailTemplate = submitNordisBatchEmailChannel.BodyTemplate;
                 Email_ToNordis = submitNordisBatchEmailChannel.To;
                 Email_CcNordis = submitNordisBatchEmailChannel.Cc;
 
-                var submitDELNordisBatchEmailChannel = DAL.GetEmailChannelByTitleName("PnS_DELSubmitNordisBatchEmail");
+                var submitDELNordisBatchEmailChannel = emailList.SingleOrDefault(title => title.Title == "PnS_DELSubmitNordisBatchEmail");
                 SubmitDELNordisBatchEmailSubject = submitDELNordisBatchEmailChannel.Subject;
                 SubmitDELNordisBatchEmailTemplate = submitDELNordisBatchEmailChannel.BodyTemplate;
                 Email_ToDELNordis = submitDELNordisBatchEmailChannel.To;
                 Email_CcDELNordis = submitDELNordisBatchEmailChannel.Cc;
 
-                var submitPCIBatchEmailChannel = DAL.GetEmailChannelByTitleName("PnS_SubmitPCIBatchEmail");
+                var submitPCIBatchEmailChannel = emailList.SingleOrDefault(title => title.Title == "PnS_SubmitPCIBatchEmail");
                 SubmitPCIBatchEmailSubject = submitPCIBatchEmailChannel.Subject;
                 SubmitPCIBatchEmailTemplate = submitPCIBatchEmailChannel.BodyTemplate;
                 Email_ToPCI = submitPCIBatchEmailChannel.To;
                 Email_CcPCI = submitPCIBatchEmailChannel.Cc;
 
 
-                var invalidPCIResponseEmailChannel = DAL.GetEmailChannelByTitleName("PnS_PCIIssueEmail");
+                var invalidPCIResponseEmailChannel = emailList.SingleOrDefault(title => title.Title == "PnS_PCIIssueEmail");
                 PCI_Issue_Subject = invalidPCIResponseEmailChannel.Subject;
                 PCI_Issue_Email_To = invalidPCIResponseEmailChannel.To;
                 PCI_Issue_Email_Cc = invalidPCIResponseEmailChannel.Cc;
 
-                var invalidNordisResponseEmailChannel = DAL.GetEmailChannelByTitleName("PnS_NORDISIssueEmail");
+                var invalidNordisResponseEmailChannel = emailList.SingleOrDefault(title => title.Title == "PnS_NORDISIssueEmail");
                 NORDIS_Issue_Subject = invalidNordisResponseEmailChannel.Subject;
                 NORDIS_Issue_Email_To = invalidNordisResponseEmailChannel.To;
                 NORDIS_Issue_Email_Cc = invalidNordisResponseEmailChannel.Cc;
