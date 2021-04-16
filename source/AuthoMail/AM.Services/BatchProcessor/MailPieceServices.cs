@@ -41,6 +41,25 @@ namespace AM.Services
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
+        private string apiResponseQuery = @"SELECT * FROM
+                            (
+                                SELECT MP.*,MB.ReceivedOn,CC.AppCode,PCD.ShippingCarrier,PCD.ShippingServiceType 
+                                FROM AM.MailPieces MP 
+                                INNER JOIN AM.MailBatches MB ON MP.MailBatchId = MB.Id
+                                INNER JOIN Common.Clients CC ON MP.ClientId = CC.Id
+                                LEFT OUTER JOIN [AM].[DocTypes] D ON MP.DocTypeId=D.Id 
+                                LEFT OUTER JOIN [Common].[PnSConfigDetail] PCD ON MP.PnSConfigDetailId = PCD.Id
+                                WHERE {0}
+                            )X
+                            LEFT OUTER JOIN 
+                            (
+                                SELECT * FROM AM.MailPieceCustomInfo
+                                WHERE MailPieceId IN 
+                                (
+                                    SELECT Id FROM AM.MailPieces MP WHERE {0}
+                                )
+                            )Y ON Y.MailPieceId=X.Id
+                            ";
         public int InsertBatchMailPieceDetails(MailPieceDTO mailPiece, List<MailPieceCustomInfo> mailPieceCustomInfo, DateTime? receivedOn = null, DateTime? downloadedOn = null)
         {
             string query = "INSERT INTO [AM].[MailPieces](ClientId, UniqueId, PnSConfigDetailId, MailBatchId, PrintBatchId, BusinessFriendlyIdName, BusinessFriendlyIdValue, FileName, FilePattern, DocumentOrPackageType, DueDate, ShippingStatus, IsRcptInfoSpecified, RcptPrefix, RcptFirstName, RcptMiddleName, RcptLastName, RcptSuffix, RcptPhone, RcptOrganization, CoRcptPrefix, CoRcptFirstName, CoRcptMiddleName, CoRcptLastName, CoRcptSuffix, CoRcptPhone, CoRcptOrganization, RcptAddrOptionalLine1AboveStreet, RcptAddrOptionalLine2AboveStreet, RcptAddressStreet, RcptAddressAptOrSuiteOrOther, RcptAddrOptionalLine1BelowStreet, RcptAddrOptionalLine2BelowStreet, RcptAddressCity, RcptAddressState, RcptAddressZIP, RcptAddressCountry, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP,RetRcptAddressCountry, TotalPages, TotalSheets, ErrorCode, ErrorDesc, TrackingNo, PullBackRequestedOn, PulledBackOn,PrintedOn, ShippedOn, ShippingCost, Weight, IsQCRequested, IsQCPerformed, DocTypeId, PrintLocation, RcptAddressTypes, PDFFileSize, IsEDeliveryRequested, IsFallBackRequested, ExpiryDate, RcptEmailId, PrintTrailId, Inserts, TotalBlankPages, BlankPageNumbers, ReturnTrackingNo) Output Inserted.Id VALUES (@ClientId, @UniqueId,@PnSConfigDetailId, @MailBatchId, @PrintBatchId, SUBSTRING(@BusinessFriendlyIdName,1,255), SUBSTRING(@BusinessFriendlyIdValue,1,255), SUBSTRING(@FileName,1,255), @FilePattern, SUBSTRING(@DocumentOrPackageType,1,255), @DueDate, @ShippingStatus, @IsRcptInfoSpecified, SUBSTRING(@RcptPrefix,1,255), SUBSTRING(@RcptFirstName,1,255), SUBSTRING(@RcptMiddleName,1,255), SUBSTRING(@RcptLastName,1,255), SUBSTRING(@RcptSuffix,1,255), SUBSTRING(@RcptPhone,1,255), SUBSTRING(@RcptOrganization,1,255), @CoRcptPrefix, @CoRcptFirstName, @CoRcptMiddleName, @CoRcptLastName, @CoRcptSuffix, @CoRcptPhone, @CoRcptOrganization, SUBSTRING(@RcptAddrOptionalLine1AboveStreet,1,255), SUBSTRING(@RcptAddrOptionalLine2AboveStreet,1,255), SUBSTRING(@RcptAddressStreet,1,255), SUBSTRING(@RcptAddressAptOrSuiteOrOther,1,255), SUBSTRING(@RcptAddrOptionalLine1BelowStreet,1,255), SUBSTRING(@RcptAddrOptionalLine2BelowStreet,1,255), SUBSTRING(@RcptAddressCity,1,255), SUBSTRING(@RcptAddressState,1,255), SUBSTRING(@RcptAddressZIP,1,255), SUBSTRING(@RcptAddressCountry,1,255), @IsReturnInfoSpecified, SUBSTRING(@RetRcptPrefix,1,255), SUBSTRING(@RetRcptFirstName,1,255), SUBSTRING(@RetRcptMiddleName,1,255), SUBSTRING(@RetRcptLastName,1,255), SUBSTRING(@RetRcptSuffix,1,255), SUBSTRING(@RetRcptPhone,1,255), SUBSTRING(@RetRcptOrganization,1,255), SUBSTRING(@RetRcptAddrOptionalLine1AboveStreet,1,255), SUBSTRING(@RetRcptAddrOptionalLine2AboveStreet,1,255), SUBSTRING(@RetRcptAddressStreet,1,255), SUBSTRING(@RetRcptAddressAptOrSuiteOrOther,1,255), SUBSTRING(@RetRcptAddrOptionalLine1BelowStreet,1,255), SUBSTRING(@RetRcptAddrOptionalLine2BelowStreet,1,255), SUBSTRING(@RetRcptAddressCity,1,255), SUBSTRING(@RetRcptAddressState,1,255), SUBSTRING(@RetRcptAddressZIP,1,255), SUBSTRING(@RetRcptAddressCountry,1,255), 0, 0, @ErrorCode, @ErrorDesc, @TrackingNo, @PullBackRequestedOn, @PulledBackOn, @PrintedOn, @ShippedOn, @ShippingCost, @Weight, @IsQCRequested, @IsQCPerformed, @DocTypeId, @PrintLocation, @RcptAddressTypes, @PDFFileSize, @IsEDeliveryRequested, @IsFallBackRequested, @ExpiryDate, SUBSTRING(@RcptEmailId,1,255), @PrintTrailId, @Inserts,@TotalBlankPages,@BlankPageNumbers , @ReturnTrackingNo)";
@@ -282,25 +301,7 @@ namespace AM.Services
 
         public BatchResponse GetMailPieceDetailsByMailPieceUniqueId(string uniqueId)
         {
-            string query = @"SELECT * FROM
-                            (
-                                SELECT MP.*,MB.ReceivedOn,CC.AppCode,PCD.ShippingCarrier,PCD.ShippingServiceType 
-                                FROM AM.MailPieces MP 
-                                INNER JOIN AM.MailBatches MB ON MP.MailBatchId = MB.Id
-                                INNER JOIN Common.Clients CC ON MP.ClientId = CC.Id
-                                LEFT OUTER JOIN [AM].[DocTypes] D ON MP.DocTypeId=D.Id 
-                                LEFT OUTER JOIN [Common].[PnSConfigDetail] PCD ON MP.PnSConfigDetailId = PCD.Id
-                                WHERE MP.UniqueId = @UniqueId
-                            )X
-                            LEFT OUTER JOIN 
-                            (
-                                SELECT * FROM AM.MailPieceCustomInfo
-                                WHERE MailPieceId = 
-                                (
-                                    SELECT Id FROM AM.MailPieces WHERE UniqueId=@UniqueId
-                                )
-                            )Y ON Y.MailPieceId=X.Id
-                            ";
+            string query = string.Format(apiResponseQuery, "MP.UniqueId = @UniqueId");
 
             var mailPieceDictionary = new Dictionary<int, BatchResponse>();
 
@@ -390,36 +391,7 @@ namespace AM.Services
 
         public Task<IEnumerable<BatchResponse>> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId)
         {
-            string query = @"SELECT * FROM
-                            (
-                                SELECT MP.*,MB.ReceivedOn,CC.AppCode,PCD.ShippingCarrier,PCD.ShippingServiceType 
-                                FROM AM.MailPieces MP 
-                                INNER JOIN AM.MailBatches MB ON MP.MailBatchId = MB.Id
-                                INNER JOIN Common.Clients CC ON MP.ClientId = CC.Id
-                                LEFT OUTER JOIN [AM].[DocTypes] D ON MP.DocTypeId=D.Id 
-                                LEFT OUTER JOIN [Common].[PnSConfigDetail] PCD ON MP.PnSConfigDetailId = PCD.Id
-                                WHERE MB.SFTChannelId=@SFTChannelId 
-                                AND MB.PipelineStatus= @PipelineStatus 
-                                AND MB.IsReportPrepped=1 
-                                AND MB.IsReportedBack=0
-                            )X
-                            LEFT OUTER JOIN 
-                            (
-                                SELECT * 
-                                FROM AM.MailPieceCustomInfo
-                                WHERE MailPieceId IN 
-                                (
-                                    SELECT Id FROM AM.MailPieces 
-                                    WHERE MailBatchId IN 
-                                    (
-                                        SELECT Id FROM AM.MailBatches MB 
-                                        WHERE MB.SFTChannelId=@SFTChannelId 
-                                        AND MB.PipelineStatus= @PipelineStatus 
-                                        AND MB.IsReportPrepped=1 
-                                        AND MB.IsReportedBack=0 
-                                    )
-                                )
-                            )Y ON Y.MailPieceId=X.Id";
+            string query = string.Format(apiResponseQuery, " MailBatchId IN (SELECT Id FROM AM.MailBatches MB WHERE MB.SFTChannelId=@SFTChannelId AND MB.PipelineStatus= @PipelineStatus AND MB.IsReportPrepped=1 AND MB.IsReportedBack=0)");            
 
             var mailPieceDictionary = new Dictionary<int, BatchResponse>();
 
