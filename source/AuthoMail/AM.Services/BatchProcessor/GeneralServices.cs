@@ -246,7 +246,7 @@ namespace AM.Services
 
         public MailAPIResponse GenerateMailAPIResponse(BatchResponse batchResponse)
         {
-            List<APIMetaData> customInfos = batchResponse.MailPieceCustomInfo.Select(r => new APIMetaData() { Key = r.Key, Value = r.Value }).Where(r => !r.Key.StartsWith("AM:")).ToList();
+            List<APIMetaData> customInfos = batchResponse.MailPieceCustomInfo == null ? null : batchResponse.MailPieceCustomInfo.Select(r => new APIMetaData() { Key = r.Key, Value = r.Value }).Where(r => !r.Key.StartsWith("AM:")).ToList();
             MailAPIResponse response = new MailAPIResponse()
             {
                 Id = batchResponse.UniqueId,
