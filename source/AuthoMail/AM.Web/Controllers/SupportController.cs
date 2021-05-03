@@ -8,6 +8,18 @@ using System.Web.Mvc;
 using AM.Web.Models;
 using AM.Entities;
 using AutoMapper;
+using System.Threading.Tasks;
+using System.Net.Http;
+using DocumentFormat.OpenXml.Drawing;
+using System.Text;
+using System.IO;
+using System.Net.Http.Headers;
+using Newtonsoft.Json;
+using System.Net;
+using Newtonsoft.Json.Linq;
+using AM.Lib;
+using AM.Services.Services;
+
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
@@ -17,12 +29,18 @@ namespace AM.Web.Controllers
         IChartDataService chartDataSvc;
         IReportService reportSvc;
         IFedExService fedexSvc;
-        public SupportController(ISupportReportService supportSvc, IChartDataService chartDataSvc, IReportService reportSvc, IFedExService fedexSvc)
+        IHomeService homeSvc;
+        ISupportService supSvc;
+        IPnSAPIService pnSAPISvc;
+        public SupportController(ISupportReportService supportSvc, IChartDataService chartDataSvc, IReportService reportSvc, IFedExService fedexSvc, IHomeService homeSvc, ISupportService supSvc,IPnSAPIService pnsapiSvc)
         {
             this.supportSvc = supportSvc;
             this.chartDataSvc = chartDataSvc;
             this.reportSvc = reportSvc;
             this.fedexSvc = fedexSvc;
+            this.homeSvc = homeSvc;
+            this.supSvc = supSvc;
+            this.pnSAPISvc = pnsapiSvc;
         }
         // GET: Support
         public ActionResult NotReportedBackOfBatchSummary()
@@ -181,5 +199,83 @@ namespace AM.Web.Controllers
                 return Json(false, JsonRequestBehavior.AllowGet);
             }
         }
+
+        #region SingleLoanEntry
+        [HttpGet]
+        public ActionResult SingleLoanEntry(string msg)
+        {
+            ViewBag.msg = msg;
+            ViewBag.docTypes = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "DocTypeName", "DocTypeName");
+            return View();
+        }
+        [HttpPost]
+        public async Task<ActionResult> SingleLoanEntry(MailPiece mailPiece, HttpPostedFileBase pdffile, DateTime? ExpiryDate)
+        {
+            if (mailPiece.eDelivery != null)
+            {
+                if (mailPiece.eDelivery.PrintAndShipOnExpiry && ExpiryDate == null)
+                {
+                    ModelState.AddModelError("", "Expiry Date must be future date.");
+                    goto Error;
+                }
+                if (mailPiece.eDelivery.PrintAndShipOnExpiry)
+                {
+                    mailPiece.eDelivery.ExpiryDate = ExpiryDate.Value;
+                }
+                else
+                {
+                    mailPiece.eDelivery = null;
+                }
+            }
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    if (pdffile == null)
+                    {
+                        ModelState.AddModelError("", "Please upload PDF file.");
+                        goto Error;
+                    }
+
+                    var documentOrPackage = new DocumentOrPackage();
+                    documentOrPackage.Name = pdffile.FileName;
+
+                    mailPiece.ClientCode = supSvc.FindByClientId(User.Identity.GetClientId().Value).AppCode;
+                    // convert stream to string
+                    Byte[] byteStream = null;
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await pdffile.InputStream.CopyToAsync(memoryStream);
+                        byteStream = memoryStream.ToArray();
+                    }
+                    documentOrPackage.Base64String = Convert.ToBase64String(byteStream);
+                    mailPiece.DocumentOrPackage = documentOrPackage;
+
+                    var mailRequestController = new MailRequestController(pnSAPISvc);
+                    var result = await mailRequestController.CreateAPIMailRequestAsync(mailPiece);
+
+                    var response = result.GetValueOfPropertyFromPropertyName("Value");
+
+                    var mailAPIResponse = (MailAPIResponse)response;
+
+                    if (mailAPIResponse.MailingStatus == "Error")
+                    {
+                        ModelState.AddModelError("", mailAPIResponse.ErrorCode);
+                        ModelState.AddModelError("", mailAPIResponse.ErrorDesc);
+                        goto Error;
+                    }
+                    return RedirectToAction("SingleLoanEntry", new { msg = mailAPIResponse.Message });
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+            Error:
+            ViewBag.docTypes = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "DocTypeName", "DocTypeName");
+            return View();
+        }
+
+        #endregion SingleLoanEntry
     }
 }
