@@ -271,7 +271,7 @@ namespace AM.Reporting
                     foreach (var appCode in clientCodes)
                     {
                         //NOTE : Please change UTC to EST code when Daylight saving is off in service call
-                        var reportGOS = gosBatchDetails.Where(c => c.AppCode == appCode).Select(r => new { r.BatchName, r.BorrowerName, r.LoanNumber, r.ProductCode, r.DocumentOrPackageType, r.FileName, r.ReceivedOnEst, r.ShippedOnEst, r.TotalPages, r.TrackingNo, r.ShipmentStatus, r.DeliveryStatus, r.DeliveryDate, r.ReturnTrackingNo, r.ReturnDeliveryStatus, r.ReturnDeliveryDate, r.Week }).ToList();
+                        var reportGOS = gosBatchDetails.Where(c => c.AppCode == appCode).Select(r => new { r.BorrowerName, r.LoanNumber, r.ProductCode, r.DocumentOrPackageType, r.FileName, r.ReceivedOnEst, r.ShippedOnEst, r.TotalPages, r.TrackingNo, r.ShipmentStatus, r.DeliveryStatus, r.DeliveryDate, r.ReturnTrackingNo, r.ReturnDeliveryStatus, r.ReturnDeliveryDate, r.Week }).ToList();
 
                         if (gosBatchDetails.Count > 0)
                         {
