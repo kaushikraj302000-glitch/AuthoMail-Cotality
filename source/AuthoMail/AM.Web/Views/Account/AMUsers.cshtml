@@ -190,9 +190,9 @@
             }
 
             DownloadUserReport();
-            setTimeout(function () {
-                EditRoleClientEvent();
-            }, 1000);
+            //setTimeout(function () {
+            //    EditRoleClientEvent();
+            //}, 3000);
 
         });
 
@@ -315,7 +315,7 @@
                 this.EmailConfirmed = this.EmailConfirmed == true ? '<i class="fa fa-check text-green"/>' : '<i class="fa fa-times text-red"/>';
                 @*this.button = '<a style="cursor: pointer;font-size:1.5em;" onclick="ApproveUser(this)" data-userid="' + this.Id + '" data-status="@AM.Entities.AMUserStatus.Approved"><i class="fa fa-check text-green" aria-hidden="true" title="Approve"></i><span class="sr-only">Approve</span></a><a style="cursor: pointer;font-size:1.5em;" onclick="RejectUser(this)" data-userid="' + this.Id + '" data-status="@AM.Entities.AMUserStatus.Rejected"><i class="padding-left-15 fa fa-times text-red" aria-hidden="true" title="Reject"><span class="sr-only">Reject</span></i></a>';*@
                 var unlockbtn = this.LockoutEndDateUtc == null || this.LockoutEndDateUtc == "" ? '' : '<a style="cursor: pointer;font-size:1.5em;" onclick="UnlockUser(this)" data-userid="' + this.Id + '"<i class="fa fa-unlock text-green" aria-hidden="true" title="Unlock"></i><span class="sr-only">Unlock</span></a>';
-                var editRoleClient = userStatus == 'Approved' && this.IsBAOrClient ? '<button class="btn btn-xs btn-primary editroleclient" data-id="' + this.Id + '"><i class="fa fa-edit"></i></button>':'--';
+                var editRoleClient = userStatus == 'Approved' && this.IsBAOrClient ? '<button class="btn btn-xs btn-primary editroleclient" data-id="' + this.Id + '" onclick="EditRoleClientEvent(this)"><i class="fa fa-edit"></i></button>':'--';
                 this.button = unlockbtn + ' ' + editRoleClient;
 
             });
@@ -419,14 +419,21 @@
             });
         }
         StatusChangeEvent();
-        function EditRoleClientEvent() {
-            $('table tbody').on('click', '.editroleclient', function () {
-                var userId = $(this).data('id');
-                $('#useridmodal').val(userId);
-                BindRole(userId);
-                $('#EditRoleClientModal').modal('show');
-            });
+        //function EditRoleClientEvent() {
+        //    $('table tbody').on('click', '.editroleclient', function () {
+        //        console.log('call');
+        //        var userId = $(this).data('id');
+        //        $('#useridmodal').val(userId);
+        //        BindRole(userId);
+        //        $('#EditRoleClientModal').modal('show');
+        //    });
 
+        //}
+        function EditRoleClientEvent(obj) {
+            var userId = $(obj).data('id');
+            $('#useridmodal').val(userId);
+            BindRole(userId);
+            $('#EditRoleClientModal').modal('show');
         }
 
         function BindRole(userId) {
@@ -467,10 +474,24 @@
                         }
                         var selectedAppcodeArr = $(response.Object.approveAppCode).toArray();
 
-                $.each(response.Object.domainAppCode, function (i, v) {
-                    var sel = selectedAppcodeArr.indexOf(v.Id) == -1 ? "" : "selected";
-                            $('#appcodeselect').append('<option value="' + v.Id + '" '+sel+'>' + v.NameAppCode + '</option>');
+                        var data = response.Object.domainAppCode;
+                        var groupedData = _.groupBy(data, function (d) { return d.GroupAlias });
+                        var $select = $('#appcodeselect');
+
+                        $.each(groupedData, function (key, value) {
+                            var group = $('<optgroup label="' + key + '" />');
+                            $.each(value, function (k, v) {
+                                var sel = selectedAppcodeArr.indexOf(v.Id) == -1 ? "" : "selected";
+                                $('<option ' + sel + ' value="' + v.Id + '" />').html(v.Name).appendTo(group);
+                            });
+                            group.appendTo($select);
                         });
+
+                        //$.each(response.Object.domainAppCode, function (i, v) {
+                        //    var sel = selectedAppcodeArr.indexOf(v.Id) == -1 ? "" : "selected";
+                        //    $('#appcodeselect').append('<option value="' + v.Id + '" '+sel+'>' + v.NameAppCode + '</option>');
+                        //});
+
                         $('#appcodeselect').selectpicker('refresh');
                         BindRoleEvent();
                     }

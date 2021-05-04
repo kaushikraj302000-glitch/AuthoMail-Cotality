@@ -90,7 +90,7 @@ where UserId=@userId";
         }
         public async Task<IEnumerable<ClientIdNameVM>> GetClientDomainByDomainName(string domainName)
         {
-            string sql = @"SELECT c.Id,c.Name,c.AppCode FROM Common.ClientDomains cd
+            string sql = @"SELECT c.Id,c.Name,c.AppCode,c.GroupAlias FROM Common.ClientDomains cd
 inner join Common.Clients c on cd.ClientId=c.Id
 where AllowedDomain=@domainName order by c.Name";
             var output = await db.QueryAsync<ClientIdNameVM>(sql, new { domainName = domainName });
@@ -99,7 +99,7 @@ where AllowedDomain=@domainName order by c.Name";
 
         public async Task<IEnumerable<ClientIdNameVM>> GetClientDomainForCL()
         {
-            string sql = @"SELECT distinct c.Id,c.Name,c.AppCode FROM Common.Clients c
+            string sql = @"SELECT distinct c.Id,c.Name,c.AppCode,c.GroupAlias FROM Common.Clients c
 order by c.Name";
             var output = await db.QueryAsync<ClientIdNameVM>(sql);
             return output;
@@ -132,12 +132,12 @@ values(@ClientId,@UserId,@Status,@CreatedOn,@ModifiedOn,@ModifiedById)";
         {
             if (userId == null)
             {
-                string sql = @"SELECT Id, Name, AppCode from Common.Clients where IsAMActive=1 order by Name";
+                string sql = @"SELECT Id, Name, AppCode, GroupAlias from Common.Clients where IsAMActive=1 order by Name";
                 return await db.QueryAsync<ClientIdNameVM>(sql);
             }
             else
             {
-                string sql = @"SELECT Id, Name, AppCode from Common.Clients where IsAMActive=1 and Id in(
+                string sql = @"SELECT Id, Name, AppCode, GroupAlias from Common.Clients where IsAMActive=1 and Id in(
 select ClientId from Common.ClientUserMapping where UserId=@userId) order by Name";
                 return await db.QueryAsync<ClientIdNameVM>(sql, new { userId = userId });
             }

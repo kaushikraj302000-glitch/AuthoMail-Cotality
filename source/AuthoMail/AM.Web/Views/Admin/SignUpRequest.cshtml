@@ -316,9 +316,21 @@
                         else {
                             $("#RoleAreaDiv").hide();
                         }
-                        $.each(response.Object.appCodes, function (i, v) {
-                            $('#appcodeselect').append('<option value="' + v.Id + '">' + v.NameAppCode+'</option>');
+
+                        var data = response.Object.appCodes;
+                        var groupedData = _.groupBy(data, function (d) { return d.GroupAlias });
+                        var $select = $('#appcodeselect');
+
+                        $.each(groupedData, function (key, value) {
+                            var group = $('<optgroup label="' + key + '" />');
+                            $.each(value, function (k, v) {
+                                $('<option ' + sel + ' value="' + v.Id + '" />').html(v.Name).appendTo(group);
+                            });
+                            group.appendTo($select);
                         });
+                        //$.each(response.Object.appCodes, function (i, v) {
+                        //    $('#appcodeselect').append('<option value="' + v.Id + '">' + v.NameAppCode+'</option>');
+                        //});
                         $('#appcodeselect').selectpicker('refresh');
                         BindRoleEvent();
                     }
