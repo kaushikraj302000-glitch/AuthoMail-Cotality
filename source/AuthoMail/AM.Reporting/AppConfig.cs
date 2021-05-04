@@ -50,6 +50,25 @@ namespace AM.Reporting
         public static string GOSDataPointEMailTemplate { get; private set; }
         public static string GOSDataPointReportTemplate { get; private set; }
 
+        public static string GOSDailyDataPointReportTemplate { get; private set; }
+        public static string GOSDailyDataPointEMailSubject { get; private set; }
+        public static string GOSDailyDataPointEMailTemplate { get; private set; }
+        public static string GOSDailyDataPointEMailTo { get; private set; }
+        public static Dictionary<string, string> GOSDailyEmailListByAppCode
+        {
+            get
+            {
+
+                if (!string.IsNullOrWhiteSpace(GOSDailyDataPointEMailTo))
+                {
+                    return GOSDailyDataPointEMailTo.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries)).ToDictionary(c => c[0], c => c[1]);
+                }
+
+                return null;
+            }
+        }
+        public static string GOSDailyDataPointEMailCc { get; private set; }
+
         public static string USAAMTDEmailTo { get; private set; }
         public static string USAAMTDEmailCc { get; private set; }
         static AppConfig()
@@ -95,6 +114,12 @@ namespace AM.Reporting
             GOSDataPointEMailSubject = ConfigurationManager.AppSettings["GOSDataPointEMailSubject"].Trim();
             GOSDataPointEMailTemplate = ConfigurationManager.AppSettings["GOSDataPointEMailTemplate"].Trim();
             GOSDataPointReportTemplate = ConfigurationManager.AppSettings["GOSDataPointReportTemplate"].Trim();
+
+            GOSDailyDataPointEMailTo = ConfigurationManager.AppSettings["GOSDailyDataPointEMailTo"].Trim();
+            GOSDailyDataPointEMailCc = ConfigurationManager.AppSettings["GOSDailyDataPointEMailCc"].Trim();
+            GOSDailyDataPointEMailSubject = ConfigurationManager.AppSettings["GOSDailyDataPointEMailSubject"].Trim();
+            GOSDailyDataPointEMailTemplate = ConfigurationManager.AppSettings["GOSDailyDataPointEMailTemplate"].Trim();
+            GOSDailyDataPointReportTemplate = ConfigurationManager.AppSettings["GOSDailyDataPointReportTemplate"].Trim();
 
 
             USAAMTDEmailTo = ConfigurationManager.AppSettings["USAAMTDEmailTo"].Trim();

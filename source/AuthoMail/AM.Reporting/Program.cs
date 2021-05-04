@@ -57,6 +57,9 @@ namespace AM.Reporting
                         case "ConsolidatedDataPoints":
                             GOSReports.GenerateGOSConsolidatedDataPointReport(args[2]);
                             break;
+                        case "DailyDataPoints":
+                            GOSReports.GenerateGOSDailyDataPointReport(args[2]);
+                            break;
                         default:
                             break;
                     }
