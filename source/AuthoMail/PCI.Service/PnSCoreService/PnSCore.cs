@@ -1207,7 +1207,7 @@ namespace PCI.Service
         private static string ValidatePrintVendorResponse(IEnumerable<DataRow> reqMRDF, IEnumerable<DataRow> resMRDF, int pieceId, DateTime submittedOn, string printVendorCode)
         {
             var req = reqMRDF.Single(row => row.Field<int>("PieceId") == pieceId);
-            var res = resMRDF.Single(row => row.Field<int>("PieceId") == pieceId);
+            var res = resMRDF.SingleOrDefault(row => row.Field<int>("PieceId") == pieceId);
 
             if (res == null)
             {

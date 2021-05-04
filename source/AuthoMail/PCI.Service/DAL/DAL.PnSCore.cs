@@ -171,7 +171,7 @@ namespace PCI.Service
             if (printResponse.PackageReports.Count == 0)
                 return;
             //NOTE : System will ignore all the RJ codes from the response file which starts from IV_ OR RJ_.
-            var packageReports = printResponse.PackageReports.Except(printResponse.PackageReports.Where(mp => mp.PrintStatus == PrintStatus.Error && (mp.ErrorCode.Contains("IV_") || mp.ErrorCode.Contains("RJ_"))));
+            var packageReports = printResponse.PackageReports.Where(mp => mp.PrintStatus != PrintStatus.Error);
             foreach (var res in packageReports)
             {
                 int pieceId = GetRequestPieceId(printResponse.JobId, res.PieceId);
@@ -180,7 +180,7 @@ namespace PCI.Service
 
                 sql = @"INSERT INTO PnS.MRDFResponse (JobId,PieceId,ProcessingTimeStamp,Disposition,PostageMetered,WeightMeasured,TotalSheets,PDFFileName) VALUES (@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8)";
 
-                db.ExecuteSqlNonQuery(sql, printResponse.JobId, pieceId, res.PrintStatus == PrintStatus.Shipped ? Common.EstToUtc(res.ShippedOn) : res.PrintStatus == PrintStatus.PulledBack ? Common.EstToUtc(res.PulledBackOn) : DateTime.MinValue, res.PrintStatus == PrintStatus.Shipped ? '5' : res.PrintStatus == PrintStatus.PulledBack ? '4' : '7', res.Postage, res.WeightMeasured, res.TotalSheets, res.FileName);
+                db.ExecuteSqlNonQuery(sql, printResponse.JobId, pieceId, res.PrintStatus == PrintStatus.Shipped ? (DateTime?)Common.EstToUtc(res.ShippedOn) : res.PrintStatus == PrintStatus.PulledBack ? (DateTime?)Common.EstToUtc(res.PulledBackOn) : null, res.PrintStatus == PrintStatus.Shipped ? '5' : res.PrintStatus == PrintStatus.PulledBack ? '4' : '7', res.Postage, res.WeightMeasured, res.TotalSheets, res.FileName);
             }
         }
         public static int GetRequestPieceId(int printTrailBatchId, int mailPieceId)
@@ -356,7 +356,7 @@ namespace PCI.Service
                     Inserts = row.Field<string>("Inserts"),
                     InsertsPartNos = row.Field<string>("InsertsPartNos"),
                     InsertsIds = row.Field<string>("InsertsIds"),
-                    DocumentCode =row.Field<string>("DocumentCode"),
+                    DocumentCode = row.Field<string>("DocumentCode"),
                     //Extra Properties to map for MRDF Request
                     InputWeight = row.Field<string>("InputWeight"),
                     Feeder3_Sel = row.Field<string>("Feeder3_Sel"),
