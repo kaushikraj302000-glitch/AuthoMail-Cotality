@@ -860,9 +860,9 @@ bufferSize: 4096, useAsync: true)) { }
             // TODO : check DocumentOrPackage is not empty and DocumentOrPackage.Files property is not empty
             if (mailPiece.DocumentOrPackage == null)
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_DocumentOrPackage, ErrorMessage = "DocumentOrPackage is mandatory." };
-            else if ((mailPiece.DocumentOrPackage.Files == null || mailPiece.DocumentOrPackage.Files.Count == 0 || mailPiece.DocumentOrPackage.Base64String == null) && !allowInsertsOnly && !mailPiece.DocumentOrPackageType.IsNullOrWhiteSpace())
+            else if ((mailPiece.DocumentOrPackage.Files == null || mailPiece.DocumentOrPackage.Files.Count == 0) && mailPiece.DocumentOrPackage.Base64String.IsNullOrWhiteSpace() && !allowInsertsOnly && !mailPiece.DocumentOrPackageType.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Files property must be populated for non-inserts only packages." };
-            else if ((mailPiece.DocumentOrPackage.Files == null || mailPiece.DocumentOrPackage.Files.Count == 0 || mailPiece.DocumentOrPackage.Base64String == null) && mailPiece.DocumentOrPackage.Inserts.IsNullOrWhiteSpace())
+            else if ((mailPiece.DocumentOrPackage.Files == null || mailPiece.DocumentOrPackage.Files.Count == 0) && mailPiece.DocumentOrPackage.Base64String.IsNullOrWhiteSpace() && mailPiece.DocumentOrPackage.Inserts.IsNullOrWhiteSpace())
             {
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Request cannot proceed further without Files or Inserts value." };
             }
