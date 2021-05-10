@@ -1,0 +1,93 @@
+﻿@model AM.Entities.MailPiece
+<div class="panel-group">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div class="panel-title">
+                <h3>Recipient Info</h3>
+            </div>
+        </div>
+        <div class="panel-body">
+            <div class="col-md-1">
+                <div class="form-group form-group-sm">
+                    @Html.LabelFor(model => model.RecipientInfo.Recipient.Prefix, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.RecipientInfo.Recipient.Prefix, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.RecipientInfo.Recipient.Prefix, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group form-group-sm">
+                    @Html.LabelFor(model => model.RecipientInfo.Recipient.FirstName, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.RecipientInfo.Recipient.FirstName, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.RecipientInfo.Recipient.FirstName, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group form-group-sm">
+                    @Html.LabelFor(model => model.RecipientInfo.Recipient.MiddleName, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.RecipientInfo.Recipient.MiddleName, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.RecipientInfo.Recipient.MiddleName, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group form-group-sm">
+                    @Html.LabelFor(model => model.RecipientInfo.Recipient.LastName, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.RecipientInfo.Recipient.LastName, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.RecipientInfo.Recipient.LastName, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-1">
+                <div class="form-group form-group-sm">
+                    @Html.LabelFor(model => model.RecipientInfo.Recipient.Suffix, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.RecipientInfo.Recipient.Suffix, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.RecipientInfo.Recipient.Suffix, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group form-group-sm">
+                    @Html.LabelFor(model => model.RecipientInfo.Recipient.Phone, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.RecipientInfo.Recipient.Phone, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.RecipientInfo.Recipient.Phone, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group form-group-sm">
+                    @Html.LabelFor(model => model.RecipientInfo.Recipient.Organization, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.RecipientInfo.Recipient.Organization, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.RecipientInfo.Recipient.Organization, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group form-group-sm">
+                    @Html.LabelFor(model => model.RecipientInfo.Recipient.EmailAddress, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.RecipientInfo.Recipient.EmailAddress, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.RecipientInfo.Recipient.EmailAddress, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <div class="form-group form-group-sm">
+                    <br />
+                    <input id="eDelivery_PrintAndShipOnExpiry" class="cl-check" type="checkbox" name="eDelivery.PrintAndShipOnExpiry" />
+                    @Html.LabelFor(model => model.eDelivery.PrintAndShipOnExpiry, htmlAttributes: new { @class = "control-label" })
+
+                    @Html.ValidationMessageFor(model => model.eDelivery.PrintAndShipOnExpiry, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group form-group-sm">
+                    @Html.LabelFor(model => model.eDelivery.ExpiryDate, htmlAttributes: new { @class = "control-label" })
+                    @*@Html.EditorFor(model => model.eDelivery.ExpiryDate, new { htmlAttributes = new { @class = "form-control", required = "false" } })*@
+                    @{
+                        string expiryDateVal = null;
+                        if (Model != null && Model.eDelivery != null && Model.eDelivery.PrintAndShipOnExpiry)
+                        {
+                            expiryDateVal = Model.eDelivery.ExpiryDate.ToString("MM-dd-yyyy");
+                        }
+                    }
+                    <input type="text" class="form-control" name="ExpiryDate" id="ExpiryDate" value="@(expiryDateVal)" />
+                    @Html.ValidationMessageFor(model => model.eDelivery.ExpiryDate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

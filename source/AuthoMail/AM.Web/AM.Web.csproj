@@ -617,6 +617,11 @@
     <Content Include="Views\Report\PVReconReport.cshtml" />
     <Content Include="Views\Common\_PrintVendorList.cshtml" />
     <Content Include="Views\Admin\_PrintConfigurationByPnSConfigId.cshtml" />
+    <Content Include="Views\Support\SingleLoanEntry.cshtml" />
+    <Content Include="Views\Support\_RecipientAddress.cshtml" />
+    <Content Include="Views\Support\_RecipientInfo.cshtml" />
+    <Content Include="Views\Support\_ReturnAddress.cshtml" />
+    <Content Include="Views\Support\_ReturnInfo.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

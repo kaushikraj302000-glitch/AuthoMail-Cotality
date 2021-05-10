@@ -860,9 +860,9 @@ bufferSize: 4096, useAsync: true)) { }
             // TODO : check DocumentOrPackage is not empty and DocumentOrPackage.Files property is not empty
             if (mailPiece.DocumentOrPackage == null)
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_DocumentOrPackage, ErrorMessage = "DocumentOrPackage is mandatory." };
-            else if ((mailPiece.DocumentOrPackage.Files == null || mailPiece.DocumentOrPackage.Files.Count == 0) && !allowInsertsOnly && !mailPiece.DocumentOrPackageType.IsNullOrWhiteSpace())
+            else if ((mailPiece.DocumentOrPackage.Files == null || mailPiece.DocumentOrPackage.Files.Count == 0 || mailPiece.DocumentOrPackage.Base64String == null) && !allowInsertsOnly && !mailPiece.DocumentOrPackageType.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Files property must be populated for non-inserts only packages." };
-            else if ((mailPiece.DocumentOrPackage.Files == null || mailPiece.DocumentOrPackage.Files.Count == 0) && mailPiece.DocumentOrPackage.Inserts.IsNullOrWhiteSpace())
+            else if ((mailPiece.DocumentOrPackage.Files == null || mailPiece.DocumentOrPackage.Files.Count == 0 || mailPiece.DocumentOrPackage.Base64String == null) && mailPiece.DocumentOrPackage.Inserts.IsNullOrWhiteSpace())
             {
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_Files, ErrorMessage = "Request cannot proceed further without Files or Inserts value." };
             }
@@ -1008,6 +1008,169 @@ bufferSize: 4096, useAsync: true)) { }
                 return false;
             }
         }
+
+        [HttpPost, Route("apimailrequest")]
+        public async Task<object> CreateAPIMailRequestAsync(MailPiece mailPiece)
+        {
+            if (mailPiece == null) throw new HttpResponseException(HttpStatusCode.BadRequest);
+            DateTime receivedTime = Common.Now;
+            SFTChannel sFTChannel;
+            Client client;
+            MailBatch mailBatch = new MailBatch()
+            {
+                Id = Guid.NewGuid()
+            };
+
+            MailPiece mp = mailPiece;
+
+            using (ICommonService commonSvc = new CommonService())
+            {
+                if (mp.Id != Guid.Empty && commonSvc.CheckForDuplicateMailPieceUniqueId(mailPiece.Id))
+                {
+                    var result = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Invalid_DuplicateKey, ErrorDesc = string.Format("The specified package id '{0}' conflicts with an existing package. Retry with a new GUID.", mailPiece.Id), ReceivedOn = receivedTime };
+
+                    return new { Key = HttpStatusCode.Conflict, Value = result };
+                }
+            }
+
+            mp.Id = Guid.NewGuid();
+
+            mailBatch.MailPieces.Add(mp);
+
+            using (IClientService clientService = new ClientService())
+            {
+                if (User.Identity.SFTChannelId() != null)
+                    sFTChannel = await clientService.GetSFTChannelDetailsBySFTChannelId(User.Identity.SFTChannelId().Value);
+                else
+                {
+                    sFTChannel = null;
+                }
+            }
+
+            if (sFTChannel == null)
+            {
+                var result = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidChannelCode", ErrorDesc = "You do have rights to use this channel for creating print and ship package. Please reach out to your manager to get an access.", ReceivedOn = receivedTime };
+                return new { Key = HttpStatusCode.BadRequest, Value = result };
+            }
+
+            try
+            {
+                using (IClientService clientService = new ClientService())
+                {
+                    client = await clientService.GetClientByAppCode(mp.ClientCode);
+                    if (client == null)
+                    {
+                        //Return error response and insert entry of invalid_client
+                        // sagar's common method call                        
+                        var invalidClient = await clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "_Invalid");
+                        await InsertInvalidBatch(receivedTime, sFTChannel, mailBatch, invalidClient.Id, "Invalid client code specified.");
+                        mp.DocumentOrPackage.IncludePatternBaseString = false;
+                        var resultError = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidClientCode", ErrorDesc = "Invalid client code specified.", ReceivedOn = receivedTime };
+                        return new { Key = HttpStatusCode.BadRequest, Value = resultError };
+                    }
+                    else
+                    {
+                        mailBatch.ClientCode = client.AppCode;
+                        mailBatch.ClientBatchId = mailBatch.Id.ToString();
+                    }
+                }
+
+                var result = ValidateClientSpecificRules(mailBatch, client);
+
+                if (result.Code == OutComeCodes.No_Error)
+                {
+                    mp.DocumentOrPackage.IncludePatternBaseString = true;
+                    //create zip and response
+                    string zipFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.zip", mailBatch.Id));
+                    string triggerFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.GO", mailBatch.Id));
+                    string xmlFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.xml", mailBatch.Id));
+                    string pdfFilePath = Path.Combine(sFTChannel.Host + Path.Combine(sFTChannel.ToADEDir, string.Format("{0}.pdf", mp.DocumentOrPackage.Name == null ? mp.Id.ToString() : Path.GetFileNameWithoutExtension(mp.DocumentOrPackage.Name))));
+
+                    List<string> filesToZip = new List<string>();
+
+                    string xml = mailBatch.Serialize<MailBatch>();
+
+                    using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.OpenOrCreate))
+                    {
+                        using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
+                        {
+                            ZipArchiveEntry xmlEntry = archive.CreateEntry(string.Format("{0}.xml", mailBatch.Id));
+                            using (StreamWriter writer = new StreamWriter(xmlEntry.Open()))
+                            {
+                                await writer.WriteAsync(xml);
+                            }
+                            ZipArchiveEntry pdfEntry = archive.CreateEntry(string.Format("{0}.pdf", mp.DocumentOrPackage.Name == null ? mp.Id.ToString() : Path.GetFileNameWithoutExtension(mp.DocumentOrPackage.Name)));
+                            using (var pdfStream = pdfEntry.Open())
+                            {
+                                var payloadStream = new MemoryStream(Convert.FromBase64String(mp.DocumentOrPackage.Base64String));
+                                await payloadStream.CopyToAsync(pdfStream);
+                            }
+                        }
+                    }
+
+                    if (!File.Exists(triggerFilePath))
+                    {
+                        using (FileStream sourceStream = new FileStream(triggerFilePath,
+FileMode.Create, FileAccess.Write, FileShare.None,
+bufferSize: 4096, useAsync: true))
+                        {
+
+                        }
+
+                        File.SetLastWriteTime(triggerFilePath, receivedTime);
+                    }
+                    var res = new MailAPIResponse
+                    {
+                        Id = mp.Id,
+                        MailingStatus = ShippingStatus.Acknowledgement.ToString(),
+                        Message = "Your request is queued for processing."
+                    };
+                    return new { Key = HttpStatusCode.OK, Value = res };
+                }
+                else
+                {
+                    //insert error and response
+                    using (IMailBatchService mailBatchService = new MailBatchService())
+                    using (ICommonService commonSvc = new CommonService())
+                    using (IMailPieceService mailPieceService = new MailPieceService())
+                    {
+
+                        int mailBatchId = await mailBatchService.InsertBatchDetails(mailBatch, client.Id, sFTChannel);
+                        // insert mailpiece
+                        int mailPieceId = await mailPieceService.InsertBatchMailPieceDetails(mp, client.Id, mailBatchId, result.Code, result.ErrorMessage);
+                        await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.Received, receivedTime);
+                        await mailBatchService.MarkMailBatchAsInvalid(mailBatchId, "Request does not contain valid package info.");
+                        await commonSvc.UpdateBatchStatus(mailBatchId, BatchStatus.Failed.ToString());
+                        await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, Common.Now);
+                        await commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
+                    }
+                    mp.DocumentOrPackage.IncludePatternBaseString = false;
+
+                    var res = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = result.Code, ErrorDesc = result.ErrorMessage, ReceivedOn = receivedTime };
+
+                    return new { Key = HttpStatusCode.BadRequest, Value = res };
+                }
+            }
+            catch (Exception ex)
+            {
+                string msg = string.Format("Unexpected error occured while processing your request.");
+                log.Error(msg, ex);
+                var res = new MailAPIResponse { MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Unknown_Error, ErrorDesc = msg, ReceivedOn = receivedTime };
+
+                return new { Key = HttpStatusCode.BadRequest, Value = res };
+            }
+        }
+        public string ToXML(MailBatch mailBatch)
+        {
+            using (var stringwriter = new System.IO.StringWriter())
+            {
+                var serializer = new XmlSerializer(mailBatch.GetType());
+                serializer.Serialize(stringwriter, mailBatch);
+                return stringwriter.ToString();
+            }
+        }
+
+
 
         public class MailPieceValidationResult
         {
