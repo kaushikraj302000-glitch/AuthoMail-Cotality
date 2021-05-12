@@ -131,46 +131,53 @@ namespace AuthoMailAPI_UnitTest
 
             };
 
-            dynamic expectedValues = new JObject();
+            //dynamic expectedValues = new JObject();
 
-            expectedValues.ShippingCarrier = "USPS";
-            expectedValues.PrintFormat = "Simplex";
-            expectedValues.IsBRE = false;
-            expectedValues.PrintLocation = "Las Vegas";
+            //expectedValues.ShippingCarrier = "USPS";
+            //expectedValues.PrintFormat = "Simplex";
+            //expectedValues.IsBRE = false;
+            //expectedValues.PrintLocation = "Las Vegas";
 
-            expectedValues.QCPercent = 0;
-            expectedValues.TotalPages = 8;
-            expectedValues.PrintTrailName = "GENERIC_PRIEXP";
-            //this is not in view
-            expectedValues.VendorName = "Nordis Technologies";
-            //this is not in view
-            expectedValues.EnvelopeName = "TEST_USPS_PRIEXP";
-            //expectedValues.SweepTime = "";
-            //this is not in view
-            expectedValues.PdfFileSize = 70;
+            //expectedValues.QCPercent = 0;
+            //expectedValues.TotalPages = 8;
+            //expectedValues.PrintTrailName = "GENERIC_PRIEXP";
+            ////this is not in view
+            //expectedValues.VendorName = "Nordis Technologies";
+            ////this is not in view
+            //expectedValues.EnvelopeName = "TEST_USPS_PRIEXP";
+            ////expectedValues.SweepTime = "";
+            ////this is not in view
+            //expectedValues.PdfFileSize = 70;
 
-            expectedValues.IsPulledBack = 0;
+            //expectedValues.IsPulledBack = 0;
 
-            SetDefaultExpectedValuesJson(expectedValues, mailPiece, files);
+            //SetDefaultExpectedValuesJson(expectedValues, mailPiece, files);
 
-            // CHANGE MANUALLY IF NEEDED
+            //// CHANGE MANUALLY IF NEEDED
 
-            //expectedValues.ErrCode = "No_Error";
-            //expectedValues.IsQCPerformed = false;
-            //expectedValues.ShippingStatus = "Shipped";
+            ////expectedValues.ErrCode = "No_Error";
+            ////expectedValues.IsQCPerformed = false;
+            ////expectedValues.ShippingStatus = "Shipped";
 
 
-            bool isRegistered = RegisterTestCase(mailPiece.Id.ToString(), expectedValues.ToString(), this.GetMethodName());
+            //bool isRegistered = RegisterTestCase(mailPiece.Id.ToString(), expectedValues.ToString(), this.GetMethodName());
 
-            Assert.AreEqual(true, isRegistered);
+            //Assert.AreEqual(true, isRegistered);
 
-            if (isRegistered)
-            {
-                var response = await GenerateLocalResponse(files, mailPiece);
-                Assert.AreEqual(mailPiece.Id, response.Id);
-                Assert.AreEqual("Your request is queued for processing.", response.Message);
-                Assert.AreEqual("Acknowledgement", response.MailingStatus);
-            }
+            //if (isRegistered)
+            //{
+            //    var response = await GenerateLocalResponse(files, mailPiece);
+            //    Assert.AreEqual(mailPiece.Id, response.Id);
+            //    Assert.AreEqual("Your request is queued for processing.", response.Message);
+            //    Assert.AreEqual("Acknowledgement", response.MailingStatus);
+            //}
+
+
+            var response = await GenerateLocalResponse(files, mailPiece);
+            Assert.AreEqual(mailPiece.Id, response.Id);
+            Assert.AreEqual("Your request is queued for processing.", response.Message);
+            Assert.AreEqual("Acknowledgement", response.MailingStatus);
+
         }
 
         [TestMethod]
@@ -305,13 +312,24 @@ namespace AuthoMailAPI_UnitTest
         public async Task AM_PdfInsertsValid()
         {
             var files = new List<string>();
+            DocumentOrPackage docPackage;
             if (ConfigurationManager.AppSettings["TokenURL"] == "https://authomail.corelogic.com/token")
             {
                 files.Add(@"PdfSample\encrypetedFile2pub.pdf");
+                docPackage = new DocumentOrPackage()
+                {
+                    Files = new List<string> { "F1" },
+                    Inserts = "TEST_BRE,ABC,XYZ"
+                };
             }
             else
             {
                 files.Add(@"PdfSample\encryptedsample1newkey.pdf");
+                docPackage = new DocumentOrPackage()
+                {
+                    Files = new List<string> { "F1" },
+                    Inserts = "TEST_BRE,ABC,DEF"
+                };
             }
             MailPiece mailPiece = new MailPiece()
             {
@@ -320,11 +338,7 @@ namespace AuthoMailAPI_UnitTest
                 BusinessFriendlyIdName = "Loan Number",
                 BusinessFriendlyIdValue = "123456789",
                 DocumentOrPackageType = "Disclosures",
-                DocumentOrPackage = new DocumentOrPackage()
-                {
-                    Files = new List<string> { "F1" },
-                    Inserts = "TEST_BRE,ABC,XYZ,DEF"
-                },
+                DocumentOrPackage = docPackage,
                 RecipientInfo = new RecipientInfo()
                 {
                     Recipient = new Recipient()
@@ -362,7 +376,7 @@ namespace AuthoMailAPI_UnitTest
             Assert.AreEqual("Your request is queued for processing.", response.Message);
             Assert.AreEqual("Acknowledgement", response.MailingStatus);
         }
-        
+
         [TestMethod]
         public async Task AM_InsertsOnlyValid()
         {
@@ -415,7 +429,7 @@ namespace AuthoMailAPI_UnitTest
             Assert.AreEqual("Your request is queued for processing.", response.Message);
             Assert.AreEqual("Acknowledgement", response.MailingStatus);
         }
-  
+
         #endregion
 
         #region InvalidScenarios
@@ -3263,7 +3277,7 @@ namespace AuthoMailAPI_UnitTest
             expectedValues.ShippingCarrier = "USPS";
             expectedValues.PrintFormat = "Simplex";
             expectedValues.IsBRE = true;
-            expectedValues.PrintLocation = "CL_DALLAS"; 
+            expectedValues.PrintLocation = "CL_DALLAS";
 
             //expectedValues.QCPercent = 0;
             expectedValues.TotalPages = 1;
