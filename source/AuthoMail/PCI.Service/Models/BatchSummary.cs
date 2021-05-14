@@ -163,6 +163,8 @@ namespace PCI.Service
         public string CustomerId { get; set; }
         public bool IsForeignAddress { get; set; }
         public string DocumentCode { get; set; }
+        public bool IsChecks { get; set; }
+        public string ChecksPageNumbers { get; set; }
     }
 
     public class DallasBatch

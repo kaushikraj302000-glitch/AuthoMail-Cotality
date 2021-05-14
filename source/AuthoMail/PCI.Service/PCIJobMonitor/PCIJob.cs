@@ -337,7 +337,7 @@ namespace PCI.Service
                     //For NORDIS OR Any Other Print Vendor
                     var zipFilePath = Path.Combine(batchRequestPath, ptBatchDetails.PrintBatchName + ".zip");
                     var xmlFilePath = Path.Combine(batchRequestPath, ptBatchDetails.PrintBatchName + ".xml");
-                   
+
                     log.InfoFormat("Creating Batch For PrintTrailBatchId : {0}", ptBatchDetails.Id);
                     string batchPath = CreateNordisBatch(mpList, ptBatchDetails, zipFilePath, xmlFilePath);
                     log.InfoFormat("Creating Batch For PrintTrailBatchId : {0}", ptBatchDetails.Id);
@@ -481,23 +481,35 @@ namespace PCI.Service
             {
                 foreach (var package in mpList)
                 {
-                    printRequestXml.Packages.Add(
-                        new Package()
-                        {
-                            PieceId = package.MailPieceId.Value,
-                            FileName = package.PDFFileName,
-                            DueDate = Common.UtcToEst(package.MailPieceDueDate),
-                            TotalSheets = package.TotalSheets,
-                            ClientCode = package.Alias == "DELFUS" ? $"{package.Alias}_{package.CustomerId}" : package.Alias,
-                            IsForeignAddress = package.IsForeignAddress,
-                            TotalImages = package.TotalPages,
-                            PaperSize = package.PrintSize,
-                            PrintFormat = package.PrintFormat.ParseEnum<PrintFormat>(),
-                            BREPartNo = package.InsertsPartNos,
-                            BREDesc = package.Inserts,
-                            DocumentCode = package.DocumentCode,
-                            QCReqd = package.DivertVS3 == 1 ? true : false,
-                        });
+                    var packageInfo = new Package()
+                    {
+                        PieceId = package.MailPieceId.Value,
+                        FileName = package.PDFFileName,
+                        DueDate = Common.UtcToEst(package.MailPieceDueDate),
+                        TotalSheets = package.TotalSheets,
+                        ClientCode = package.Alias == "DELFUS" ? $"{package.Alias}_{package.CustomerId}" : package.Alias,
+                        IsForeignAddress = package.IsForeignAddress,
+                        TotalImages = package.TotalPages,
+                        PaperSize = package.PrintSize,
+                        PrintFormat = package.PrintFormat.ParseEnum<PrintFormat>(),
+                        BREPartNo = package.InsertsPartNos,
+                        BREDesc = package.Inserts,
+                        DocumentCode = package.DocumentCode,
+                        QCReqd = package.DivertVS3 == 1 ? true : false,
+                    };
+
+                    if (package.IsChecks)
+                    {
+                        var totalChecks = package.ChecksPageNumbers.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Length;
+
+                        packageInfo.NT_DOCID_1_TotalImages = totalChecks;
+                        packageInfo.NT_DOCID_1_TotalSheets = totalChecks;
+
+                        packageInfo.NT_DOCID_2_TotalImages = (package.TotalPages - totalChecks);
+                        packageInfo.NT_DOCID_2_TotalSheets = (package.TotalPages - totalChecks);
+                    }
+
+                    printRequestXml.Packages.Add(packageInfo);
 
                     //NOTE:Here we are directly creating Zip with Bundling into another path
                     //We have folder structure like PCIRoot/AppCode/JobId/PCIRequest
