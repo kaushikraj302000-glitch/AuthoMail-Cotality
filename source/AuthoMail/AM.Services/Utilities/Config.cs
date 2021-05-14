@@ -41,6 +41,8 @@ namespace AM.Services
         public static string Common_AMTrash { get; set; }
         public static string Common_PnSTrash { get; set; }
         public static string Common_BlankPage { get; private set; }
+        public static string Core_ChecksKey { get; set; }
+        public static string Core_NonChecksKey { get; set; }
 
         public static List<Holiday> GetHolidaysByClientId(int clientId)
         {

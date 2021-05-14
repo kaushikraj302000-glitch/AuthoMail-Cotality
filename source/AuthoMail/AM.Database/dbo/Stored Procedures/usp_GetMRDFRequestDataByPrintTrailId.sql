@@ -11,7 +11,7 @@ BEGIN
  ,D.BREEnvelopeId,E.EnvelopeName,E.PartNumber AS EnvelopePartNo,E.EnvelopeName AS EnvelopeDesc
   ,(SELECT [Value] FROM AM.MailPieceCustomInfo MPC WHERE MPC.[Key]='CustomerId' AND MPC.MailPieceId=MP.Id) AS CustomerId
   ,CAST((CASE WHEN LEN(LTRIM(RTRIM(MP.RcptAddressCountry))) >0 THEN 1 ELSE 0 END )AS BIT) AS IsForeignAddress,MP.ShipperId, MP.Inserts
-  ,PC.DocumentCode,MP.TotalPages
+  ,CAST(CASE WHEN d.IsChecks IS NULL THEN 0 ELSE d.IsChecks END AS BIT) IsChecks,PC.DocumentCode,MP.TotalPages
   ,InsertsPartNos=STUFF
   (  
     (  

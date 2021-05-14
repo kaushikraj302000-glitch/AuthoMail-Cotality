@@ -650,6 +650,14 @@ namespace AM.Core
                                     doc.WriteTextOnLabel(coverLetterPdfPaths.First(), mailPiece.Inserts);
                                 }
 
+                                //Adding stamping for checks
+                                if (docType.IsChecks)
+                                {
+                                    var checkNumbers = batchData.MailPieceCustomInfo.SingleOrDefault(d => d.MailPieceId == mailPiece.Id && d.Key == "CheckPageNumbers") != null ? batchData.MailPieceCustomInfo.SingleOrDefault(d => d.MailPieceId == mailPiece.Id && d.Key == "CheckPageNumbers").Value.ToString() : "";
+
+                                    pdfFilePath = doc.StampingChecks(pdfFilePath, checkNumbers);
+                                }
+
                                 string blankPdfPath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Common_BlankPage);
 
                                 if (!File.Exists(pdfFilePath) && docType.AllowInsertsOnly)
