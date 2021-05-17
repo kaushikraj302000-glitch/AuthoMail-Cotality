@@ -382,7 +382,9 @@ namespace PCI.Service
                     SocialSecNumber = row.Field<string>("SocialSecNumber"),
                     CheckAmount = row.Field<string>("CheckAmount"),
                     PassThru = row.Field<string>("PassThru"),
-                    EndofRecord = row.Field<string>("EndofRecord")
+                    EndofRecord = row.Field<string>("EndofRecord"),
+                    ChecksPageNumbers = row.Field<string>("ChecksPageNumbers"),
+                    IsChecks = row.Field<bool>("IsChecks"),
                 });
             }
 
