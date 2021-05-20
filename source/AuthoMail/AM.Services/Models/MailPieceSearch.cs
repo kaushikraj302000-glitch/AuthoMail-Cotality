@@ -512,6 +512,8 @@ namespace AM.Services
 
     public class SearchViewModel
     {
+        public int MailPieceId { get; set; }
+        public int MailBatchId { get; set; }
         public string LoanNumber { get; set; }
         public string Status { get; set; }
         public Guid UniqueId { get; set; }
@@ -544,6 +546,15 @@ namespace AM.Services
         public string AppCode { get; set; }
         public string PDFFileName { get; set; }
         public string RequestedPdf
+        {
+            get
+            {
+                if (this.PDFFileName.IsNullOrWhiteSpace()) return null;
+                return $@"{Config.PnS_PCIRootFolder}/{this.AppCode}/{this.JobId}/PCIRequest/{PDFFileName}";
+            }
+        }
+
+        public string IsOutOfRetentionPolicy
         {
             get
             {

@@ -111,6 +111,9 @@ namespace AM.Entities
         public string ReturnTrackingNo { get; set; }
         public string ReturnDeliveryStatus { get; set; }
         public DateTime? ReturnDeliveryDate { get; set; }
+        public Client Client { get; set; }
+        public MailBatchDTO MailBatch { get; set; }
+        public DocType DocType { get; set; }
     }
 
     public class MailPieceCustomInfo
