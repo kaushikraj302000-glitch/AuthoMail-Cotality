@@ -95,11 +95,6 @@ namespace AM.Services
 
             InsertBatchMailPieceCustomDetails(mailPieceCustomInfo);
 
-            if (mailPiece.IsEDeliveryRequested && mailPiece.ShippingStatus != ShippingStatus.Error.ToString())
-            {
-                InsertMailPieceEDeliveryDetails(mailPiece, receivedOn, downloadedOn);
-            }
-
             return mailPieceId;
         }
 

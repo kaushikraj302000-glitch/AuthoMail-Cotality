@@ -43,7 +43,7 @@ namespace AM.Services
 	 b.ReceivedOn,m.DocTypeId,
 	 d.DocTypeName as DocType,pcd.ShippingServiceType as ShippingMethod,pcd.ShippingCarrier,
 	 ch.Title as Channel,m.DeliveryStatus,m.DeliveryDate,m.Inserts,
-	e.EnvelopeName,ptb.PrintBatchName as PrintFileName, req.JobId, req.PDFFileName, c.AppCode";
+	e.EnvelopeName,ptb.PrintBatchName as PrintFileName, req.JobId, req.PDFFileName, c.AppCode, c.Id AS ClientId,C.RetentionPeriod";
             DynamicParameters parameter = new DynamicParameters();
             parameter.Add("@clientId", clientId);
             if (!string.IsNullOrWhiteSpace(businessFriendlyIdName))

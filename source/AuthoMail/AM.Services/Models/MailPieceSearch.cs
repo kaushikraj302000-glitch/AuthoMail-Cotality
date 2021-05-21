@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
 using System.ComponentModel.DataAnnotations;
+using AM.Entities;
+
 namespace AM.Services
 {
 
@@ -512,6 +514,8 @@ namespace AM.Services
 
     public class SearchViewModel
     {
+        private readonly DateTime CurrentDateTime = Common.Now;
+        public DateTime StartDate { get; set; }
         public int MailPieceId { get; set; }
         public int MailBatchId { get; set; }
         public string LoanNumber { get; set; }
@@ -545,23 +549,18 @@ namespace AM.Services
         public int JobId { get; set; }
         public string AppCode { get; set; }
         public string PDFFileName { get; set; }
+        public int RetentionPeriod { get; set; }
+        public int ClientId { get; set; }
         public string RequestedPdf
         {
             get
             {
                 if (this.PDFFileName.IsNullOrWhiteSpace()) return null;
-                return $@"{Config.PnS_PCIRootFolder}/{this.AppCode}/{this.JobId}/PCIRequest/{PDFFileName}";
-            }
-        }
 
-        public string IsOutOfRetentionPolicy
-        {
-            get
-            {
-                if (this.PDFFileName.IsNullOrWhiteSpace()) return null;
                 return $@"{Config.PnS_PCIRootFolder}/{this.AppCode}/{this.JobId}/PCIRequest/{PDFFileName}";
             }
         }
+        public bool IsWithinRetentionPeriod { get; set; }
     }
 
 

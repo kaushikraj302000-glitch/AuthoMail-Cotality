@@ -97,6 +97,13 @@ namespace AM.Web.Controllers
                 var exactEndDate = receivedOnEnd != string.Empty ? DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
                 var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode, false, batchMailPieceId);
 
+                if (data.Key != 0 && data.Value != null)
+                {
+                    data.Value.ForEach(a =>
+                    {
+                        a.IsWithinRetentionPeriod = CheckWithinRetentionPeriod(a.RetentionPeriod, Common.Now, a.ReceivedOn.Value, a.ClientId);
+                    });
+                }
                 //var model = Mapper.Map<List<SearchViewModel>>(data);
 
                 return Json(JsonResponseFactory.SuccessResponse(new { model = data }), JsonRequestBehavior.AllowGet);
@@ -105,6 +112,32 @@ namespace AM.Web.Controllers
             {
                 return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
             }
+        }
+
+        private bool CheckWithinRetentionPeriod(int retentionDays, DateTime now, DateTime receivedOn, int clientId)
+        {
+            int days = retentionDays;
+            DateTime startDate = now;
+            do
+            {
+                startDate = startDate.AddDays(-1);
+                days -= IsBusinessDay(startDate, Config.GetHolidaysByClientId(clientId), false, false) ? 1 : 0;
+            } while (0 != days);
+
+            return startDate < receivedOn;
+        }
+        private static bool IsBusinessDay(DateTime date, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
+        {
+            if (holidays.Select(c => c.HolidayDate).Contains(date.Date))
+                return false;
+
+            if (date.DayOfWeek == DayOfWeek.Saturday)
+                return isSatWorkDay;
+
+            if (date.DayOfWeek == DayOfWeek.Sunday)
+                return isSunWorkDay;
+
+            return true;
         }
 
         [HttpPost]
