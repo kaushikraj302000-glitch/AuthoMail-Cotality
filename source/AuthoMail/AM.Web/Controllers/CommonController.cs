@@ -153,6 +153,20 @@ namespace AM.Web.Controllers
         }
 
         [HttpGet]
+        public async Task<ActionResult> ReshipPackage(int mbId, int mpId)
+        {
+            try
+            {
+                return Json(JsonResponseFactory.ErrorResponse("File not found."));
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex.ToString());
+                return Json(JsonResponseFactory.ErrorResponse(ex.Message));
+            }
+        }
+
+        [HttpGet]
         public ActionResult _PrintVendorList()
         {
             ViewBag.PrintVendors = new SelectList(repoSvc.GetActivePrintVendors(), "Id", "VendorCode");
