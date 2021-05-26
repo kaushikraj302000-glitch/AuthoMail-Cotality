@@ -45,11 +45,11 @@
             <tr>
                 <th>Action</th>
                 <th>Name</th>
-                @*<th>Current Quantity</th>
-                <th>Reorder Duration</th>*@
+                <th>Current Quantity</th>
+                @*<th>Reorder Duration</th>*@
                 <th>Is BRE Envelope?</th>
-                @*<th>Stock Remain Days</th>
-                <th>Alert Level</th>*@
+                @*<th>Stock Remain Days</th>*@
+                <th>Alert Level</th>
                 <th>Last Updated </th>
             </tr>
         </thead>
@@ -62,11 +62,11 @@
             <tr class="row-small">
                 <td>{Action}</td>
                 <td><span>{EnvelopeName}</span></td>
-                @*<td><span>{CurrentQuantity}</span></td>
-                <td><span>{ReorderDuration}</span></td>*@
+                <td><span>{CurrentQuantity}</span></td>
+                @*<td><span>{ReorderDuration}</span></td>*@
                 <td><span>{IsBREEnvelope}</span></td>
-                @*<td><span>{EnvDays}</span></td>
-                <td><span>{AlertLevelFormatted}</span></td>*@
+                @*<td><span>{EnvDays}</span></td>*@
+                <td><span>{AlertLevelFormatted}</span></td>
                 <td><span>{LastUpdated}</span></td>
             </tr>
         </tbody>
@@ -76,6 +76,28 @@
 
 <div class="modal fade" id="AddEditModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
     <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="AddStockModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="StockHistoryModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
             <div class="modal-header" style="margin-top:2%;margin-bottom:2%;">
@@ -166,11 +188,127 @@
             ValidateForm();
             // JSON.useDateParser(false);
         });
+         function AddEnvelopInventory(obj) {
+             var el = $("#AddStockModal").find(".modal-header");
+            el.empty();
+            $.ajax({
+                type: "GET",
+                url: baseUrl + "Admin/AddEnvelopInventory",
+                success: function (response) {
+                    el.html(response);
+                    $("#EnvelopeId").val($(obj).data('id'));
+                    $("#AddStockModal").modal("show");
+                    ValidateStockForm();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+
+                    //Spinners(".spinnericon", "faspinner");
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#AddStockModal").modal("show");
+                }
+            });
+
+        }
+
+        function EnvelopeStockHistory(obj) {
+            var el = $("#StockHistoryModal").find(".modal-header");
+            el.empty();
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Admin/GetInventoryByEnvelopId",
+                data: { id: parseInt($(obj).data('id')), envelopName: $(obj).data('name')},
+                success: function (response) {
+                    el.html(response);
+                    $("#EnvelopeId").val();
+                    $("#StockHistoryModal").modal("show");
+                    ValidateStockForm();
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+
+                    //Spinners(".spinnericon", "faspinner");
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#StockHistoryModal").modal("show");
+                }
+            });
+        }
+        function ValidateStockForm() {
+            window.clui.selectInit();
+            init();
+            $('#envelopeInventoryform').validate({ // initialize the plugin
+                errorElement: "span",
+                rules: {
+                    EnvelopeId: {
+                        required: true
+                    },
+                    ShipperId: {
+                        required: true
+                    },
+                    ReceivedQuantity: {
+                        required: true,
+                        min: 1,
+                    },
+                    UnitPrice: {
+                        required: true,
+                        min: 1,
+                    }
+                },
+                submitHandler: function (form) {
+                    $("#AddStockModal").modal("hide");
+                    SaveEnvelopeInventory();
+                }
+            });
+        }
+        function EnvelopeInventory(EnvelopeId, ReceivedQuantity, UnitPrice, Description,ShipperId) {
+            this.EnvelopeId = EnvelopeId;
+            this.ReceivedQuantity = ReceivedQuantity;
+            this.UnitPrice = 0;//UnitPrice;
+            this.Description = Description;
+            this.ShipperId = ShipperId;
+        }
+        function SaveEnvelopeInventory() {
+            var envelopeInventory = new EnvelopeInventory(parseInt($("#EnvelopeId").val()), $("#ReceivedQuantity").val(), $("#UnitPrice").val(), $("#Description").val(), parseInt($("#ShipperId").val()));
+            console.log(envelopeInventory);
+            var el = $("#myModal").find(".modal-body");
+            el.empty();
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Admin/SaveEnvelopeInventory",
+                data: { envelopeInventory: envelopeInventory },
+                success: function (response) {
+                    if (response.Success) {
+                        if (response.Object != null) {
+                            //console.log(response.Object)
+                            if (response.Object.Key) {
+                                el.html("<div class='alert alert-green'>" + response.Object.Value + "</div>");
+                            }
+                            else {
+                                el.html("<div class='alert alert-red'>" + response.Object.Value + "</div>");
+                            }
+                        }
+                        GetData();
+                    }
+                    else {
+
+                        el.html("<div class='alert alert-red'>" + response.ErrorMessage + "</div>");
+                    }
+                    $("#myModal").modal("show");
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
+                    $("#myModal").modal("show");
+                }
+            });
+        }
+
+
         function FormatObject(Model) {
             $(Model).each(function () {
                 this.EnvelopeNameFormated = '<a class="viewdetails" style="cursor:pointer" onclick="ViewDetails(this)" data-id="' + this.Id + '">' + this.EnvelopeName + '</a>';
                 this.IsBREEnvelope = this.IsBREEnvelope ? '<span  class="label medium label-yellow">Yes</span>' : '<span class="label medium label-success">No</span>';
-                this.Action = '<a style="cursor: pointer;font-size:1.2em;" href="/Admin/CreateOrEditEnvelope/'+this.Id+'" ><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></a>';
+                this.Action = ' <a style="cursor: pointer;font-size:1.2em;" data-id="' + this.Id + '" title="Add Envelope Inventory" href="#" onclick="AddEnvelopInventory(this)"><i class="fa fa-plus  text-blue"></i></a><a style="cursor: pointer;font-size:1.2em;" data-id="' + this.Id + '" title="Envelope Stock History" data-name="' + this.EnvelopeName + '" onclick="EnvelopeStockHistory(this)"><i class="fa fa-history padding-left-15 text-blue"></i></a><a style="cursor: pointer;font-size:1.2em;" href="/Admin/CreateOrEditEnvelope/' + this.Id + '" ><i class="padding-left-15 fa fa-edit text-blue" aria-hidden="true" title="Edit"><span class="sr-only">Edit</span></i></a>';
                 this.LastUpdated = this.ModifiedBy + " <br />on " + moment(this.ModifiedOn).format("MM/DD/YY HH:mm:ss");
                 this.ReorderDuration = (this.ReorderDuration == null || this.ReorderDuration == "") ? "-" : this.ReorderDuration;
                 this.EnvDays = (this.EnvDays == null || this.EnvDays == "") ? "-" : this.EnvDays;

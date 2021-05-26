@@ -29,6 +29,7 @@ using DELFUS.TemplateImporter;
 using AM.Lib;
 using System.Net.Mail;
 using AM.Services.Models;
+using AutoMapper;
 //using Microsoft.Ajax.Utilities;
 
 namespace AM.Web.Controllers
@@ -1197,8 +1198,12 @@ namespace AM.Web.Controllers
         {
             try
             {
-                var model = inventorySvc.GetEnvelopes().OrderBy(e => e.Order);
-
+                var model = Mapper.Map<List<EnvelopesListVM>>(inventorySvc.GetEnvelopes().OrderBy(e => e.Order));
+                var envelopeInvStockCalc = inventorySvc.GetEnvelopeInventoryStockCalculation();
+                model.ForEach(s =>
+                {
+                    s.AlertLevel = envelopeInvStockCalc.Where(e => e.EnvelopeId == s.Id).Max(e => e.AlertLevel);
+                });
                 return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
@@ -1283,6 +1288,22 @@ namespace AM.Web.Controllers
                 var model = inventorySvc.GetLast3MonthsInventoryEnvelopes();
 
                 return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+
+        }
+        [HttpPost]
+        public ActionResult GetInventoryByEnvelopId(int id,string envelopName)
+        {
+            try
+            {
+                ViewBag.Name = envelopName;
+                var model = inventorySvc.GetLast3MonthsInventoryByEnvelopeId(id);
+
+                return PartialView("_EnvelopeStockHistory",model);
             }
             catch (Exception e)
             {

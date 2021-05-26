@@ -622,6 +622,7 @@
     <Content Include="Views\Support\_RecipientInfo.cshtml" />
     <Content Include="Views\Support\_ReturnAddress.cshtml" />
     <Content Include="Views\Support\_ReturnInfo.cshtml" />
+    <Content Include="Views\Admin\_EnvelopeStockHistory.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

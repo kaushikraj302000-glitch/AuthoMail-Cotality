@@ -252,6 +252,7 @@ namespace AM.Services
     public class EnvelopesVM : Envelopes
     {
         public List<EnvelopeStockVM> EnvelopeStockVMs { get; set; }
+        public List<EnvelopeStockVM> EnvelopeStockVMUs { get; set; }
         public EnvelopesVM()
         {
             this.EnvelopeStockVMs = new List<EnvelopeStockVM>();
@@ -275,5 +276,22 @@ namespace AM.Services
         }
 
 
+    }
+
+    public class EnvelopesListVM
+    {
+        public int Id { get; set; }
+        public string EnvelopeName { get; set; }
+        public int CurrentQuantity { get; set; }
+        public bool IsBREEnvelope { get; set; }
+        public int? ReorderDuration { get; set; }
+        public string PartNumber { get; set; }
+        public string EnvelopeDesc { get; set; }
+        public string CreatedBy { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public string ModifiedBy { get; set; }
+        public DateTime ModifiedOn { get; set; }
+        public int AlertLevel { get; set; }
+        public int Order { get; set; }
     }
 }

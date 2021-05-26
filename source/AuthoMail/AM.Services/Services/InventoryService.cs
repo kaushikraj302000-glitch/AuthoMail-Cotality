@@ -27,6 +27,7 @@ namespace AM.Services
         KeyValuePair<bool, string> IsPartNumberExists(int Id, string partNumber);
         KeyValuePair<bool, string> IsEnvelopeNameExists(int Id, string name);
         IEnumerable<EnvelopeInventory> GetLast3MonthsInventoryEnvelopes();
+        IEnumerable<EnvelopeInventory> GetLast3MonthsInventoryByEnvelopeId(int Id);
         KeyValuePair<bool, string> UpdateReorderDuration(int envelopeId, int shipperId, int reorderDuration);
     }
     public class InventoryService : ServiceBase, IInventoryService
@@ -49,11 +50,16 @@ where e.EnvelopeName=@envelopeCode", new { envelopeCode = envelopeCode });
 
         public List<Envelopes> GetEnvelopes()
         {
-            var envelopes = db.Query<Envelopes>(@"select e.*,c.DisplayName as CreatedBy,m.DisplayName as ModifiedBy from Common.Envelopes e
-inner join Profile.Users c on e.CreatedBy=c.Id
-inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
+            var envelopes = db.Query<Envelopes>(@"select e.*,sum(es.CurrentQuantity) as CurrentQuantity,      c.DisplayName as CreatedBy, m.DisplayName as ModifiedBy from Common.Envelopes e
+                inner join Common.EnvelopeStock es on e.Id=es.EnvelopeId
+                inner join Profile.Users c on e.CreatedBy=c.Id
+                inner join Profile.Users m on e.ModifiedBy=m.Id
+                group by e.Id,e.IsBREEnvelope,e.CreatedBy,e.CreatedOn,e.EnvelopeDesc,e.EnvelopeName,
+                e.ModifiedBy,e.ModifiedOn,e.PartNumber,c.DisplayName,m.DisplayName").ToList();
             return envelopes;
         }
+
+
         public List<EnvelopeInventoryStockCalculation> GetEnvelopeInventoryStockCalculation()
         {
             return db.Query<EnvelopeInventoryStockCalculation>("exec dbo.usp_EnvelopeInventoryStockCalculation").ToList();
@@ -124,6 +130,12 @@ inner join Profile.Users m on e.ModifiedBy=m.Id").ToList();
 
                             sql = @"insert into [Common].[EnvelopeStock] (EnvelopeId,ShipperId,CurrentQuantity,ReOrderDuration) values (@EnvelopeId,@ShipperId,@CurrentQuantity,@ReOrderDuration)";
                             db.Execute(sql, envelope.EnvelopeStockVMs, transaction: t);
+                        }
+                        //Update Reorder duraction
+                        if (envelope.EnvelopeStockVMUs.Count > 0)
+                        {
+                            sql = @"UPDATE [Common].[EnvelopeStock]  SET ReOrderDuration=@ReOrderDuration WHERE EnvelopeId=@EnvelopeId and ShipperId=@ShipperId";
+                            db.Execute(sql, envelope.EnvelopeStockVMUs, transaction: t);
                         }
                         t.Commit();
                         return new KeyValuePair<bool, string>(true, "Saved successfully");
@@ -332,13 +344,22 @@ inner join Profile.Users c on ei.CreatedBy=c.Id
 inner join Profile.Users m on ei.ModifiedBy=m.Id
 where ei.ModifiedOn>=@modifiedOn", new { modifiedOn = DateTime.UtcNow.AddMonths(-3) });
         }
-
+        
+            public IEnumerable<EnvelopeInventory> GetLast3MonthsInventoryByEnvelopeId(int Id)
+        {
+            return db.Query<EnvelopeInventory>(@"select ei.*,e.EnvelopeName,s.PrintLocation as Shipper,c.DisplayName as CreatedBy, m.DisplayName as ModifiedBy from Common.EnvelopeInventory ei
+inner join Common.Envelopes e on ei.EnvelopeId=e.Id
+inner join Common.ShipperInformation s on ei.ShipperId=s.Id
+inner join Profile.Users c on ei.CreatedBy=c.Id
+inner join Profile.Users m on ei.ModifiedBy=m.Id
+where ei.ModifiedOn>=@modifiedOn and e.Id=@Id Order By ei.ModifiedOn desc", new { modifiedOn = DateTime.UtcNow.AddMonths(-3),Id=Id });
+        }
         public KeyValuePair<bool, string> UpdateReorderDuration(int envelopeId, int shipperId, int reorderDuration)
         {
             try
             {
                 string sql = "UPDATE [Common].[EnvelopeStock]  SET ReOrderDuration=@ReOrderDuration WHERE EnvelopeId=@EnvelopeId and ShipperId=@ShipperId";
-                db.Execute(sql, new { EnvelopeId = envelopeId, ShipperId=shipperId, ReOrderDuration = reorderDuration });
+                db.Execute(sql, new { EnvelopeId = envelopeId, ShipperId = shipperId, ReOrderDuration = reorderDuration });
                 return new KeyValuePair<bool, string>(true, "Saved successfully");
             }
             catch (Exception ex)
