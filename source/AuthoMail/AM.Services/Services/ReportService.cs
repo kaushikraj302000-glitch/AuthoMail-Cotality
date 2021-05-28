@@ -618,7 +618,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
                             (
 	                            SELECT P.Id, C.AppCode, B.BatchName, dbo.ufn_UTCToEST(B.ReceivedOn) AS ReceivedOnEst, P.BusinessfriendlyIdValue AS LoanNumber,
 	                            P.DocumentOrPackageType,P.FileName, P.RcptFirstName +' '+ P.RcptLastName AS BorrowerName,P.TrackingNo,P.ShippingStatus,P.TotalPages,  dbo.ufn_UTCToEST(ShippedOn) AS ShippedOnEst,
-	                            P.PrintLocation, P.ErrorDesc, P.DeliveryDate, P.DeliveryStatus, P.ReturnTrackingNo, P.ReturnDeliveryStatus, P.ReturnDeliveryDate, PCD.ShippingCarrier 
+	                            P.PrintLocation, P.ErrorDesc, P.DeliveryDate, P.DeliveryStatus, P.ReturnTrackingNo, P.ReturnDeliveryStatus, P.ReturnDeliveryDate, PCD.ShippingCarrier, PCD.ShippingServiceType 
 	                            FROM AM.MailPieces P 
 	                            INNER JOIN AM.MailBatches B ON P.MailBatchId=B.Id 
 	                            INNER JOIN Common.Clients C ON P.ClientId=C.Id

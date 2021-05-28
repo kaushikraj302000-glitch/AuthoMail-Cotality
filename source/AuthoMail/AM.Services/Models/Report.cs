@@ -88,15 +88,18 @@ namespace AM.Services
         public int TotalPages { get; set; }
         public string ProductCode { get; set; }
         public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
         public string ShippingStatus { get; set; }
         public string ShipmentStatus { get; set; }
         public string DeliveryStatus { get; set; }
+        public string ConvertedDeliveryStatus { get; set; }
         public DateTime? DeliveryDate { get; set; }
         public DateTime? ShippedOnEst { get; set; }
         public string PrintLocation { get; set; }
         public string ErrorDesc { get; set; }
         public string ReturnTrackingNo { get; set; }
         public string ReturnDeliveryStatus { get; set; }
+        public string ConvertedReturnDeliveryStatus { get; set; }
         public DateTime? ReturnDeliveryDate { get; set; }
         public string ReturnShippingCarrier
         {

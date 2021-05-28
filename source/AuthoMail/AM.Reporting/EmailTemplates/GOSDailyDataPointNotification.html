@@ -5,8 +5,9 @@
     <meta http-equiv="Content-Style-Type" content="text/css">
     <title><%AppCode%> Data</title>
     <style>
-        div {
-            max-width: 50%;
+        body {
+            max-width: 500px;
+            font-family: Arial,sans-serif;
         }
 
         table {
@@ -15,11 +16,7 @@
         }
 
         th, td {
-            padding: 8px;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f2f2f2
+            padding: 5px;
         }
 
         th {
@@ -30,9 +27,7 @@
         .styled-table {
             border-collapse: collapse;
             margin: 25px 0;
-            font-size: 0.9em;
-            font-family: sans-serif;
-            min-width: 400px;
+            max-width: 400px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
         }
 
@@ -52,6 +47,11 @@
             font-family: sans-serif;
             font-size: 14px;
         }
+
+        .trProduct {
+            font-weight: bold;
+            background-color: #80808024;
+        }
     </style>
 </head>
 <body>
@@ -60,70 +60,53 @@
             Hi All,
             <br />
             <br />
-            Please find attached <%AppCode%> Status Report.
+            Please find attached <%AppCode%> Status Report. Below is the product wise delivery details for your reference.
         </p>
     </div>
-    <div>
-        <table class="styled-table">
-            <thead>
-                <tr>
-                    <th colspan="6">FedEx</th>
-                </tr>
-                <tr>
-                    <th colspan="3">Ongoing Tracking Information</th>
-                    <th colspan="3">Return Tracking Information</th>
-                </tr>
-                <tr>
-                    <th>Delivered</th>
-                    <th>InTransit</th>
-                    <th>Pending</th>
-                    <th>Delivered</th>
-                    <th>InTransit</th>
-                    <th>Pending</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><%FedEx_ODelivered%></td>
-                    <td><%FedEx_OInTransit%></td>
-                    <td><%FedEx_OPending%></td>
-                    <td><%FedEx_RDelivered%></td>
-                    <td><%FedEx_RInTransit%></td>
-                    <td><%FedEx_RPending%></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    <div>
-        <table class="styled-table">
-            <thead>
-                <tr>
-                    <th colspan="6">USPS</th>
-                </tr>
-                <tr>
-                    <th colspan="3">Ongoing Tracking Information</th>
-                    <th colspan="3">Return Tracking Information</th>
-                </tr>
-                <tr>
-                    <th>Delivered</th>
-                    <th>InTransit</th>
-                    <th>Pending</th>
-                    <th>Delivered</th>
-                    <th>InTransit</th>
-                    <th>Pending</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><%USPS_ODelivered%></td>
-                    <td><%USPS_OInTransit%></td>
-                    <td><%USPS_OPending%></td>
-                    <td><%USPS_RDelivered%></td>
-                    <td><%USPS_RInTransit%></td>
-                    <td><%USPS_RPending%></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="min-width:100%;">
+        <thead>
+            <tr>
+                <th colspan="4">Ongoing Status</th>
+            </tr>
+            <tr>
+                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 16px; line-height:20px;line-height:30px">Product Wise Status Details</th>
+                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 16px; line-height:20px;line-height:30px">FedEx</th>
+                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 16px; line-height:20px;line-height:30px">USPS Priority</th>
+                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 16px; line-height:20px;line-height:30px">Grand Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {OngoingData}
+        </tbody>
+    </table>
+    <br />
+    <br />
+    <br />
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="min-width:100%;">
+        <thead>
+            <tr>
+                <th colspan="4">Return Status</th>
+            </tr>
+            <tr>
+                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 16px; line-height:20px;line-height:30px">Product Wise Status Details</th>
+                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 16px; line-height:20px;line-height:30px">FedEx</th>
+                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 16px; line-height:20px;line-height:30px">USPS Priority</th>
+                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 16px; line-height:20px;line-height:30px">Grand Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {ReturnData}
+        </tbody>
+    </table>
+
+    <br />
+    <br />
+    <p>
+        <b>Thanks & Regards,</b><br />
+        <span style="font-size: 12px;">Team CoreLogic</span>
+    </p>
+
+    <p style="font-size: 10px;"><b>Note : Please do not reply on this system generated email.</b></p>
 </body>
 </html>

@@ -54,6 +54,7 @@ namespace AM.Reporting
         public static string GOSDailyDataPointEMailSubject { get; private set; }
         public static string GOSDailyDataPointEMailTemplate { get; private set; }
         public static string GOSDailyDataPointEMailTo { get; private set; }
+        public static string GOSStatusMappingFile { get; private set; }
         public static Dictionary<string, string> GOSDailyEmailListByAppCode
         {
             get
@@ -68,6 +69,20 @@ namespace AM.Reporting
             }
         }
         public static string GOSDailyDataPointEMailCc { get; private set; }
+        public static string GOSDaily3MonthClientList { get; private set; }
+        public static List<string> GOSDaily3MonthAppCodes
+        {
+            get
+            {
+
+                if (!string.IsNullOrWhiteSpace(GOSDaily3MonthClientList))
+                {
+                    return GOSDaily3MonthClientList.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                }
+
+                return null;
+            }
+        }
 
         public static string USAAMTDEmailTo { get; private set; }
         public static string USAAMTDEmailCc { get; private set; }
@@ -120,6 +135,8 @@ namespace AM.Reporting
             GOSDailyDataPointEMailSubject = ConfigurationManager.AppSettings["GOSDailyDataPointEMailSubject"].Trim();
             GOSDailyDataPointEMailTemplate = ConfigurationManager.AppSettings["GOSDailyDataPointEMailTemplate"].Trim();
             GOSDailyDataPointReportTemplate = ConfigurationManager.AppSettings["GOSDailyDataPointReportTemplate"].Trim();
+            GOSDaily3MonthClientList = ConfigurationManager.AppSettings["GOSDaily3MonthClientList"].Trim();
+            GOSStatusMappingFile = ConfigurationManager.AppSettings["GOSStatusMappingFile"].Trim();
 
 
             USAAMTDEmailTo = ConfigurationManager.AppSettings["USAAMTDEmailTo"].Trim();
