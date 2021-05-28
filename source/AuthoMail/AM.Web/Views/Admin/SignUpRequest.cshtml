@@ -299,6 +299,7 @@
                 data: {userId:userId},
                 dataType: "json",
                 success: function (response) {
+                    debugger;
                     $('#RoleAreaDiv').html('');
                     $('#appcodeselect').find('option').remove();
                     if (response.Success) {
@@ -324,7 +325,7 @@
                         $.each(groupedData, function (key, value) {
                             var group = $('<optgroup label="' + key + '" />');
                             $.each(value, function (k, v) {
-                                $('<option ' + sel + ' value="' + v.Id + '" />').html(v.Name).appendTo(group);
+                                $('<option value="' + v.Id + '" />').html(v.Name).appendTo(group);
                             });
                             group.appendTo($select);
                         });
