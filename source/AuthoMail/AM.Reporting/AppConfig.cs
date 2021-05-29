@@ -51,7 +51,6 @@ namespace AM.Reporting
         public static string GOSDataPointReportTemplate { get; private set; }
 
         public static string GOSDailyDataPointReportTemplate { get; private set; }
-        public static string GOSDailyDataPointEMailSubject { get; private set; }
         public static string GOSDailyDataPointEMailTemplate { get; private set; }
         public static string GOSDailyDataPointEMailTo { get; private set; }
         public static string GOSStatusMappingFile { get; private set; }
@@ -132,7 +131,6 @@ namespace AM.Reporting
 
             GOSDailyDataPointEMailTo = ConfigurationManager.AppSettings["GOSDailyDataPointEMailTo"].Trim();
             GOSDailyDataPointEMailCc = ConfigurationManager.AppSettings["GOSDailyDataPointEMailCc"].Trim();
-            GOSDailyDataPointEMailSubject = ConfigurationManager.AppSettings["GOSDailyDataPointEMailSubject"].Trim();
             GOSDailyDataPointEMailTemplate = ConfigurationManager.AppSettings["GOSDailyDataPointEMailTemplate"].Trim();
             GOSDailyDataPointReportTemplate = ConfigurationManager.AppSettings["GOSDailyDataPointReportTemplate"].Trim();
             GOSDaily3MonthClientList = ConfigurationManager.AppSettings["GOSDaily3MonthClientList"].Trim();

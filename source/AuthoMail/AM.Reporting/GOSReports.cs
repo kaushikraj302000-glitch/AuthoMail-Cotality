@@ -329,7 +329,7 @@ namespace AM.Reporting
             foreach (var appCode in clientCodes)
             {
                 //NOTE : Please change UTC to EST code when Daylight saving is off in service call
-                var reportGOS = gosBatchDetails.Where(c => c.AppCode == appCode && (c.ShippingCarrier == "FedEx" || (c.ShippingCarrier == "USPS" && c.ShippingServiceType == "PRIORITY"))).Select(r => new { r.LoanNumber, r.BorrowerName, r.ProductCode, r.ReceivedOnEst, r.TrackingNo, r.ShippingCarrier, r.ConvertedDeliveryStatus, r.DeliveryDate, r.ReturnTrackingNo, r.ConvertedReturnDeliveryStatus, r.ReturnDeliveryDate, r.Week }).ToList();
+                var reportGOS = gosBatchDetails.Where(c => c.AppCode == appCode && (c.ShippingCarrier == "FedEx" || (c.ShippingCarrier == "USPS" && c.ShippingServiceType == "PRIORITY"))).Select(r => new { r.LoanNumber, r.BorrowerName, r.ProductCode, r.ReceivedOnEst, r.TrackingNo, r.ShippingCarrier, r.ConvertedDeliveryStatus, r.DeliveryStatus, r.DeliveryDate, r.ReturnTrackingNo, r.ConvertedReturnDeliveryStatus, r.ReturnDeliveryStatus, r.ReturnDeliveryDate, r.Week }).ToList();
 
                 if (gosBatchDetails.Count > 0)
                 {
@@ -347,7 +347,7 @@ namespace AM.Reporting
 
                     var lstByOnGoingProductCode = gosBatchDetails.Where(x => (x.ShippingCarrier == "FedEx" || (x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")) && x.AppCode == appCode).GroupBy(x => x.ProductCode);
 
-                    var lstByReturnProductCode = gosBatchDetails.Where(x => (x.ReturnShippingCarrier == "FedEx" || (x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")) && x.AppCode == appCode).GroupBy(x => x.ProductCode);
+                    var lstByReturnProductCode = gosBatchDetails.Where(x => (x.ReturnShippingCarrier == "FedEx" || (x.ReturnShippingCarrier == "USPS" && x.ReturnShippingServiceType == "PRIORITY")) && x.AppCode == appCode).GroupBy(x => x.ProductCode);
 
                     StringBuilder ongoingRows = new StringBuilder();
                     foreach (var ongoingProdlst in lstByOnGoingProductCode)
@@ -394,9 +394,9 @@ namespace AM.Reporting
                     sb = sb.Replace("<%AppCode%>", appCode);
 
                     sb = sb.Replace("{OngoingData}", ongoingRows.ToString());
-                    sb = sb.Replace("{ReturnData}", ongoingRows.ToString());
+                    sb = sb.Replace("{ReturnData}", returnRows.ToString());
 
-                    SendReportToCLTeam(reportFilePath, $"{appCode} MTD FedEx Status Report For Date {startTime.Date.ToString("MM-dd-yyyy")}", sb.ToString(), appCodeEmailList[appCode], AppConfig.GOSDailyDataPointEMailCc);
+                    SendReportToCLTeam(reportFilePath, $"{appCode} MTD Delivery Status Report For Date {startTime.Date.ToString("MM-dd-yyyy")}", sb.ToString(), appCodeEmailList[appCode], AppConfig.GOSDailyDataPointEMailCc);
                 }
             }
         }

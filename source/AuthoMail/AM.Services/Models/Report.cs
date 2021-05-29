@@ -120,6 +120,26 @@ namespace AM.Services
                 return null;
             }
         }
+
+        public string ReturnShippingServiceType
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(ReturnTrackingNo))
+                {
+                    if (ReturnTrackingNo.StartsWith("7") || ReturnTrackingNo.StartsWith("3"))
+                    {
+                        return "PRIORITY_OVERNIGHT";
+                    }
+                    else
+                    {
+                        return "PRIORITY";
+                    }
+                }
+
+                return null;
+            }
+        }
         public string Week
         {
             get
