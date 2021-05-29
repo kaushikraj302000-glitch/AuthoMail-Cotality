@@ -623,6 +623,8 @@
     <Content Include="Views\Support\_ReturnAddress.cshtml" />
     <Content Include="Views\Support\_ReturnInfo.cshtml" />
     <Content Include="Views\Admin\_EnvelopeStockHistory.cshtml" />
+    <Content Include="Views\Admin\_TransferEnvelopeQuantity.cshtml" />
+    <Content Include="Views\Admin\_EnvelopeStockAndAlertDetails.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

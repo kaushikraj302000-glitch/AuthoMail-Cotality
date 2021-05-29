@@ -123,6 +123,7 @@ namespace AM.Services
         public string EnvelopeName { get; set; }
         public int CurrentQuantity { get; set; }
         public bool IsBREEnvelope { get; set; }
+        public bool IsTrackingRequired { get; set; }
         public int? ReorderDuration { get; set; }
         public string PartNumber { get; set; }
         public string EnvelopeDesc { get; set; }
@@ -284,6 +285,7 @@ namespace AM.Services
         public string EnvelopeName { get; set; }
         public int CurrentQuantity { get; set; }
         public bool IsBREEnvelope { get; set; }
+        public bool IsTrackingRequired { get; set; }
         public int? ReorderDuration { get; set; }
         public string PartNumber { get; set; }
         public string EnvelopeDesc { get; set; }
@@ -293,5 +295,23 @@ namespace AM.Services
         public DateTime ModifiedOn { get; set; }
         public int AlertLevel { get; set; }
         public int Order { get; set; }
+    }
+    public class EnvelopeTransferInventory
+    {
+        public int EnvelopeId { get; set; }
+        public int FromShipperId { get; set; }
+        public int ToShipperId { get; set; }
+        public int TransferQuantity { get; set; }
+        public int TransferQty
+        {
+            get
+            {
+                return -TransferQuantity;
+            }
+        }
+        public string Description { get; set; }
+        public DateTime? TransferredOn { get; set; }
+        public string TransferredBy { get; set; }
+
     }
 }

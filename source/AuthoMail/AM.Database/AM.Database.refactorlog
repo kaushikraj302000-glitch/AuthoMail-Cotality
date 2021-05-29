@@ -161,4 +161,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="[IX_EnvelopeStock_ShipperId]" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="a6d08f68-4c6e-43d2-9464-c8a26241534f" ChangeDateTime="05/29/2021 09:58:43">
+    <Property Name="ElementName" Value="[Common].[Envelopes].[IsTrackingNotRequired]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Common].[Envelopes]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="IsTrackingRequired" />
+  </Operation>
 </Operations>
