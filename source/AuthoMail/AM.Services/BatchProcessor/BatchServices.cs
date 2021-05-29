@@ -294,84 +294,98 @@ namespace AM.Services
         {
             var mailPieceDictionary = new Dictionary<int, MailPieceDTO>();
 
-            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id LEFT OUTER JOIN [AM].[DocTypes] d ON m.DocTypeId=d.Id 
-left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT OUTER JOIN AM.MailPieceCustomInfo MC ON M.Id=MC.MailPieceId INNER JOIN Common.Clients C ON M.ClientId=C.Id WHERE M.MailBatchId=@MailBatchId AND M.Id=@MailPieceId";
+            string query = @"SELECT * FROM AM.MailPieces M INNER JOIN AM.MailBatches B ON M.MailBatchId=B.Id INNER JOIN Common.Clients C ON M.ClientId=C.Id LEFT OUTER JOIN v_DocTypes D ON M.DocTypeId=D.Id AND M.PnSConfigDetailId = D.PnSConfigDetailId LEFT OUTER JOIN AM.MailPieceCustomInfo CI ON M.Id=CI.MailPieceId  WHERE M.MailBatchId=@MailBatchId AND M.Id=@MailPieceId";
 
-            var data = db.Query<MailPieceDTO, MailBatchDTO, DocType, MailPieceCustomInfo, Client, MailPieceDTO>(query,
-                (m, b, d, c, cl) =>
-                {
-                    MailPieceDTO mp;
+            var data = db.Query<MailPieceDTO, MailBatchDTO, Client, DocType, MailPieceCustomInfo, MailPieceDTO>(query,
+               (m, b, c, d, ci) =>
+               {
+                   MailPieceDTO mp;
 
-                    if (!mailPieceDictionary.TryGetValue(m.Id, out mp))
-                    {
-                        mp = m;
-                        mp.MailBatch = b;
-                        mp.Client = cl;
-                        mp.DocType = d;
-                        mp.MailPieceCustomInfo = new List<MailPieceCustomInfo>();
-                        mailPieceDictionary.Add(mp.Id, mp);
-                    }
+                   if (!mailPieceDictionary.TryGetValue(m.Id, out mp))
+                   {
+                       mp = m;
+                       mp.MailBatch = b;
+                       mp.Client = c;
+                       mp.DocType = d;
+                       mp.MailPieceCustomInfo = new List<MailPieceCustomInfo>();
+                       mailPieceDictionary.Add(mp.Id, mp);
+                   }
 
-                    mp.MailPieceCustomInfo.Add(c);
-                    return mp;
-                },
-                new
-                {
-                    MailBatchId = mailBatchId,
-                    MailPieceId = mailPieceId
-                }, splitOn: "Id,Id,MailPieceId,Id").Distinct().ToList();
+                   mp.MailPieceCustomInfo.Add(ci);
+                   return mp;
+               },
+               new
+               {
+                   MailBatchId = mailBatchId,
+                   MailPieceId = mailPieceId
+               }, splitOn: "Id,Id,MailPieceId").Distinct().ToList();
             return data.SingleOrDefault();
         }
 
         public MailPieceDTO ProcessReshipData(MailPieceDTO mailPiece)
         {
-            var newBatch = mailPiece.MailBatch;
-            newBatch.BatchStatus = "InProgress";
-            newBatch.PipelineStatus = BatchPipelineStatus.Acknowledged;
-            newBatch.Priority = Priority.Medium.ToString();
-            newBatch.ReceivedOn = Common.Now;
-            newBatch.DownloadedOn = Common.Now;
-            newBatch.ValidatedOn = Common.Now;
-            newBatch.AcknowledgedOn = Common.Now;
-            newBatch.UniqueId = Guid.NewGuid();
-            newBatch.ValidationErrors = null;
-            newBatch.ValidationStatus = BatchValidationStatus.Valid;
-            newBatch.Id = InsertBatchDetails(newBatch, true);
-
-            var newMailPiece = mailPiece;
-            newMailPiece.ErrorCode = OutComeCodes.No_Error;
-            newMailPiece.ErrorDesc = null;
-            newMailPiece.MailBatchId = newBatch.Id;
-            newMailPiece.MissedSLAReason = null;
-            newMailPiece.PickedUpOn = null;
-            newMailPiece.PrintBatchId = null;
-            newMailPiece.PrintedOn = null;
-            newMailPiece.PullBackRequestedBy = null;
-            newMailPiece.PullBackRequestedOn = null;
-            newMailPiece.PulledBackOn = null;
-            newMailPiece.ReturnDeliveryDate = null;
-            newMailPiece.ReturnDeliveryStatus = null;
-            newMailPiece.ReturnTrackingNo = null;
-            newMailPiece.ShippedOn = null;
-            newMailPiece.ShippingCost = 0;
-            newMailPiece.ShippingStatus = ShippingStatus.InProgress.ToString();
-            newMailPiece.TrackingNo = null;
-            newMailPiece.UniqueId = Guid.NewGuid();
-            newMailPiece.Weight = 0;
-            //Here we are storing originalUnique Id for reporting purpose.
-            newMailPiece.MailPieceCustomInfo.Add(new MailPieceCustomInfo() { Key = "OriginalUniqueId", DataType = DataType.String, Value = mailPiece.UniqueId.ToString() });
-
             using (ICommonService commonSvc = new CommonService())
             using (IMailPieceService mailPieceSvc = new MailPieceService())
+            using (IDocTypeService docTypeSvc = new DocTypeService())
+            using (IClientService clientSvc = new ClientService())
             {
+                MailPieceDTO newMailPiece = new MailPieceDTO();
+                newMailPiece = mailPiece;
+
+                var newBatch = newMailPiece.MailBatch;
+                newBatch.BatchStatus = "InProgress";
+                newBatch.PipelineStatus = BatchPipelineStatus.Acknowledged;
+                newBatch.Priority = Priority.Medium.ToString();
+                newBatch.ReceivedOn = Common.Now;
+                newBatch.DownloadedOn = Common.Now;
+                newBatch.ValidatedOn = Common.Now;
+                newBatch.AcknowledgedOn = Common.Now;
+                newBatch.UniqueId = Guid.NewGuid();
+                newBatch.ValidationErrors = null;
+                newBatch.ValidationStatus = BatchValidationStatus.Valid;
+                newBatch.Id = InsertBatchDetails(newBatch, true);
+
+                newMailPiece.ErrorCode = OutComeCodes.No_Error;
+                newMailPiece.ErrorDesc = null;
+                newMailPiece.MailBatchId = newBatch.Id;
+                newMailPiece.MissedSLAReason = null;
+                newMailPiece.PickedUpOn = null;
+                newMailPiece.PrintBatchId = null;
+                newMailPiece.PrintedOn = null;
+                newMailPiece.PullBackRequestedBy = null;
+                newMailPiece.PullBackRequestedOn = null;
+                newMailPiece.PulledBackOn = null;
+                newMailPiece.ReturnDeliveryDate = null;
+                newMailPiece.ReturnDeliveryStatus = null;
+                newMailPiece.ReturnTrackingNo = null;
+                newMailPiece.ShippedOn = null;
+                newMailPiece.ShippingCost = 0;
+                newMailPiece.ShippingStatus = ShippingStatus.InProgress.ToString();
+                newMailPiece.TrackingNo = null;
+                newMailPiece.UniqueId = Guid.NewGuid();
+                newMailPiece.Weight = 0;
+                //Here we are storing originalUnique Id for reporting purpose.
+                newMailPiece.MailPieceCustomInfo.Add(new MailPieceCustomInfo() { Key = "OriginalUniqueId", DataType = DataType.String, Value = mailPiece.UniqueId.ToString() });
+
+                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPiece.ClientId, mailPiece.DocumentOrPackageType, mailPiece.TotalPages, newBatch.ReceivedOn.Value.UtcToEst());
+
+                if (docType != null)
+                {
+                    newMailPiece.DocTypeId = docType.Id;
+                    newMailPiece.PnSConfigDetailId = docType.PnSConfigDetailId;
+                    newMailPiece.PrintTrailId = docType.PrintTrailId;
+                    newMailPiece.DocType = docType;
+                }
+
+                var client = clientSvc.GetClientById(newMailPiece.ClientId);
+                newMailPiece.Client = client;
+
                 commonSvc.GetUpdatedDueDateAndPrintLocation(newBatch.ReceivedOn.Value, newMailPiece, newMailPiece.DocType, newMailPiece.Client);
                 newMailPiece.Id = mailPieceSvc.InsertBatchMailPieceDetails(newMailPiece, newMailPiece.MailPieceCustomInfo);
-
-                mailPiece = newMailPiece;
-                mailPiece.MailBatch = newBatch;
+                mailPieceSvc.UpdateBatchMailPieceDetails(newMailPiece);
+                newMailPiece.MailBatch = newBatch;
+                return newMailPiece;
             }
-
-            return mailPiece;
         }
     }
 }

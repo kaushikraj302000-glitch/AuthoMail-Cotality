@@ -157,12 +157,27 @@ namespace AM.Web.Controllers
         {
             try
             {
-                return Json(JsonResponseFactory.ErrorResponse("File not found."));
+                HttpClient client = new HttpClient();
+                client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
+                HttpResponseMessage response = new HttpResponseMessage();
+
+                response = await client.GetAsync($@"{Config.Web_Reship_API_Url}/ReshipPackage?mailBatchId={mbId}&mailPieceId={mpId}");
+
+                var responseString = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return Json(JsonResponseFactory.SuccessResponse(responseString), JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    return Json(JsonResponseFactory.ErrorResponse(responseString), JsonRequestBehavior.AllowGet);
+                }
             }
             catch (Exception ex)
             {
                 log.Error(ex.ToString());
-                return Json(JsonResponseFactory.ErrorResponse(ex.Message));
+                return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
             }
         }
 

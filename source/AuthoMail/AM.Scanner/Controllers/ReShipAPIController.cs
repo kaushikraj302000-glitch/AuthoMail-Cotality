@@ -10,6 +10,7 @@ using System.Transactions;
 using System.Web;
 using System.Web.Http;
 using AM.Lib;
+using AM.Entities;
 
 namespace AM.Scanner.Controllers
 {
@@ -17,6 +18,7 @@ namespace AM.Scanner.Controllers
     public class ReShipAPIController : ApiController
     {
         IMailBatchService mailBatchSvc;
+        IDocTypeService docTypeSvc;
 
         public ReShipAPIController()
         {
@@ -35,17 +37,19 @@ namespace AM.Scanner.Controllers
                     return Request.CreateResponse(HttpStatusCode.Unauthorized);
                 }
                 //Create HTTP Response.
-                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK, "Reship request is submitted successfully.");
 
                 var mailPieceInfo = mailBatchSvc.GetMailPiecesDataFromMailBatchIdAndMailPieceId(mailBatchId, mailPieceId);
 
                 if (mailPieceInfo == null)
                 {
-                    //Throw 404 (Not Found) exception.
-                    response.StatusCode = HttpStatusCode.NotFound;
-                    response.ReasonPhrase = $"Record not found for MailPieceId - {mailPieceId}";
-                    return response;
+                    return Request.CreateErrorResponse(HttpStatusCode.NotFound, $"Record not found for MailPieceId - {mailPieceId}");
                 }
+
+                int oldMailBatchId = mailPieceInfo.MailBatch.Id;
+                int oldMailPieceId = mailPieceInfo.Id;
+                string oldAppCode = mailPieceInfo.Client.AppCode;
+
 
                 using (TransactionScope scope = new TransactionScope())
                 {
@@ -63,13 +67,11 @@ namespace AM.Scanner.Controllers
                         mbPnSRequestPath.CreateDirectoryIfNotExist();
                         mbPnSResponsePath.CreateDirectoryIfNotExist();
 
-                        var oldPdfFilePath = Path.Combine(Common.Common.AMRootPath, mailPieceInfo.Client.AppCode, mailPieceInfo.MailBatchId.ToString(), "AMRequest", mailPieceInfo.FileName);
+                        var oldPdfFilePath = Path.Combine(Common.Common.AMRootPath, oldAppCode, oldMailBatchId.ToString(), "AMRequest", newMailPiece.FileName);
 
                         if (!File.Exists(oldPdfFilePath))
                         {
-                            response.StatusCode = HttpStatusCode.NotFound;
-                            response.ReasonPhrase = $"File not found for MailPieceId - {mailPieceId}";
-                            return response;
+                            return Request.CreateErrorResponse(HttpStatusCode.NotFound, $"File not found for MailPieceId - {mailPieceId}");
                         }
 
                         File.Copy(oldPdfFilePath, Path.Combine(mbAMRequestPath, newMailPiece.FileName));
@@ -78,18 +80,15 @@ namespace AM.Scanner.Controllers
                     }
                     catch (Exception ex)
                     {
-                        response.StatusCode = HttpStatusCode.NotFound;
-                        response.ReasonPhrase = $"Error occured while executing reship process - {mailPieceId} with error : {ex.Message}";
-                        return response;
+                        return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, $"Error occured while executing reship process - {mailPieceId} with error : {ex.Message}");
                     }
                 }
-
                 return response;
             }
             catch (Exception e)
             {
                 log.Error(e.ToString());
-                return Request.CreateResponse(HttpStatusCode.BadRequest, e.Message);
+                return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, e.Message);
             }
         }
 
