@@ -18,7 +18,6 @@ namespace AM.Scanner.Controllers
     public class ReShipAPIController : ApiController
     {
         IMailBatchService mailBatchSvc;
-        IDocTypeService docTypeSvc;
 
         public ReShipAPIController()
         {
