@@ -309,11 +309,11 @@ namespace AM.Web.Controllers
             return View();
         }
 
-        public ActionResult DownloadPVReconReport(int? pvId, string startDate, string endDate, string fileName, int timezoneOffset)
+        public ActionResult DownloadPVReconReport(string pvCode, string startDate, string endDate, string fileName, int timezoneOffset)
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToStartDateTime().EstToUtc();
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToEndDateTime().EstToUtc();
-            var data = repoSvc.GetPVReconReport(pvId, exactStartDate, exactEndDate);
+            var data = repoSvc.GetPVReconReport(pvCode, exactStartDate, exactEndDate);
             var model = Mapper.Map<List<MonthlyReconReportViewModel>>(data);
             model.ForEach(m =>
             {
@@ -327,7 +327,7 @@ namespace AM.Web.Controllers
             var memoryStream = ExcelHelper.ExportDataSet(dataTable);
             memoryStream.Seek(0, SeekOrigin.Begin);
 
-            var fileNameArry = new string[] { fileName, exactStartDate.ToString("MMddyyy"), "TO", exactEndDate.ToString("MMddyyy"), pvId.ToString() };
+            var fileNameArry = new string[] { fileName, exactStartDate.ToString("MMddyyy"), "TO", exactEndDate.ToString("MMddyyy"), pvCode.ToString() };
             fileName = string.Join("_", fileNameArry.Where(s => s != "").ToArray());
             fileName = string.Format("{0}.xlsx", fileName);
             return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);

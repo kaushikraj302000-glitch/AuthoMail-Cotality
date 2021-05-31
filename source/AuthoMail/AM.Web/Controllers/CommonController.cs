@@ -155,7 +155,7 @@ namespace AM.Web.Controllers
         [HttpGet]
         public ActionResult _PrintVendorList()
         {
-            ViewBag.PrintVendors = new SelectList(repoSvc.GetActivePrintVendors(), "Id", "VendorCode");
+            ViewBag.PrintVendors = new SelectList(repoSvc.GetActivePrintVendorsWithLocation(), "PrintVendorCode", "PrintVendorNameCode");
             return PartialView();
         }
     }

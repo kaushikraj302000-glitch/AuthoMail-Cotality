@@ -1,57 +1,50 @@
 ﻿CREATE PROCEDURE [dbo].[uspweb_PVReconReport]
-	@pvId INT,
+	@pvCode VARCHAR(255) = NULL,
 	@startDate DATETIME,
 	@endDate DATETIME
 AS
 BEGIN
 
-	SELECT A.AppCode, A.BatchName AS BatchName, A.UniqueId,A.BusinessFriendlyIdValue AS LoanNumber
-	,A.RcptFirstName AS [FirstName],A.RcptLastName AS [LastName]
-	,A.RcptAddressStreet AS [Address],A.RcptAddressCity AS [City],A.RcptAddressState AS [State],A.RcptAddressZIP AS [ZIP]
-	,A.Channel ,A.DocumentOrPackageType AS [DocType]
-	,A.ReceivedOn, A.ShippedOn, A.PulledBackOn, A.PrintLocation
-	,A.ShippingStatus AS [Status], A.TrackingNo, A.[FileName]
-	,A.TotalPages, A.TotalSheets,ISNULL(c.LETTER,0) AS [LetterPageCount],ISNULL(c.LEGAL,0) AS [LegalPageCount], A.TotalBlankPages
-	,A.IsEDeliveryRequested, A.[ShippingMethod]
-	,ISNULL(REPLACE(REPLACE(A.ErrorDesc, CHAR(13), ''), CHAR(10), ''),'') AS ErrorDesc
-	,A.Inserts,A.PrintBatchName, A.SubmittedOn, A.DeliveryStatus, A.DeliveryDate, A.ShippingCost, A.EnvelopeName
-	FROM 
-	(
-		SELECT B.BatchName,P.UniqueId, P.DocumentOrPackageType ,P.BusinessFriendlyIdValue, P.[FileName], P.[FilePattern], B.ReceivedOn
-		,P.PrintedOn ,P.ShippedOn ,P.TotalPages ,P.RcptFirstName,P.RcptLastName ,P.RcptAddressStreet ,P.RcptAddressCity,P.RcptAddressState 
-		,P.RcptAddressZIP,P.Id AS [MailPieceId],P.ShippingCost,P.ShippingStatus,P.ErrorDesc, PTB.PrintBatchName
-		,PTB.SubmittedOn,P.IsEDeliveryRequested, S.Code AS Channel, P.PrintLocation 
-		, PCD.ShippingCarrier + ' / ' +PCD.ShippingServiceType AS [ShippingMethod], P.TrackingNo, P.TotalSheets
-		, P.TotalBlankPages, c.AppCode, E.EnvelopeName ,P.Inserts , P.DeliveryStatus, P.DeliveryDate, P.PulledBackOn
-		FROM AM.MailBatches B
-		INNER JOIN AM.MailPieces P ON P.MailBatchId=B.Id
-		INNER JOIN Common.SFTChannels S ON B.SFTChannelId=S.Id
-		INNER JOIN Common.Clients C ON P.ClientId=C.Id
-		INNER JOIN AM.DocTypes D ON D.Id=P.DocTypeId
-		INNER JOIN Common.PnSConfigDetail PCD ON P.PnSConfigDetailId=PCD.Id
-		INNER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id
-		INNER JOIN PnS.MRDFRequest REQ ON P.UniqueId=REQ.UniqueId
-		INNER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
-		INNER JOIN PnS.PrintTrailBatches PTB ON REQ.PrintTrailBatchId = PTB.Id
-		INNER JOIN Common.PrintTrails PT ON PTB.PrintTrailId = PT.Id
-		WHERE PTB.SubmittedOn BETWEEN @startDate AND @endDate
-		AND ISNULL(PT.PrintVendorId,'')=ISNULL(@pvId,ISNULL(PT.PrintVendorId,''))
-	)A
+	SELECT C.AppCode, B.BatchName AS BatchName, P.UniqueId,P.BusinessFriendlyIdValue AS LoanNumber
+	,P.RcptFirstName AS [FirstName],P.RcptLastName AS [LastName]
+	,P.RcptAddressStreet AS [Address],P.RcptAddressCity AS [City],P.RcptAddressState AS [State],P.RcptAddressZIP AS [ZIP]
+	,S.Code AS Channel ,P.DocumentOrPackageType AS [DocType]
+	,B.ReceivedOn, P.ShippedOn, P.PulledBackOn, P.PrintLocation
+	,P.ShippingStatus AS [Status], P.TrackingNo, P.[FileName]
+	,P.TotalPages, P.TotalSheets,ISNULL(MPP.LETTER,0) AS [LetterPageCount],ISNULL(MPP.LEGAL,0) AS [LegalPageCount], P.TotalBlankPages
+	,P.IsEDeliveryRequested, PCD.ShippingCarrier + ' / ' +PCD.ShippingServiceType AS [ShippingMethod]
+	,ISNULL(REPLACE(REPLACE(P.ErrorDesc, CHAR(13), ''), CHAR(10), ''),'') AS ErrorDesc
+	,P.Inserts,PT.PrintBatchName, PT.SubmittedOn, P.DeliveryStatus, P.DeliveryDate, P.ShippingCost, E.EnvelopeName
+	FROM AM.MailPieces P
+	INNER JOIN AM.DocTypes D ON P.DocTypeId=D.Id 
+	INNER JOIN Common.PnSConfigDetail PCD ON P.PnSConfigDetailId=PCD.Id
+	INNER JOIN Common.Clients C ON P.ClientId=C.Id
+	INNER JOIN AM.MailBatches B ON P.MailBatchId=B.Id
+	INNER JOIN Common.SFTChannels S ON B.SFTChannelId=S.Id
+	INNER JOIN PnS.MRDFRequest REQ ON P.UniqueId=REQ.UniqueId
+	INNER JOIN Pns.PrintTrailBatches PT ON REQ.PrintTrailBatchId=PT.Id
+	INNER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id
 	LEFT OUTER JOIN 
 	(
 		SELECT *
 		FROM 
 		(
 			SELECT 
-				[MailPieceId],[PageSize],[PageCount]
+			[MailPieceId],[PageSize],[PageCount]
 			FROM [Common].[MailPiecePageInfo]
-		) AS S
+		) AS s
 		PIVOT
 		(
 			MAX([PageCount])
 			FOR [PageSize] IN ([LETTER],[LEGAL])
 		)AS pvt2
-	)C ON c.MailPieceId=A.MailPieceId
-	ORDER BY A.MailPieceId
+	)MPP on MPP.MailPieceId=P.Id
+	WHERE PT.PrintTrailId IN 
+	(
+		SELECT Id FROM Common.PrintTrails WHERE PrintVendorId=3
+	)
+	AND PT.SubmittedOn BETWEEN @startDate AND @endDate
+	AND PT.PrintTrailId IN (SELECT Id FROM Common.PrintTrails WHERE PrintVendorCode=ISNULL(@pvCode,PrintVendorCode))
+	ORDER BY P.Id
 END
 

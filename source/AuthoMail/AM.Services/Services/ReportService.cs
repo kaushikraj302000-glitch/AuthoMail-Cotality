@@ -45,7 +45,8 @@ namespace AM.Services
         List<MailPieces> GetMailPiecesDataFromMailPieceId(List<int> mpIds);
         MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate);
         List<PrintVendor> GetActivePrintVendors();
-        List<MonthlyReconReportViewModel> GetPVReconReport(int? pvId, DateTime startDate, DateTime endDate);
+        List<PrintVendorLocations> GetActivePrintVendorsWithLocation();
+        List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -200,6 +201,11 @@ namespace AM.Services
         public List<PrintVendor> GetActivePrintVendors()
         {
             return db.Query<PrintVendor>("SELECT * FROM Common.PrintVendors WHERE IsActive=1").ToList();
+        }
+
+        public List<PrintVendorLocations> GetActivePrintVendorsWithLocation()
+        {
+            return db.Query<PrintVendorLocations>("SELECT DISTINCT PrintVendorCode,PrintVendorName from Common.ShipperInformation SI INNER JOIN Common.PrintVendors PV ON SI.PrintVendorId = PV.Id WHERE PV.IsActive = 1 ORDER BY SI.PrintVendorName").ToList();
         }
 
         public List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate)
@@ -835,15 +841,15 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
             return data;
         }
 
-        public List<MonthlyReconReportViewModel> GetPVReconReport(int? pvId, DateTime startDate, DateTime endDate)
+        public List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate)
         {
-            string query = "[dbo].[uspweb_PVReconReport] @pvId, @startDate, @endDate";
+            string query = "[dbo].[uspweb_PVReconReport] @pvCode, @startDate, @endDate";
             startDate = startDate.ToStartDateTime();
             endDate = endDate.ToEndDateTime();
             var data = db.Query<MonthlyReconReportViewModel>(query,
                 new
                 {
-                    pvId = pvId,
+                    pvCode = pvCode,
                     startDate = startDate,
                     endDate = endDate
                 }).ToList();

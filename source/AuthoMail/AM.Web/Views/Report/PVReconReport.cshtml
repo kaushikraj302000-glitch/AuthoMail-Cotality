@@ -82,7 +82,7 @@
             var selectedData = $("#date").val().split('-');
             var startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
             var endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
-            var url = baseUrl + "Report/DownloadPVReconReport?startDate=<startDate>&endDate=<endDate>&pvId=<channel>&fileName=<fileName>&timezoneOffset=<timezoneOffset>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#PrintVendors").val()).replace("<fileName>", "PVReconReport").replace("<timezoneOffset>", new Date().getTimezoneOffset());
+            var url = baseUrl + "Report/DownloadPVReconReport?startDate=<startDate>&endDate=<endDate>&pvCode=<channel>&fileName=<fileName>&timezoneOffset=<timezoneOffset>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#PrintVendors").val()).replace("<fileName>", "PVReconReport").replace("<timezoneOffset>", new Date().getTimezoneOffset());
             window.location = url;
         });
     </script>

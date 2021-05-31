@@ -237,6 +237,13 @@ namespace AM.Entities
         public bool IsActive { get; set; }
     }
 
+    public class PrintVendorLocations
+    {
+        public string PrintVendorCode { get; set; }
+        public string PrintVendorName { get; set; }
+        public string PrintVendorNameCode { get { return $"{PrintVendorName}-{PrintVendorCode}"; } }
+    }
+
     public class PrintTrail
     {
         public int Id { get; set; }
