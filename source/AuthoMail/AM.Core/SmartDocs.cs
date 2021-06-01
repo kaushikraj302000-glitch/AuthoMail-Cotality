@@ -393,7 +393,7 @@ namespace AM.Core
             return response;
         }
 
-        public void WriteTextOnLabel(string inputPath, string text)
+        public void WriteTextOnLabel(string inputPath, string text, bool isBottomRight = false)
         {
             var temp = Path.Combine(Path.GetDirectoryName(inputPath), Path.GetRandomFileName());
             using (var reader = new PdfReader(inputPath))
@@ -415,7 +415,14 @@ namespace AM.Core
                     contentByte.BeginText();
                     contentByte.SetFontAndSize(baseFont, 8);
 
-                    contentByte.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, text, importedPage.Width - 200, importedPage.Height - 700, 0);
+                    if (isBottomRight)
+                    {
+                        contentByte.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, text, importedPage.Width - (importedPage.Width - 400), importedPage.Height - (importedPage.Height - 80), 0);
+                    }
+                    else
+                    {
+                        contentByte.ShowTextAligned(PdfContentByte.ALIGN_LEFT, text, importedPage.Width - (importedPage.Width - 100), importedPage.Height - (importedPage.Height - 80), 0);
+                    }
 
                     contentByte.EndText();
                     contentByte.AddTemplate(importedPage, 0, 0);
