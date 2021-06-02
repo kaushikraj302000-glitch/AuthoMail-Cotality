@@ -314,4 +314,17 @@ namespace AM.Services
         public string TransferredBy { get; set; }
 
     }
+    public class EnvelopeInventoryUsage
+    {
+        public int EnvelopeId { get; set; }
+        public int PrintVendorId { get; set; }
+        public string EnvelopeName { get; set; }
+        public string PrintLocation { get; set; }
+        public string PrintVendorName { get; set; }
+        public string PrintVendorCode { get; set; }
+        public DateTime SubmittedOn { get; set; }
+        public int TotalQuantityUsed { get; set; }
+        public int CurrentQuantity { get; set; }
+        public int ReOrderDuration { get; set; }
+    }
 }

@@ -46,6 +46,8 @@ namespace AM.Services
         MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate);
         List<PrintVendor> GetActivePrintVendors();
         List<MonthlyReconReportViewModel> GetPVReconReport(int? pvId, DateTime startDate, DateTime endDate);
+
+        List<EnvelopeInventoryUsage> GetEnvelopesUsageReport(int clientId, int? envelopeId, string printVendorCode, DateTime startDate, DateTime endDate);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -848,6 +850,22 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
                     endDate = endDate
                 }).ToList();
             return data != null ? data.OrderBy(d => d.SubmittedOn).ToList() : data;
+        }
+
+        public List<EnvelopeInventoryUsage> GetEnvelopesUsageReport(int clientId, int? envelopeId, string printVendorCode, DateTime startDate, DateTime endDate)
+        {
+            string query = @"SELECT E.EnvelopeName,SI.PrintLocation,SI.PrintVendorName,CAST(PTB.SubmittedOn AS DATE) AS SubmittedOn,SUM(EU.Quantity) AS TotalQuantityUsed,SI.PrintVendorCode,
+                ES.CurrentQuantity,ES.ReOrderDuration,E.Id as EnvelopeId
+                FROM PnS.EnvelopeUsage EU
+                INNER JOIN PnS.PrintTrailBatches PTB ON EU.PrintTrailBatchId=PTB.Id
+                INNER JOIN Common.ShipperInformation SI ON PTB.ShipperId=SI.Id
+                INNER JOIN Common.Envelopes E ON EU.EnvelopeId=E.Id
+                INNER JOIN Common.EnvelopeStock ES ON ES.EnvelopeId=E.Id AND ES.ShipperId=SI.Id
+                WHERE CAST(PTB.SubmittedOn AS DATE) between @StartDate AND @EndDate AND SI.PrintVendorCode = ISNULL(@PrintVendorCode,SI.PrintVendorCode) 
+                AND E.Id=ISNULL(@EnvelopeId,E.Id)
+                GROUP BY E.EnvelopeName,SI.PrintLocation,SI.PrintVendorName,CAST(PTB.SubmittedOn AS DATE),ES.CurrentQuantity,ES.ReOrderDuration,SI.PrintVendorCode,E.Id
+                ORDER BY CAST(PTB.SubmittedOn AS DATE),E.EnvelopeName";
+            return db.Query<EnvelopeInventoryUsage>(query, new { EnvelopeId = envelopeId, PrintVendorCode = printVendorCode, StartDate = startDate, EndDate = endDate }).ToList();
         }
     }
 }

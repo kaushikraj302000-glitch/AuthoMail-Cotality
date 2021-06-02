@@ -332,5 +332,19 @@ namespace AM.Web.Controllers
             fileName = string.Format("{0}.xlsx", fileName);
             return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
+
+        public ActionResult EnvelopesUsageReport()
+        {
+            ViewBag.Envelopes = new SelectList(invSvc.GetEnvelopes(), "Id", "EnvelopeName");
+            return View();
+        }
+        [HttpPost]
+        public ActionResult _GetEnvelopesUsageReport(int? envelopeId, string printVendorCode, string startDate, string endDate)
+        {
+            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var model = repoSvc.GetEnvelopesUsageReport(User.Identity.GetClientId().Value,envelopeId, printVendorCode, exactStartDate, exactEndDate);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.SubmittedOn) }), JsonRequestBehavior.AllowGet);
+        }
     }
 }
