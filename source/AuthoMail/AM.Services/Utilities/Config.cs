@@ -285,6 +285,19 @@ namespace AM.Services
         public static string Web_Pdf_API_Url { get; private set; }
         #endregion
 
+        #region CLAuth API
+
+        [Description("CLAuth API Username")]
+        public static string CLAuth_Username { get; private set; }
+        [Description("CLAuth API Password")]
+        public static string CLAuth_Password { get; private set; }
+        [Description("CLAuth API Token Url")]
+        public static string CLAuth_TokenUrl { get; private set; }
+        [Description("CLAuth API Get User Url")]
+        public static string CLAuth_UserDetailsUrl { get; private set; }
+
+        #endregion
+
         private static List<string> errors;
         static Config()
         {
