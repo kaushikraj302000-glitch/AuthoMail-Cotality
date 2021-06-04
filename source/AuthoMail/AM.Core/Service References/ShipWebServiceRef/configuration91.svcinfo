@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<SavedWcfConfigurationInformation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="9.1" CheckSum="Ln3D85/yYpCFA3m5NjjCNYgWcXs=">
+<SavedWcfConfigurationInformation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="9.1" CheckSum="BEn4lkuixYpAh7ZX+/O3pPPVC2TtWfb/aCHAqHasxfQ=">
   <bindingConfigurations>
-    <bindingConfiguration bindingType="basicHttpBinding" name="ShipServiceSoapBinding">
+    <bindingConfiguration bindingType="basicHttpBinding" name="ShipServiceSoapBinding1">
       <properties>
         <property path="/name" isComplexType="false" isExplicitlyDefined="true" clrType="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-          <serializedValue>ShipServiceSoapBinding</serializedValue>
+          <serializedValue>ShipServiceSoapBinding1</serializedValue>
         </property>
         <property path="/closeTimeout" isComplexType="false" isExplicitlyDefined="true" clrType="System.TimeSpan, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
           <serializedValue />
@@ -110,10 +110,10 @@
         </property>
       </properties>
     </bindingConfiguration>
-    <bindingConfiguration bindingType="basicHttpBinding" name="ShipServiceSoapBinding1">
+    <bindingConfiguration bindingType="basicHttpBinding" name="ShipServiceSoapBinding2">
       <properties>
         <property path="/name" isComplexType="false" isExplicitlyDefined="true" clrType="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-          <serializedValue>ShipServiceSoapBinding1</serializedValue>
+          <serializedValue>ShipServiceSoapBinding2</serializedValue>
         </property>
         <property path="/closeTimeout" isComplexType="false" isExplicitlyDefined="true" clrType="System.TimeSpan, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
           <serializedValue />
@@ -221,10 +221,10 @@
     </bindingConfiguration>
   </bindingConfigurations>
   <endpoints>
-    <endpoint name="ShipServicePort" contract="ShipWebServiceRef.ShipPortType" bindingType="basicHttpBinding" address="https://gatewaybeta.fedex.com/web-services" bindingConfiguration="ShipServiceSoapBinding">
+    <endpoint name="ShipServicePort1" contract="ShipWebServiceRef.ShipPortType" bindingType="basicHttpBinding" address="https://wsbeta.fedex.com/web-services/ship" bindingConfiguration="ShipServiceSoapBinding1">
       <properties>
         <property path="/address" isComplexType="false" isExplicitlyDefined="true" clrType="System.Uri, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-          <serializedValue>https://gatewaybeta.fedex.com:443/web-services</serializedValue>
+          <serializedValue>https://wsbeta.fedex.com:443/web-services/ship</serializedValue>
         </property>
         <property path="/behaviorConfiguration" isComplexType="false" isExplicitlyDefined="false" clrType="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
           <serializedValue />
@@ -233,7 +233,7 @@
           <serializedValue>basicHttpBinding</serializedValue>
         </property>
         <property path="/bindingConfiguration" isComplexType="false" isExplicitlyDefined="true" clrType="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-          <serializedValue>ShipServiceSoapBinding</serializedValue>
+          <serializedValue>ShipServiceSoapBinding1</serializedValue>
         </property>
         <property path="/contract" isComplexType="false" isExplicitlyDefined="true" clrType="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
           <serializedValue>ShipWebServiceRef.ShipPortType</serializedValue>
@@ -296,7 +296,7 @@
           <serializedValue>False</serializedValue>
         </property>
         <property path="/name" isComplexType="false" isExplicitlyDefined="true" clrType="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-          <serializedValue>ShipServicePort</serializedValue>
+          <serializedValue>ShipServicePort1</serializedValue>
         </property>
         <property path="/kind" isComplexType="false" isExplicitlyDefined="false" clrType="System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
           <serializedValue />
