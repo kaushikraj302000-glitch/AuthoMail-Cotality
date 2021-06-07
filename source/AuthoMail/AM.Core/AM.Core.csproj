@@ -282,7 +282,7 @@
     <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.ShipmentReply.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\ShipWebServiceRef\ShipServiceDefinitions1.wsdl" />
+    <None Include="Service References\ShipWebServiceRef\ShipServiceDefinitions.wsdl" />
     <None Include="Service References\USPSIMService\AM.Core.USPSIMService.IMBarcodeInfo.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>

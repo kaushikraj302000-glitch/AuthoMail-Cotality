@@ -19,10 +19,10 @@
     <ServiceContractMappings />
   </ClientOptions>
   <MetadataSources>
-    <MetadataSource Address="D:\AuthoMail\source\AuthoMail\AM.Core\Service References\ShipWebServiceRef\ShipServiceDefinitions11.wsdl" Protocol="file" SourceId="1" />
+    <MetadataSource Address="C:\Users\mtc\Downloads\ShipService_v26_cs (1)\ShipService_v26_cs\cs\ShipWebServiceClient\Ground\Domestic\ShipWebServiceClient\Web References\ShipServiceWebReference\ShipServiceDefinitions.wsdl" Protocol="file" SourceId="1" />
   </MetadataSources>
   <Metadata>
-    <MetadataFile FileName="ShipServiceDefinitions1.wsdl" MetadataType="Wsdl" ID="cd5694df-9b2f-4a61-9d87-62e91eb73647" SourceId="1" SourceUrl="file:///D:/AuthoMail/source/AuthoMail/AM.Core/Service References/ShipWebServiceRef/ShipServiceDefinitions11.wsdl" />
+    <MetadataFile FileName="ShipServiceDefinitions.wsdl" MetadataType="Wsdl" ID="12198067-6ecf-4ab0-8752-22c8ce2a1ca4" SourceId="1" SourceUrl="file:///C:/Users/mtc/Downloads/ShipService_v26_cs (1)/ShipService_v26_cs/cs/ShipWebServiceClient/Ground/Domestic/ShipWebServiceClient/Web References/ShipServiceWebReference/ShipServiceDefinitions.wsdl" />
   </Metadata>
   <Extensions>
     <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
