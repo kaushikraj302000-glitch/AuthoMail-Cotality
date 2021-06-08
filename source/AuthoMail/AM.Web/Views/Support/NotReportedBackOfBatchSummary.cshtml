@@ -49,9 +49,7 @@
                 <div class="col-md-3" id="dateFilter">
                     <div class="form-group">
                         <label for="Channel">Print Location</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" name="PrintLocation" placeholder="Print Location" id="PrintLocation">
-                        </div>
+                        @Html.Action("_PrintVendorList", "Common")
                     </div>
                 </div>
                 <div class="col-md-1">
@@ -102,17 +100,14 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
-                <th>Print Batch</th>
+                <th>Batch Id</th>
                 <th>Client Code</th>
-                <th>Print File Name</th>
-                <th>Pipeline Status</th>
+                <th>Batch Name</th>
                 <th>Document Type </th>
-                <th>Delivery Type</th>
-                <th>Shipping Carrier</th>
-                <th>ShippingServiceType</th>
+                <th>Shipping Method</th>
+                <th>Print Vendor</th>
                 <th>Print Location</th>
                 <th>Date Submitted <span class="fontcapitalize">(Local)</span></th>
-                <th>Job Name</th>
                 <th>Total Packages</th>
                 <th>TotalPages</th>
             </tr>
@@ -124,17 +119,14 @@
     <table>
         <tbody id="supportBody">
             <tr class="row-small">
-                <td><span>{PrintBatch}</span></td>
-                <td><span>{ClientCode}</span></td>
-                <td><span data-toggle="tooltip" data-container="body" data-placement="bottom" title='{PrintFileName}'>{ShortFileName}</span></td>
-                <td><span>{PipelineStatus}</span></td>
-                <td><span>{DocTypeCode}</span></td>
-                <td><span>{IsEDeliveryRequested}</span></td>
-                <td><span>{ShippingCarrier}</span></td>
-                <td><span>{ShippingServiceType}</span></td>
+                <td><span>{BatchId}</span></td>
+                <td><span>{AppCode}</span></td>
+                <td><span data-toggle="tooltip" data-container="body" data-placement="bottom" title='{PrintBatchName}'>{ShortFileName}</span></td>
+                <td><span>{DocumentOrPackageType}</span></td>
+                <td><span>{ShippingCarrier}/{ShippingServiceType}</span></td>
+                <td><span>{PrintVendorName}</span></td>
                 <td><span>{PrintLocation}</span></td>
-                <td><span>{SubmittedOnFormatted}</span></td>
-                <td><span>{JobName}</span></td>
+                <td><span>{SubmittedOnFormatted}</span></td>                
                 <td><span>{TotalPackages}</span></td>
                 <td><span>{TotalPages}</span></td>
             </tr>
@@ -289,7 +281,7 @@
         function FormatObject(Model) {
 
             $(Model).each(function () {
-                this.ShortFileName = shortName(this.PrintFileName);
+                this.ShortFileName = shortName(this.PrintBatchName);
                 this.PrintBatch = '<a  data-printbatchid="' + this.PrintBatch + '" onclick="ViewDetails(this)" class="btn btn-transparent-blue btn-sm" >' + this.PrintBatch + '</a>';
                 // this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
                 this.SubmittedOnFormatted = this.SubmittedOn == null ? "--" : moment(this.SubmittedOn).format("MM/DD/YY HH:mm:ss");
@@ -411,7 +403,7 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Support/_GetNotReportedBackOfBatchSummary",
-                data: JSON.stringify({ date: date, printLocation: $("#printLocation").val() }),
+                data: JSON.stringify({ date: date, printLocation: $("#PrintVendors").val() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     // console.log(response);

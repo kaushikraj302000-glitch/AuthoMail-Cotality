@@ -104,8 +104,11 @@
             <tr>
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
                 <th>Status</th>
-                <th>Borrower Name</th>
-                <th>City</th>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <th>Borrower Name</th>
+                    <th>City</th>
+                }
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Shipped Date <span class="fontcapitalize">(Local)</span></th>
@@ -135,8 +138,11 @@
             <tr class="row-small">
                 <td><span>{BusinessIdValue}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
-                <td><span>{FirstName} {LastName}</span></td>
-                <td><span>{City} {State} {ZIP}</span></td>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <td><span>{FirstName} {LastName}</span></td>
+                    <td><span>{City} {State} {ZIP}</span></td>
+                }
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{ShippedOnFormatted}</span></td>

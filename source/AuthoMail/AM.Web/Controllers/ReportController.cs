@@ -12,7 +12,7 @@ using AutoMapper;
 using System.IO;
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus)]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus + "," + AMRoles.BAOffShore)]
     public class ReportController : BaseController
     {
         IHomeService homeSvc;
@@ -91,6 +91,14 @@ namespace AM.Web.Controllers
                 m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
             });
             var dataTable = ExcelHelper.ToDataTable<MonthlyReconReportViewModel>(model);
+
+            if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+            {
+                List<string> columnsToDelete = new List<string>() { "FirstName", "LastName", "Address", "City", "ZIP", "State" };
+                foreach (var column in columnsToDelete)
+                    dataTable.Columns.Remove(column);
+            }
+
             var memoryStream = ExcelHelper.ExportDataSet(dataTable);
             memoryStream.Seek(0, SeekOrigin.Begin);
 
@@ -174,13 +182,13 @@ namespace AM.Web.Controllers
             var model = repoSvc.GetPullbackRequestReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.RequestedOn) }), JsonRequestBehavior.AllowGet);
         }
-        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.BAOffShore)]
         public ActionResult SupplyInventoryReport()
         {
             ViewBag.Envelopes = new SelectList(invSvc.GetEnvelopes(), "Id", "EnvelopeName");
             return View();
         }
-        [HttpPost, Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+        [HttpPost, Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.BAOffShore)]
         public ActionResult _SupplyInventoryReport(List<string> envelopes)
         {
             var model = repoSvc.SupplyInventoryReport(envelopes);
@@ -245,6 +253,13 @@ namespace AM.Web.Controllers
                     m.ReturnDeliveryDate = m.ReturnDeliveryDate.HasValue ? m.ReturnDeliveryDate.Value.AddMinutes(-timezoneOffset) : m.ReturnDeliveryDate;
                 });
                 var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
+
+                if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    List<string> columnsToDelete = new List<string>() { "FirstName", "LastName", "RcptAddressStreet", "City", "ZIP", "State" };
+                    foreach (var column in columnsToDelete)
+                        dataTable.Columns.Remove(column);
+                }
 
                 List<Client> floodClients;
                 List<Client> gosClients;
@@ -324,6 +339,13 @@ namespace AM.Web.Controllers
                 m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
             });
             var dataTable = ExcelHelper.ToDataTable<MonthlyReconReportViewModel>(model);
+            if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+            {
+                List<string> columnsToDelete = new List<string>() { "FirstName", "LastName", "Address", "City", "ZIP", "State" };
+                foreach (var column in columnsToDelete)
+                    dataTable.Columns.Remove(column);
+            }
+
             var memoryStream = ExcelHelper.ExportDataSet(dataTable);
             memoryStream.Seek(0, SeekOrigin.Begin);
 
@@ -332,5 +354,6 @@ namespace AM.Web.Controllers
             fileName = string.Format("{0}.xlsx", fileName);
             return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
+
     }
 }

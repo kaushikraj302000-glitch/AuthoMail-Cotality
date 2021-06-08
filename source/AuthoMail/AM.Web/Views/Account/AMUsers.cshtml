@@ -452,7 +452,7 @@
                         var roleRadio = '<div class="form-group"> <label class="control-label" style="margin-right:10px">Select Role</label>';
                         $.each(response.Object.roles, function (i, v) {
                             var isChecked = response.Object.userRole == v ? 'checked' : '';
-                            roleRadio += '<input type="radio" ' + isChecked + ' class="radiobtn roleradiocls" name="roleradio" value=' + v + ' />' + ' <label>' + v + '</label>';
+                            roleRadio += '<input type="radio" ' + isChecked + ' class="radiobtn roleradiocls" name="roleradio" value=' + v + ' />' + ' <label style="margin-right:10px">' + v + '</label>';
                         });
                         roleRadio += '</div>';
 
