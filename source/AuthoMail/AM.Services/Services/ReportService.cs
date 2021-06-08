@@ -19,7 +19,7 @@ namespace AM.Services
     public interface IReportService : IDisposable
     {
         List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
-        List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
+        List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, string channel);
         List<MailPieces> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, int? docType, string filterBy);
         List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
@@ -76,7 +76,7 @@ namespace AM.Services
             return data;
         }
 
-        public List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
+        public List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, string channel)
         {
             string query = "[dbo].[uspweb_ErrorReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
             var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
@@ -95,8 +95,8 @@ namespace AM.Services
                     shippingstatus = ShippingStatus.Error.ToString(),
                     batchId = batchId,
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
-                    startDate = date.HasValue ? (date.Value.ToStartDateTime()).EstToUtc() : date,
-                    endDate = date.HasValue ? (date.Value.ToEndDateTime()).EstToUtc() : date
+                    startDate = (startDate.ToStartDateTime()).EstToUtc(),
+                    endDate = (endDate.ToEndDateTime()).EstToUtc()
                 }
                 ).ToList();
             return data;

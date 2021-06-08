@@ -37,7 +37,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="date">Select Date (EST)</label>
-                        <div class="input-group date" id="datepicker4">
+                        <div class="input-group daterange" id="datepicker4">
                             <input type="text" class="form-control" id="date">
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
@@ -247,15 +247,19 @@
         function FilterData() {
             $("#errorHeader").hide();
             $("#errorList").hide();
-            var date = $("#date").val();
+            //var date = $("#date").val();
+            var selectedData = $("#date").val().split('-');
+            var startDate = moment(selectedData[0].trim()).format("MM/DD/YYYY");
+            var endDate = moment(selectedData[1].trim()).format("MM/DD/YYYY");
+
             var el = $('#errorList');
-            $("#headerdate").html(date + " EST");
+            $("#headerdate").html(startDate +" - "+ endDate + " EST");
             $("#loading").show();
             //el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetErrorsReport",
-                data: JSON.stringify({ date: date, channel: $("#Channel").val() }),
+                data: JSON.stringify({ startDate: startDate, endDate: endDate, channel: $("#Channel").val() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     //console.log(response);
