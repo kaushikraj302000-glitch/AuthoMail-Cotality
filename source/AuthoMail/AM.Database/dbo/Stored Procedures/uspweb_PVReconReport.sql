@@ -39,11 +39,7 @@ BEGIN
 			FOR [PageSize] IN ([LETTER],[LEGAL])
 		)AS pvt2
 	)MPP on MPP.MailPieceId=P.Id
-	WHERE PT.PrintTrailId IN 
-	(
-		SELECT Id FROM Common.PrintTrails WHERE PrintVendorId=3
-	)
-	AND PT.SubmittedOn BETWEEN @startDate AND @endDate
+	WHERE PT.SubmittedOn BETWEEN @startDate AND @endDate
 	AND PT.PrintTrailId IN (SELECT Id FROM Common.PrintTrails WHERE PrintVendorCode=ISNULL(@pvCode,PrintVendorCode))
 	ORDER BY P.Id
 END
