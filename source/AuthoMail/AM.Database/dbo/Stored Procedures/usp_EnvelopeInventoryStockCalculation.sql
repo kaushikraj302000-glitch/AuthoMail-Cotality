@@ -1,5 +1,5 @@
 ﻿CREATE PROCEDURE [dbo].[usp_EnvelopeInventoryStockCalculation]
-	
+	@EnvelopeId int=null
 AS
 BEGIN
 	;with allenvelope as
@@ -40,5 +40,6 @@ from Common.EnvelopeStock  es
 inner join Common.Envelopes e on es.EnvelopeId=e.Id
 left outer join mergeAvg c on es.EnvelopeId=c.EnvelopeId and es.ShipperId=c.ShipperId
 inner JOIN Common.ShipperInformation SI ON es.ShipperId=SI.Id
+Where e.Id= ISNULL(@EnvelopeId,e.Id)
 
 END

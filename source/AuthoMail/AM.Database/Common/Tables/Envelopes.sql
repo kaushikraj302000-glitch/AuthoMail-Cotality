@@ -4,6 +4,7 @@ CREATE TABLE [Common].[Envelopes] (
     [EnvelopeDesc]  VARCHAR (255)  NULL,
     [PartNumber]    VARCHAR (255)  NOT NULL,
     [IsBREEnvelope] BIT            NOT NULL,
+    [IsTrackingRequired] BIT NOT NULL DEFAULT 1, 
     [CreatedBy]     NVARCHAR (128) NOT NULL,
     [CreatedOn]     DATETIME       NOT NULL,
     [ModifiedBy]    NVARCHAR (128) NOT NULL,

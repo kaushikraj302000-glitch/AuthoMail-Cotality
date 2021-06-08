@@ -29,6 +29,7 @@ using DELFUS.TemplateImporter;
 using AM.Lib;
 using System.Net.Mail;
 using AM.Services.Models;
+using AutoMapper;
 //using Microsoft.Ajax.Utilities;
 
 namespace AM.Web.Controllers
@@ -1197,8 +1198,12 @@ namespace AM.Web.Controllers
         {
             try
             {
-                var model = inventorySvc.GetEnvelopes().OrderBy(e => e.Order);
-
+                var model = Mapper.Map<List<EnvelopesListVM>>(inventorySvc.GetEnvelopes().OrderBy(e => e.Order));
+                var envelopeInvStockCalc = inventorySvc.GetEnvelopeInventoryStockCalculation();
+                model.ForEach(s =>
+                {
+                    s.AlertLevel = envelopeInvStockCalc.Where(e => e.EnvelopeId == s.Id).Max(e => e.AlertLevel);
+                });
                 return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
@@ -1268,6 +1273,57 @@ namespace AM.Web.Controllers
             return Json(inventorySvc.IsPartNumberExists(id, partNumber), JsonRequestBehavior.AllowGet);
             // return Json(true, JsonRequestBehavior.AllowGet);
         }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult TransferEnvelopeQuantity(int envelopeId, string envelopeName)
+        {
+            ViewBag.EnvelopeId = envelopeId;
+            ViewBag.EnvelopeName = envelopeName;
+            ViewBag.Shippers = new SelectList(inventorySvc.ShipperByEnvelopeId(envelopeId), "Id", "Name");
+            return PartialView("_TransferEnvelopeQuantity");
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetQuantityByShipperAndEnvelope(int envelopeId, int shipperId)
+        {
+            var model = inventorySvc.GetQuantityByShipperAndEnvelope(envelopeId, shipperId);
+            model = model.HasValue ? model.Value : 0;
+            return Json(model, JsonRequestBehavior.AllowGet);
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult TransferEnvelopeInventory(EnvelopeTransferInventory envelopeTransferInventory)
+        {
+            try
+            {
+                envelopeTransferInventory.TransferredBy = User.Identity.GetUserId();
+                envelopeTransferInventory.TransferredOn = DateTime.UtcNow;
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.TransferEnvelopeInventory(envelopeTransferInventory)), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult EnvelopeStockAndAlertByEnvelopeId(int envelopeId, string envelopeName)
+        {
+            ViewBag.EnvelopeName = envelopeName;
+            var model = inventorySvc.GetEnvelopeInventoryStockCalculation(envelopeId);
+            return PartialView("_EnvelopeStockAndAlertDetails",model);
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult ToggleEnvelopeTrackingById(int envelopeId, bool isTracking)
+        {
+            try
+            {
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.ToggleEnvelopeTrackingById(envelopeId, isTracking, User.Identity.GetUserId())), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+
+        }
         #endregion
 
         #region Manage Envelopes Inventory
@@ -1283,6 +1339,22 @@ namespace AM.Web.Controllers
                 var model = inventorySvc.GetLast3MonthsInventoryEnvelopes();
 
                 return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+
+        }
+        [HttpPost]
+        public ActionResult GetInventoryByEnvelopeId(int id, string envelopeName)
+        {
+            try
+            {
+                ViewBag.Name = envelopeName;
+                var model = inventorySvc.GetLast3MonthsInventoryByEnvelopeId(id);
+
+                return PartialView("_EnvelopeStockHistory", model);
             }
             catch (Exception e)
             {
