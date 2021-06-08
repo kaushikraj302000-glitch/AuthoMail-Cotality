@@ -590,6 +590,51 @@ namespace AM.Services
         public DateTime? DeliveryDate { get; set; }
         public string DeliveryStatus { get; set; }
         public decimal ShippingCost { get; set; }
+        public string LetterPageNumbers { get; set; }
+        public string LegalPageNumbers { get; set; }
+        public string BlankPageNumbers { get; set; }
+
+        public List<string> BlankPageNumbersList
+        {
+            get
+            {
+                if (!BlankPageNumbers.IsNullOrWhiteSpace())
+                {
+                    return BlankPageNumbers.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                }
+                return null;
+            }
+        }
+        public string BlankLetterPages
+        {
+            get
+            {
+                if (BlankPageNumbersList != null)
+                {
+                    if (!LetterPageNumbers.IsNullOrWhiteSpace())
+                    {
+                        var letterPages = LetterPageNumbers.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                        return string.Join(",", BlankPageNumbersList.Intersect(letterPages));
+                    }
+                }
+                return null;
+            }
+        }
+        public string BlankLegalPages
+        {
+            get
+            {
+                if (BlankPageNumbersList != null)
+                {
+                    if (!LegalPageNumbers.IsNullOrWhiteSpace())
+                    {
+                        var legalPages = LegalPageNumbers.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                        return string.Join(",", BlankPageNumbersList.Intersect(legalPages));
+                    }
+                }
+                return null;
+            }
+        }
     }
 
 }

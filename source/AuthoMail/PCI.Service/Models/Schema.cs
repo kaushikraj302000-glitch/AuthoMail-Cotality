@@ -64,4 +64,11 @@ namespace PCI.Service
             return StrValue;
         }
     }
+
+    public class DocumentPageSizes
+    {
+        public string PageSize { get; set; }
+        public int TotalPages { get; set; }
+        public string PageNumbers { get; set; }
+    }
 }

@@ -288,6 +288,37 @@ namespace PCI.Service
             }
         }
 
+        public static void InsertPageSizeWisePageCounts(List<DocumentPageSizes> pageSizewiseCounts, Guid mailPieceIdentifier)
+        {
+            if (pageSizewiseCounts == null || pageSizewiseCounts.Count == 0)
+            {
+                return;
+            }
+
+            var grpPageSize = pageSizewiseCounts.GroupBy(x => x.PageSize);
+
+            var lstBypageSize = grpPageSize.Select(x => new { PageSize = x.Key, TotalPages = x.Sum(t => t.TotalPages), PageNumbers = string.Join(",", x.Select(p => p.PageNumbers)) });
+
+            string getQuery = @"SELECT Id FROM [AM].[MailPieces] WHERE UniqueId=@p1";
+            var mailPieceId = db.ExecuteSqlScalar<int?>(getQuery, mailPieceIdentifier);
+            if (mailPieceId.HasValue)
+            {
+                foreach (var pageCount in lstBypageSize)
+                {
+                    //try to delete if any record then try to insert
+                    var sqlDelete = @"IF EXISTS (SELECT 1 FROM [Common].[MailPiecePageInfo] Where MailPieceId=@p1 AND PageSize=@p2) 
+                                    BEGIN 
+                                        DELETE FROM [Common].[MailPiecePageInfo] Where MailPieceId=@p1 AND PageSize=@p2
+                                    END";
+
+                    db.ExecuteSqlNonQuery(sqlDelete, mailPieceId.Value, pageCount.PageSize);
+
+                    var sqlInsert = @"INSERT INTO [Common].[MailPiecePageInfo]([MailPieceId],[PageSize],[PageCount],[PageNumbers]) VALUES(@p1,@p2,@p3,@p4)";
+                    db.ExecuteSqlNonQuery(sqlInsert, mailPieceId.Value, pageCount.PageSize, pageCount.TotalPages, pageCount.PageNumbers);
+                }
+            }
+        }
+
         public static DataTable GetPullBackRequestDataByJobId(int jobId)
         {
             var ds = db.ExecuteDataSet("usp_GetPullBackRequestDataByJobId", jobId);

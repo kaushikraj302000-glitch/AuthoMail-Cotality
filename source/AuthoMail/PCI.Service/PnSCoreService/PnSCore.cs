@@ -569,11 +569,12 @@ namespace PCI.Service
             return size;
         }
 
-        private static Dictionary<string, int> ProcessPDFWithBarcodeOnRotatedAndOrientation(string src, string dest, MRDFRequest mrdf, MailPieceData mailPiece, DocType docType, PrintTrailDetail printTrailDetail)
+        private static List<DocumentPageSizes> ProcessPDFWithBarcodeOnRotatedAndOrientation(string src, string dest, MRDFRequest mrdf, MailPieceData mailPiece, DocType docType, PrintTrailDetail printTrailDetail)
         {
             try
             {
-                Dictionary<string, int> pageCountBySize = new Dictionary<string, int>();
+                List<DocumentPageSizes> documentPages = new List<DocumentPageSizes>();
+                //Dictionary<string, int> pageCountBySize = new Dictionary<string, int>();
                 List<int> checksPageNumbers = new List<int>();
                 string inPDF = src;
                 string outPDF = dest;
@@ -659,15 +660,18 @@ namespace PCI.Service
                                 AddBookmark(writer, p, pageSize);
                             }
 
-                            //Pagewise Page Counts
-                            if (pageCountBySize.Keys.Contains(pageSize))
-                            {
-                                pageCountBySize[pageSize] += 1;
-                            }
-                            else
-                            {
-                                pageCountBySize.Add(pageSize, 1);
-                            }
+
+                            ////Pagewise Page Counts
+                            documentPages.Add(new DocumentPageSizes() { PageSize = pageSize, TotalPages = 1, PageNumbers = p.ToString() });
+
+                            //if (pageCountBySize.Keys.Contains(pageSize))
+                            //{
+                            //    pageCountBySize[pageSize] += 1;
+                            //}
+                            //else
+                            //{
+                            //    pageCountBySize.Add(pageSize, 1);
+                            //}
 
                             #endregion
 
@@ -785,7 +789,7 @@ namespace PCI.Service
                 FileInfo fileInfo = new FileInfo(outPDF);
                 mrdf.PDFFileSize = (fileInfo.Length / 1024);
 
-                return pageCountBySize;
+                return documentPages;
             }
             catch (Exception ex)
             {

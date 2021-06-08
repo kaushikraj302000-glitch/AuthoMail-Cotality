@@ -91,6 +91,12 @@ namespace AM.Web.Controllers
                 m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
             });
             var dataTable = ExcelHelper.ToDataTable<MonthlyReconReportViewModel>(model);
+
+            dataTable.Columns.Remove("BlankPageNumbersList");
+            dataTable.Columns.Remove("LetterPageNumbers");
+            dataTable.Columns.Remove("LegalPageNumbers");
+            dataTable.AcceptChanges();
+
             var memoryStream = ExcelHelper.ExportDataSet(dataTable);
             memoryStream.Seek(0, SeekOrigin.Begin);
 
