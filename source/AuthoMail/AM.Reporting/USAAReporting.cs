@@ -57,7 +57,7 @@ namespace AM.Reporting
                     var clientInfo = clientSvc.GetClientByAppCode("USAA").Result;
                     DateTime previousDate = Common.EstToday.AddDays(-1);
                     //NOTE : Please change UTC to EST code when Daylight saving is off in service call
-                    errorReportData = reportSvc.GetErrorReportByDateOrBatch(clientInfo.Id, previousDate, null, "");
+                    errorReportData = reportSvc.GetErrorReportByDateOrBatch(clientInfo.Id, previousDate, previousDate, null, "");
 
                     if (errorReportData.Count > 0)
                     {
