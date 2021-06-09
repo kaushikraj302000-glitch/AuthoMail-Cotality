@@ -204,7 +204,7 @@ namespace AM.Services
 
             FedExTrackingCall(pendingTrackingMps);
 
-            var returnFedExTrackingMps = mailPieces.Where(mp => !string.IsNullOrWhiteSpace(mp.ReturnTrackingNo) && (mp.ReturnTrackingNo.StartsWith("7") || mp.ReturnTrackingNo.StartsWith("3"))).ToList();
+            var returnFedExTrackingMps = mailPieces.Where(mp => !string.IsNullOrWhiteSpace(mp.ReturnTrackingNo) && (mp.ReturnTrackingNo.StartsWith("7") || mp.ReturnTrackingNo.StartsWith("3") || mp.ReturnTrackingNo.StartsWith("2"))).ToList();
 
             var pendingFedExReturnTrackingMps = returnFedExTrackingMps.Where(mp => mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() || (!mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() && !mp.ReturnDeliveryStatus.ToLower().Contains("delivered"))).ToList();
 
