@@ -33,7 +33,9 @@ namespace AM.Lib
 
         public static string ToTitleCase(this string value)
         {
-            return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value.ToLower());
+            if (!value.IsNullOrWhiteSpace())
+                return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value.ToLower());
+            return null;
         }
 
         public static string ToCsvString(this string value)

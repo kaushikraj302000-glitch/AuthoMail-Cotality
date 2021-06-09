@@ -274,7 +274,7 @@ namespace AM.Reporting
                     var otherClientCodes = clientCodes.Except(_3monthClientCodes).ToList();
 
                     var today = Common.EstToday;
-                    var startTime = today.AddDays(-1);
+                    var startTime = today.AddMonths(-1);
                     var endTime = today.AddSeconds(-1);
 
                     GenerateReport(reportSvc, otherClientCodes, startTime, endTime, statusMaps);
@@ -285,7 +285,6 @@ namespace AM.Reporting
                         endTime = today.AddSeconds(-1);
                         GenerateReport(reportSvc, _3monthClientCodes, startTime, endTime, statusMaps);
                     }
-
                 }
                 log.Debug("GOS Daily report Execution completed at {0} Est".Fill(Common.Now.UtcToEst()));
             }
@@ -307,20 +306,20 @@ namespace AM.Reporting
             {
                 if (statusMaps.Any(s => x.DeliveryStatus != null && x.DeliveryStatus.Contains(s.OriginalStatus)))
                 {
-                    x.ConvertedDeliveryStatus = statusMaps.Distinct().SingleOrDefault(c => x.DeliveryStatus.Contains(c.OriginalStatus)).ConvertedStatus;
+                    x.ConvertedDeliveryStatus = statusMaps.Distinct().SingleOrDefault(c => x.DeliveryStatus.Contains(c.OriginalStatus)).ConvertedStatus.ToTitleCase();
                 }
                 else
                 {
-                    x.ConvertedDeliveryStatus = x.DeliveryStatus.IsNullOrWhiteSpace() ? "No Tracking Information" : x.DeliveryStatus; ;
+                    x.ConvertedDeliveryStatus = x.DeliveryStatus.IsNullOrWhiteSpace() ? "No Tracking Information" : x.DeliveryStatus.ToTitleCase();
                 }
 
                 if (statusMaps.Any(s => x.ReturnDeliveryStatus != null && x.ReturnDeliveryStatus.Contains(s.OriginalStatus)))
                 {
-                    x.ConvertedReturnDeliveryStatus = statusMaps.SingleOrDefault(c => x.ReturnDeliveryStatus.Contains(c.OriginalStatus)).ConvertedStatus;
+                    x.ConvertedReturnDeliveryStatus = statusMaps.SingleOrDefault(c => x.ReturnDeliveryStatus.Contains(c.OriginalStatus)).ConvertedStatus.ToTitleCase();
                 }
                 else
                 {
-                    x.ConvertedReturnDeliveryStatus = x.ReturnDeliveryStatus.IsNullOrWhiteSpace() ? "No Tracking Information" : x.ReturnDeliveryStatus;
+                    x.ConvertedReturnDeliveryStatus = x.ReturnDeliveryStatus.IsNullOrWhiteSpace() && !x.ReturnTrackingNo.IsNullOrWhiteSpace() ? "No Tracking Information" : x.ReturnDeliveryStatus.ToTitleCase();
                 }
             });
 
@@ -329,11 +328,13 @@ namespace AM.Reporting
             foreach (var appCode in clientCodes)
             {
                 //NOTE : Please change UTC to EST code when Daylight saving is off in service call
-                var reportGOS = gosBatchDetails.Where(c => c.AppCode == appCode && (c.ShippingCarrier == "FedEx" || (c.ShippingCarrier == "USPS" && c.ShippingServiceType == "PRIORITY"))).Select(r => new { r.LoanNumber, r.BorrowerName, r.ProductCode, r.ReceivedOnEst, r.TrackingNo, r.ShippingCarrier, r.ConvertedDeliveryStatus, r.DeliveryStatus, r.DeliveryDate, r.ReturnTrackingNo, r.ConvertedReturnDeliveryStatus, r.ReturnDeliveryStatus, r.ReturnDeliveryDate, r.Week }).ToList();
+                var appCodeWiseData = gosBatchDetails.Where(c => c.AppCode == appCode);
+
+                var reportGOS = appCodeWiseData.Select(r => new { r.LoanNumber, r.BorrowerName, r.ProductCode, r.ReceivedOnEst, r.TrackingNo, r.ShippingCarrier, r.ConvertedDeliveryStatus, r.DeliveryStatus, r.DeliveryDate, r.ReturnTrackingNo, r.ReturnShippingCarrier, r.ConvertedReturnDeliveryStatus, r.ReturnDeliveryStatus, r.ReturnDeliveryDate, r.Week }).ToList();
 
                 if (gosBatchDetails.Count > 0)
                 {
-                    string reportFilePath = Path.Combine(AppConfig.GOSReconReportPath, $"{appCode}_DataPointReport_{startTime:MMddyyyy}.xls");
+                    string reportFilePath = Path.Combine(AppConfig.GOSReconReportPath, $"{appCode}_DataPointReport_{Common.EstToday:MMddyyyy}.xls");
 
                     var dt = reportGOS.ToDataTable();
 
@@ -345,9 +346,9 @@ namespace AM.Reporting
 
                     StringBuilder sb = new StringBuilder(File.ReadAllText(AppConfig.GOSDailyDataPointEMailTemplate));
 
-                    var lstByOnGoingProductCode = gosBatchDetails.Where(x => (x.ShippingCarrier == "FedEx" || (x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")) && x.AppCode == appCode).GroupBy(x => x.ProductCode);
+                    var lstByOnGoingProductCode = appCodeWiseData.GroupBy(x => x.ProductCode);
 
-                    var lstByReturnProductCode = gosBatchDetails.Where(x => (x.ReturnShippingCarrier == "FedEx" || (x.ReturnShippingCarrier == "USPS" && x.ReturnShippingServiceType == "PRIORITY")) && x.AppCode == appCode).GroupBy(x => x.ProductCode);
+                    var lstByReturnProductCode = appCodeWiseData.Where(x => !x.ReturnTrackingNo.IsNullOrWhiteSpace()).GroupBy(x => x.ProductCode);
 
                     StringBuilder ongoingRows = new StringBuilder();
                     foreach (var ongoingProdlst in lstByOnGoingProductCode)
@@ -355,15 +356,17 @@ namespace AM.Reporting
                         string tblRowData = "";
                         tblRowData += $"<td>{ongoingProdlst.Key}</td>";
                         tblRowData += $"<td>{ongoingProdlst.Count(x => x.ShippingCarrier == "FedEx")}</td>";
-                        tblRowData += $"<td>{ongoingProdlst.Count(x => x.ShippingCarrier == "USPS")}</td>";
+                        tblRowData += $"<td>{ongoingProdlst.Count(x => x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
+                        tblRowData += $"<td>{ongoingProdlst.Count(x => x.ShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
                         tblRowData += $"<td>{ongoingProdlst.Count()}</td>";
 
                         string tblStatusRowData = "";
-                        foreach (var lstByStatus in ongoingProdlst.GroupBy(x => x.ConvertedDeliveryStatus))
+                        foreach (var lstByStatus in ongoingProdlst.GroupBy(x => x.ConvertedDeliveryStatus.ToTitleCase()))
                         {
                             tblStatusRowData += $"<tr><td style='text-align: right;'>{lstByStatus.Key}</td>";
                             tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ShippingCarrier == "FedEx")}</td>";
-                            tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ShippingCarrier == "USPS")}</td>";
+                            tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
+                            tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
                             tblStatusRowData += $"<td>{lstByStatus.Count()}</td></tr>";
                         }
                         ongoingRows.AppendLine($"<tr class='trProduct'>{tblRowData}</tr>");
@@ -376,15 +379,17 @@ namespace AM.Reporting
                         string tblRowData = "";
                         tblRowData += $"<td>{returnProdlst.Key}</td>";
                         tblRowData += $"<td>{returnProdlst.Count(x => x.ReturnShippingCarrier == "FedEx")}</td>";
-                        tblRowData += $"<td>{returnProdlst.Count(x => x.ReturnShippingCarrier == "USPS")}</td>";
+                        tblRowData += $"<td>{returnProdlst.Count(x => x.ReturnShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
+                        tblRowData += $"<td>{returnProdlst.Count(x => x.ReturnShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
                         tblRowData += $"<td>{returnProdlst.Count()}</td>";
 
                         string tblStatusRowData = "";
-                        foreach (var lstByStatus in returnProdlst.GroupBy(x => x.ConvertedReturnDeliveryStatus))
+                        foreach (var lstByStatus in returnProdlst.GroupBy(x => x.ConvertedReturnDeliveryStatus.ToTitleCase()))
                         {
                             tblStatusRowData += $"<tr><td style='text-align: right;'>{lstByStatus.Key}</td>";
                             tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ReturnShippingCarrier == "FedEx")}</td>";
-                            tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ReturnShippingCarrier == "USPS")}</td>";
+                            tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ReturnShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
+                            tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ReturnShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
                             tblStatusRowData += $"<td>{lstByStatus.Count()}</td></tr>";
                         }
                         returnRows.AppendLine($"<tr class='trProduct'>{tblRowData}</tr>");
@@ -395,8 +400,11 @@ namespace AM.Reporting
 
                     sb = sb.Replace("{OngoingData}", ongoingRows.ToString());
                     sb = sb.Replace("{ReturnData}", returnRows.ToString());
+                    sb = sb.Replace("{OngoingGrandTotal}", $"<tr><td>Grand Total</td><td>{gosBatchDetails.Count(x => x.ShippingCarrier == "FedEx" && x.AppCode == appCode)}</td><td>{gosBatchDetails.Count(x => (x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY") && x.AppCode == appCode)}</td><td>{gosBatchDetails.Count(x => (x.ShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS")) && x.AppCode == appCode)}</td><td>{gosBatchDetails.Count(x => (x.ShippingCarrier == "FedEx" || (x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")) && x.AppCode == appCode)}</td></tr>");
+                    sb = sb.Replace("{ReturnGrandTotal}", $"<tr><td>Grand Total</td><td>{gosBatchDetails.Count(x => x.ReturnShippingCarrier == "FedEx" && x.AppCode == appCode)}</td><td>{gosBatchDetails.Count(x => x.ReturnShippingCarrier == "USPS" && x.AppCode == appCode)}</td><td>{gosBatchDetails.Count(x => (x.ReturnShippingCarrier == "FedEx" || x.ReturnShippingCarrier == "USPS") && x.AppCode == appCode)}</td></tr>");
 
-                    SendReportToCLTeam(reportFilePath, $"{appCode} MTD Delivery Status Report For Date {startTime.Date.ToString("MM-dd-yyyy")}", sb.ToString(), appCodeEmailList[appCode], AppConfig.GOSDailyDataPointEMailCc);
+
+                    SendReportToCLTeam(reportFilePath, $"{appCode} MTD Delivery Status Report For Date {Common.EstToday.Date.ToString("MM-dd-yyyy")}", sb.ToString(), appCodeEmailList[appCode], AppConfig.GOSDailyDataPointEMailCc);
                 }
             }
         }

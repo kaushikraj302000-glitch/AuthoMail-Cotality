@@ -6,13 +6,12 @@
     <title><%AppCode%> Data</title>
     <style>
         body {
-            max-width: 500px;
+            max-width: 700px;
             font-family: Arial,sans-serif;
         }
 
         table {
             border-collapse: collapse;
-            max-width: 500px;
         }
 
         th, td {
@@ -29,7 +28,6 @@
         .styled-table {
             border-collapse: collapse;
             margin: 25px 0;
-            max-width: 400px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
         }
 
@@ -65,30 +63,30 @@
             Please find attached <%AppCode%> Status Report. Below is the product wise delivery details for your reference.
         </p>
     </div>
-    <table width="100%" cellpadding="0" cellspacing="0" style="min-width:100%;">
+    <table width="40%" cellpadding="0" cellspacing="0" style="display: inline-block;vertical-align: top;margin-right:2px;">
         <thead>
             <tr>
-                <th colspan="4">Ongoing Status</th>
+                <th colspan="5">Ongoing Status</th>
             </tr>
             <tr>
                 <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">Product Wise Status Details</th>
                 <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">FedEx</th>
                 <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">USPS Priority</th>
+                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">USPS IMB</th>
                 <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">Grand Total</th>
             </tr>
         </thead>
         <tbody>
             {OngoingData}
         </tbody>
+        <tfoot>
+            {OngoingGrandTotal}
+        </tfoot>
     </table>
-    <br />
-    <br />
-    <br />
-
-    <table width="100%" cellpadding="0" cellspacing="0" style="min-width:100%;">
+    <table width="40%" cellpadding="0" cellspacing="0" style="display: inline-block; vertical-align: top; margin-right: 2px;">
         <thead>
             <tr>
-                <th colspan="4">Return Status</th>
+                <th colspan="5">Return Status</th>
             </tr>
             <tr>
                 <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">Product Wise Status Details</th>
@@ -100,15 +98,16 @@
         <tbody>
             {ReturnData}
         </tbody>
+        <tfoot>
+            {ReturnGrandTotal}
+        </tfoot>
     </table>
-
     <br />
     <br />
     <p>
         <b>Thanks & Regards,</b><br />
         <span style="font-size: 10px;">Team CoreLogic</span>
     </p>
-
     <p style="font-size: 10px;"><b>Note : Please do not reply on this system generated email.</b></p>
 </body>
 </html>

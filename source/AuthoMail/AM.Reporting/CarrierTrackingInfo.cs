@@ -76,7 +76,7 @@ namespace AM.Reporting
 
                     generalSvc.USPSTrackingCall(pendingUSPSReturnTrackingMps, true);
 
-                    var returnFedExTrackingInfo = mailPieces.Where(mp => !string.IsNullOrWhiteSpace(mp.ReturnTrackingNo) && (mp.ReturnTrackingNo.StartsWith("3") || mp.ReturnTrackingNo.StartsWith("7"))).ToList();
+                    var returnFedExTrackingInfo = mailPieces.Where(mp => !string.IsNullOrWhiteSpace(mp.ReturnTrackingNo) && (mp.ReturnTrackingNo.StartsWith("3") || mp.ReturnTrackingNo.StartsWith("7") || mp.ReturnTrackingNo.StartsWith("2"))).ToList();
 
                     var pendingFedExReturnTrackingMps = returnFedExTrackingInfo.Where(mp => mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() || (!mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() && !mp.ReturnDeliveryStatus.ToLower().Contains("delivered"))).ToList();
 
