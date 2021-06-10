@@ -593,7 +593,6 @@ namespace AM.Services
         public string LetterPageNumbers { get; set; }
         public string LegalPageNumbers { get; set; }
         public string BlankPageNumbers { get; set; }
-
         public List<string> BlankPageNumbersList
         {
             get
@@ -605,7 +604,7 @@ namespace AM.Services
                 return null;
             }
         }
-        public string BlankLetterPages
+        public List<string> BlankLetterPages
         {
             get
             {
@@ -614,13 +613,13 @@ namespace AM.Services
                     if (!LetterPageNumbers.IsNullOrWhiteSpace())
                     {
                         var letterPages = LetterPageNumbers.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                        return string.Join(",", BlankPageNumbersList.Intersect(letterPages));
+                        return BlankPageNumbersList.Intersect(letterPages).ToList();
                     }
                 }
                 return null;
             }
         }
-        public string BlankLegalPages
+        public List<string> BlankLegalPages
         {
             get
             {
@@ -629,10 +628,25 @@ namespace AM.Services
                     if (!LegalPageNumbers.IsNullOrWhiteSpace())
                     {
                         var legalPages = LegalPageNumbers.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                        return string.Join(",", BlankPageNumbersList.Intersect(legalPages));
+                        return BlankPageNumbersList.Intersect(legalPages).ToList();
                     }
                 }
                 return null;
+            }
+        }
+
+        public int LetterPagesImpression
+        {
+            get
+            {
+                return LetterPageCount - (BlankLetterPages != null ? BlankLetterPages.Count : 0);
+            }
+        }
+        public int LegalPagesImpression
+        {
+            get
+            {
+                return LegalPageCount - (BlankLegalPages != null ? BlankLegalPages.Count : 0);
             }
         }
     }

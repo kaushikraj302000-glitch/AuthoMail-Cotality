@@ -95,6 +95,8 @@ namespace AM.Web.Controllers
             dataTable.Columns.Remove("BlankPageNumbersList");
             dataTable.Columns.Remove("LetterPageNumbers");
             dataTable.Columns.Remove("LegalPageNumbers");
+            dataTable.Columns.Remove("BlankLetterPages");
+            dataTable.Columns.Remove("BlankLegalPages");
             dataTable.AcceptChanges();
 
             var memoryStream = ExcelHelper.ExportDataSet(dataTable);
