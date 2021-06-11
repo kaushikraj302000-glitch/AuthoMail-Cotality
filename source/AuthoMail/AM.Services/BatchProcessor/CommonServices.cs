@@ -532,7 +532,7 @@ namespace AM.Services
         {
             string query = @"SELECT COUNT(*) FROM AM.MailPieces P 
                             INNER JOIN AM.MailBatches B ON P.MailBatchId = B.Id
-                            WHERE P.PrintTrailId = (SELECT Id FROM Common.PrintTrails WHERE PrintVendorCode = 'CL_DALLAS')
+                            WHERE P.PrintTrailId IN (SELECT Id FROM Common.PrintTrails WHERE PrintVendorCode = 'CL_DALLAS')
                             AND B.ReceivedOn BETWEEN @StartDate AND @EndDate AND P.ShippingStatus IN('InProgress','Shipped')";
 
             return db.ExecuteScalar<int>(query, new { StartDate = Common.EstToday.ToStartDateTime().EstToUtc(), EndDate = Common.EstToday.ToEndDateTime().EstToUtc() });
