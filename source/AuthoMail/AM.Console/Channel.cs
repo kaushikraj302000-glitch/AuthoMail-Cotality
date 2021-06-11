@@ -609,8 +609,6 @@ namespace AM.Console
 
                 foreach (MailPieceDTO mailPiece in mailPieces)
                 {
-
-
                     if (mailPiece.ShippingStatus == ShippingStatus.Error.ToString())
                     {
                         if (!mailPiece.DocTypeId.HasValue)

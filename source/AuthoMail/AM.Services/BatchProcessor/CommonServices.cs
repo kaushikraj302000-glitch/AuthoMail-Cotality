@@ -50,6 +50,7 @@ namespace AM.Services
         ShipperInformation GetShipperInformationByPrintLocation(string printLocation, int printTrailId);
         Task<int> UpdateBatchPipeLineStatusByMailPieceId(Guid mailPieceId, string pipeLineStatus, DateTime timestamp);
         string GetEnvelopeCodeByEnvelopeId(int envelopeId);
+        int GetDallasBatchCounts();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -475,6 +476,7 @@ namespace AM.Services
             string query = "SELECT EnvelopeName FROM Common.Envelopes E INNER JOIN Common.PnSConfigDetail P ON P.EnvelopeId=E.Id WHERE P.Id=@pnsConfigDetailId";
             return db.ExecuteScalar<string>(query, new { pnsConfigDetailId });
         }
+
         public int GetReportingSequence()
         {
             string query = "SELECT NEXT VALUE FOR dbo.ReportingSequence";
@@ -524,6 +526,16 @@ namespace AM.Services
         public string GetEnvelopeCodeByEnvelopeId(int envelopeId)
         {
             return db.QuerySingle<string>("SELECT EnvelopeName FROM Common.Envelopes WHERE Id=@EnvelopeId", new { EnvelopeId = envelopeId });
+        }
+
+        public int GetDallasBatchCounts()
+        {
+            string query = @"SELECT COUNT(*) FROM AM.MailPieces P 
+                            INNER JOIN AM.MailBatches B ON P.MailBatchId = B.Id
+                            WHERE P.PrintTrailId = (SELECT Id FROM Common.PrintTrails WHERE PrintVendorCode = 'CL_DALLAS')
+                            AND B.ReceivedOn BETWEEN @StartDate AND @EndDate AND P.ShippingStatus IN('InProgress','Shipped')";
+
+            return db.ExecuteScalar<int>(query, new { StartDate = Common.EstToday.ToStartDateTime().EstToUtc(), EndDate = Common.EstToday.ToEndDateTime().EstToUtc() });
         }
     }
 }

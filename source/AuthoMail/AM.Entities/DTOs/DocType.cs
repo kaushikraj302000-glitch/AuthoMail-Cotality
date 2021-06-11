@@ -73,7 +73,7 @@ namespace AM.Entities
         public bool IsFallBack { get; set; }
         public bool IsPrintReady { get; set; }
         public bool AllowInsertsOnly { get; set; }
-
+        public string PrintVendorCode { get; set; }
         public TimeSpan? BizdayStartTime { get; set; }
         public TimeSpan? BizdayEndTime { get; set; }
         public TimeSpan? SatStartTime { get; set; }
