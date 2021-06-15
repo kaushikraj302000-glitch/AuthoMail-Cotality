@@ -63,45 +63,36 @@
             Please find attached <%AppCode%> Status Report. Below is the product wise delivery details for your reference.
         </p>
     </div>
-    <table width="40%" cellpadding="0" cellspacing="0" style="display: inline-block;vertical-align: top;margin-right:2px;">
-        <thead>
-            <tr>
-                <th colspan="5">Ongoing Status</th>
-            </tr>
-            <tr>
-                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">Product Wise Status Details</th>
-                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">FedEx</th>
-                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">USPS Priority</th>
-                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">USPS IMB</th>
-                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">Grand Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            {OngoingData}
-        </tbody>
-        <tfoot>
-            {OngoingGrandTotal}
-        </tfoot>
-    </table>
-    <table width="40%" cellpadding="0" cellspacing="0" style="display: inline-block; vertical-align: top; margin-right: 2px;">
-        <thead>
-            <tr>
-                <th colspan="5">Return Status</th>
-            </tr>
-            <tr>
-                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">Product Wise Status Details</th>
-                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">FedEx</th>
-                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">USPS Priority</th>
-                <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">Grand Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            {ReturnData}
-        </tbody>
-        <tfoot>
-            {ReturnGrandTotal}
-        </tfoot>
-    </table>
+    <div style="width:100%">
+        <div style="width:40%; display:inline-block;">
+            <table cellpadding="0" cellspacing="0" style="display: inline-block;vertical-align: top;margin-right:2px;">
+                <thead>
+                    <tr>
+                        <th>Product Code</th>
+                        <th colspan="4">Ongoing Status</th>
+                        <th colspan="4">Return Status</th>
+                    </tr>
+                    <tr>
+                        <th scope="col" style="padding: 5px; font-family: Arial,sans-serif; font-size: 10px;">Product Wise Status Details</th>
+                        <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">FedEx</th>
+                        <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">USPS Priority</th>
+                        <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">USPS IMB</th>
+                        <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">Grand Total</th>
+                        <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">FedEx</th>
+                        <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">USPS Priority</th>
+                        <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">USPS IMB</th>
+                        <th scope="col" style="padding:5px; font-family: Arial,sans-serif; font-size: 10px;">Grand Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {OngoingData}
+                </tbody>
+                <tfoot>
+                    {OngoingGrandTotal}
+                </tfoot>
+            </table>
+        </div>        
+    </div>
     <br />
     <br />
     <p>

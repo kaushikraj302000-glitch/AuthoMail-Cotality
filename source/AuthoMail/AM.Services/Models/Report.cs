@@ -127,9 +127,13 @@ namespace AM.Services
             {
                 if (!string.IsNullOrWhiteSpace(ReturnTrackingNo))
                 {
-                    if (ReturnTrackingNo.StartsWith("7") || ReturnTrackingNo.StartsWith("3"))
+                    if (ReturnTrackingNo.StartsWith("7") || ReturnTrackingNo.StartsWith("3") || ReturnTrackingNo.StartsWith("2"))
                     {
                         return "PRIORITY_OVERNIGHT";
+                    }
+                    else if (ReturnTrackingNo.StartsWith("0"))
+                    {
+                        return "FIRSTCLASS";
                     }
                     else
                     {

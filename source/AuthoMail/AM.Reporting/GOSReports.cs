@@ -274,14 +274,14 @@ namespace AM.Reporting
                     var otherClientCodes = clientCodes.Except(_3monthClientCodes).ToList();
 
                     var today = Common.EstToday;
-                    var startTime = today.AddMonths(-1);
+                    var startTime = new DateTime(today.AddMonths(-1).Year, today.AddMonths(-1).Month, 1);
                     var endTime = today.AddSeconds(-1);
 
                     GenerateReport(reportSvc, otherClientCodes, startTime, endTime, statusMaps);
 
                     if (AppConfig.GOSDaily3MonthAppCodes != null && AppConfig.GOSDaily3MonthAppCodes.Count() > 0)
                     {
-                        startTime = today.AddMonths(-3);
+                        startTime = startTime.AddMonths(-2);
                         endTime = today.AddSeconds(-1);
                         GenerateReport(reportSvc, _3monthClientCodes, startTime, endTime, statusMaps);
                     }
@@ -348,61 +348,97 @@ namespace AM.Reporting
 
                     var lstByOnGoingProductCode = appCodeWiseData.GroupBy(x => x.ProductCode);
 
-                    var lstByReturnProductCode = appCodeWiseData.Where(x => !x.ReturnTrackingNo.IsNullOrWhiteSpace()).GroupBy(x => x.ProductCode);
-
-                    StringBuilder ongoingRows = new StringBuilder();
-                    foreach (var ongoingProdlst in lstByOnGoingProductCode)
+                    StringBuilder rows = new StringBuilder();
+                    foreach (var productCode in lstByOnGoingProductCode)
                     {
                         string tblRowData = "";
-                        tblRowData += $"<td>{ongoingProdlst.Key}</td>";
-                        tblRowData += $"<td>{ongoingProdlst.Count(x => x.ShippingCarrier == "FedEx")}</td>";
-                        tblRowData += $"<td>{ongoingProdlst.Count(x => x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
-                        tblRowData += $"<td>{ongoingProdlst.Count(x => x.ShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
-                        tblRowData += $"<td>{ongoingProdlst.Count()}</td>";
+                        tblRowData += $"<td>{productCode.Key}</td>";
+                        tblRowData += $"<td>{productCode.Count(x => x.ShippingCarrier == "FedEx")}</td>";
+                        tblRowData += $"<td>{productCode.Count(x => x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
+                        tblRowData += $"<td>{productCode.Count(x => x.ShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
+                        tblRowData += $"<td>{productCode.Count()}</td>";
+                        tblRowData += $"<td>{productCode.Count(x => !x.ReturnTrackingNo.IsNullOrWhiteSpace() && x.ReturnShippingCarrier == "FedEx")}</td>";
+                        tblRowData += $"<td>{productCode.Count(x => !x.ReturnTrackingNo.IsNullOrWhiteSpace() && x.ReturnShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
+                        tblRowData += $"<td>{productCode.Count(x => !x.ReturnTrackingNo.IsNullOrWhiteSpace() && x.ReturnShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
+                        tblRowData += $"<td>{productCode.Count(x => !x.ReturnTrackingNo.IsNullOrWhiteSpace())}</td>";
+
+                        var distinctOngoingStatus = productCode.Select(x => x.ConvertedDeliveryStatus.ToTitleCase()).Distinct().ToList();
+                        var distinctReturnStatus = productCode.Select(x => x.ConvertedReturnDeliveryStatus.ToTitleCase()).Distinct().ToList();
+                        distinctOngoingStatus.AddRange(distinctReturnStatus);
+                        var combinedStatus = distinctOngoingStatus.Distinct().ToList();
 
                         string tblStatusRowData = "";
-                        foreach (var lstByStatus in ongoingProdlst.GroupBy(x => x.ConvertedDeliveryStatus.ToTitleCase()))
+                        foreach (var status in combinedStatus.Where(x=>x!=null))
                         {
-                            tblStatusRowData += $"<tr><td style='text-align: right;'>{lstByStatus.Key}</td>";
-                            tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ShippingCarrier == "FedEx")}</td>";
-                            tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
-                            tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
-                            tblStatusRowData += $"<td>{lstByStatus.Count()}</td></tr>";
+                            tblStatusRowData += $"<tr><td style='text-align: right;'>{status}</td>";
+                            tblStatusRowData += $"<td>{productCode.Count(x => x.ConvertedDeliveryStatus == status && x.ShippingCarrier == "FedEx")}</td>";
+                            tblStatusRowData += $"<td>{productCode.Count(x => x.ConvertedDeliveryStatus == status && x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
+                            tblStatusRowData += $"<td>{productCode.Count(x => x.ConvertedDeliveryStatus == status && x.ShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
+                            tblStatusRowData += $"<td>{productCode.Count(x => x.ConvertedDeliveryStatus == status)}</td>";
+
+                            tblStatusRowData += $"<td>{productCode.Count(x => x.ConvertedReturnDeliveryStatus == status && x.ReturnShippingCarrier == "FedEx")}</td>";
+                            tblStatusRowData += $"<td>{productCode.Count(x => x.ConvertedReturnDeliveryStatus == status && x.ReturnShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
+                            tblStatusRowData += $"<td>{productCode.Count(x => x.ConvertedReturnDeliveryStatus == status && x.ReturnShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
+                            tblStatusRowData += $"<td>{productCode.Count(x => x.ConvertedReturnDeliveryStatus == status)}</td></tr>";
                         }
-                        ongoingRows.AppendLine($"<tr class='trProduct'>{tblRowData}</tr>");
-                        ongoingRows.AppendLine($"{tblStatusRowData}");
+
+                        rows.AppendLine($"<tr class='trProduct'>{tblRowData}</tr>");
+                        rows.AppendLine($"{tblStatusRowData}");
                     }
 
-                    StringBuilder returnRows = new StringBuilder();
-                    foreach (var returnProdlst in lstByReturnProductCode)
-                    {
-                        string tblRowData = "";
-                        tblRowData += $"<td>{returnProdlst.Key}</td>";
-                        tblRowData += $"<td>{returnProdlst.Count(x => x.ReturnShippingCarrier == "FedEx")}</td>";
-                        tblRowData += $"<td>{returnProdlst.Count(x => x.ReturnShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
-                        tblRowData += $"<td>{returnProdlst.Count(x => x.ReturnShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
-                        tblRowData += $"<td>{returnProdlst.Count()}</td>";
+                    //var lstByReturnProductCode = appCodeWiseData.Where(x => !x.ReturnTrackingNo.IsNullOrWhiteSpace()).GroupBy(x => x.ProductCode);
 
-                        string tblStatusRowData = "";
-                        foreach (var lstByStatus in returnProdlst.GroupBy(x => x.ConvertedReturnDeliveryStatus.ToTitleCase()))
-                        {
-                            tblStatusRowData += $"<tr><td style='text-align: right;'>{lstByStatus.Key}</td>";
-                            tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ReturnShippingCarrier == "FedEx")}</td>";
-                            tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ReturnShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
-                            tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ReturnShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
-                            tblStatusRowData += $"<td>{lstByStatus.Count()}</td></tr>";
-                        }
-                        returnRows.AppendLine($"<tr class='trProduct'>{tblRowData}</tr>");
-                        returnRows.AppendLine($"{tblStatusRowData}");
-                    }
+                    //StringBuilder ongoingRows = new StringBuilder();
+                    //foreach (var ongoingProdlst in lstByOnGoingProductCode)
+                    //{
+                    //    string tblRowData = "";
+                    //    tblRowData += $"<td>{ongoingProdlst.Key}</td>";
+                    //    tblRowData += $"<td>{ongoingProdlst.Count(x => x.ShippingCarrier == "FedEx")}</td>";
+                    //    tblRowData += $"<td>{ongoingProdlst.Count(x => x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
+                    //    tblRowData += $"<td>{ongoingProdlst.Count(x => x.ShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
+                    //    tblRowData += $"<td>{ongoingProdlst.Count()}</td>";
+
+                    //    string tblStatusRowData = "";
+                    //    foreach (var lstByStatus in ongoingProdlst.GroupBy(x => x.ConvertedDeliveryStatus.ToTitleCase()))
+                    //    {
+                    //        tblStatusRowData += $"<tr><td style='text-align: right;'>{lstByStatus.Key}</td>";
+                    //        tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ShippingCarrier == "FedEx")}</td>";
+                    //        tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
+                    //        tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
+                    //        tblStatusRowData += $"<td>{lstByStatus.Count()}</td></tr>";
+                    //    }
+                    //    ongoingRows.AppendLine($"<tr class='trProduct'>{tblRowData}</tr>");
+                    //    ongoingRows.AppendLine($"{tblStatusRowData}");
+                    //}
+
+                    //StringBuilder returnRows = new StringBuilder();
+                    //foreach (var returnProdlst in lstByReturnProductCode)
+                    //{
+                    //    string tblRowData = "";
+                    //    tblRowData += $"<td>{returnProdlst.Key}</td>";
+                    //    tblRowData += $"<td>{returnProdlst.Count(x => x.ReturnShippingCarrier == "FedEx")}</td>";
+                    //    tblRowData += $"<td>{returnProdlst.Count(x => x.ReturnShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
+                    //    tblRowData += $"<td>{returnProdlst.Count(x => x.ReturnShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
+                    //    tblRowData += $"<td>{returnProdlst.Count()}</td>";
+
+                    //    string tblStatusRowData = "";
+                    //    foreach (var lstByStatus in returnProdlst.GroupBy(x => x.ConvertedReturnDeliveryStatus.ToTitleCase()))
+                    //    {
+                    //        tblStatusRowData += $"<tr><td style='text-align: right;'>{lstByStatus.Key}</td>";
+                    //        tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ReturnShippingCarrier == "FedEx")}</td>";
+                    //        tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ReturnShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
+                    //        tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ReturnShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
+                    //        tblStatusRowData += $"<td>{lstByStatus.Count()}</td></tr>";
+                    //    }
+                    //    returnRows.AppendLine($"<tr class='trProduct'>{tblRowData}</tr>");
+                    //    returnRows.AppendLine($"{tblStatusRowData}");
+                    //}
 
                     sb = sb.Replace("<%AppCode%>", appCode);
 
-                    sb = sb.Replace("{OngoingData}", ongoingRows.ToString());
-                    sb = sb.Replace("{ReturnData}", returnRows.ToString());
-                    sb = sb.Replace("{OngoingGrandTotal}", $"<tr><td>Grand Total</td><td>{gosBatchDetails.Count(x => x.ShippingCarrier == "FedEx" && x.AppCode == appCode)}</td><td>{gosBatchDetails.Count(x => (x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY") && x.AppCode == appCode)}</td><td>{gosBatchDetails.Count(x => (x.ShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS")) && x.AppCode == appCode)}</td><td>{gosBatchDetails.Count(x => (x.ShippingCarrier == "FedEx" || (x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")) && x.AppCode == appCode)}</td></tr>");
-                    sb = sb.Replace("{ReturnGrandTotal}", $"<tr><td>Grand Total</td><td>{gosBatchDetails.Count(x => x.ReturnShippingCarrier == "FedEx" && x.AppCode == appCode)}</td><td>{gosBatchDetails.Count(x => x.ReturnShippingCarrier == "USPS" && x.AppCode == appCode)}</td><td>{gosBatchDetails.Count(x => (x.ReturnShippingCarrier == "FedEx" || x.ReturnShippingCarrier == "USPS") && x.AppCode == appCode)}</td></tr>");
-
+                    sb = sb.Replace("{OngoingData}", rows.ToString());
+                    sb = sb.Replace("{OngoingGrandTotal}", $"<tr><td>Grand Total</td><td>{appCodeWiseData.Count(x => x.ShippingCarrier == "FedEx")}</td><td>{appCodeWiseData.Count(x => x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td><td>{appCodeWiseData.Count(x => x.ShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td><td>{appCodeWiseData.Count()}</td><td>{appCodeWiseData.Count(x => x.ReturnShippingCarrier == "FedEx")}</td><td>{appCodeWiseData.Count(x => x.ReturnShippingCarrier == "USPS" && x.ReturnShippingServiceType == "PRIORITY")}</td><td>{appCodeWiseData.Count(x => x.ReturnShippingCarrier == "USPS" && (x.ReturnShippingServiceType == "IMB" || x.ReturnShippingServiceType == "FIRSTCLASS"))}</td><td>{appCodeWiseData.Count(x => !x.ReturnTrackingNo.IsNullOrWhiteSpace())}</td></tr>");
+                    sb = sb.Replace("{ReturnGrandTotal}", $"<tr></tr>");
 
                     SendReportToCLTeam(reportFilePath, $"{appCode} MTD Delivery Status Report For Date {Common.EstToday.Date.ToString("MM-dd-yyyy")}", sb.ToString(), appCodeEmailList[appCode], AppConfig.GOSDailyDataPointEMailCc);
                 }
