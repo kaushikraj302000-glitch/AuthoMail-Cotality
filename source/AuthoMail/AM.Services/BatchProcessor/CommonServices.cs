@@ -50,7 +50,7 @@ namespace AM.Services
         ShipperInformation GetShipperInformationByPrintLocation(string printLocation, int printTrailId);
         Task<int> UpdateBatchPipeLineStatusByMailPieceId(Guid mailPieceId, string pipeLineStatus, DateTime timestamp);
         string GetEnvelopeCodeByEnvelopeId(int envelopeId);
-        int GetDallasBatchCounts();
+        int GetDallasBatchCounts(int? mpId = 0);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -528,14 +528,21 @@ namespace AM.Services
             return db.QuerySingle<string>("SELECT EnvelopeName FROM Common.Envelopes WHERE Id=@EnvelopeId", new { EnvelopeId = envelopeId });
         }
 
-        public int GetDallasBatchCounts()
+        public int GetDallasBatchCounts(int? mpId = 0)
         {
-            string query = @"SELECT COUNT(*) FROM AM.MailPieces P 
-                            INNER JOIN AM.MailBatches B ON P.MailBatchId = B.Id
-                            WHERE P.PrintTrailId IN (SELECT Id FROM Common.PrintTrails WHERE PrintVendorCode = 'CL_DALLAS')
-                            AND B.ReceivedOn BETWEEN @StartDate AND @EndDate AND P.ShippingStatus IN('InProgress','Shipped')";
+            string query = @";WITH CTE1 AS
+                            (
+	                            SELECT P.* FROM AM.MailPieces P 
+                                INNER JOIN AM.MailBatches B ON P.MailBatchId = B.Id
+                                WHERE P.PrintTrailId IN (SELECT Id FROM Common.PrintTrails WHERE PrintVendorCode = 'CL_DALLAS')
+                                AND B.ReceivedOn BETWEEN '2021-06-10' AND '2021-06-11' AND P.ShippingStatus IN('InProgress','Shipped')
+                            ), CTE2 AS
+                            (
+	                            SELECT COUNT(*) AS COUNTMp FROM CTE1 WHERE Id=@MailPieceId
+                            )
+                            SELECT COUNT(*) - (SELECT TOP 1 COUNTMp FROM CTE2) AS CurrentMpCount FROM CTE1";
 
-            return db.ExecuteScalar<int>(query, new { StartDate = Common.EstToday.ToStartDateTime().EstToUtc(), EndDate = Common.EstToday.ToEndDateTime().EstToUtc() });
+            return db.ExecuteScalar<int>(query, new { StartDate = Common.EstToday.ToStartDateTime().EstToUtc(), EndDate = Common.EstToday.ToEndDateTime().EstToUtc(), MailPieceId = mpId });
         }
     }
 }
