@@ -265,4 +265,4 @@ INSERT INTO [Common].[SystemSettings]([Id],[DataType],[Value],[Description],[IsS
  																																	    
 INSERT INTO [Common].[SystemSettings]([Id],[DataType],[Value],[Description],[IsSystem],[DefaultValue],[ModifiedBy],[ModifiedOn]) VALUES ('CLAuth_OrganizationId','String','723351799','CLAuth API Organization Id',0,'723351799',(select Id From Profile.Users where UserName='system@milestonetechnoconsulting.com'),GetDate())
 
-INSERT INTO [Common].[SystemSettings]([Id],[DataType],[Value],[Description],[IsSystem],[DefaultValue],[ModifiedBy],[ModifiedOn]) VALUES ('CLAuth_EnabledAxisAuthentication','Bool','0','Enable Axis Authentication',0,'1',(select Id From Profile.Users where UserName='system@milestonetechnoconsulting.com'),GetDate())
+INSERT INTO [Common].[SystemSettings]([Id],[DataType],[Value],[Description],[IsSystem],[DefaultValue],[ModifiedBy],[ModifiedOn]) VALUES ('CLAuth_EnabledAxisAuthentication','Boolean','false','Enable Axis Authentication',0,'false',(select Id From Profile.Users where UserName='system@milestonetechnoconsulting.com'),GetDate())
