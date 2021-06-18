@@ -287,6 +287,7 @@ namespace AM.Services
 
         #region CLAuth API
 
+        public static bool CLAuth_EnabledAxisAuthentication { get; private set; }
         [Description("CLAuth API Username")]
         public static string CLAuth_Username { get; private set; }
         [Description("CLAuth API Password")]

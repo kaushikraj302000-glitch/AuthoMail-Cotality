@@ -33,7 +33,6 @@ namespace AM.Web.Models
 
         public static async Task<KeyValuePair<bool, string>> IsValidCLUser(string username)
         {
-            username = "sgolvelkar@corelogic.com";
             string token = await GenerateToken();
             using (HttpClient httpClient = new HttpClient())
             {

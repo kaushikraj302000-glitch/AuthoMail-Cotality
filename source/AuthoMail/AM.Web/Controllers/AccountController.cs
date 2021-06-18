@@ -108,7 +108,7 @@ namespace AM.Web.Controllers
         {
             try
             {
-                
+
                 model.UserName = model.UserName.Contains("@") ? model.UserName : model.UserName + "@corelogic.com";
                 var mailAddress = new MailAddress(model.UserName);
                 if (mailAddress.Host.Equals("us.hsbc.com", StringComparison.CurrentCultureIgnoreCase))
@@ -159,12 +159,16 @@ namespace AM.Web.Controllers
                 }
                 if (isCoreLogicUser)
                 {
-                    var isValidUser= await CLAuthentication.IsValidCLUser(model.UserName);
-                    if (!isValidUser.Key)
+                    if (Config.CLAuth_EnabledAxisAuthentication)
                     {
-                        ModelState.AddModelError("", isValidUser.Value);
-                        return View(model);
+                        var isValidUser = await CLAuthentication.IsValidCLUser(model.UserName);
+                        if (!isValidUser.Key)
+                        {
+                            ModelState.AddModelError("", isValidUser.Value);
+                            return View(model);
+                        }
                     }
+
                     var hasLogin = CLAuthentication.LdapLogin(model.UserName, model.Password);
                     if (!hasLogin.Key)
                     {
