@@ -31,19 +31,21 @@ namespace AM.Web.Models
             return auth.IsAuthenticated("isc", userName, password);
         }
 
-        public async Task<KeyValuePair<bool, string>> IsValidCLUser(string username)
+        public static async Task<KeyValuePair<bool, string>> IsValidCLUser(string username)
         {
+            username = "sgolvelkar@corelogic.com";
+            string token = await GenerateToken();
             using (HttpClient httpClient = new HttpClient())
             {
-                string token = await GenerateToken();
+                System.Net.ServicePointManager.SecurityProtocol |= System.Net.SecurityProtocolType.Tls11 | System.Net.SecurityProtocolType.Tls12;
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-
-                HttpResponseMessage httpResponse = await httpClient.GetAsync($"{Config.CLAuth_UserDetailsUrl}{username}");
+                string url = $"{Config.CLAuth_UserDetailsUrl}{username}".Replace("{OrganizationId}", Config.CLAuth_OrganizationId);
+                HttpResponseMessage httpResponse = await httpClient.GetAsync(url);
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var response = await httpResponse.Content.ReadAsStringAsync();
-                    var user = JsonConvert.DeserializeObject<object>(response);
-                    if (Convert.ToBoolean(user.GetValueOfPropertyFromPropertyName("enable")))
+                    var user = JsonConvert.DeserializeObject<CLUser>(response);
+                    if (user !=null && user.enabled)
                     {
                         return new KeyValuePair<bool, string>(true, "Valid user");
                     }
@@ -57,23 +59,32 @@ namespace AM.Web.Models
             }
 
         }
-        private async Task<string> GenerateToken()
+        private static async Task<string> GenerateToken()
         {
-            using (HttpClient httpClient = new HttpClient())
+            try
             {
-                httpClient.DefaultRequestHeaders.Add("Authorization", "Basic " + Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes($"{Config.CLAuth_Username}:{Config.CLAuth_Password}")));
-                HttpResponseMessage tokenResponse = await httpClient.PostAsync(Config.CLAuth_TokenUrl, new FormUrlEncodedContent(new List<KeyValuePair<string, string>>()));
-                var jsonContent = await tokenResponse.Content.ReadAsStringAsync();
-                var jObj = JObject.Parse(jsonContent);
-
-                if (jObj == null || jObj.GetValue("access_token") == null)
+                using (HttpClient httpClient = new HttpClient())
                 {
-                    var msg = $"Not able to generate token.";
-                    throw new Exception(msg);
-                }
-                return jObj.GetValue("access_token").ToString();
-            }
+                    System.Net.ServicePointManager.SecurityProtocol |= System.Net.SecurityProtocolType.Tls11 | System.Net.SecurityProtocolType.Tls12;
+                    httpClient.DefaultRequestHeaders.Add("Authorization", "Basic " + Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes($"{Config.CLAuth_Username}:{Config.CLAuth_Password}")));
+                    HttpResponseMessage tokenResponse = await httpClient.PostAsync(Config.CLAuth_TokenUrl, new FormUrlEncodedContent(new List<KeyValuePair<string, string>>()));
+                    var jsonContent = await tokenResponse.Content.ReadAsStringAsync();
+                    var jObj = JObject.Parse(jsonContent);
 
+                    if (jObj == null || jObj.GetValue("access_token") == null)
+                    {
+                        var msg = $"Not able to generate token.";
+                        throw new Exception(msg);
+                    }
+                    return jObj.GetValue("access_token").ToString();
+                }
+
+            }
+            catch (Exception e)
+            {
+
+                throw e;
+            }
         }
     }
     public class LdapAuthentication

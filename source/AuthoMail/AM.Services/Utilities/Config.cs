@@ -295,6 +295,8 @@ namespace AM.Services
         public static string CLAuth_TokenUrl { get; private set; }
         [Description("CLAuth API Get User Url")]
         public static string CLAuth_UserDetailsUrl { get; private set; }
+        [Description("CLAuth API Organization Id")]
+        public static string CLAuth_OrganizationId { get; private set; }
 
         #endregion
 
