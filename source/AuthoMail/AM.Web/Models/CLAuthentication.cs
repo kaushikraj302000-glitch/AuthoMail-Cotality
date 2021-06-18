@@ -5,8 +5,12 @@ using System.DirectoryServices;
 using System.Linq;
 using System.Net.Mail;
 using System.Runtime.InteropServices;
-using System.Web;
 using AM.Lib;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Text;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace AM.Web.Models
 {
@@ -27,6 +31,60 @@ namespace AM.Web.Models
             return auth.IsAuthenticated("isc", userName, password);
         }
 
+        public static async Task<KeyValuePair<bool, string>> IsValidCLUser(string username)
+        {
+            string token = await GenerateToken();
+            using (HttpClient httpClient = new HttpClient())
+            {
+                System.Net.ServicePointManager.SecurityProtocol |= System.Net.SecurityProtocolType.Tls11 | System.Net.SecurityProtocolType.Tls12;
+                httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+                string url = $"{Config.CLAuth_UserDetailsUrl}{username}".Replace("{OrganizationId}", Config.CLAuth_OrganizationId);
+                HttpResponseMessage httpResponse = await httpClient.GetAsync(url);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var response = await httpResponse.Content.ReadAsStringAsync();
+                    var user = JsonConvert.DeserializeObject<CLUser>(response);
+                    if (user !=null && user.enabled)
+                    {
+                        return new KeyValuePair<bool, string>(true, "Valid user");
+                    }
+                    return new KeyValuePair<bool, string>(false, "Not valid user");
+                }
+                else
+                {
+                    string error = await httpResponse.Content.ReadAsStringAsync();
+                    return new KeyValuePair<bool, string>(false, error.ToString());
+                }
+            }
+
+        }
+        private static async Task<string> GenerateToken()
+        {
+            try
+            {
+                using (HttpClient httpClient = new HttpClient())
+                {
+                    System.Net.ServicePointManager.SecurityProtocol |= System.Net.SecurityProtocolType.Tls11 | System.Net.SecurityProtocolType.Tls12;
+                    httpClient.DefaultRequestHeaders.Add("Authorization", "Basic " + Convert.ToBase64String(ASCIIEncoding.ASCII.GetBytes($"{Config.CLAuth_Username}:{Config.CLAuth_Password}")));
+                    HttpResponseMessage tokenResponse = await httpClient.PostAsync(Config.CLAuth_TokenUrl, new FormUrlEncodedContent(new List<KeyValuePair<string, string>>()));
+                    var jsonContent = await tokenResponse.Content.ReadAsStringAsync();
+                    var jObj = JObject.Parse(jsonContent);
+
+                    if (jObj == null || jObj.GetValue("access_token") == null)
+                    {
+                        var msg = $"Not able to generate token.";
+                        throw new Exception(msg);
+                    }
+                    return jObj.GetValue("access_token").ToString();
+                }
+
+            }
+            catch (Exception e)
+            {
+
+                throw e;
+            }
+        }
     }
     public class LdapAuthentication
     {
