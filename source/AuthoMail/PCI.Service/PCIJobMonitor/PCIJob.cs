@@ -317,7 +317,7 @@ namespace PCI.Service
                 if (ptDetails.VendorCode == "CL_DALLAS")
                 {
                     log.InfoFormat("Uploading Dallas Started For PrintTrailBatchId : {0}", ptBatchDetails.Id);
-                    CreateDallasBatch(mpList, ptDetails);
+                    CreateDallasBatch(mpList, ptDetails, ptBatchDetails);
                     log.InfoFormat("Uploading Dallas Completd For PrintTrailBatchId : {0}", ptBatchDetails.Id);
                 }
                 else
@@ -337,7 +337,7 @@ namespace PCI.Service
                     //For NORDIS OR Any Other Print Vendor
                     var zipFilePath = Path.Combine(batchRequestPath, ptBatchDetails.PrintBatchName + ".zip");
                     var xmlFilePath = Path.Combine(batchRequestPath, ptBatchDetails.PrintBatchName + ".xml");
-                   
+
                     log.InfoFormat("Creating Batch For PrintTrailBatchId : {0}", ptBatchDetails.Id);
                     string batchPath = CreateNordisBatch(mpList, ptBatchDetails, zipFilePath, xmlFilePath);
                     log.InfoFormat("Creating Batch For PrintTrailBatchId : {0}", ptBatchDetails.Id);
@@ -443,7 +443,7 @@ namespace PCI.Service
             sftSite.Disconnect();
         }
 
-        private static void CreateDallasBatch(List<MailPieceDetail> mpList, PrintTrailDetail ptDetails)
+        private static void CreateDallasBatch(List<MailPieceDetail> mpList, PrintTrailDetail ptDetails, PrintTrailBatch ptBatchDetail)
         {
             SFTUtil sftSite = new SFTUtil(ptDetails.Protocol.ParseEnum<SFT_ProtocolType>(), ptDetails.Host, ptDetails.UserName, ptDetails.Password,
                 60000);
@@ -452,7 +452,7 @@ namespace PCI.Service
             var sw = new Stopwatch();
             sw.Start();
 
-            UploadBatchToInternalPrintVendorSite(Common.PCIRootFolder, sftSite, mpList, ptDetails);
+            UploadBatchToInternalPrintVendorSite(Common.PCIRootFolder, sftSite, mpList, ptDetails, ptBatchDetail);
 
             sw.Stop();
             var time = sw.Elapsed;
@@ -539,9 +539,8 @@ namespace PCI.Service
 
         }
 
-        private static void UploadBatchToInternalPrintVendorSite(string pciRootPath, SFTUtil sftSite, List<MailPieceDetail> mailPiecesDetails, PrintTrailDetail printTrailDetail)
+        private static void UploadBatchToInternalPrintVendorSite(string pciRootPath, SFTUtil sftSite, List<MailPieceDetail> mailPiecesDetails, PrintTrailDetail printTrailDetail, PrintTrailBatch ptBatchDetail)
         {
-            //Reason for doing this because we can avoid multiple call from database for each mail piece it may contains multiple clients for same print trails
 
             var clientIds = mailPiecesDetails.Select(m => m.ClientId).Distinct();
             foreach (var clientId in clientIds)
@@ -584,8 +583,64 @@ namespace PCI.Service
                     DAL.UpdateFilePathForDallas(mailPiece, fullFilePath);
                 }
             }
-        }
 
+            //After uploading files system will upload manifest if applicable
+            //Reason for doing this because we can avoid multiple call from database for each mail piece it may contains multiple clients for same print trails
+            if (ptBatchDetail.IsSinglePdf)
+            {
+                //NOTE: Bundling folder structure will be like : BundlingRoot/PrintTrailBatchId/Request & Response
+                var batchRequestPath = Path.Combine(Common.BundlingRootFolder, ptBatchDetail.Id.ToString(), Common.BundlingRequestFolderName);
+
+                var batchResponsePath = Path.Combine(Common.BundlingRootFolder, ptBatchDetail.Id.ToString(), Common.BundlingResponseFolderName);
+
+                log.InfoFormat("Creating Dallas Batch Folders For PrintTrailBatchId : {0}", ptBatchDetail.Id);
+                batchRequestPath.CreateDirectoryIfNotExist();
+                Thread.Sleep(1000);
+                batchResponsePath.CreateDirectoryIfNotExist();
+
+                var barcode = $"BS-{ptBatchDetail.Id}";
+
+                var manifestPdfFileName = $"{barcode}-Manifest.pdf";
+
+                var manifestOutputPath = Path.Combine(batchRequestPath, manifestPdfFileName);
+
+                var groupingData = mailPiecesDetails.GroupBy(x => new { x.AppCode, x.ShippingCarrier, x.ShippingServiceType, IsBRE = x.Inserts.IsNullOrWhiteSpace() ? false : true });
+
+                var smartDocData = groupingData.Select(x => new { x.Key.AppCode, x.Key.ShippingCarrier, x.Key.ShippingServiceType, x.Key.IsBRE, TotalPackages = x.Count(), TotalPages = x.Sum(p => p.TotalPages) }).ToList();
+
+                dynamic objData = new { Barcode = barcode, smartDocData };
+
+                PdfUtil.GenerateBarcodeManifest(Common.DocGenAPIUrl, Common.ManifestTemplatePath, manifestOutputPath, objData);
+
+                var clientCode = mailPiecesDetails.Select(x => x.AppCode).Distinct().SingleOrDefault();
+
+                var mpGroupedData = mailPiecesDetails.GroupBy(x => new { x.AppCode, x.ShippingCarrier, x.ShippingServiceType, x.EnvelopeName, x.Inserts });
+
+                //NOTE: Folder structure will be like  /gos/ClientCode/SweepTime/ShippingCarrier_ShippingServiceType/EnvelopeName_{Inserts/BREEnvelopeName}
+                string submitDir = Path.Combine(printTrailDetail.FromADEDir, clientCode, Common.EstToday.ToString("MMddyyyy"), Common.UtcToCst(Common.GetCurrentTime()).ToString("hhtt"));
+
+                if (!sftSite.IsDownloadDirectoryAvailable(submitDir))
+                    sftSite.CreateDirectory(submitDir);
+
+                foreach (var mpGroup in mpGroupedData)
+                {
+                    var mpFilePathsData = mpGroup.Select(x => Path.Combine(Path.Combine(pciRootPath, clientCode, x.JobId.ToString(), Common.PCIRequestFolderName, x.PDFFileName))).ToList();
+
+                    string mergedPdfFileName = $"{ptBatchDetail.Id}-{mpGroup.Key.AppCode}-{mpGroup.Key.ShippingCarrier}-{mpGroup.Key.ShippingServiceType}-{mpGroup.Key.EnvelopeName}-{mpGroup.Key.Inserts.Replace(",", "_")}.pdf";
+                    mpFilePathsData.Add(Path.Combine(batchRequestPath, mergedPdfFileName));
+
+                    PdfUtil.MergePDFs(mpFilePathsData.ToArray());
+
+                    string pdfDestPath = Path.Combine(submitDir, mergedPdfFileName);
+
+                    sftSite.UploadFile(mergedPdfFileName, pdfDestPath);
+                }
+
+                string manifestDestPath = Path.Combine(submitDir, manifestPdfFileName);
+
+                sftSite.UploadFile(manifestOutputPath, manifestDestPath);
+            }
+        }
         #endregion
 
         #region Download Response MRDF and update batch status in DB.

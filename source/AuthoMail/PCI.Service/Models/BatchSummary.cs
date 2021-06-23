@@ -196,6 +196,7 @@ namespace PCI.Service
         public string VendorCode { get; set; }
         public string TrailName { get; set; }
         public bool SimulateTrail { get; set; }
+        public bool IsSinglePdf { get; set; }
         public string Protocol { get; set; }
         public string Host { get; set; }
         public string UserName { get; set; }
@@ -210,6 +211,7 @@ namespace PCI.Service
         public int ShipperId { get; set; }
         public int PrintTrailId { get; set; }
         public string PrintBatchName { get; set; }
+        public bool IsSinglePdf { get; set; }
         public bool IsSubmitted { get; set; }
         public DateTime? SubmittedOn { get; set; }
         public bool IsMRDFReceived { get; set; }

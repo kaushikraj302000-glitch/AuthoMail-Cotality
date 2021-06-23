@@ -266,3 +266,5 @@ INSERT INTO [Common].[SystemSettings]([Id],[DataType],[Value],[Description],[IsS
 INSERT INTO [Common].[SystemSettings]([Id],[DataType],[Value],[Description],[IsSystem],[DefaultValue],[ModifiedBy],[ModifiedOn]) VALUES ('CLAuth_OrganizationId','String','723351799','CLAuth API Organization Id',0,'723351799',(select Id From Profile.Users where UserName='system@milestonetechnoconsulting.com'),GetDate())
 
 INSERT INTO [Common].[SystemSettings]([Id],[DataType],[Value],[Description],[IsSystem],[DefaultValue],[ModifiedBy],[ModifiedOn]) VALUES ('CLAuth_EnabledAxisAuthentication','Boolean','false','Enable Axis Authentication',0,'false',(select Id From Profile.Users where UserName='system@milestonetechnoconsulting.com'),GetDate())
+
+INSERT INTO [Common].[SystemSettings]([Id],[DataType],[Value],[Description],[IsSystem],[DefaultValue],[ModifiedBy],[ModifiedOn]) VALUES ('PnS_ManifestTemplatePath','String','D:\MTC\AuthoMail\PnSService\Resources\BarcodeManifest.docx','Manifest template file path',0,'D:\MTC\AuthoMail\PnSService\Resources\BarcodeManifest.docx',(select Id From Profile.Users where UserName='system@milestonetechnoconsulting.com'),GetDate())

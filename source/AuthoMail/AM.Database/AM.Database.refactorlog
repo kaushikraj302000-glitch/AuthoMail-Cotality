@@ -168,4 +168,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="IsTrackingRequired" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="b68e2f02-d6e2-4858-bad4-fa323f78eace" ChangeDateTime="06/22/2021 10:13:28">
+    <Property Name="ElementName" Value="[AM].[FloodClientMapping].[IX_ClientId_ClientName]" />
+    <Property Name="ElementType" Value="SqlIndex" />
+    <Property Name="ParentElementName" Value="[AM].[FloodClientMapping]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="[IX_Unique_ClientId_ClientName]" />
+  </Operation>
 </Operations>
