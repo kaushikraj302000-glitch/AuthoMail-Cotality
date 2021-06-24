@@ -11,7 +11,8 @@ SELECT D.Id, D.ClientId, D.QCPercent, D.IsReturnInfoSpecified, D.RetRcptPrefix, 
 , PD.ShippingServiceType, PD.ShippingAccountCode, PD.ShippingSpecialService, PD.MinPage, PD.MaxPage, PD.EnvelopeId, PD.IsFallBack
 , PD.BizdayCutOff, PD.BizdaySLAType, PD.BizdayTimeSpan, PD.SatCutOff, PD.SatSLAType, PD.SatTimeSpan, PD.SunCutOff, PD.SunSLAType
 , PD.SunTimeSpan, PD.BizDayStartTime, PD.BizDayEndTime, PD.SatStartTime, PD.SatEndTime, PD.SunStartTime, PD.SunEndTime, PD.PrintTrailId
-,D.AllowInsertsOnly,P.ConfigName,P.DocumentCode
+,D.AllowInsertsOnly,P.ConfigName,P.DocumentCode, PT.PrintVendorCode
 FROM AM.DocTypes D 
 INNER JOIN Common.PnSConfig P ON D.PnSConfigId=P.Id
 INNER JOIN Common.PnSConfigDetail PD ON P.Id=PD.PnSConfigId
+LEFT OUTER JOIN Common.PrintTrails PT ON PD.PrintTrailId = PT.Id

@@ -139,10 +139,10 @@ namespace AM.Console
 
                     if (File.Exists(localArchivePath))
                         File.Delete(localArchivePath);
-                    
-                    if(File.Exists(localCsvFilePath))
+
+                    if (File.Exists(localCsvFilePath))
                         File.Move(localCsvFilePath, localArchivePath);
-                    
+
                     //Deleting Local Directory 
                     if (Directory.Exists(localCsvDirPath))
                         Directory.Delete(localCsvDirPath, true);
@@ -238,7 +238,7 @@ namespace AM.Console
                         {
                             BusinessFriendlyIdName = "Flood Cert Number",
                             BusinessFriendlyIdValue = loanInfo.FloodCertNumber.IsNullOrWhiteSpace() ? null : loanInfo.FloodCertNumber,
-                            DocumentOrPackageType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, loanInfo.ClientId.Trim(), 0).DocTypeName,
+                            DocumentOrPackageType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, loanInfo.ClientId.Trim(), 0, lastModifiedTime).DocTypeName,
                             Id = Guid.NewGuid()
                         };
 
@@ -526,7 +526,7 @@ namespace AM.Console
                         //PdfUtil.PdfFormFiller(templateFilePath, printReadyTemplatePath, templateFieldData);
                         #endregion
 
-                        DocType docType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0);
+                        DocType docType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0, mailBatch.ReceivedOn.Value.UtcToEst());
 
                         CustomTemplate customTemplate = commonSvc.GetCustomTemplateByDocTypeId(docType.Id, mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityCode").Value);
                         var printReadyTemplatePath = Path.Combine(mbi.AMRequestPath, mp.DocumentOrPackage.Name);
