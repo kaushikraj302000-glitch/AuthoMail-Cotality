@@ -259,8 +259,11 @@
                 <th>Pullback Requested</th>
                 <th>@businessId</th>
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
-                <th>Recipient Name</th>
-                <th>Recipient Address</th>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <th>Recipient Name</th>
+                    <th>Recipient Address</th>
+                }
                 <th>Pages</th>
                 <th>Document Type</th>
                 <th>Tracking Number</th>
@@ -278,8 +281,11 @@
                 <td class="ispullbackr"><span>{IsPullBackRequestedFormatted}</span></td>
                 <td class="mailpieceid" data-mailpieceid="{UniqueId}"><span>{BusinessIdValue}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
-                <td><span>{Name}</span></td>
-                <td><span>{Address}</span></td>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <td><span>{Name}</span></td>
+                    <td><span>{Address}</span></td>
+                }
                 <td><span>{TotalPages}</span></td>
                 <td><span>{DocType}</span></td>
                 <td><span>{TrackingNo}</span></td>
@@ -297,8 +303,11 @@
             <tr>
                 <th>@businessId</th>
                 <th>File Name</th>
-                <th>Recipient Name</th>
-                <th>Recipient Address</th>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <th>Recipient Name</th>
+                    <th>Recipient Address</th>
+                }
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Document Type</th>
@@ -318,8 +327,11 @@
             <tr class="row-small">
                 <td><span>{BusinessIdValue}</span></td>
                 <td><span data-toggle="tooltip" data-container="body" data-placement="top" title="{FileName}">{FileNameFormatted}</span></td>
-                <td><span>{Name}</span></td>
-                <td><span>{Address}</span></td>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <td><span>{Name}</span></td>
+                    <td><span>{Address}</span></td>
+                }
                 <td class="receivedon"><span>{MailPieceReceivedOn}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{DocType}</span></td>
@@ -341,8 +353,11 @@
             <tr>
                 <th>@businessId</th>
                 <th>File Name</th>
-                <th>Recipient Name</th>
-                <th>Recipient Address</th>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <th>Recipient Name</th>
+                    <th>Recipient Address</th>
+                }
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Document Type</th>
@@ -362,8 +377,11 @@
             <tr class="row-small">
                 <td><span>{BusinessIdValue}</span></td>
                 <td><span data-toggle="tooltip" data-container="body" data-placement="top" title="{FileName}">{FileNameFormatted}</span></td>
-                <td><span>{Name}</span></td>
-                <td><span>{Address}</span></td>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <td><span>{Name}</span></td>
+                    <td><span>{Address}</span></td>
+                }
                 <td><span>{MailPieceReceivedOn}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{DocType}</span></td>

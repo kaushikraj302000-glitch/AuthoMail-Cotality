@@ -162,7 +162,7 @@
                                 </select>
                             </div>
                         </div>
-                        @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA))
+                        @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA) || User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                         {
                             <div class="col-md-3">
                                 <div class="form-group">
@@ -245,11 +245,17 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
-                <th>File</th>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <th>File</th>
+                }
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
                 <th>Status</th>
-                <th>Borrower Name</th>
-                <th>City</th>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <th>Borrower Name</th>
+                    <th>City</th>
+                }
                 @*<th>Zip</th>*@
                 <th class="TrackingNoHide">Tracking Number</th>
                 <th class="TrackingNo">Tracking Number</th>
@@ -274,11 +280,17 @@
     <table>
         <tbody id="SearchBody">
             <tr class="row-small">
-                <td><span>{FileFormatted}</span></td>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <td><span>{FileFormatted}</span></td>
+                }
                 <td data-businessidvalue="{LoanNumber}"><span>{View}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
-                <td><span>{RcptNameFormatted}</span></td>
-                <td><span>{CityFormatted}</span></td>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <td><span>{RcptNameFormatted}</span></td>
+                    <td><span>{CityFormatted}</span></td>
+                }
                 <td><span>{TrackingNo}</span></td>
                 <td><span>{TrackingNoFormatted}</span></td>
                 @*<td><span>{ZIP}</span></td>*@
@@ -562,18 +574,21 @@
                     <span class="form-control-static">{IsRcptInfoSpecified}</span>
                 </div>
             </div>
-            <div class="form-group margin-bottom-2">
-                <div class="input-group">
-                    <label for="BusinessFriendlyIdValue">Recipient Name:&nbsp; </label>
-                    <span class="form-control-static">{RcptName}</span>
+            @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+            {
+                <div class="form-group margin-bottom-2">
+                    <div class="input-group">
+                        <label for="BusinessFriendlyIdValue">Recipient Name:&nbsp; </label>
+                        <span class="form-control-static">{RcptName}</span>
+                    </div>
                 </div>
-            </div>
-            <div class="form-group margin-bottom-2">
-                <div class="input-group">
-                    <label for="BusinessFriendlyIdValue">Recipient Address:&nbsp; </label>
-                    <span class="form-control-static">{RcptAddress}</span>
+                <div class="form-group margin-bottom-2">
+                    <div class="input-group">
+                        <label for="BusinessFriendlyIdValue">Recipient Address:&nbsp; </label>
+                        <span class="form-control-static">{RcptAddress}</span>
+                    </div>
                 </div>
-            </div>
+            }
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
                     <label for="PrintLocation">Print File Name:&nbsp; </label>

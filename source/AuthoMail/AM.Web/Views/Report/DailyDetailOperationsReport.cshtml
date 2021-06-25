@@ -118,12 +118,15 @@
                 <th>Inserts</th>
                 <th>Shipment Status</th>
                 <th>Shipping Method</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Recipient Street Address</th>
-                <th>Recipient City</th>
-                <th>Recipient State</th>
-                <th>Recipient Zip</th>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Recipient Street Address</th>
+                    <th>Recipient City</th>
+                    <th>Recipient State</th>
+                    <th>Recipient Zip</th>
+                }
                 <th>Envelope Name</th>
                 <th>Print File Name</th>
                 <th>Delivery Date</th>
@@ -158,12 +161,15 @@
                 <td><span>{Inserts}</span></td>
                 <td><span>{ShipmentStatus}</span></td>
                 <td><span>{ShippingMethod}</span></td>
-                <td><span>{FirstName}</span></td>
-                <td><span>{LastName}</span></td>
-                <td><span>{Address}</span></td>
-                <td><span>{City}</span></td>
-                <td><span>{State}</span></td>
-                <td><span>{ZIP}</span></td>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <td><span>{FirstName}</span></td>
+                    <td><span>{LastName}</span></td>
+                    <td><span>{Address}</span></td>
+                    <td><span>{City}</span></td>
+                    <td><span>{State}</span></td>
+                    <td><span>{ZIP}</span></td>
+                }
                 <td><span>{EnvelopeName}</span></td>
                 <td><span>{PrintFileName}</span></td>
                 <td><span>{DeliveryDateFormatted}</span></td>
@@ -194,7 +200,7 @@
                 'container': 'body'
             });
             var table = $('#sample_2');
-            
+
             var filename = "DailyDetailOperationsReport_" + moment($("#date").val()).format("MMDDYYYY") +"_"+ $("#ClientName").text();
             var title = "Daily Detail Operations Report";
             var oTable = table.dataTable({
