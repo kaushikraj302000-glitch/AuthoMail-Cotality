@@ -782,10 +782,17 @@ namespace AM.Core
                                 }
 
                                 //Print Inserts in coverletter
-
-                                if (mailPiece.PrintLocation == "Dallas CL" && !string.IsNullOrWhiteSpace(mailPiece.Inserts) && (coverLetterPdfPaths != null && coverLetterPdfPaths.Count() > 0))
+                                if (mailPiece.PrintLocation == "Dallas CL")
                                 {
-                                    doc.WriteTextOnLabel(coverLetterPdfPaths.First(), mailPiece.Inserts);
+                                    if (!string.IsNullOrWhiteSpace(mailPiece.Inserts) && (coverLetterPdfPaths != null && coverLetterPdfPaths.Count() > 0))
+                                    {
+                                        doc.WriteTextOnLabel(coverLetterPdfPaths.First(), mailPiece.Inserts, true);
+                                    }
+
+                                    if (!string.IsNullOrWhiteSpace(mailPiece.EnvelopeName) && (coverLetterPdfPaths != null && coverLetterPdfPaths.Count() > 0))
+                                    {
+                                        doc.WriteTextOnLabel(coverLetterPdfPaths.First(), mailPiece.EnvelopeName);
+                                    }
                                 }
 
                                 string blankPdfPath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Common_BlankPage);
