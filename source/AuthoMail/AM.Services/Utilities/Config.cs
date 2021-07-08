@@ -244,6 +244,8 @@ namespace AM.Services
         public static int Web_API_AlertElapsedMinute { get; set; }
         [Description("Inventory Buffer Stock Percentage")]
         public static int Common_InventoryBufferStockDays { get; set; }
+        [Description("For Single Loan Entry")]
+        public static int Web_SubmissionSFTChannelId { get; set; }
         #endregion Support
 
         #region EllieMae_API

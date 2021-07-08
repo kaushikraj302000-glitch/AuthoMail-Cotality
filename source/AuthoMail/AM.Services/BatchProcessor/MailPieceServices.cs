@@ -38,6 +38,7 @@ namespace AM.Services
         dynamic GetCoversheetData(int mailPieceId);
         List<string> GetInvalidInserts(List<string> inserts);
         bool IsDuplicateRecord(MailPieceDTO mailPiece);
+        bool IsDuplicateRecord(MailPiece mailPiece);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -415,6 +416,13 @@ namespace AM.Services
         }
 
         public bool IsDuplicateRecord(MailPieceDTO mailPiece)
+        {
+            string query = @"SELECT CAST(CASE WHEN (SELECT COUNT(*) FROM [AM].[MailPieces] WHERE ClientId = @ClientId AND RcptFirstName = @RcptFirstName AND RcptLastName = @RcptLastName AND RcptAddressStreet = @RcptAddressStreet AND RcptAddressCity = @RcptAddressCity AND RcptAddressState = @RcptAddressState AND RcptAddressZIP = @RcptAddressZIP AND BusinessFriendlyIdValue = @BusinessFriendlyIdValue AND [FileName] = @FileName AND DocumentOrPackageType = @DocumentOrPackageType AND CAST(EffectiveReceivedOnEst AS DATE) BETWEEN DATEADD(DAY,-5,CAST(@EffectiveReceivedOnEst AS DATE)) AND CAST(@EffectiveReceivedOnEst AS DATE)) > 1 THEN 1 ELSE 0 END AS BIT)";
+
+            return db.ExecuteScalar<bool>(query, mailPiece);
+        }
+
+        public bool IsDuplicateRecord(MailPiece mailPiece)
         {
             string query = @"SELECT CAST(CASE WHEN (SELECT COUNT(*) FROM [AM].[MailPieces] WHERE ClientId = @ClientId AND RcptFirstName = @RcptFirstName AND RcptLastName = @RcptLastName AND RcptAddressStreet = @RcptAddressStreet AND RcptAddressCity = @RcptAddressCity AND RcptAddressState = @RcptAddressState AND RcptAddressZIP = @RcptAddressZIP AND BusinessFriendlyIdValue = @BusinessFriendlyIdValue AND [FileName] = @FileName AND DocumentOrPackageType = @DocumentOrPackageType AND CAST(EffectiveReceivedOnEst AS DATE) BETWEEN DATEADD(DAY,-5,CAST(@EffectiveReceivedOnEst AS DATE)) AND CAST(@EffectiveReceivedOnEst AS DATE)) > 1 THEN 1 ELSE 0 END AS BIT)";
 

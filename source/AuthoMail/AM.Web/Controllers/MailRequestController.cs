@@ -38,9 +38,13 @@ namespace AM.Web.Controllers
         private static XmlSchemaSet schemas = new XmlSchemaSet();
 
         IPnSAPIService pnsApiSvc;
-        public MailRequestController(IPnSAPIService pnsApiSvc)
+        IDocTypeService doctypeSvc;
+        IMailPieceService mailPieceSvc;
+        public MailRequestController(IPnSAPIService pnsApiSvc, IDocTypeService doctypeSvc, IMailPieceService mailPieceSvc)
         {
             this.pnsApiSvc = pnsApiSvc;
+            this.doctypeSvc = doctypeSvc;
+            this.mailPieceSvc = mailPieceSvc;
         }
 
         static MailRequestController()
@@ -1039,12 +1043,23 @@ bufferSize: 4096, useAsync: true)) { }
 
             using (IClientService clientService = new ClientService())
             {
-                if (User.Identity.SFTChannelId() != null)
-                    sFTChannel = await clientService.GetSFTChannelDetailsBySFTChannelId(User.Identity.SFTChannelId().Value);
-                else
+                var clientIdOfUser = User.Identity.GetClientId();
+
+                if (clientIdOfUser == null)
                 {
-                    sFTChannel = null;
+                    var resultError = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Invalid_ClientCode, ErrorDesc = "Client is not assigned to the user. Please reach out to your manager to get it configured.", ReceivedOn = receivedTime };
+                    return new { Key = HttpStatusCode.BadRequest, Value = resultError };
                 }
+
+                var clientSFTMaps = clientService.GetClientSFTChannelMapDetails(clientIdOfUser.Value);
+
+                if (!clientSFTMaps.Any(s => s.SFTChannelId == Config.Web_SubmissionSFTChannelId))
+                {
+                    var result = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidChannelCode", ErrorDesc = "You do have rights to use this channel for creating print and ship package. Please reach out to your manager to get an access.", ReceivedOn = receivedTime };
+                    return new { Key = HttpStatusCode.BadRequest, Value = result };
+                }
+
+                sFTChannel = await clientService.GetSFTChannelDetailsBySFTChannelId(clientSFTMaps.Single(s => s.SFTChannelId == Config.Web_SubmissionSFTChannelId).SFTChannelId);
             }
 
             if (sFTChannel == null)
@@ -1086,6 +1101,14 @@ bufferSize: 4096, useAsync: true)) { }
                     string xmlFilePath = Path.Combine(sFTChannel.Host + sFTChannel.ToADEDir, string.Format("{0}.xml", mailBatch.Id));
                     string pdfFilePath = Path.Combine(sFTChannel.Host + Path.Combine(sFTChannel.ToADEDir, string.Format("{0}.pdf", mp.DocumentOrPackage.Name == null ? mp.Id.ToString() : Path.GetFileNameWithoutExtension(mp.DocumentOrPackage.Name))));
 
+                    var isDuplicate = mailPieceSvc.IsDuplicateRecord(mailPiece);
+
+                    if (isDuplicate)
+                    {
+                        var errresult = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.NotAcceptable, ErrorDesc = "System already contains same package information so you cannot submit a duplicate request.", ReceivedOn = receivedTime };
+
+                        return new { Key = HttpStatusCode.BadRequest, Value = errresult };
+                    }
                     List<string> filesToZip = new List<string>();
 
                     string xml = mailBatch.Serialize<MailBatch>();
@@ -1170,7 +1193,12 @@ bufferSize: 4096, useAsync: true))
             }
         }
 
-
+        [HttpGet, Route("getdoctype")]
+        public object GetReturnAddressInfoByDocTypeName(string doctypeName)
+        {
+            var doctype = doctypeSvc.GetDocTypeByDocTypeName(User.Identity.GetClientId().Value, doctypeName);
+            return doctype;
+        }
 
         public class MailPieceValidationResult
         {
