@@ -137,7 +137,7 @@ namespace AM.Lib
 
         public static string AnyFormatToDateTimeString(this string date)
         {
-            string[] formats = { "MMMM dd, yyyy", "dd-MMM-yyyy HH:mm:ss", "dd-MMM-yyyy hh:mm:ss", "MM-dd-yyyy HH:mm:ss", "MM-dd-yyyy hh:mm:ss", "MM-dd-yyyy", "MMMM dd, yyyy h:mm tt", "MMMM dd, yyyy H:mm tt" };
+            string[] formats = { "MMMM dd, yyyy", "dd-MMM-yyyy HH:mm:ss", "dd-MMM-yyyy hh:mm:ss", "MM-dd-yyyy HH:mm:ss", "MM-dd-yyyy hh:mm:ss", "MM-dd-yyyy", "MMMM dd, yyyy h:mm tt", "MMMM dd, yyyy H:mm tt", "dd-MMM-yy", "M/dd/yyyy hh:mm" };
 
             DateTime dateValue;
             if (DateTime.TryParseExact(date, formats, new CultureInfo("en-US"), DateTimeStyles.None, out dateValue))
@@ -148,7 +148,7 @@ namespace AM.Lib
 
         public static DateTime? AnyFormatToDateTime(this string date)
         {
-            string[] formats = { "MMMM dd, yyyy", "dd-MMM-yyyy HH:mm:ss", "dd-MMM-yyyy hh:mm:ss", "MM-dd-yyyy HH:mm:ss", "MM-dd-yyyy hh:mm:ss", "MM-dd-yyyy", "MMMM dd, yyyy h:mm tt", "MMMM dd, yyyy H:mm tt", "MMMM d, yyyy", "MMMM d, yyyy h:mm tt" };
+            string[] formats = { "MMMM dd, yyyy", "dd-MMM-yyyy HH:mm:ss", "dd-MMM-yyyy hh:mm:ss", "MM-dd-yyyy HH:mm:ss", "MM-dd-yyyy hh:mm:ss", "MM-dd-yyyy", "MMMM dd, yyyy h:mm tt", "MMMM dd, yyyy H:mm tt", "MMMM d, yyyy", "MMMM d, yyyy h:mm tt", "dd-MMM-yy", "M/dd/yyyy hh:mm" };
 
             DateTime dateValue;
             if (DateTime.TryParseExact(date, formats, new CultureInfo("en-US"), DateTimeStyles.None, out dateValue))

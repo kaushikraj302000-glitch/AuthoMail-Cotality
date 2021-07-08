@@ -106,7 +106,7 @@ namespace AM.Console
                     string localArchivePath = Path.Combine(Config.Common_AuthoMailRootFolder, "Archive", "{0}.csv".Fill(batchName));
                     //Generate List from CSV 
                     Dictionary<string, List<CapOneData>> caponeClientData = new Dictionary<string, List<CapOneData>>();
-                    var lines = File.ReadAllLines(localCsvFilePath).ToList();
+                    var lines = File.ReadAllLines(localCsvFilePath, Encoding.Default).ToList();
                     if (lines.Count <= 1)
                     {
                         MailUtility.SendUnexpectedExceptionEmail("No records found for received file {0}.csv".Fill(batchName));
