@@ -29,4 +29,10 @@ namespace PCI.Service
         }
         public Int64? PDFFileSize { get; set; }
     }
+
+    public class ErrorResponse
+    {
+        public int PieceId { get; set; }
+        public string ErrorDesc { get; set; }
+    }
 }
