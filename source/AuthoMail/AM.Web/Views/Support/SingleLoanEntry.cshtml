@@ -101,7 +101,7 @@
 
 
             <div class="clearfix"></div>
-            @Html.Partial("_RecipientInfo",Model)
+            @Html.Partial("_RecipientInfo", Model)
             <div class="clearfix"></div>
             @*@Html.Partial("_RecipientAddress")
                 <div class="clearfix"></div>*@
@@ -137,6 +137,8 @@
 </form>
 
 @section Scripts{
+    @Styles.Render("~/bundles/datatablescss")
+    @Scripts.Render("~/bundles/datatables")
     <script type="text/javascript">
         $(document).ready(function () {
             $('#eDelivery_PrintAndShipOnExpiry').change(function (e) {
