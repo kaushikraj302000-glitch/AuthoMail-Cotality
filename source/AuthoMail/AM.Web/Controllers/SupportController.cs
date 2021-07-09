@@ -32,7 +32,9 @@ namespace AM.Web.Controllers
         IHomeService homeSvc;
         ISupportService supSvc;
         IPnSAPIService pnSAPISvc;
-        public SupportController(ISupportReportService supportSvc, IChartDataService chartDataSvc, IReportService reportSvc, IFedExService fedexSvc, IHomeService homeSvc, ISupportService supSvc,IPnSAPIService pnsapiSvc)
+        IDocTypeService docTypeSvc;
+        IMailPieceService mailpieceSvc;
+        public SupportController(ISupportReportService supportSvc, IChartDataService chartDataSvc, IReportService reportSvc, IFedExService fedexSvc, IHomeService homeSvc, ISupportService supSvc, IPnSAPIService pnsapiSvc, IDocTypeService docTypeSvc, IMailPieceService mailpieceSvc)
         {
             this.supportSvc = supportSvc;
             this.chartDataSvc = chartDataSvc;
@@ -41,6 +43,8 @@ namespace AM.Web.Controllers
             this.homeSvc = homeSvc;
             this.supSvc = supSvc;
             this.pnSAPISvc = pnsapiSvc;
+            this.docTypeSvc = docTypeSvc;
+            this.mailpieceSvc = mailpieceSvc;
         }
         // GET: Support
         public ActionResult NotReportedBackOfBatchSummary()
@@ -205,14 +209,18 @@ namespace AM.Web.Controllers
         public ActionResult SingleLoanEntry(string msg)
         {
             ViewBag.msg = msg;
+            ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
             ViewBag.docTypes = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "DocTypeName", "DocTypeName");
             return View();
         }
+
+
         [HttpPost]
         public async Task<ActionResult> SingleLoanEntry(MailPiece mailPiece, HttpPostedFileBase pdffile, DateTime? ExpiryDate)
         {
             if (mailPiece.eDelivery != null)
             {
+                //Email Validation
                 if (mailPiece.eDelivery.PrintAndShipOnExpiry && ExpiryDate == null)
                 {
                     ModelState.AddModelError("", "Expiry Date must be future date.");
@@ -251,7 +259,7 @@ namespace AM.Web.Controllers
                     documentOrPackage.Base64String = Convert.ToBase64String(byteStream);
                     mailPiece.DocumentOrPackage = documentOrPackage;
 
-                    var mailRequestController = new MailRequestController(pnSAPISvc);
+                    var mailRequestController = new MailRequestController(pnSAPISvc, docTypeSvc,mailpieceSvc);
                     var result = await mailRequestController.CreateAPIMailRequestAsync(mailPiece);
 
                     var response = result.GetValueOfPropertyFromPropertyName("Value");
@@ -271,9 +279,10 @@ namespace AM.Web.Controllers
                     ModelState.AddModelError("", ex.Message);
                 }
             }
-            Error:
+        Error:
+            ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
             ViewBag.docTypes = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "DocTypeName", "DocTypeName");
-            return View();
+            return View(mailPiece);
         }
 
         #endregion SingleLoanEntry

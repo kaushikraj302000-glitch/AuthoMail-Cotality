@@ -11,6 +11,10 @@ namespace AM.Services
 {
     public interface IDocTypeService : IDisposable
     {
+        DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName);
+
+        DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount);
+
         DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, DateTime estReceivedOn);
         DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, string shippingCarrier, string shippingServiceType);
         DocType GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, DateTime estReceivedOn, string shippingCarrier, string shippingServiceType, int? mpId = 0);
@@ -24,6 +28,19 @@ namespace AM.Services
 
     public class DocTypeService : ServiceBase, IDocTypeService
     {
+        public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName)
+        {
+            string query = "SELECT * FROM [AM].[DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND D.IsActive = 1";
+
+            return db.QueryFirstOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName });
+        }
+        public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount)
+        {
+            string query = "SELECT * FROM [dbo].[v_DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + (CASE WHEN PrintFormat='Simplex' OR PrintFormat='Simplex_Color' THEN @PageCount ELSE (@PageCount / 2 + @PageCount % 2) END)) BETWEEN D.MinPage AND D.MaxPage AND D.IsFallBack = 0 AND D.IsActive = 1";
+
+            return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount });
+        }
+
         public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, string shippingCarrier, string shippingServiceType)
         {
             string query = "SELECT * FROM [dbo].[v_DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + (CASE WHEN PrintFormat='Simplex' OR PrintFormat='Simplex_Color' THEN @PageCount ELSE (@PageCount / 2 + @PageCount % 2) END)) BETWEEN D.MinPage AND D.MaxPage AND D.IsActive = 1 AND D.ShippingCarrier=@ShippingCarrier AND D.ShippingServiceType=@ShippingServiceType".Fill(pageCount);
