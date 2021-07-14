@@ -1138,7 +1138,7 @@ namespace PCI.Service
 
                         if (validationErrorsList.Count > 0)
                         {
-                            SendMailToPrintVendorForErrors(printTrailBatchDetail, validationErrors, outFileName, printTrailDetail.VendorCode, false);
+                            SendMailToPrintVendorForErrors(printTrailBatchDetail, string.Join(",", validationErrorsList.Select(x => x.ErrorDesc)), outFileName, printTrailDetail.VendorCode, false);
                         }
                         #endregion
 
