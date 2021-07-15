@@ -845,8 +845,6 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
         public List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate)
         {
             string query = "[dbo].[uspweb_PVReconReport] @pvCode, @startDate, @endDate";
-            startDate = startDate.ToStartDateTime();
-            endDate = endDate.ToEndDateTime();
             var data = db.Query<MonthlyReconReportViewModel>(query,
                 new
                 {
