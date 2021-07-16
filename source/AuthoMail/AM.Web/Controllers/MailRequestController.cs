@@ -1014,7 +1014,7 @@ bufferSize: 4096, useAsync: true)) { }
         }
 
         [HttpPost, Route("apimailrequest")]
-        public async Task<object> CreateAPIMailRequestAsync(MailPiece mailPiece)
+        public async Task<object> CreateAPIMailRequestAsync(MailPiece mailPiece, List<string> downloadedFiles)
         {
             if (mailPiece == null) throw new HttpResponseException(HttpStatusCode.BadRequest);
             DateTime receivedTime = Common.Now;
@@ -1026,6 +1026,7 @@ bufferSize: 4096, useAsync: true)) { }
             };
 
             MailPiece mp = mailPiece;
+            mp.DocumentOrPackage = new DocumentOrPackage();
 
             using (ICommonService commonSvc = new CommonService())
             {
@@ -1090,6 +1091,44 @@ bufferSize: 4096, useAsync: true)) { }
                     }
                 }
 
+                string destPdf = System.IO.Path.Combine(Config.MailRequestAPI_FilesDownloadPath, "TempWebFiles", System.IO.Path.GetRandomFileName());
+                destPdf = System.IO.Path.ChangeExtension(destPdf, ".pdf");
+                using (var ds = new FileStream(destPdf, FileMode.Create))
+                using (var doc = new Document())
+                using (var copy = new PdfSmartCopy(doc, ds))
+                {
+                    // This is done to open and merge (Secured) PDFs which allow printing but not copying or merging
+                    PdfReader.unethicalreading = true;
+                    //Loop through each input file                        
+                    foreach (var file in downloadedFiles)
+                    {
+                        try
+                        {
+                            using (var reader = new PdfReader(file))
+                            {
+                                //open document
+                                if (!doc.IsOpen()) doc.Open();
+                                //Add the entire document
+                                copy.AddDocument(reader);
+                                reader.Close();
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            var msg = $"'{System.IO.Path.GetFileName(file)}' pdf file is either corrupt or invalid.";
+                            var errresult = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Invalid_PDF_File, ErrorDesc = msg, ReceivedOn = receivedTime };
+
+                            return new { Key = HttpStatusCode.BadRequest, Value = errresult };
+                        }
+                    }
+                    PdfReader.unethicalreading = false;
+                    doc.Close();
+                }
+                string finalPdfPath = destPdf;
+                mailPiece.DocumentOrPackage.Path = finalPdfPath;
+                mailPiece.DocumentOrPackage.Name = downloadedFiles.Count == 1 ? Path.GetFileName(downloadedFiles[0]) : $"{mp.Id}.pdf";
+                mp.DocumentOrPackage.Base64String = Convert.ToBase64String(File.ReadAllBytes(mailPiece.DocumentOrPackage.Path));
+
                 var result = ValidateClientSpecificRules(mailBatch, client);
 
                 if (result.Code == OutComeCodes.No_Error)
@@ -1109,6 +1148,7 @@ bufferSize: 4096, useAsync: true)) { }
 
                         return new { Key = HttpStatusCode.BadRequest, Value = errresult };
                     }
+                    
                     List<string> filesToZip = new List<string>();
 
                     string xml = mailBatch.Serialize<MailBatch>();
