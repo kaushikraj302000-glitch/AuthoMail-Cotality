@@ -36,7 +36,7 @@ namespace AM.Services
                     ModifiedOn = now,
                     ModifiedById = modifiedById,
                     Status = ClientUserMappingStatusTypes.Pending,
-                    UserId=userId
+                    UserId = userId
                 };
                 for (int i = 0; i < approveclientIds.Count; i++)
                 {
@@ -150,8 +150,8 @@ select ClientId from Common.ClientUserMapping where UserId=@userId) order by Nam
             {
                 try
                 {
-                    var BAClientRoleId = await db.QueryAsync<string>("select Id from Profile.Roles where Name=@ba or Name=@client", new { ba = AMRoles.BA, client = AMRoles.Client }, transaction: t);
-                    if (isCLUser && role == AMRoles.BA)
+                    var BAClientRoleId = await db.QueryAsync<string>("select Id from Profile.Roles where Name=@ba or Name=@baOffShore or Name=@client", new { ba = AMRoles.BA, baOffShore = AMRoles.BAOffShore, client = AMRoles.Client }, transaction: t);
+                    if (isCLUser && (role == AMRoles.BA || role == AMRoles.BAOffShore))
                     {
                         string sql = "delete from Common.ClientUserMapping where UserId=@userId";
                         await db.ExecuteAsync(sql, new { userId = user.Id }, transaction: t);
@@ -160,7 +160,7 @@ select ClientId from Common.ClientUserMapping where UserId=@userId) order by Nam
                         await db.ExecuteAsync(sql, new { userId = user.Id, roles = BAClientRoleId }, transaction: t);
 
                         sql = @"insert into Profile.UserRoles (UserId,RoleId) values(@userId,(select Id from Profile.Roles where Name=@roleName))";
-                        await db.ExecuteAsync(sql, new { userId = user.Id, roleName = AMRoles.BA }, transaction: t);
+                        await db.ExecuteAsync(sql, new { userId = user.Id, roleName = role }, transaction: t);
                     }
                     else
                     {
