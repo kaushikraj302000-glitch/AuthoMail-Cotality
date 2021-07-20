@@ -131,6 +131,7 @@ namespace AM.Console
                             var msg = "Unable to extract '{0}.zip' file.".Fill(batchName);
                             log.Error(msg, ex);
                             ReportInvalidBatch(clientSvc, commonSvc, InsertInvalidBatchInfo(commonSvc, mailBatchSvc, clientSvc, batchName, lastModifiedTime, msg), localZipFilePath);
+                            return;
                         }
                         #endregion
 
@@ -570,7 +571,7 @@ namespace AM.Console
         {
             MailBatchDTO mailBatch = new MailBatchDTO();
             mailBatch.UniqueId = Guid.NewGuid();
-            mailBatch.ClientId = GetInvalidClient(clientSvc, SFTChannel.Code.Split('_')[0]).Id;
+            mailBatch.ClientId = GetInvalidClient(clientSvc, SFTChannel.GetChannelCode()).Id;
             mailBatch.SFTChannelId = SFTChannel.Id;
             mailBatch.BatchName = batchName;
             mailBatch.ClientBatchId = batchName;
