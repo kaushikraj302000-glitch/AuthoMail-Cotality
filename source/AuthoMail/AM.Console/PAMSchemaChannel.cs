@@ -528,7 +528,7 @@ namespace AM.Console
 
             string invalidBatchPath = Path.Combine(mbi.AMResponsePath, invalidBatchFileName);
 
-            File.WriteAllText(invalidBatchPath, string.Empty);
+            File.WriteAllText(invalidBatchPath, mailBatch.ValidationErrors);
 
             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
 
@@ -579,6 +579,7 @@ namespace AM.Console
             commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, receivedOn).Wait();
             mailBatchSvc.MarkMailBatchAsInvalid(mailBatch.Id, errorMessage).Wait();
             commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.Failed.ToString()).Wait();
+            mailBatch.ValidationErrors = errorMessage;
             return mailBatch;
         }
 
