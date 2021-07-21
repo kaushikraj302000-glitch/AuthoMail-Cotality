@@ -179,5 +179,10 @@ namespace PCI.Service
         {
             return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [FilePath]= @p1 WHERE JobId = @p2 AND PieceId= @p3", filePath, mailPiece.JobId, mailPiece.PieceId);
         }
+
+        public static int UpdateBulkFilePathForDallas(List<int> jobIds, List<int> pieceIds, string filePath)
+        {
+            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [FilePath]= @p1 WHERE JobId IN (@p2) AND PieceId IN (@p3)", filePath, string.Join(",", jobIds), string.Join(",", pieceIds));
+        }
     }
 }

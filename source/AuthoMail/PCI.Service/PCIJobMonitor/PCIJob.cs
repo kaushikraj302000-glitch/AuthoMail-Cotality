@@ -541,49 +541,6 @@ namespace PCI.Service
 
         private static void UploadBatchToInternalPrintVendorSite(string pciRootPath, SFTUtil sftSite, List<MailPieceDetail> mailPiecesDetails, PrintTrailDetail printTrailDetail, PrintTrailBatch ptBatchDetail)
         {
-
-            var clientIds = mailPiecesDetails.Select(m => m.ClientId).Distinct();
-            foreach (var clientId in clientIds)
-            {
-                Client client = DAL.GetClientAppDetailsById(clientId);
-
-                var mailPiecesByClient = mailPiecesDetails.Where(c => c.ClientId == clientId);
-
-                foreach (MailPieceDetail mailPiece in mailPiecesByClient)
-                {
-                    //Here we are calling batch timings based on effective received on est date only.
-                    var batchTimings = DAL.GetDallasBatchTimings(mailPiece.EffectiveReceivedOnEst.Value.Date);
-
-                    string localFilePath = Path.Combine(pciRootPath, client.AppCode, mailPiece.JobId.ToString(), Common.PCIRequestFolderName, mailPiece.PDFFileName);
-                    //NOTE : Here Feeder4_Sel field of MRDFRequest table contains detail about mail packages is BRE or not and Because of that we have used this over here.
-
-                    var effectiveReceivedOnEst = mailPiece.EffectiveReceivedOnEst;
-
-                    var dallasBatches = batchTimings.Select(t => new DallasBatch
-                    {
-                        AppCode = t.AppCode,
-                        BatchName = t.BatchName,
-                        StartDate = effectiveReceivedOnEst.Value.Date + t.StartTime,
-                        EndDate = effectiveReceivedOnEst.Value.Date + t.EndTime,
-                        ShippingCarrier = t.ShippingCarrier,
-                        ShippingServiceType = t.ShippingServiceType
-                    });
-
-                    var currentBatch = dallasBatches.Single(b => (b.AppCode == client.AppCode && effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == mailPiece.ShippingCarrier && b.ShippingServiceType == mailPiece.ShippingServiceType);
-
-                    //NOTE: Folder structure will be like  /gos/ClientCode/SweepTime/ShippingCarrier_ShippingServiceType/EnvelopeName_{Inserts/BREEnvelopeName}
-                    string submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + "_" + mailPiece.PrintSize, "{0}_{1}".Fill(mailPiece.EnvelopeName, mailPiece.Inserts)).TrimEnd('_');
-
-                    if (!sftSite.IsDownloadDirectoryAvailable(submitDir))
-                        sftSite.CreateDirectory(submitDir);
-
-                    string fullFilePath = Path.Combine(submitDir, mailPiece.PDFFileName);
-                    sftSite.UploadFile(localFilePath, fullFilePath);
-
-                    DAL.UpdateFilePathForDallas(mailPiece, fullFilePath);
-                }
-            }
-
             //After uploading files system will upload manifest if applicable
             //Reason for doing this because we can avoid multiple call from database for each mail piece it may contains multiple clients for same print trails
             if (ptBatchDetail.IsSinglePdf)
@@ -616,7 +573,7 @@ namespace PCI.Service
 
                 var mpGroupedData = mailPiecesDetails.GroupBy(x => new { x.AppCode, x.ShippingCarrier, x.ShippingServiceType, x.EnvelopeName, x.Inserts });
 
-                //NOTE: Folder structure will be like  /gos/ClientCode/SweepTime/ShippingCarrier_ShippingServiceType/EnvelopeName_{Inserts/BREEnvelopeName}
+                //NOTE: Folder structure will be like  /gos/ClientCode/SweepTime
                 string submitDir = Path.Combine(printTrailDetail.FromADEDir, clientCode, Common.EstToday.ToString("MMddyyyy"), Common.UtcToCst(Common.GetCurrentTime()).ToString("hhtt"));
 
                 if (!sftSite.IsDownloadDirectoryAvailable(submitDir))
@@ -634,11 +591,58 @@ namespace PCI.Service
                     string pdfDestPath = Path.Combine(submitDir, mergedPdfFileName);
 
                     sftSite.UploadFile(mergedPdfFileName, pdfDestPath);
+
+                    DAL.UpdateBulkFilePathForDallas(mpGroup.Select(x => x.JobId).ToList(), mpGroup.Select(x => x.PieceId).ToList(), pdfDestPath);
                 }
 
                 string manifestDestPath = Path.Combine(submitDir, manifestPdfFileName);
 
                 sftSite.UploadFile(manifestOutputPath, manifestDestPath);
+
+            }
+            else
+            {
+                var clientIds = mailPiecesDetails.Select(m => m.ClientId).Distinct();
+                foreach (var clientId in clientIds)
+                {
+                    Client client = DAL.GetClientAppDetailsById(clientId);
+
+                    var mailPiecesByClient = mailPiecesDetails.Where(c => c.ClientId == clientId);
+
+                    foreach (MailPieceDetail mailPiece in mailPiecesByClient)
+                    {
+                        //Here we are calling batch timings based on effective received on est date only.
+                        var batchTimings = DAL.GetDallasBatchTimings(mailPiece.EffectiveReceivedOnEst.Value.Date);
+
+                        string localFilePath = Path.Combine(pciRootPath, client.AppCode, mailPiece.JobId.ToString(), Common.PCIRequestFolderName, mailPiece.PDFFileName);
+                        //NOTE : Here Feeder4_Sel field of MRDFRequest table contains detail about mail packages is BRE or not and Because of that we have used this over here.
+
+                        var effectiveReceivedOnEst = mailPiece.EffectiveReceivedOnEst;
+
+                        var dallasBatches = batchTimings.Select(t => new DallasBatch
+                        {
+                            AppCode = t.AppCode,
+                            BatchName = t.BatchName,
+                            StartDate = effectiveReceivedOnEst.Value.Date + t.StartTime,
+                            EndDate = effectiveReceivedOnEst.Value.Date + t.EndTime,
+                            ShippingCarrier = t.ShippingCarrier,
+                            ShippingServiceType = t.ShippingServiceType
+                        });
+
+                        var currentBatch = dallasBatches.Single(b => (b.AppCode == client.AppCode && effectiveReceivedOnEst >= b.StartDate && effectiveReceivedOnEst <= b.EndDate) && b.ShippingCarrier == mailPiece.ShippingCarrier && b.ShippingServiceType == mailPiece.ShippingServiceType);
+
+                        //NOTE: Folder structure will be like  /gos/ClientCode/SweepTime/ShippingCarrier_ShippingServiceType/EnvelopeName_{Inserts/BREEnvelopeName}
+                        string submitDir = Path.Combine(printTrailDetail.FromADEDir, client.AppCode, effectiveReceivedOnEst.Value.Date.ToString("MMddyyyy"), currentBatch.BatchName, currentBatch.ShippingCarrier + "_" + currentBatch.ShippingServiceType + "_" + mailPiece.PrintSize, "{0}_{1}".Fill(mailPiece.EnvelopeName, mailPiece.Inserts)).TrimEnd('_');
+
+                        if (!sftSite.IsDownloadDirectoryAvailable(submitDir))
+                            sftSite.CreateDirectory(submitDir);
+
+                        string fullFilePath = Path.Combine(submitDir, mailPiece.PDFFileName);
+                        sftSite.UploadFile(localFilePath, fullFilePath);
+
+                        DAL.UpdateFilePathForDallas(mailPiece, fullFilePath);
+                    }
+                }
             }
         }
         #endregion
