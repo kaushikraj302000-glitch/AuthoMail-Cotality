@@ -535,7 +535,7 @@ namespace AM.Services
 	                            SELECT P.* FROM AM.MailPieces P 
                                 INNER JOIN AM.MailBatches B ON P.MailBatchId = B.Id
                                 WHERE P.PrintTrailId IN (SELECT Id FROM Common.PrintTrails WHERE PrintVendorCode = 'CL_DALLAS')
-                                AND B.ReceivedOn BETWEEN '2021-06-10' AND '2021-06-11' AND P.ShippingStatus IN('InProgress','Shipped')
+                                AND B.ReceivedOn BETWEEN @StartDate AND @EndDate AND P.ShippingStatus IN('InProgress','Shipped')
                             ), CTE2 AS
                             (
 	                            SELECT COUNT(*) AS COUNTMp FROM CTE1 WHERE Id=@MailPieceId
