@@ -70,7 +70,7 @@ namespace AM.Scanner.Controllers
                 var getScannedList = scannerSvc.GetScannedMailPieces(clientCode, batchName);
                 return Json(new { model = getScannedList }, JsonRequestBehavior.AllowGet);
             }
-            
+
         }
 
         public ActionResult GetScanCountByBatchName(string clientCode, string batchName)
@@ -124,5 +124,13 @@ namespace AM.Scanner.Controllers
             return View();
         }
         #endregion SingleScan
+
+        #region Bulk Scan
+        public ActionResult BulkScan(string clientCode, string batchTime)
+        {
+            logger.Info("Bulk Scan");
+            return View();
+        }
+        #endregion
     }
 }
