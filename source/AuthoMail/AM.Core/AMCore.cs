@@ -571,7 +571,7 @@ namespace AM.Core
                                     }
 
                                     //If FedEx is down then we are going to support for USPS Priority and Priority express
-                                    if (response.HasError && (response.ExceptionCode.Contains("General Failure") || response.ExceptionDetail.Contains("General Failure") || response.ExceptionDetail.Contains("Resources unavailable")))
+                                    if (response.HasError && (response.ExceptionCode.Contains("General Failure") || response.ExceptionDetail.Contains("General Failure") || response.ExceptionDetail.Contains("unavailable") || response.ExceptionDetail.Contains("Fault") || response.ExceptionDetail.Contains("request channel timed out")))
                                     {
                                         var msg = $"FedEx is down for supporting shipping to provided address for MailPieceId : {mailPiece.Id} with Error :{response.ExceptionDetail}. So AM is doing fallback to other shipping carrier.";
 
