@@ -160,7 +160,7 @@ namespace AM.Web.Controllers
                 var user = await UserManager.FindByIdAsync(userId);
                 var model = new KeyValuePair<bool, string>();
                 string partiallyApproveRequest = null;
-                if (!(role.Equals(AMRoles.BA, StringComparison.CurrentCultureIgnoreCase) || role.Equals(AMRoles.Client, StringComparison.CurrentCultureIgnoreCase) || (role.Equals(AMRoles.BAOffShore, StringComparison.CurrentCultureIgnoreCase))))
+                if (!role.IsNullOrWhiteSpace() && !(role.Equals(AMRoles.BA, StringComparison.CurrentCultureIgnoreCase) || role.Equals(AMRoles.Client, StringComparison.CurrentCultureIgnoreCase) || (role.Equals(AMRoles.BAOffShore, StringComparison.CurrentCultureIgnoreCase))))
                 {
                     return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
                 }
@@ -1332,7 +1332,7 @@ namespace AM.Web.Controllers
         {
             ViewBag.EnvelopeName = envelopeName;
             var model = inventorySvc.GetEnvelopeInventoryStockCalculation(envelopeId);
-            return PartialView("_EnvelopeStockAndAlertDetails",model);
+            return PartialView("_EnvelopeStockAndAlertDetails", model);
         }
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult ToggleEnvelopeTrackingById(int envelopeId, bool isTracking)
