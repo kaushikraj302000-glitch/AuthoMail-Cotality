@@ -191,6 +191,7 @@ namespace AM.Console
             string clientCode = rootElement.Attributes["ClientCode"] == null ? "InvalidClientCode" : rootElement.Attributes["ClientCode"].Value;
             string batchPath;
             string xmlPath;
+            string errorMsg = string.Empty;
             if (eDeliveryNodes.Count > 0)
             {
                 foreach (XmlNode eDNode in eDeliveryNodes)
@@ -207,26 +208,29 @@ namespace AM.Console
                 uniqueId = batchXML.DocumentElement.Attributes["Id"] == null ? Guid.NewGuid().ToString() : batchXML.DocumentElement.Attributes["Id"].Value; // Here system will use same uniqueid which is received in current batch at batch level
                 batchPath = SeparatePrintNShipXMLsAndPDFs(mbCustomInfoNode, mbReturnInfoNode, printAndShipNodes, nsManager, channelDownloadPath, extractedZipDirPath, clientCode, clientBatchId, uniqueId, batchName);
                 xmlPath = Path.Combine(batchPath, batchName + ".xml");
-                ProcessXML(xmlPath, batchName, receivedOnDateTime, batchPath);
+                errorMsg = ProcessXML(xmlPath, batchName, receivedOnDateTime, batchPath);
             }
 
-            //Here after moving all batches to particular client location , archive amc batch
-            string archiveZipPath = Path.Combine(Config.Common_AuthoMailRootFolder, "Archive", batchName + ".zip");
+            if (errorMsg.IsNullOrWhiteSpace())
+            {
+                //Here after moving all batches to particular client location , archive amc batch
+                string archiveZipPath = Path.Combine(Config.Common_AuthoMailRootFolder, "Archive", batchName + ".zip");
 
-            if (File.Exists(archiveZipPath))
-                File.Delete(archiveZipPath);
+                if (File.Exists(archiveZipPath))
+                    File.Delete(archiveZipPath);
 
-            File.Move(localZipFilePath, archiveZipPath);
+                File.Move(localZipFilePath, archiveZipPath);
 
-            //Now delete/archive trigger and zip from SFTP
-            MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, batchName + ".zip"));
-            MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, batchName + ".go"));
+                //Now delete/archive trigger and zip from SFTP
+                MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, batchName + ".zip"));
+                MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, batchName + ".go"));
+            }
 
             //After complete process clean AMC folder
             channelDownloadPath.CleanDirectory();
         }
 
-        private void ProcessXML(string xmlFilePath, string batchName, DateTime receivedOnDateTime, string batchPath)
+        private string ProcessXML(string xmlFilePath, string batchName, DateTime receivedOnDateTime, string batchPath)
         {
             XmlDocument batchXML = new XmlDocument();
             XmlNamespaceManager nsManager;
@@ -243,14 +247,14 @@ namespace AM.Console
                 var msg = "'{0}.xml' is not a valid XML document.".Fill(batchName);
                 log.Error(msg, ex);
                 ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOnDateTime, msg), xmlFilePath);
-                return;
+                return "";
             }
             catch (Exception ex)
             {
                 var msg = "'{0}.xml' is not a valid XML document.".Fill(batchName);
                 log.Error(msg, ex);
                 ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOnDateTime, msg), xmlFilePath);
-                return;
+                return "";
             }
 
 
@@ -265,7 +269,7 @@ namespace AM.Console
                 {
                     var msg = "Client code is required in provided XML.".Fill(clientCode);
                     ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOnDateTime, msg), xmlFilePath);
-                    return;
+                    return "";
                 }
 
                 client = clientSvc.GetClientByAppCode(clientCode).Result;
@@ -274,7 +278,7 @@ namespace AM.Console
                 {
                     var msg = "Client code {0} is not valid from provided XML.".Fill(clientCode);
                     ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOnDateTime, msg), xmlFilePath);
-                    return;
+                    return "";
                 }
 
                 mailBatch = new MailBatchDTO
@@ -347,7 +351,7 @@ namespace AM.Console
                 var msg = "Error occured while processing batch from Batch '{0}.xml'".Fill(batchName);
                 log.Error(msg, ex);
                 MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
-                return;
+                return msg;
             }
 
             using (TransactionScope scope = new TransactionScope())
@@ -382,7 +386,7 @@ namespace AM.Console
                         log.Error(msg, ex);
 
                         ReportInvalidBatch(InsertInvalidBatchInfo(mailBatch.BatchName, mailBatch.ReceivedOn.Value, msg, client.Id), xmlFilePath);
-                        return;
+                        return "";
                     }
                 }
                 catch (Exception ex)
@@ -390,8 +394,12 @@ namespace AM.Console
                     var msg = "Error occured while inserting General Channel batches details for Batch '{0}.xml'".Fill(batchName);
                     log.Error(msg, ex);
                     MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
+
+                    return msg;
                 }
             }
+
+            return "";
         }
 
         private string SeparateEDeliveryXMLsAndPDFs(XmlNode customeInfoElement, XmlNode returnInfoElement, XmlNode package, XmlNamespaceManager nsManager, string channelDownloadPath, string receivedBatchDirPath, string clientCode, string clientBatchId, string uniqueId, string batchName)
