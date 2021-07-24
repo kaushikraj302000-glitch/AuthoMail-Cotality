@@ -530,17 +530,12 @@ namespace AM.Services
 
         public int GetDallasBatchCounts(int? mpId = 0)
         {
-            string query = @";WITH CTE1 AS
-                            (
-	                            SELECT P.* FROM AM.MailPieces P 
-                                INNER JOIN AM.MailBatches B ON P.MailBatchId = B.Id
-                                WHERE P.PrintTrailId IN (SELECT Id FROM Common.PrintTrails WHERE PrintVendorCode = 'CL_DALLAS')
+            string query = @"SELECT COUNT(*) FROM AM.MailPieces P WITH (NOLOCK)
+                                INNER JOIN AM.MailBatches B WITH (NOLOCK) ON P.MailBatchId = B.Id
+								INNER JOIN Common.PrintTrails PT WITH (NOLOCK) ON P.PrintTrailId = PT.Id
+                                WHERE PT.PrintVendorCode = 'CL_DALLAS'
                                 AND B.ReceivedOn BETWEEN @StartDate AND @EndDate AND P.ShippingStatus IN('InProgress','Shipped')
-                            ), CTE2 AS
-                            (
-	                            SELECT COUNT(*) AS COUNTMp FROM CTE1 WHERE Id=@MailPieceId
-                            )
-                            SELECT COUNT(*) - (SELECT TOP 1 COUNTMp FROM CTE2) AS CurrentMpCount FROM CTE1";
+								AND ISNULL(P.Id,0)<>ISNULL(@MailPieceId,0)";
 
             return db.ExecuteScalar<int>(query, new { StartDate = Common.EstToday.ToStartDateTime().EstToUtc(), EndDate = Common.EstToday.ToEndDateTime().EstToUtc(), MailPieceId = mpId });
         }
