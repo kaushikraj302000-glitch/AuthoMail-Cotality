@@ -330,14 +330,31 @@ namespace AM.Web.Controllers
 
         public ActionResult PVReconReport()
         {
+            if (User.IsInRole(AMRoles.Admin))
+            {
+                var list = new List<SelectListItem>();
+                var clientGroup = homeSvc.GetAllActiveClient().GroupBy(s => s.GroupAlias);
+                foreach (var group in clientGroup)
+                {
+                    var groupName = new SelectListGroup { Name = group.Key };
+                    foreach (var value in group)
+                    {
+                        SelectListItem item = new SelectListItem { Text = value.Name, Value = value.Id.ToString(), Group = groupName };
+                        list.Add(item);
+                    }
+                }
+                //ViewBag.ClientId = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
+                ViewBag.ClientId = list;
+            }
+
             return View();
         }
 
-        public ActionResult DownloadPVReconReport(string pvCode, string startDate, string endDate, string fileName, int timezoneOffset)
+        public ActionResult DownloadPVReconReport(string pvCode, string startDate, string endDate, string fileName, int timezoneOffset, List<int> clientId, string status, List<string> shippingMethod)
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToStartDateTime().EstToUtc();
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToEndDateTime().EstToUtc();
-            var data = repoSvc.GetPVReconReport(pvCode, exactStartDate, exactEndDate);
+            var data = repoSvc.GetPVReconReport(pvCode, exactStartDate, exactEndDate, clientId, status, shippingMethod);
             var model = Mapper.Map<List<MonthlyReconReportViewModel>>(data);
             model.ForEach(m =>
             {
@@ -374,7 +391,7 @@ namespace AM.Web.Controllers
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            var model = repoSvc.GetEnvelopesUsageReport(User.Identity.GetClientId().Value,envelopeId, printVendorCode, exactStartDate, exactEndDate);
+            var model = repoSvc.GetEnvelopesUsageReport(User.Identity.GetClientId().Value, envelopeId, printVendorCode, exactStartDate, exactEndDate);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.SubmittedOn) }), JsonRequestBehavior.AllowGet);
         }
     }

@@ -56,6 +56,39 @@
                         @Html.Action("_PrintVendorList", "Common")
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="Status">Status</label>
+                        <select class="selectpicker" id="Status" data-live-search="true" data-live-search-placeholder="Search Status">
+                            <option value="">
+                                Select Status
+                            </option>
+                            <option value="InProgress">In Progress</option>
+                            <option value="PulledBack">Pulledback</option>
+                            <option value="Shipped">Shipped</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="BatchId">Shipping Method</label>
+                        <select class="selectpicker" id="ShippingMethod" multiple="multiple">
+                            <option value="USPS-IMB">USPS-IMB</option>
+                            <option value="USPS-PRIORITY">USPS-PRIORITY</option>
+                            <option value="USPS-PRIORITY_EXPRESS">USPS-PRIORITY EXPRESS</option>
+                            <option value="FedEx-PRIORITY_OVERNIGHT">FedEx-PRIORITY OVERNIGHT</option>
+                        </select>
+                    </div>
+                </div>
+                @if (User.IsInRole(AM.Entities.AMRoles.Admin))
+                {
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="ClientId">Clients</label>
+                            @Html.DropDownList("ClientId", ViewBag.ClientId as IEnumerable<SelectListItem>, htmlAttributes: new { @class = "selectpicker", @multiple = "multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
+                        </div>
+                    </div>
+                }
                 <div class="col-md-1">
                     <div class="form-group ">
                         <label for="input1"></label>

@@ -46,7 +46,7 @@ namespace AM.Services
         MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate);
         List<PrintVendor> GetActivePrintVendors();
         List<PrintVendorLocations> GetActivePrintVendorsWithLocation();
-        List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate);
+        List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate, List<int> clientId, string status, List<string> shippingMethod);
         List<EnvelopeInventoryUsage> GetEnvelopesUsageReport(int clientId, int? envelopeId, string printVendorCode, DateTime startDate, DateTime endDate);
     }
     public class ReportService : ServiceBase, IReportService
@@ -842,15 +842,30 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
             return data;
         }
 
-        public List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate)
+        public List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate, List<int> clientIdlst, string status, List<string> shippingMethodlst)
         {
-            string query = "[dbo].[uspweb_PVReconReport] @pvCode, @startDate, @endDate";
+            string clientIds = null;
+            string shippingMethods = null;
+            if (clientIdlst.Count > 0)
+            {
+                clientIds = string.Join(",", clientIdlst);
+            }
+
+            if (shippingMethodlst.Count > 0)
+            {
+                shippingMethods = string.Join(",", shippingMethodlst);
+            }
+
+            string query = "[dbo].[uspweb_PVReconReport] @pvCode, @startDate, @endDate, @clientIds, @status, @shippingMethods";
             var data = db.Query<MonthlyReconReportViewModel>(query,
                 new
                 {
                     pvCode = pvCode,
                     startDate = startDate,
-                    endDate = endDate
+                    endDate = endDate,
+                    clientIds = clientIds,
+                    status = status,
+                    shippingMethods = shippingMethods
                 }).ToList();
             return data != null ? data.OrderBy(d => d.SubmittedOn).ToList() : data;
         }
