@@ -61,6 +61,16 @@ namespace AM.Scanner.Controllers
                 return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
             }
         }
+        [HttpPost]
+        public ActionResult RegisterBulkScan(string barcode, string clientCode, string batchName, int packages)
+        {
+            using (new PerfTimerLogger("RegisterBulkScan[ScanController]: "))
+            {
+                string machineName = GetIPAddress();
+                Services.ScanDetails scanDetails = scannerSvc.RegisterScan(barcode, clientCode, User.Identity.Name, machineName, batchName);
+                return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
+            }
+        }
 
         [HttpGet]
         public ActionResult GetScannedDocuments(string clientCode, string batchName)

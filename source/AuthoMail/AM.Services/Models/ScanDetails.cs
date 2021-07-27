@@ -11,6 +11,7 @@ namespace AM.Services
     {
         public int ScanCount { get; set; }
         public int TotalCount { get; set; }
+        public bool IsBulk { get; set; }
     }
     public class GetAllBatchCountDetails
     {

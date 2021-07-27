@@ -118,6 +118,10 @@
                 <label class="sr-only" for="exampleInputEmail3">Manifest Barcode</label>
                 <input type="text" class="form-control" id="code1" placeholder="Manifest Barcode" tabindex="1">
             </div>
+            <div class="form-group">
+                <label class="sr-only" for="packages">Packages</label>
+                <input type="text" class="form-control" id="packages" placeholder="Packages" tabindex="2">
+            </div>
             <button type="button" id="clearData" class="btn btn-warning" tabindex="4">Clear</button>
             <div id="Messagedata" style="height: 35px; margin-top: 8px; margin-left: -1px;">
                 <div id="message" class="form-group">
@@ -175,7 +179,7 @@
                 </div>
                 <div class="modal-body" style="text-align: center;">
                     <div class="form-group">
-                        <input type="text" class="form-control" id="packageCounts" placeholder="Total Packages Count" tabindex="1">
+                        <input type="number" class="form-control" id="packageCounts" placeholder="Total Packages Count" tabindex="1">
                     </div>
                     <button type="submit" id="submitModal" tabindex="10" class=" btn btn-success">Submit</button>
                     <button type="button" id="cancelModal" tabindex="11" class="btn btn-danger" data-dismiss="modal">Cancel</button>
@@ -249,7 +253,7 @@
             });
             $(".okclick").click(function () {
                 $("#code1").val("");
-                //$("#code2").val("");
+                $("#packages").val("");
                 $("#code1").focus();
             });
             $(document).keypress(function (e) {
@@ -406,7 +410,7 @@
             /*---- End Code1 validate Barcode  ----*/
 
             /*---- Code2 validate Barcode  ----*/
-            $("#code1").blur(function () {
+            $("#packages").blur(function () {
                 if ($("#code1").val().trim() == "") {
                     $("#message").empty();
                     $("#message").show();
@@ -415,7 +419,14 @@
                     $("#code1").focus();
                     return;
                 }
-
+                if ($("#packages").val().trim() == "") {
+                    $("#message").empty();
+                    $("#message").show();
+                    $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'>Packages is required.</div>");
+                    $("#packages").val("");
+                    $("#packages").focus();
+                    return;
+                }
                 var batchtotalCount = $("#todayscount").text();
                 if (environment.toUpperCase() == "UAT") {
                 }
@@ -431,21 +442,22 @@
                 }
                 else {
                     var code1Value = $("#code1").val().trim().toUpperCase();
+                    var packages =parseInt($("#packages").val());
                     if (code1Value != "") {
                             var totalScanValues = $("#todayscount").text().split('/');
                             var totalScanned = totalScanValues[0];
                             var totalfiles = totalScanValues[1];
                             $.ajax({
                                 type: "POST",
-                                url: '@Url.Content("~/Scan/RegisterScan")',
-                                data: { barcode: code1Value, clientCode: clientCode, batchName: batchName },
+                                url: '@Url.Content("~/Scan/RegisterBulkScan")',
+                                data: { barcode: code1Value, clientCode: clientCode, batchName: batchName,packages:packages },
                                 success: function (response) {
                                     var object = response;
 
                                     var code = object.model.Code;
                                     var trackingNo = object.model.TrackingNo;
                                     var message = object.model.Message;
-                                    if (code == "Valid" || code == "QC" || code == "Pulledback") {
+                                    if (code == "Valid") {
                                         totalScanned = parseInt(totalScanned) + 1;
                                         $("#todayscount").text(totalScanned + "/" + totalfiles);
                                         if (message == null || message == "") {
@@ -456,28 +468,22 @@
                                         $("#message").show();
                                         $("#message").append("<div class='alert alert-success' style=' font-family:Copperplate Gothic;'>" + message + "</div>");
                                         $('#message').delay(2000).fadeOut('slow');
-                                        if (code == "QC") {
+                                        var totalMailPieces = response.model.MailPieces;
+                                        if (totalMailPieces.length > 0) {
+                                            for (var i = 0; i < totalMailPieces.length; i++) {
+                                                if (totalMailPieces[i].Code == "Valid") {//Valid
+                                                    $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + totalMailPieces[i].JobName + "<br>  Code: Valid' class='lblAMC lbl-success' for='success" + i + "' > " + totalMailPieces[i].TrackingNo + " </label>");
+                                                }
+                                                if (totalMailPieces[i].Code == "QC") {//QC
+                                                    $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + totalMailPieces[i].JobName + "<br>  Code: QC'  class='lblAMC lbl-warning' for='warning" + i + "' > " + totalMailPieces[i].TrackingNo + " </label>");
 
-                                            $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.JobName + "<br>  Code: " + code + "'  class='lblAMC lbl-warning' for='success'>" + trackingNo + "</lable>");
-                                            $("#genmodalTitle").removeClass("alert alert-danger");
-                                            $("#genmodalTitle").text("QC is requested for this mailpiece, please perform quality check before mailing.");
-                                            $("#genmodalTitle").addClass("alert alert-info");
-                                            $("#generalmodal").modal("show");
-                                            $("#code1").val("");
+                                                }
+                                                if (totalMailPieces[i].Code == "Pulledback") {//Pulledback
+                                                    $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + totalMailPieces[i].JobName + "<br>  Code: Pulledback'  class='lblAMC lbl-danger' for='danger" + i + "' > " + totalMailPieces[i].TrackingNo + " </label>");
+                                                }
+                                            }
                                         }
-                                        if (code == "Pulledback") {
-                                            $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.JobName + "<br>  Code: " + code + "'  class='lblAMC lbl-danger' for='success'>" + trackingNo + "</lable>");
-                                            $("#genmodalTitle").removeClass("alert alert-info");
-                                            $("#genmodalTitle").text("Pullback is requested for this mailpiece, please DO NOT mail.");
-                                            $("#genmodalTitle").addClass("alert alert-danger");
-                                            $("#generalmodal").modal("show");
-                                            $("#code1").val("");
-                                        }
-                                        if (code == "Valid") {
-                                            $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.JobName + "<br>  Code: " + code + "'  class='lblAMC lbl-success' for='success'>" + trackingNo + "</lable>");
-                                            $("#code1").val("");
-                                            $("#code1").focus();
-                                        }
+
                                         $('[data-toggle="tooltip"]').tooltip();
                                         if (totalfiles == totalScanned) {
                                             $("#modalTitle").removeClass("alert alert-danger");
@@ -497,7 +503,7 @@
                                             message = duplicatemsg;
                                         }
                                         $("#message").append("<div class='alert alert-warning' style=' font-family:Copperplate Gothic;'>" + message + "</div>");
-                                        $("#RescannedCode").prepend("<div style='margin:2px;' class='form-group'><button class='lblAMC lbl-warning' disabled >" + trackingNo + "</button></div>");
+                                        $("#RescannedCode").prepend("<div style='margin:2px;' class='form-group'><button class='lblAMC lbl-warning' disabled >" + code1Value + "</button></div>");
                                         $("#code1").val("");
                                         $("#code1").focus();
                                     }
