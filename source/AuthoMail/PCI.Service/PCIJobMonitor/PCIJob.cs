@@ -212,18 +212,17 @@ namespace PCI.Service
 
                     foreach (var dueDate in mpByDueDate)
                     {
-                        InsertPrintTrailBatchDetails(dueDate.ToList(), ptDetail, dueDate.Key, mailPieces.Key);
+                        InsertPrintTrailBatchDetails(dueDate.ToList(), ptDetail, dueDate.Key);
                     }
                 }
             }
             else
             {
-                int shipperId = mpDetails.Select(x => x.ShipperId).Distinct().Single();
-                InsertPrintTrailBatchDetails(mpDetails, ptDetail, null, shipperId);
+                InsertPrintTrailBatchDetails(mpDetails, ptDetail, null);
             }
         }
 
-        private static void InsertPrintTrailBatchDetails(List<MailPieceDetail> mpDetails, PrintTrailDetail ptDetail, DateTime? dueDate, int shipperId)
+        private static void InsertPrintTrailBatchDetails(List<MailPieceDetail> mpDetails, PrintTrailDetail ptDetail, DateTime? dueDate)
         {
             //For divert primary key issue we are using starting number as 90001
             int sequenceNo = 90001;
@@ -232,7 +231,7 @@ namespace PCI.Service
             ptBatchDetail = new PrintTrailBatch()
             {
                 PrintTrailId = ptDetail.PrintTrailId,
-                ShipperId = shipperId
+                ShipperId = ptDetail.ShipperId
             };
 
 
@@ -583,16 +582,19 @@ namespace PCI.Service
                 {
                     var mpFilePathsData = mpGroup.Select(x => Path.Combine(Path.Combine(pciRootPath, clientCode, x.JobId.ToString(), Common.PCIRequestFolderName, x.PDFFileName))).ToList();
 
-                    string mergedPdfFileName = $"{ptBatchDetail.Id}-{mpGroup.Key.AppCode}-{mpGroup.Key.ShippingCarrier}-{mpGroup.Key.ShippingServiceType}-{mpGroup.Key.EnvelopeName}-{mpGroup.Key.Inserts.Replace(",", "_")}.pdf";
+                    var insertsNames = mpGroup.Key.Inserts != null ? $"-{mpGroup.Key.Inserts.Replace(",", "_")}" : "";
+
+                    string mergedPdfFileName = $"{ptBatchDetail.Id}-{mpGroup.Key.AppCode}-{mpGroup.Key.ShippingCarrier}-{mpGroup.Key.ShippingServiceType}-{mpGroup.Key.EnvelopeName}{insertsNames}.pdf";
+
                     mpFilePathsData.Add(Path.Combine(batchRequestPath, mergedPdfFileName));
 
                     PdfUtil.MergePDFs(mpFilePathsData.ToArray());
 
                     string pdfDestPath = Path.Combine(submitDir, mergedPdfFileName);
 
-                    sftSite.UploadFile(mergedPdfFileName, pdfDestPath);
+                    sftSite.UploadFile(Path.Combine(batchRequestPath, mergedPdfFileName), pdfDestPath);
 
-                    DAL.UpdateBulkFilePathForDallas(mpGroup.Select(x => x.JobId).ToList(), mpGroup.Select(x => x.PieceId).ToList(), pdfDestPath);
+                    DAL.UpdateBulkFilePathForDallas(mpGroup.ToList(), pdfDestPath);
                 }
 
                 string manifestDestPath = Path.Combine(submitDir, manifestPdfFileName);
