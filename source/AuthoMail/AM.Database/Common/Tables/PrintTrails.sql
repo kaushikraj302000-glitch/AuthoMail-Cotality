@@ -6,6 +6,7 @@ CREATE TABLE [Common].[PrintTrails] (
     [SimulateTrail]   BIT           NULL,
     [ShipperId]       INT           NULL,
     [IsSinglePdf]     BIT           NULL,
+    [IsManifestRequired]      BIT           NULL,
     CONSTRAINT [PK_PrintTrails_Id] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_PrintTrails_PrintVendors] FOREIGN KEY ([PrintVendorId]) REFERENCES [Common].[PrintVendors] ([Id]),
     CONSTRAINT [FK_PrintTrails_ShipperInformation] FOREIGN KEY ([ShipperId]) REFERENCES [Common].[ShipperInformation] ([Id])

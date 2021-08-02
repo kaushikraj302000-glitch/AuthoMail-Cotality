@@ -175,4 +175,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="[IX_Unique_ClientId_ClientName]" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="bd9d8d88-7664-44bb-9597-5ef2418b0173" ChangeDateTime="08/02/2021 12:40:06">
+    <Property Name="ElementName" Value="[Common].[DallasBatchTimings].[IsWeekEnd]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Common].[DallasBatchTimings]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="IsSaturday" />
+  </Operation>
 </Operations>

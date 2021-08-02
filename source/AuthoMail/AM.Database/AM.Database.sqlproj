@@ -236,6 +236,7 @@
     <Build Include="AM\Tables\FloodClientMapping.sql" />
     <Build Include="dbo\Stored Procedures\uspweb_PVReconReport.sql" />
     <Build Include="Common\Tables\DallasPostages.sql" />
+    <Build Include="Common\Tables\DallasBatchTimings.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AM.Database.refactorlog" />

@@ -164,7 +164,7 @@ namespace PCI.Service
 
         public static List<PrintTrailBatch> GetNotSubmittedPrintBatchDetailByPrintVendorCode(string pvCode)
         {
-            string sqlQuery = "SELECT PTB.*,PT.IsSinglePdf FROM PnS.PrintTrailBatches PTB INNER JOIN Common.PrintTrails PT ON PTB.PrintTrailId = PT.Id INNER JOIN Common.PrintVendors PV ON PT.PrintVendorId = PV.Id WHERE PTB.IsSubmitted=0 AND PT.PrintVendorCode = '{0}'".Fill(pvCode);
+            string sqlQuery = "SELECT PTB.*,PT.IsSinglePdf,PT.[IsManifestRequired] FROM PnS.PrintTrailBatches PTB INNER JOIN Common.PrintTrails PT ON PTB.PrintTrailId = PT.Id INNER JOIN Common.PrintVendors PV ON PT.PrintVendorId = PV.Id WHERE PTB.IsSubmitted=0 AND PT.PrintVendorCode = '{0}'".Fill(pvCode);
             return db.ExecuteSqlStringAccessor<PrintTrailBatch>(sqlQuery).ToList();
         }
 
@@ -187,6 +187,17 @@ namespace PCI.Service
             foreach (var t in jobGroupedData)
             {
                 db.ExecuteSqlNonQuery($@"UPDATE [PnS].[MRDFRequest] SET [FilePath]= @p1 WHERE JobId = (@p2) AND PieceId IN ({string.Join(",", t.Select(x => x.PieceId))})", filePath, t.Key);
+            }
+            return 1;
+        }
+
+        public static int UpdateBarcodeNumberForDallas(List<MailPieceDetail> mpDetails, string barcode)
+        {
+            var data = mpDetails.Select(x => new { JobId = x.JobId, PieceId = x.PieceId }).ToList();
+            var jobGroupedData = data.GroupBy(x => x.JobId);
+            foreach (var t in jobGroupedData)
+            {
+                db.ExecuteSqlNonQuery($@"UPDATE [PnS].[MRDFRequest] SET BarcodeNumber=@p1 WHERE JobId = (@p2) AND PieceId IN ({string.Join(",", t.Select(x => x.PieceId))})", barcode, t.Key);
             }
             return 1;
         }
