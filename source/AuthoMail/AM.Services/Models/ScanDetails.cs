@@ -13,6 +13,13 @@ namespace AM.Services
         public int TotalCount { get; set; }
         public bool IsBulk { get; set; }
     }
+    public class BulkScanDetails
+    {
+        public int ScanCount { get; set; }
+        public int TotalCount { get; set; }
+        public bool IsBulk { get; set; }
+        public List<RegisterScanDetails> MailPieces { get; set; }
+    }
     public class GetAllBatchCountDetails
     {
         public DateTime ReceivedOn { get; set; }
