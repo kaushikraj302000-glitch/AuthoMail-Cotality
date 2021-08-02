@@ -180,9 +180,15 @@ namespace PCI.Service
             return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [FilePath]= @p1 WHERE JobId = @p2 AND PieceId= @p3", filePath, mailPiece.JobId, mailPiece.PieceId);
         }
 
-        public static int UpdateBulkFilePathForDallas(List<int> jobIds, List<int> pieceIds, string filePath)
+        public static int UpdateBulkFilePathForDallas(List<MailPieceDetail> mpDetails, string filePath)
         {
-            return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [FilePath]= @p1 WHERE JobId IN (@p2) AND PieceId IN (@p3)", filePath, string.Join(",", jobIds), string.Join(",", pieceIds));
+            var data = mpDetails.Select(x => new { JobId = x.JobId, PieceId = x.PieceId }).ToList();
+            var jobGroupedData = data.GroupBy(x => x.JobId);
+            foreach (var t in jobGroupedData)
+            {
+                db.ExecuteSqlNonQuery($@"UPDATE [PnS].[MRDFRequest] SET [FilePath]= @p1 WHERE JobId = (@p2) AND PieceId IN ({string.Join(",", t.Select(x => x.PieceId))})", filePath, t.Key);
+            }
+            return 1;
         }
     }
 }

@@ -203,6 +203,7 @@ namespace PCI.Service
         public string Password { get; set; }
         public string ToADEDir { get; set; }
         public string FromADEDir { get; set; }
+        public int ShipperId { get; set; }
     }
 
     public class PrintTrailBatch
