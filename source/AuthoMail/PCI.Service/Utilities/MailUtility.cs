@@ -143,7 +143,7 @@ namespace PCI.Service
                     msg.IsBodyHtml = true;
                     msg.To.Add(Common.UnexpectedEmail_ToEmail);
                     msg.CC.Add(Common.UnexpectedEmail_CcEmail);
-                    msg.Subject = Common.ApplicationEnvironment + " : " + Common.UnexpectedEmail_Subject;
+                    msg.Subject = Common.UnexpectedEmail_Subject;
                     msg.Priority = MailPriority.High;
 
                     msg.Body = errorMsg;

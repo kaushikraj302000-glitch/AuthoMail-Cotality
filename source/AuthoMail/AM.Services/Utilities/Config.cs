@@ -41,6 +41,7 @@ namespace AM.Services
         public static string Common_AMTrash { get; set; }
         public static string Common_PnSTrash { get; set; }
         public static string Common_BlankPage { get; private set; }
+        public static int Common_DallasVolumeCap { get; private set; }
 
         public static List<Holiday> GetHolidaysByClientId(int clientId)
         {
@@ -244,6 +245,8 @@ namespace AM.Services
         public static int Web_API_AlertElapsedMinute { get; set; }
         [Description("Inventory Buffer Stock Percentage")]
         public static int Common_InventoryBufferStockDays { get; set; }
+        [Description("For Single Loan Entry")]
+        public static int Web_SubmissionSFTChannelId { get; set; }
         #endregion Support
 
         #region EllieMae_API

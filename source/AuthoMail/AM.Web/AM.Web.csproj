@@ -618,15 +618,15 @@
     <Content Include="Views\Report\PVReconReport.cshtml" />
     <Content Include="Views\Common\_PrintVendorList.cshtml" />
     <Content Include="Views\Admin\_PrintConfigurationByPnSConfigId.cshtml" />
-    <Content Include="Views\Support\SingleLoanEntry.cshtml" />
-    <Content Include="Views\Support\_RecipientAddress.cshtml" />
-    <Content Include="Views\Support\_RecipientInfo.cshtml" />
-    <Content Include="Views\Support\_ReturnAddress.cshtml" />
-    <Content Include="Views\Support\_ReturnInfo.cshtml" />
+    <Content Include="Views\Common\_RecipientAddress.cshtml" />
+    <Content Include="Views\Common\_RecipientInfo.cshtml" />
+    <Content Include="Views\Common\_ReturnAddress.cshtml" />
+    <Content Include="Views\Common\_ReturnInfo.cshtml" />
     <Content Include="Views\Admin\_EnvelopeStockHistory.cshtml" />
     <Content Include="Views\Admin\_TransferEnvelopeQuantity.cshtml" />
     <Content Include="Views\Admin\_EnvelopeStockAndAlertDetails.cshtml" />
     <Content Include="Views\Report\EnvelopesUsageReport.cshtml" />
+    <Content Include="Views\Common\SingleLoanEntry.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -307,7 +307,7 @@ namespace AM.Console
                                 }
 
                                 //Document Or Package Type validation
-                                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount);
+                                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, mailBatch.ReceivedOn.Value);
 
                                 if (docType != null)
                                     mailPieceDTO.DocTypeId = docType.Id;

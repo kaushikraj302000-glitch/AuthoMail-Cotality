@@ -77,7 +77,11 @@ namespace AM.Web.Controllers
             }
             bool IsCL = CLAuthentication.HasCorelogicAccount(user.Email);
             var roles = new List<string> { AMRoles.Client };
-            if (IsCL) roles.Add(AMRoles.BA);
+            if (IsCL)
+            {
+                roles.Add(AMRoles.BA);
+                roles.Add(AMRoles.BAOffShore);
+            }
 
             var appCodes = await clientPermissionSvc.GetAppCodeByUserIdORall(IsCL ? null : userId);
 
@@ -102,7 +106,11 @@ namespace AM.Web.Controllers
             }
             bool IsCL = CLAuthentication.HasCorelogicAccount(user.Email);
             var roles = new List<string> { AMRoles.Client };
-            if (IsCL) roles.Add(AMRoles.BA);
+            if (IsCL)
+            {
+                roles.Add(AMRoles.BA);
+                roles.Add(AMRoles.BAOffShore);
+            }
 
             //var appCodes = await clientPermissionSvc.GetAppCodeByUserIdORall(IsCL ? null : userId);
             var domainAppCode = IsCL ? await clientPermissionSvc.GetClientDomainForCL() : await clientPermissionSvc.GetClientDomainByDomainName(new MailAddress(user.Email).Host);
@@ -113,7 +121,7 @@ namespace AM.Web.Controllers
                 roles = roles,
                 isCL = IsCL,
                 domainAppCode = domainAppCode,
-                userRole = userRole.Where(u => u == AMRoles.BA || u == AMRoles.Client).FirstOrDefault(),
+                userRole = userRole.Where(u => u == AMRoles.BA || u == AMRoles.Client || u == AMRoles.BAOffShore).FirstOrDefault(),
                 approveAppCode = approveAppCode
             };
             return Json(JsonResponseFactory.SuccessResponse(data), JsonRequestBehavior.AllowGet);
@@ -152,12 +160,13 @@ namespace AM.Web.Controllers
                 var user = await UserManager.FindByIdAsync(userId);
                 var model = new KeyValuePair<bool, string>();
                 string partiallyApproveRequest = null;
+                if (!role.IsNullOrWhiteSpace() && !(role.Equals(AMRoles.BA, StringComparison.CurrentCultureIgnoreCase) || role.Equals(AMRoles.Client, StringComparison.CurrentCultureIgnoreCase) || (role.Equals(AMRoles.BAOffShore, StringComparison.CurrentCultureIgnoreCase))))
+                {
+                    return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
+                }
                 if (role == AMRoles.Client && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (!(role.Equals(AMRoles.BA, StringComparison.CurrentCultureIgnoreCase) || role.Equals(AMRoles.Client, StringComparison.CurrentCultureIgnoreCase)))
-                    {
-                        return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
-                    }
+
                     if (clientIds == null || clientIds.Count == 0)
                     {
                         return Json(JsonResponseFactory.ErrorResponse("Please select AppCode(s)."), JsonRequestBehavior.AllowGet);
@@ -166,6 +175,7 @@ namespace AM.Web.Controllers
                     if (CLAuthentication.HasCorelogicAccount(user.Email))
                     {
                         await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BAOffShore);
                         await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
                         await UserManager.AddToRoleAsync(userId, AMRoles.Client);
                     }
@@ -187,13 +197,26 @@ namespace AM.Web.Controllers
                         model = new KeyValuePair<bool, string>(true, "Sign up request approved successfully for all AppCode(s).");
                     }
                 }
+                else if (role == AMRoles.BA && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase) && CLAuthentication.HasCorelogicAccount(user.Email))
+                    {
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BAOffShore);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
+                        await UserManager.AddToRoleAsync(userId, AMRoles.BA);
+                    }
+                    model = supportSvc.UpdateUsersRequestSignUp(userId, status, User.Identity.GetUserId());
+                }
                 else
                 {
                     if (status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase) && CLAuthentication.HasCorelogicAccount(user.Email))
                     {
                         await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BAOffShore);
                         await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
-                        await UserManager.AddToRoleAsync(userId, AMRoles.BA);
+                        await UserManager.AddToRoleAsync(userId, AMRoles.BAOffShore);
+
                     }
                     model = supportSvc.UpdateUsersRequestSignUp(userId, status, User.Identity.GetUserId());
                 }
@@ -1309,7 +1332,7 @@ namespace AM.Web.Controllers
         {
             ViewBag.EnvelopeName = envelopeName;
             var model = inventorySvc.GetEnvelopeInventoryStockCalculation(envelopeId);
-            return PartialView("_EnvelopeStockAndAlertDetails",model);
+            return PartialView("_EnvelopeStockAndAlertDetails", model);
         }
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult ToggleEnvelopeTrackingById(int envelopeId, bool isTracking)

@@ -926,14 +926,14 @@ namespace AM.Web.Controllers
         {
             return View();
         }
-        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.BAOffShore)]
         public async Task<JsonResult> GetAllUsers()
         {
             var users = await accSvc.GetAllUsers();
             if (users == null || users.Count() == 0) return Json(JsonResponseFactory.ErrorResponse("Users not found."), JsonRequestBehavior.AllowGet);
             return Json(JsonResponseFactory.SuccessResponse(new { model = users.ToList() }), JsonRequestBehavior.AllowGet);
         }
-        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.BAOffShore)]
         public async Task<JsonResult> GetAllUserToDownExcel(int timezoneOffset)
         {
             var users = await accSvc.GetAllUsers();

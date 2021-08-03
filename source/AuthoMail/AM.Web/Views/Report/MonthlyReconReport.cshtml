@@ -55,15 +55,15 @@
 
 </div>
 @*<div class="panel panel-default" >
-    <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
-    <div class="panel-heading" id="monthlyHeader">
-        <div class="panel-title">
-            Monthly Recon Details: <span class="normaltext" id="headerdate"></span>
+        <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
+        <div class="panel-heading" id="monthlyHeader">
+            <div class="panel-title">
+                Monthly Recon Details: <span class="normaltext" id="headerdate"></span>
+            </div>
         </div>
-    </div>
-    <div class="panel-body" id="monthlyList">
-    </div>
-</div>*@
+        <div class="panel-body" id="monthlyList">
+        </div>
+    </div>*@
 <!-- table html template code -->
 <div id="monthlyTableContent" style="display:none">
     <table class="table table-responsive" style="overflow-x:scroll">
@@ -75,12 +75,15 @@
                 <th>Document Type</th>
                 <th>Delivery Type</th>
                 <th class="notprint">Shipped Document</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Recipient Street Address</th>
-                <th>Recipient City</th>
-                <th>Recipient State</th>
-                <th>Recipient Zip</th>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Recipient Street Address</th>
+                    <th>Recipient City</th>
+                    <th>Recipient State</th>
+                    <th>Recipient Zip</th>
+                }
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Printed Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Mailed Date <span class="fontcapitalize">(Local)</span></th>
@@ -105,12 +108,15 @@
                 <td><span>{DocType}</span></td>
                 <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span data-toggle="tooltip" data-container="body" data-placement="top" title="{message}">{ReturnPdf}</span></td>
-                <td><span>{FirstName}</span></td>
-                <td><span>{LastName}</span></td>
-                <td><span>{Address}</span></td>
-                <td><span>{City}</span></td>
-                <td><span>{State}</span></td>
-                <td><span>{ZIP}</span></td>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <td><span>{FirstName}</span></td>
+                    <td><span>{LastName}</span></td>
+                    <td><span>{Address}</span></td>
+                    <td><span>{City}</span></td>
+                    <td><span>{State}</span></td>
+                    <td><span>{ZIP}</span></td>
+                }
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{PrintedOnFormatted}</span></td>
                 <td><span>{MailedOnFormatted}</span></td>

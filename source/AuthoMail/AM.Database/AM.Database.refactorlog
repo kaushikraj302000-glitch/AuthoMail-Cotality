@@ -182,4 +182,18 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="IsSaturday" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="ff5e4c47-4cc1-4e5b-84b7-066d120eb5f4" ChangeDateTime="05/31/2021 06:48:57">
+    <Property Name="ElementName" Value="[Common].[DallasPostages].[InsertOne]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Common].[DallasPostages]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="InsertOneWeight" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="f44fd353-ef88-49e4-a256-67f8b972ab23" ChangeDateTime="05/31/2021 06:49:27">
+    <Property Name="ElementName" Value="[Common].[DallasPostages].[InsertOneCost]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Common].[DallasPostages]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="InsertOnePostageCost" />
+  </Operation>
 </Operations>

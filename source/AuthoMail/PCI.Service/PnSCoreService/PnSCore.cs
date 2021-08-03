@@ -1125,23 +1125,20 @@ namespace PCI.Service
 
                         string validationErrors = null;
 
+                        var validationErrorsList = new List<ErrorResponse>();
                         resPieceIdData.ForEach(pId =>
                         {
-                            var errors = ValidatePrintVendorResponse(mrdfRequestData, printVendorResponseData, pId, printTrailBatchDetail.SubmittedOn.Value, printTrailDetail.VendorCode);
+                            var error = ValidatePrintVendorResponse(mrdfRequestData, printVendorResponseData, pId, printTrailBatchDetail.SubmittedOn.Value, printTrailDetail.VendorCode, printTrailBatchId);
 
-                            if (!errors.IsNullOrWhiteSpace())
+                            if (error != null)
                             {
-                                validationErrors += Environment.NewLine + errors;
+                                validationErrorsList.Add(error);
                             }
                         });
 
-                        if (!validationErrors.IsNullOrWhiteSpace())
+                        if (validationErrorsList.Count > 0)
                         {
-                            SuspendBatchAndSendMailToPrintVendor(printTrailBatchDetail, validationErrors, outFileName, printTrailDetail.VendorCode, false);
-
-                            //Renaming file so that if we want to continue by reverting status and want to process new file then system will not pick up that file again and again
-                            File.Move(responseFilePath, Path.Combine(bundlingRootPath, outFileName + ".Suspended"));
-                            break;
+                            SendMailToPrintVendorForErrors(printTrailBatchDetail, string.Join(",", validationErrorsList.Select(x => x.ErrorDesc)), outFileName, printTrailDetail.VendorCode, false);
                         }
                         #endregion
 
@@ -1149,7 +1146,9 @@ namespace PCI.Service
 
                         #region Update MRDF Request MailPieceStatus
 
-                        DAL.UpdateMRDFRequestStatusFromResponse(printVendorResponseData, resPieceIdData);
+                        var resPieceIds = resPieceIdData.Except(validationErrorsList.Select(x => x.PieceId)).ToList();
+
+                        DAL.UpdateMRDFRequestStatusFromResponse(printVendorResponseData, resPieceIds);
 
                         //NOTE : after updating MRDFStatus of each mail pieces, system will update MRDFReceived status at individual batch level
                         DAL.UpdateMRDFReceivedForAllResReceivedBatch();
@@ -1162,7 +1161,6 @@ namespace PCI.Service
                         if (File.Exists(processedFilePath))
                             File.Delete(processedFilePath);
                         File.Move(responseFilePath, processedFilePath);
-
                     }
 
                     #region Final Update After Receiving All MRDF Response
@@ -1208,20 +1206,22 @@ namespace PCI.Service
             log.Debug("ended preparing pns response");
         }
 
-        private static string ValidatePrintVendorResponse(IEnumerable<DataRow> reqMRDF, IEnumerable<DataRow> resMRDF, int pieceId, DateTime submittedOn, string printVendorCode)
+        private static ErrorResponse ValidatePrintVendorResponse(IEnumerable<DataRow> reqMRDF, IEnumerable<DataRow> resMRDF, int pieceId, DateTime submittedOn, string printVendorCode, int printTrailBatchId)
         {
             var req = reqMRDF.Single(row => row.Field<int>("PieceId") == pieceId);
             var res = resMRDF.SingleOrDefault(row => row.Field<int>("PieceId") == pieceId);
 
             if (res == null)
             {
-                return "";
+                return null;
             }
 
             var errors = ValidatePrintVendorResponse(req, res, submittedOn).ToList();
 
             if (errors.Count > 0)
             {
+                DAL.DeleteMRDFResponse(pieceId, printTrailBatchId);
+
                 var errDesc = "Errors in PieceId : {0}".Fill(printVendorCode == "NORDIS" ? res.Field<int?>("MailPieceId").Value : pieceId);
 
                 errors.ForEach(e =>
@@ -1231,7 +1231,7 @@ namespace PCI.Service
 
                 errDesc = errDesc + Environment.NewLine;
 
-                return errDesc;
+                return new ErrorResponse { PieceId = pieceId, ErrorDesc = errDesc };
             }
 
             return null;
@@ -1298,7 +1298,21 @@ namespace PCI.Service
             DAL.UpdatePrintTrailBatchDetail(printTrailBatchDetail);
 
             //suspend entire batch
-            DAL.UpdatePrintTrailBatchStatus(printTrailBatchDetail.Id, BatchPipelineStatus.Suspended, Common.GetCurrentTime());
+            //DAL.UpdatePrintTrailBatchStatus(printTrailBatchDetail.Id, BatchPipelineStatus.Suspended, Common.GetCurrentTime());
+
+            if (isOnlyInternal)
+            {
+                MailUtility.SendBatchSuspendedNotificationInternalEmail(printTrailBatchDetail.Id, suspensionReason);
+            }
+            else
+                PrintVendorNotificationEmail(printTrailBatchDetail.PrintBatchName, suspensionReason, outFileName, printVendorCode);
+        }
+
+        private static void SendMailToPrintVendorForErrors(PrintTrailBatch printTrailBatchDetail, string suspensionReason, string outFileName, string printVendorCode, bool isOnlyInternal)
+        {
+            printTrailBatchDetail.ValidationErrors = suspensionReason;
+
+            DAL.UpdatePrintTrailBatchDetail(printTrailBatchDetail);
 
             if (isOnlyInternal)
             {

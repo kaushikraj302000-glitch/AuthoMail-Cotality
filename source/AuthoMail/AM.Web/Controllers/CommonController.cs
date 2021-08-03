@@ -13,23 +13,33 @@ using Microsoft.Owin.Security;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.IO;
+using AM.Lib;
+using AM.Services.Services;
 
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus)]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus + "," + AMRoles.BAOffShore)]
     public class CommonController : BaseController
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         IReportService repoSvc;
         IHomeService homeSvc;
+        ISupportService supSvc;
+        IPnSAPIService pnSAPISvc;
+        IDocTypeService docTypeSvc;
+        IMailPieceService mailpieceSvc;
         private AMSignInManager _signInManager;
         private AMUserManager _userManager;
         //private readonly IClientPermissionService clientPermissionSvc;
-        public CommonController(IReportService repoSvc, IHomeService homeSvc, AMSignInManager signInManager, AMUserManager userManager)
+        public CommonController(IReportService repoSvc, IHomeService homeSvc, ISupportService supSvc, IPnSAPIService pnsapiSvc, IDocTypeService docTypeSvc, IMailPieceService mailpieceSvc, AMSignInManager signInManager, AMUserManager userManager)
         {
             this.repoSvc = repoSvc;
             this.homeSvc = homeSvc;
+            this.supSvc = supSvc;
+            this.pnSAPISvc = pnsapiSvc;
+            this.docTypeSvc = docTypeSvc;
+            this.mailpieceSvc = mailpieceSvc;
             UserManager = userManager;
             SignInManager = signInManager;
             //this.clientPermissionSvc = clientPermissionSvc;
@@ -84,7 +94,7 @@ namespace AM.Web.Controllers
             return PartialView("_GetHeadingForBusinessId", model);
         }
 
-        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client)]
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.BAOffShore)]
         [HttpGet]
         public async Task<ActionResult> GetClientMenu()
         {
@@ -93,12 +103,12 @@ namespace AM.Web.Controllers
                 var result = await homeSvc.GetAllActiveAppCodeForClientRole(User.Identity.GetUserId());
                 return Json(JsonResponseFactory.SuccessResponse(result.ToList()), JsonRequestBehavior.AllowGet);
             }
-            var model = User.IsInRole(AMRoles.BA) ? homeSvc.GetAllActiveClient().Where(u => u.Id > 0).ToList() : homeSvc.GetAllActiveClient();
+            var model = User.IsInRole(AMRoles.BA) || User.IsInRole(AMRoles.BAOffShore) ? homeSvc.GetAllActiveClient().Where(u => u.Id > 0).ToList() : homeSvc.GetAllActiveClient();
 
             return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
         }
 
-        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client)]
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.BAOffShore)]
         [HttpPost]
         public ActionResult RefreshDataByClientId(int clientId)
         {
@@ -158,5 +168,91 @@ namespace AM.Web.Controllers
             ViewBag.PrintVendors = new SelectList(repoSvc.GetActivePrintVendorsWithLocation(), "PrintVendorCode", "PrintVendorNameCode");
             return PartialView();
         }
+
+        #region SingleLoanEntry
+        [HttpGet]
+        public ActionResult SingleLoanEntry(string msg)
+        {
+            ViewBag.msg = msg;
+            ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
+            ViewBag.docTypes = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "DocTypeName", "DocTypeName");
+            return View();
+        }
+
+
+        [HttpPost]
+        public async Task<ActionResult> SingleLoanEntry(MailPiece mailPiece, List<HttpPostedFileBase> pdffile, DateTime? ExpiryDate)
+        {
+
+            if (mailPiece.eDelivery != null)
+            {
+                //Email Validation
+                if (mailPiece.eDelivery.PrintAndShipOnExpiry && ExpiryDate == null)
+                {
+                    ModelState.AddModelError("", "Expiry Date must be future date.");
+                    goto Error;
+                }
+                if (mailPiece.eDelivery.PrintAndShipOnExpiry)
+                {
+                    mailPiece.eDelivery.ExpiryDate = ExpiryDate.Value;
+                }
+                else
+                {
+                    mailPiece.eDelivery = null;
+                }
+            }
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    if (pdffile == null)
+                    {
+                        ModelState.AddModelError("", "Please upload PDF file.");
+                        goto Error;
+                    }
+
+                    // sequence validation
+                    // store files in temp folder
+                    string root = Config.MailRequestAPI_FilesDownloadPath;
+                    string downloadPath = System.IO.Path.Combine(root, "TempWebFiles");
+                    List<string> downloadedFiles = new List<string>();
+                    if (!Directory.Exists(downloadPath))
+                        Directory.CreateDirectory(downloadPath);
+                    foreach (var file in pdffile)
+                    {
+                        string downloadfilePath = System.IO.Path.Combine(downloadPath, file.FileName);
+                        file.SaveAs(downloadfilePath);
+                        downloadedFiles.Add(downloadfilePath);
+                    }
+
+                    mailPiece.ClientCode = supSvc.FindByClientId(User.Identity.GetClientId().Value).AppCode;
+
+                    var mailRequestController = new MailRequestController(pnSAPISvc, docTypeSvc, mailpieceSvc);
+                    var result = await mailRequestController.CreateAPIMailRequestAsync(mailPiece, downloadedFiles);
+
+                    var response = result.GetValueOfPropertyFromPropertyName("Value");
+
+                    var mailAPIResponse = (MailAPIResponse)response;
+
+                    if (mailAPIResponse.MailingStatus == "Error")
+                    {
+                        ModelState.AddModelError("", mailAPIResponse.ErrorCode);
+                        ModelState.AddModelError("", mailAPIResponse.ErrorDesc);
+                        goto Error;
+                    }
+                    return RedirectToAction("SingleLoanEntry", new { msg = mailAPIResponse.Message });
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
+            }
+        Error:
+            ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
+            ViewBag.docTypes = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "DocTypeName", "DocTypeName");
+            return View(mailPiece);
+        }
+
+        #endregion SingleLoanEntry
     }
 }

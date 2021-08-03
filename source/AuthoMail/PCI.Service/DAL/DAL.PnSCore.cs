@@ -204,6 +204,14 @@ namespace PCI.Service
             }
         }
 
+        public static void DeleteMRDFResponse(int reqPieceId, int printTrailBatchId)
+        {
+            //delete it from MRDFResponse
+            var deleteSql = "DELETE FROM [PnS].[MRDFResponse] WHERE JobId=@p1 AND PieceId=@p2";
+
+            db.ExecuteSqlNonQuery(deleteSql, printTrailBatchId, reqPieceId);
+        }
+
         public static void UpdateMRDFReceivedForAllResReceivedBatch()
         {
             string sqlQuery = @"WITH CB AS (SELECT B.PrintBatch,(SELECT COUNT(1) FROM PnS.MRDFRequest WHERE MailPieceStatus='InProgress' AND JobId=B.PrintBatch) as InProgressCount FROM PnS.BatchSummary B WHERE B.PipelineStatus = 'Submitted') UPDATE B SET B.PipelineStatus = 'MRDFReceived',B.MRDFReceivedOn=GETUTCDATE() FROM PnS.BatchSummary B INNER JOIN CB ON B.PrintBatch = CB.PrintBatch WHERE CB.InProgressCount = 0";

@@ -255,7 +255,7 @@ namespace AM.Core
 
                                                 //NOTE: Here system is check for not deliverable or any other error if occure then system will fall back to USPS Priority service and try to generate label
 
-                                                var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
+                                                var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString(), mailPiece.Id);
 
                                                 if (fbPriority == null)
                                                 {
@@ -430,7 +430,7 @@ namespace AM.Core
                                             log.Debug(msg);
 
                                             //First try to generate eVS label with USPS Priority Express
-                                            var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
+                                            var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString(), mailPiece.Id);
 
                                             if (fbPriorityExpress != null)
                                             {
@@ -465,7 +465,7 @@ namespace AM.Core
                                                     log.Debug(msg);
 
                                                     //NOTE: Here system is check for not deliverable or any other error if occure then system will fall back to USPS Priority service and try to generate label
-                                                    var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
+                                                    var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString(), mailPiece.Id);
 
                                                     if (fbPriority == null)
                                                     {
@@ -514,7 +514,7 @@ namespace AM.Core
                                             }
                                             else
                                             {
-                                                var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
+                                                var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString(), mailPiece.Id);
 
                                                 if (fbPriority == null)
                                                 {
@@ -571,7 +571,7 @@ namespace AM.Core
                                     }
 
                                     //If FedEx is down then we are going to support for USPS Priority and Priority express
-                                    if (response.HasError && (response.ExceptionCode.Contains("General Failure") || response.ExceptionDetail.Contains("General Failure") || response.ExceptionDetail.Contains("Resources unavailable")))
+                                    if (response.HasError && (response.ExceptionCode.Contains("General Failure") || response.ExceptionDetail.Contains("General Failure") || response.ExceptionDetail.Contains("unavailable") || response.ExceptionDetail.Contains("Fault") || response.ExceptionDetail.Contains("request channel timed out")))
                                     {
                                         var msg = $"FedEx is down for supporting shipping to provided address for MailPieceId : {mailPiece.Id} with Error :{response.ExceptionDetail}. So AM is doing fallback to other shipping carrier.";
 
@@ -581,7 +581,7 @@ namespace AM.Core
                                         while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                         {
                                             //First try to generate eVS label with USPS Priority Express
-                                            var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
+                                            var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString(), mailPiece.Id);
 
                                             if (fbPriorityExpress != null)
                                             {
@@ -616,7 +616,7 @@ namespace AM.Core
                                                     log.Debug(msg);
 
                                                     //NOTE: Here system is check for not deliverable or any other error if occure then system will fall back to USPS Priority service and try to generate label
-                                                    var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
+                                                    var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString(), mailPiece.Id);
 
                                                     if (fbPriority == null)
                                                     {
@@ -664,7 +664,7 @@ namespace AM.Core
                                             }
                                             else
                                             {
-                                                var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
+                                                var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString(), mailPiece.Id);
 
                                                 if (fbPriority == null)
                                                 {
@@ -782,10 +782,17 @@ namespace AM.Core
                                 }
 
                                 //Print Inserts in coverletter
-
-                                if (mailPiece.PrintLocation == "Dallas CL" && !string.IsNullOrWhiteSpace(mailPiece.Inserts) && (coverLetterPdfPaths != null && coverLetterPdfPaths.Count() > 0))
+                                if (mailPiece.PrintLocation == "Dallas CL")
                                 {
-                                    doc.WriteTextOnLabel(coverLetterPdfPaths.First(), mailPiece.Inserts);
+                                    if (!string.IsNullOrWhiteSpace(mailPiece.Inserts) && (coverLetterPdfPaths != null && coverLetterPdfPaths.Count() > 0))
+                                    {
+                                        doc.WriteTextOnLabel(coverLetterPdfPaths.First(), mailPiece.Inserts, true);
+                                    }
+
+                                    if (!string.IsNullOrWhiteSpace(mailPiece.EnvelopeName) && (coverLetterPdfPaths != null && coverLetterPdfPaths.Count() > 0))
+                                    {
+                                        doc.WriteTextOnLabel(coverLetterPdfPaths.First(), mailPiece.EnvelopeName);
+                                    }
                                 }
 
                                 string blankPdfPath = Path.Combine(Config.Core_CoverTemplateFolder, Config.Common_BlankPage);

@@ -99,13 +99,16 @@
                 <th class="FileName">File Name</th>
                 <th class="ErrorCode">Error</th>
                 <th class="ReceivedDate">Received Date <span class="fontcapitalize">(Local)</span></th>
-                <th class="FirstName">First Name</th>
-                <th class="LastName">Last Name</th>
-                <th class="RecipientAddress">Recipient Street Address</th>
-                <th class="RecipientCity">Recipient City</th>
-                <th class="RecipientState">Recipient State</th>
-                <th class="RecipientZip">Recipient Zip</th>
-                <th class="ErrorText">Error Text</th>                
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <th class="FirstName">First Name</th>
+                    <th class="LastName">Last Name</th>
+                    <th class="RecipientAddress">Recipient Street Address</th>
+                    <th class="RecipientCity">Recipient City</th>
+                    <th class="RecipientState">Recipient State</th>
+                    <th class="RecipientZip">Recipient Zip</th>
+                }
+                <th class="ErrorText">Error Text</th>
                 <th class="ShippingMethod">Shipping Method<span class="fa fa-question-circle" title="Shipping Carrier / Service type"></span></th>
                 <th class="BatchId">BatchId</th>
 
@@ -127,12 +130,15 @@
                 <td><span>{FileName}</span></td>
                 <td><span>{ErrorDescPopover}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
-                <td><span>{FirstName}</span></td>
-                <td><span>{LastName}</span></td>
-                <td><span>{Address}</span></td>
-                <td><span>{City}</span></td>
-                <td><span>{State}</span></td>
-                <td><span>{ZIP}</span></td>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <td><span>{FirstName}</span></td>
+                    <td><span>{LastName}</span></td>
+                    <td><span>{Address}</span></td>
+                    <td><span>{City}</span></td>
+                    <td><span>{State}</span></td>
+                    <td><span>{ZIP}</span></td>
+                }
                 <td><span>{ErrorDesc}</span></td>
                 <td><span>{ShippingCarrier} / {ShippingMethod}</span></td>
                 <td>{BatchId}</td>

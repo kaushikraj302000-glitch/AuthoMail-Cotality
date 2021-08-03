@@ -18,7 +18,7 @@ using System.IO;
 
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus)]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus + "," + AMRoles.BAOffShore)]
     [RoutePrefix("AuthoMailHealth")]
     public class HomeController : BaseController
     {
@@ -133,6 +133,13 @@ namespace AM.Web.Controllers
                     m.ShipmentStatusUpdatedOn = m.ShipmentStatusUpdatedOn.HasValue ? m.ShipmentStatusUpdatedOn.Value.AddMinutes(-timezoneOffset) : m.ShipmentStatusUpdatedOn;
                 });
                 var dataTable = ExcelHelper.ToDataTable<SearchViewModel>(model.Value);
+
+                if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    List<string> columnsToDelete = new List<string>() { "FirstName", "LastName", "City", "ZIP", "State","RequestedPdf" };
+                    foreach (var column in columnsToDelete)
+                        dataTable.Columns.Remove(column);
+                }
 
                 var memoryStream = ExcelHelper.ExportDataSet(dataTable);
                 memoryStream.Seek(0, SeekOrigin.Begin);

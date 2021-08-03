@@ -24,7 +24,7 @@
         word-wrap: break-word;
         color: red;
     }
-     
+
     .label.label-Edelivery {
         background-color: #0cc9de;
     }
@@ -142,8 +142,11 @@
                 <th>Pullback Requested</th>
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
-                <th>Recipient Name</th>
-                <th>Recipient Address</th>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <th>Recipient Name</th>
+                    <th>Recipient Address</th>
+                }
                 <th>Document Type</th>
                 <th>Delivery Type</th>
                 <th>Pages Shipped</th>
@@ -165,8 +168,11 @@
                 <td><span>{IsPullBackRequestedFormatted}</span></td>
                 <td><span>{BusinessIdValue}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
-                <td><span>{Name}</span></td>
-                <td><span>{Address}</span></td>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <td><span>{Name}</span></td>
+                    <td><span>{Address}</span></td>
+                }
                 <td><span>{DocType}</span></td>
                 <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{TotalPages}</span></td>
