@@ -560,12 +560,11 @@ namespace AM.Console
 
         private void MoveBatchToBackupDir(SFTUtil sftSite, string ftpFilePath)
         {
-            string ftpBackUpFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(ftpFilePath));
             if (sftSite.IsFileAvailable(ftpFilePath))
             {
                 if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
                 {
-                    sftSite.MoveFile(ftpFilePath, ftpBackUpFilePath);
+                    sftSite.MoveFile(ftpFilePath, Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(ftpFilePath)));
                 }
                 else
                     sftSite.DeleteFile(ftpFilePath);
