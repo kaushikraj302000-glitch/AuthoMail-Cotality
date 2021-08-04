@@ -1414,17 +1414,9 @@ namespace AM.Console
                         File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
                         break;
                     default:
-                        string errorGoFileName = "ErrReport.go";
-                        string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
-                        string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
-
                         ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
-
                         sftSite.UploadFile(errorReportPath, ftpUploadPath);
 
-                        // Upload Error.GO file after uploading error report
-                        File.WriteAllText(errorGoFilePath, string.Empty);
-                        sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
                         break;
                 }
 
