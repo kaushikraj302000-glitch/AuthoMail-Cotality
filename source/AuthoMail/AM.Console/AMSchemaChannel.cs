@@ -189,6 +189,8 @@ namespace AM.Console
             string uniqueId;
             string clientBatchId = batchXML.DocumentElement.Attributes["ClientBatchId"] == null ? (batchXML.DocumentElement.Attributes["Id"] == null ? Guid.NewGuid().ToString() : batchXML.DocumentElement.Attributes["Id"].Value) : batchXML.DocumentElement.Attributes["ClientBatchId"].Value;
             string clientCode = rootElement.Attributes["ClientCode"] == null ? "InvalidClientCode" : rootElement.Attributes["ClientCode"].Value;
+            string priority = rootElement.Attributes["Priority"] == null ? Priority.Medium.ToString() : rootElement.Attributes["Priority"].Value;
+            string documentOrPackageType = rootElement.Attributes["DocumentOrPackageType"] == null ? "" : rootElement.Attributes["DocumentOrPackageType"].Value;
             string batchPath;
             string xmlPath;
             string errorMsg = string.Empty;
@@ -197,7 +199,7 @@ namespace AM.Console
                 foreach (XmlNode eDNode in eDeliveryNodes)
                 {
                     uniqueId = Guid.NewGuid().ToString(); // Here system will generate new uniqueid at batch level
-                    batchPath = SeparateEDeliveryXMLsAndPDFs(mbCustomInfoNode, mbReturnInfoNode, eDNode, nsManager, channelDownloadPath, extractedZipDirPath, clientCode, clientBatchId, uniqueId, batchName);
+                    batchPath = SeparateEDeliveryXMLsAndPDFs(mbCustomInfoNode, mbReturnInfoNode, eDNode, nsManager, channelDownloadPath, extractedZipDirPath, clientCode, clientBatchId, uniqueId, batchName, priority, documentOrPackageType);
                     xmlPath = Path.Combine(batchPath, batchName + ".xml");
                     ProcessXML(xmlPath, batchName, receivedOnDateTime, batchPath);
                 }
@@ -206,7 +208,7 @@ namespace AM.Console
             if (printAndShipNodes.Count > 0)
             {
                 uniqueId = batchXML.DocumentElement.Attributes["Id"] == null ? Guid.NewGuid().ToString() : batchXML.DocumentElement.Attributes["Id"].Value; // Here system will use same uniqueid which is received in current batch at batch level
-                batchPath = SeparatePrintNShipXMLsAndPDFs(mbCustomInfoNode, mbReturnInfoNode, printAndShipNodes, nsManager, channelDownloadPath, extractedZipDirPath, clientCode, clientBatchId, uniqueId, batchName);
+                batchPath = SeparatePrintNShipXMLsAndPDFs(mbCustomInfoNode, mbReturnInfoNode, printAndShipNodes, nsManager, channelDownloadPath, extractedZipDirPath, clientCode, clientBatchId, uniqueId, batchName, priority, documentOrPackageType);
                 xmlPath = Path.Combine(batchPath, batchName + ".xml");
                 errorMsg = ProcessXML(xmlPath, batchName, receivedOnDateTime, batchPath);
             }
@@ -402,7 +404,7 @@ namespace AM.Console
             return "";
         }
 
-        private string SeparateEDeliveryXMLsAndPDFs(XmlNode customeInfoElement, XmlNode returnInfoElement, XmlNode package, XmlNamespaceManager nsManager, string channelDownloadPath, string receivedBatchDirPath, string clientCode, string clientBatchId, string uniqueId, string batchName)
+        private string SeparateEDeliveryXMLsAndPDFs(XmlNode customeInfoElement, XmlNode returnInfoElement, XmlNode package, XmlNamespaceManager nsManager, string channelDownloadPath, string receivedBatchDirPath, string clientCode, string clientBatchId, string uniqueId, string batchName, string priority, string documentOrPackageType)
         {
             //Folder Structure will be like AMRoot/GENERAL/{ChannelCode}/{ClientCode}/{UniqueId}
             string clientBatchDirectory = Path.Combine(channelDownloadPath, uniqueId);
@@ -411,7 +413,7 @@ namespace AM.Console
 
             string amFilePath = Path.Combine(clientBatchDirectory, string.Format("{0}.xml", batchName));
 
-            string reqXML = "<?xml version=\"1.0\" encoding=\"utf-16\"?>" + Environment.NewLine + "<MailBatch xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://schemas.corelogic.com/ade/authomail/v1.18.0\" Id=\"{0}\" ClientCode=\"{1}\" ClientBatchId=\"{2}\">" + Environment.NewLine + "{3}" + Environment.NewLine + "{4}" + Environment.NewLine + "<MailPieces>" + Environment.NewLine + "{5}" + Environment.NewLine + " </MailPieces>" + Environment.NewLine + "</MailBatch>";
+            string reqXML = "<?xml version=\"1.0\" encoding=\"utf-16\"?>" + Environment.NewLine + "<MailBatch xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://schemas.corelogic.com/ade/authomail/v1.18.0\" Id=\"{0}\" ClientCode=\"{1}\" ClientBatchId=\"{2}\" Priority=\"{3}\" DocumentOrPackageType=\"{4}\">" + Environment.NewLine + "{5}" + Environment.NewLine + "{6}" + Environment.NewLine + "<MailPieces>" + Environment.NewLine + "{7}" + Environment.NewLine + " </MailPieces>" + Environment.NewLine + "</MailBatch>";
 
             var documentOrPackageElement = package.SelectSingleNode("x:DocumentOrPackage", nsManager);
             string fileName;
@@ -449,12 +451,12 @@ namespace AM.Console
                 File.Copy(sourceFile, destFile, true);
             }
 
-            File.WriteAllText(amFilePath, reqXML.Fill(uniqueId, clientCode, clientBatchId, customeInfoElement?.OuterXml, returnInfoElement?.OuterXml, package?.OuterXml));
+            File.WriteAllText(amFilePath, reqXML.Fill(uniqueId, clientCode, clientBatchId, priority, documentOrPackageType, customeInfoElement?.OuterXml, returnInfoElement?.OuterXml, package?.OuterXml));
 
             return clientBatchDirectory;
         }
 
-        private string SeparatePrintNShipXMLsAndPDFs(XmlNode customeInfoElement, XmlNode returnInfoElement, List<XmlNode> packages, XmlNamespaceManager nsManager, string channelDownloadPath, string receivedBatchDirPath, string clientCode, string clientBatchId, string uniqueId, string batchName)
+        private string SeparatePrintNShipXMLsAndPDFs(XmlNode customeInfoElement, XmlNode returnInfoElement, List<XmlNode> packages, XmlNamespaceManager nsManager, string channelDownloadPath, string receivedBatchDirPath, string clientCode, string clientBatchId, string uniqueId, string batchName, string priority, string documentOrPackageType)
         {
             //Folder Structure will be like AMRoot/GENERAL/{ChannelCode}/{UniqueId}
             string clientBatchDirectory = Path.Combine(channelDownloadPath, "PNS_" + uniqueId);
@@ -463,7 +465,7 @@ namespace AM.Console
 
             string amFilePath = Path.Combine(clientBatchDirectory, string.Format("{0}.xml", batchName));
             var mpNodes = string.Join(Environment.NewLine, packages.Select(nodes => nodes.OuterXml));
-            string reqXML = "<?xml version=\"1.0\" encoding=\"utf-16\"?>" + Environment.NewLine + "<MailBatch xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://schemas.corelogic.com/ade/authomail/v1.18.0\" Id=\"{0}\" ClientCode=\"{1}\" ClientBatchId=\"{2}\">" + Environment.NewLine + "{3}" + Environment.NewLine + "{4}" + Environment.NewLine + "<MailPieces>" + Environment.NewLine + "{5}" + Environment.NewLine + " </MailPieces>" + Environment.NewLine + "</MailBatch>";
+            string reqXML = "<?xml version=\"1.0\" encoding=\"utf-16\"?>" + Environment.NewLine + "<MailBatch xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://schemas.corelogic.com/ade/authomail/v1.18.0\" Id=\"{0}\" ClientCode=\"{1}\" ClientBatchId=\"{2}\" Priority=\"{3}\" DocumentOrPackageType=\"{4}\" >" + Environment.NewLine + "{5}" + Environment.NewLine + "{6}" + Environment.NewLine + "<MailPieces>" + Environment.NewLine + "{7}" + Environment.NewLine + " </MailPieces>" + Environment.NewLine + "</MailBatch>";
 
             foreach (var package in packages)
             {
@@ -504,7 +506,7 @@ namespace AM.Console
                 }
             }
 
-            File.WriteAllText(amFilePath, reqXML.Fill(uniqueId, clientCode, clientBatchId, customeInfoElement?.OuterXml, returnInfoElement?.OuterXml, mpNodes));
+            File.WriteAllText(amFilePath, reqXML.Fill(uniqueId, clientCode, clientBatchId, priority, documentOrPackageType, customeInfoElement?.OuterXml, returnInfoElement?.OuterXml, mpNodes));
 
             return clientBatchDirectory;
         }
@@ -922,7 +924,6 @@ namespace AM.Console
                             var msg = "Unable to process package info node for mail batch {0}".Fill(mbi.BatchName);
 
                             log.Error(msg, ex);
-
                             mailPieceDTO.ErrorCode = OutComeCodes.Unknown_Error;
                             mailPieceDTO.ErrorDesc = "Error occured while processing package with error {0}".Fill(ex.Message);
                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
@@ -944,7 +945,7 @@ namespace AM.Console
                                 log.Error(msg, ex);
                                 mailPieceDTO.UniqueId = Guid.NewGuid();
                                 mailPieceDTO.ErrorCode = OutComeCodes.Invalid_DuplicateKey;
-                                mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
+                                mailPieceDTO.ErrorDesc = msg;
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                 mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
                             }
