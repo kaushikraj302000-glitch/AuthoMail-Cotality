@@ -1123,8 +1123,6 @@ namespace PCI.Service
 
                         var printVendorResponseData = DAL.GetMRDFResponseDataByPrintTrailBatchId(printTrailBatchId).AsEnumerable();
 
-                        string validationErrors = null;
-
                         var validationErrorsList = new List<ErrorResponse>();
                         resPieceIdData.ForEach(pId =>
                         {
