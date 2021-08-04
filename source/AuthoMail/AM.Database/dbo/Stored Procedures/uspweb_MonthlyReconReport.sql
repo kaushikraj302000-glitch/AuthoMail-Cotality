@@ -25,7 +25,7 @@ BEGIN
 	LEFT OUTER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
 	LEFT OUTER JOIN PnS.PrintTrailBatches PTB ON REQ.PrintTrailBatchId = PTB.Id
 	WHERE P.EffectiveReceivedOnEst BETWEEN @startDate AND @endDate
-	AND B.ClientId=@ClientId
+	AND B.ClientId=@clientId
 	AND ISNULL(S.Code, '') = ISNULL(@channel, ISNULL(S.Code, ''))
 ), CTE2 AS
 (

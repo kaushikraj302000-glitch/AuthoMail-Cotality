@@ -22,7 +22,7 @@ BEGIN
 	INNER JOIN AM.MailBatches B ON P.MailBatchId=B.Id
 	INNER JOIN Common.SFTChannels S ON B.SFTChannelId=S.Id
 	INNER JOIN PnS.MRDFRequest REQ ON P.UniqueId=REQ.UniqueId
-	INNER JOIN Pns.PrintTrailBatches PT ON REQ.PrintTrailBatchId=PT.Id
+	INNER JOIN PnS.PrintTrailBatches PT ON REQ.PrintTrailBatchId=PT.Id
 	INNER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id
 	LEFT OUTER JOIN 
 	(

@@ -74,7 +74,7 @@ DECLARE	@jobid INT,
 		AND m.EffectiveReceivedOnEst >=@minDate AND IsSubmitted=1 AND m.ShippingStatus='InProgress' AND m.TrackingNo=@trackno
 		
 
-		SET @Inserts = (SELECT INSERTS FROM AM.MailPieces WHERE Id=@mailpieceid)
+		SET @Inserts = (SELECT Inserts FROM AM.MailPieces WHERE Id=@mailpieceid)
 
 		SET @InsertCount = CASE WHEN LEN(ISNULL(@Inserts,''))>0 THEN (SELECT COUNT(value) FROM STRING_SPLIT(@Inserts, ',')) ELSE 0 END
 
