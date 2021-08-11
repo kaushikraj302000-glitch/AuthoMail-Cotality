@@ -24,6 +24,10 @@ namespace AM.Entities
         public string ClientCode { get; set; }
         [XmlAttribute]
         public string ClientBatchId { get; set; }
+        [XmlAttribute]
+        public string BatchName { get; set; }
+        [XmlAttribute]
+        public string ErrorDescription { get; set; }
 
         public MailBatchResponse()
         {

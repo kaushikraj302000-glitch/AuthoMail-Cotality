@@ -531,23 +531,29 @@ namespace AM.Console
             if (!string.IsNullOrEmpty(localZipFilePath))
                 File.Move(localZipFilePath, Path.Combine(mbi.AMRequestPath, mbi.BatchName + ".zip"));
 
-            //For Invalid Batch, we will generate err file 
-            string invalidBatchFileName = "{0}_InvalidZipfile.err".Fill(mailBatch.BatchName);
+            string errorReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
+            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
 
-            string invalidBatchPath = Path.Combine(mbi.AMResponsePath, invalidBatchFileName);
+            using (IGeneralService generalSvc = new GeneralService())
+            {
+                string responseReport = generalSvc.GeneralXMLBatchErrorReport(mbi.MailBatch, mbi.Client.AppCode);
 
-            File.WriteAllText(invalidBatchPath, mailBatch.ValidationErrors);
+                if (!string.IsNullOrWhiteSpace(responseReport))
+                {
+                    File.WriteAllText(errorReportPath, responseReport);
+                }
+            }
 
             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
 
-            string remoteFilePath = Path.Combine(deliverable.UploadPath, invalidBatchFileName);
+            string remoteFilePath = Path.Combine(deliverable.UploadPath, errorReportFileName);
 
             var mailBatchSFTChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mailBatch.SFTChannelId).Result;
 
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(mailBatchSFTChannel.Protocol), mailBatchSFTChannel.Host, mailBatchSFTChannel.UserName, mailBatchSFTChannel.Password, 300000);
             sftSite.Connect();
 
-            sftSite.UploadFile(invalidBatchPath, remoteFilePath);
+            sftSite.UploadFile(errorReportPath, remoteFilePath);
 
             if (sftSite.IsFileAvailable(Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".zip")))
                 MoveBatchToBackupDir(sftSite, Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".zip"));

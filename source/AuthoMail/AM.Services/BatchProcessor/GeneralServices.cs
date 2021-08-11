@@ -31,7 +31,7 @@ namespace AM.Services
         string GeneralJsonReport(string mpUniqueId);
         Task<HttpResponseMessage> SendAPIResponse(HttpClient httpClient, string responseURL, IEnumerable<MailAPIResponse> responseReport);
         string GeneralXMLReport(List<MailPieces> mailPieces, string clientCode);
-
+        string GeneralXMLBatchErrorReport(MailBatchDTO mailBatch, string clientCode);
         void USPSTrackingCall(List<TrackingReport> mailPieces, bool isReturnTracking);
     }
 
@@ -162,13 +162,29 @@ namespace AM.Services
             {
                 Id = mailBatch.UniqueId,
                 ClientBatchId = mailBatch.ClientBatchId,
-                ClientCode = clientCode,
+                ClientCode = clientCode
             };
 
             foreach (MailPieces mp in mailPieces)
             {
                 mbResponse.MailPiecesReport.Add(new MailPieceReport() { BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackageType = mp.DocumentOrPackageType, ErrorCode = mp.ErrorCode, ErrorDesc = mp.ErrorDesc, FileName = mp.FileName, Id = mp.UniqueId, Postage = mp.ShippingCost, MailingStatus = mp.ShippingStatus.ParseEnum<MailingStatus>(), TrackingNumber = mp.TrackingNo, PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue, ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue, TotalSheets = mp.TotalSheets, WeightMeasured = mp.Weight.HasValue ? mp.Weight.Value : 0 });
             }
+
+            var serializedString = XmlUtil.Serialize<MailBatchResponse>(mbResponse);
+
+            return serializedString;
+        }
+
+        public string GeneralXMLBatchErrorReport(MailBatchDTO mailBatch, string clientCode)
+        {
+            MailBatchResponse mbResponse = new MailBatchResponse()
+            {
+                Id = mailBatch.UniqueId,
+                ClientBatchId = mailBatch.ClientBatchId,
+                ClientCode = clientCode,
+                BatchName = mailBatch.BatchName,
+                ErrorDescription = mailBatch.ValidationErrors
+            };
 
             var serializedString = XmlUtil.Serialize<MailBatchResponse>(mbResponse);
 
