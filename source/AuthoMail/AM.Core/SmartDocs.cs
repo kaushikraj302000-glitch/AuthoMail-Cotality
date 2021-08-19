@@ -492,6 +492,48 @@ namespace AM.Core
 
             #endregion
         }
+
+        public string StampingChecks(string pdfFilePath, string checkPageNumbers)
+        {
+            var newFilePath = Path.Combine(Path.GetDirectoryName(pdfFilePath), $"Stamped_{Path.GetFileName(pdfFilePath)}");
+
+            using (FileStream Stream = new FileStream(newFilePath, FileMode.Create, FileAccess.Write))
+            using (PdfReader reader = new PdfReader(pdfFilePath))
+            using (PdfStamper stamper = new PdfStamper(reader, Stream))
+            {
+
+                var pageNumberList = checkPageNumbers.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                for (int iCount = 1; iCount <= stamper.Reader.NumberOfPages; iCount++)
+                {
+                    var pageSize = stamper.Reader.GetPageSizeWithRotation(iCount);
+
+                    PdfContentByte PDFData = stamper.GetOverContent(iCount);
+                    BaseFont baseFont = BaseFont.CreateFont(BaseFont.HELVETICA_BOLD, BaseFont.WINANSI, BaseFont.EMBEDDED);
+                    PDFData.BeginText();
+                    PDFData.SetColorFill(BaseColor.WHITE);
+                    PDFData.SetFontAndSize(baseFont, 10);
+                    if (pageNumberList.Length > 0)
+                    {
+                        if (pageNumberList.Contains(iCount.ToString()))
+                        {
+                            PDFData.ShowTextAligned(PdfContentByte.ALIGN_CENTER, Config.Core_ChecksKey, pageSize.Width - 200, pageSize.Height - 50, 0);
+                        }
+                        else
+                        {
+                            PDFData.ShowTextAligned(PdfContentByte.ALIGN_CENTER, Config.Core_NonChecksKey, pageSize.Width - 200, pageSize.Height - 50, 0);
+                        }
+                    }
+                    else
+                    {
+                        PDFData.ShowTextAligned(PdfContentByte.ALIGN_CENTER, Config.Core_NonChecksKey, pageSize.Width - 200, pageSize.Height - 50, 0);
+                    }
+                    PDFData.EndText();
+                }
+            }
+
+            return newFilePath;
+        }
     }
 
     public class SmartDocResponse

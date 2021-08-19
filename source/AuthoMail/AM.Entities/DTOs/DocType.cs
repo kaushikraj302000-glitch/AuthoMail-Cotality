@@ -87,6 +87,7 @@ namespace AM.Entities
         public string EnvelopePartNumber { get; set; }
         public string BREName { get; set; }
         public string BREPartNumber { get; set; }
+        public bool IsChecks { get; set; }
         public string BREEnvelopeName_PartNumber
         {
             get

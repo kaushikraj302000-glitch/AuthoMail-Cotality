@@ -94,6 +94,12 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="CoverTemplates\CSSINVOICES\CSSINVOICES_USPS_10_6X95.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CoverTemplates\CSSINVOICES\CSSINVOICES_USPS_9X12_Tyvek.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CoverTemplates\BECU\BECU_USPS_#10_6X95.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

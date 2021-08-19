@@ -36,6 +36,7 @@
     [RetRcptAddressCountry]               VARCHAR (255)  NULL,
     [PnSConfigId]                         INT            NULL,
     [PrintFormat] VARCHAR(255) NULL, 
+    [IsChecks] BIT NULL, 
     CONSTRAINT [PK_DocTypes] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
     CONSTRAINT [FK_CreatedBy_DocTypes_User] FOREIGN KEY ([CreatedBy]) REFERENCES [Profile].[Users] ([Id]),
     CONSTRAINT [FK_DocTypes_BREEnvelopes] FOREIGN KEY ([BREEnvelopeId]) REFERENCES [Common].[Envelopes] ([Id]),
