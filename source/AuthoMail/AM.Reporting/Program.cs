@@ -83,6 +83,9 @@ namespace AM.Reporting
                 case "USAAMTD":
                     USAADailyMTDVolumeReporting.GenerateMTDReport();
                     break;
+                case "FLOODAUTO":
+                    FloodReports.GenerateMonthlyReport();
+                    break;
                 default:
                     break;
             }

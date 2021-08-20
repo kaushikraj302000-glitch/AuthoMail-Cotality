@@ -54,6 +54,10 @@ namespace AM.Reporting
         public static string GOSDailyDataPointEMailTemplate { get; private set; }
         public static string GOSDailyDataPointEMailTo { get; private set; }
         public static string GOSStatusMappingFile { get; private set; }
+
+        public static string FloodMonthlyEMailTo { get; private set; }
+        public static string FloodMonthlyEMailCc { get; private set; }
+        public static string FloodMonthlyReportPath { get; private set; }
         public static Dictionary<string, string> GOSDailyEmailListByAppCode
         {
             get
@@ -139,6 +143,10 @@ namespace AM.Reporting
 
             USAAMTDEmailTo = ConfigurationManager.AppSettings["USAAMTDEmailTo"].Trim();
             USAAMTDEmailCc = ConfigurationManager.AppSettings["USAAMTDEmailCc"].Trim();
+
+            FloodMonthlyEMailTo = ConfigurationManager.AppSettings["FloodMonthlyEMailTo"].Trim();
+            FloodMonthlyEMailCc = ConfigurationManager.AppSettings["FloodMonthlyEMailCc"].Trim();
+            FloodMonthlyReportPath = ConfigurationManager.AppSettings["FloodMonthlyReportPath"].Trim();
         }
     }
 }
