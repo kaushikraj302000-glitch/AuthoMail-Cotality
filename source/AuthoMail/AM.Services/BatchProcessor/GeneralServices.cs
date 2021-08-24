@@ -151,7 +151,7 @@ namespace AM.Services
                 mbResponse.MailPiecesReport.Add(new MailPieceReport() { BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackageType = mp.DocumentOrPackageType, ErrorCode = mp.ErrorCode, ErrorDesc = mp.ErrorDesc, FileName = mp.FileName, Id = mp.UniqueId, Postage = mp.ShippingCost, MailingStatus = mp.ShippingStatus.ParseEnum<MailingStatus>(), TrackingNumber = mp.TrackingNo, PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue, ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue, TotalSheets = mp.TotalPages, WeightMeasured = mp.Weight.HasValue ? mp.Weight.Value : 0 });
             }
 
-            var serializedString = XmlUtil.Serialize<MailBatchResponse>(mbResponse);
+            var serializedString = XmlUtil.SerializeUTF8<MailBatchResponse>(mbResponse);
 
             return serializedString;
         }
@@ -170,7 +170,7 @@ namespace AM.Services
                 mbResponse.MailPiecesReport.Add(new MailPieceReport() { BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackageType = mp.DocumentOrPackageType, ErrorCode = mp.ErrorCode, ErrorDesc = mp.ErrorDesc, FileName = mp.FileName, Id = mp.UniqueId, Postage = mp.ShippingCost, MailingStatus = mp.ShippingStatus.ParseEnum<MailingStatus>(), TrackingNumber = mp.TrackingNo, PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue, ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue, TotalSheets = mp.TotalSheets, WeightMeasured = mp.Weight.HasValue ? mp.Weight.Value : 0 });
             }
 
-            var serializedString = XmlUtil.Serialize<MailBatchResponse>(mbResponse);
+            var serializedString = XmlUtil.SerializeUTF8<MailBatchResponse>(mbResponse);
 
             return serializedString;
         }
@@ -186,7 +186,7 @@ namespace AM.Services
                 ErrorDescription = mailBatch.ValidationErrors
             };
 
-            var serializedString = XmlUtil.Serialize<MailBatchResponse>(mbResponse);
+            var serializedString = XmlUtil.SerializeUTF8<MailBatchResponse>(mbResponse);
 
             return serializedString;
         }
@@ -206,7 +206,7 @@ namespace AM.Services
                 mbResponse.MailPiecesReport.Add(new MailPieceReport() { BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackageType = mp.DocumentOrPackageType, ErrorCode = mp.ErrorCode, ErrorDesc = mp.ErrorDesc, FileName = mp.FileName, Id = mp.UniqueId, Postage = mp.ShippingCost, MailingStatus = mp.ShippingStatus.ParseEnum<MailingStatus>(), TrackingNumber = mp.TrackingNo, PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue, ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue, TotalSheets = mp.TotalPages, WeightMeasured = mp.Weight.HasValue ? mp.Weight.Value : 0 });
             }
 
-            var serializedString = XmlUtil.Serialize<MailBatchResponse>(mbResponse);
+            var serializedString = XmlUtil.SerializeUTF8<MailBatchResponse>(mbResponse);
 
             return serializedString;
         }

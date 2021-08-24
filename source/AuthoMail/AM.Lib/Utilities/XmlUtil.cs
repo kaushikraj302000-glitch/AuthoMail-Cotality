@@ -94,6 +94,19 @@ namespace AM.Lib
             return sb.ToString();
         }
 
+        public static string SerializeUTF8<T>(T entity) where T : new()
+        {
+            var xmlSerializer = new XmlSerializer(typeof(T));
+            var ms = new MemoryStream();
+
+            using (var sw = new StreamWriter(ms, System.Text.Encoding.UTF8))
+            {
+                xmlSerializer.Serialize(sw, entity);
+                sw.Close();
+            }
+            return Encoding.UTF8.GetString(ms.ToArray());
+        }   
+
         /// <summary>
         /// Will get the string value for a given enums value, this will
         /// only work if you assign the StringValue attribute to
