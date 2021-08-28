@@ -142,14 +142,28 @@ namespace AM.Services
                 {
                     foreach (var pickedUpDetail in fedExPickedPackageDetails)
                     {
-                        mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(pickedUpDetail.ShipmentStatus, pickedUpDetail.TrackingNo, jobRunTime, pickedUpDetail.DeliveryStatus, pickedUpDetail.DeliveryDate, true);
+                        try
+                        {
+                            mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(pickedUpDetail.ShipmentStatus, pickedUpDetail.TrackingNo, jobRunTime, pickedUpDetail.DeliveryStatus, pickedUpDetail.DeliveryDate, true);
+                        }
+                        catch (Exception)
+                        {
+                            //Handle Error to do not break out queue.
+                        }
                     }
                 }
                 else
                 {
                     foreach (var pickedUpDetail in fedExPickedPackageDetails)
                     {
-                        mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(pickedUpDetail.ShipmentStatus, pickedUpDetail.TrackingNo, jobRunTime, pickedUpDetail.DeliveryStatus, pickedUpDetail.DeliveryDate, false);
+                        try
+                        {
+                            mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(pickedUpDetail.ShipmentStatus, pickedUpDetail.TrackingNo, jobRunTime, pickedUpDetail.DeliveryStatus, pickedUpDetail.DeliveryDate, false);
+                        }
+                        catch (Exception)
+                        {
+                            //Handle Error to do not break out queue.
+                        }
                     }
                 }
             }

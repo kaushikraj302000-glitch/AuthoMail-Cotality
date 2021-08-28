@@ -1457,9 +1457,10 @@ namespace AM.Core
                         mailPackage.Add(mailPieceData);
                     }
                     request.MailPackageData = mailPackage;
-
                     File.WriteAllText(remoteXMLPath, request.ToXml());
+                    log.Debug($"PnS Batch Xml Write :{batchName}");
                     File.WriteAllText(remoteGOPath, "");
+                    log.Debug($"PnS Batch GO Write :{batchName}");
 
                     commonSvc.UpdatePrintBatchStatus(printBatchData.Id, AM.Entities.BatchStatus.InProgress.ToString());
                     commonSvc.UpdatePrintBatchPipeLineStatus(printBatchData.Id, BatchPipelineStatus.SubmittedToShipping, Common.Now);

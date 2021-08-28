@@ -421,7 +421,14 @@ namespace AM.Services
 
                             var shipmentStatus = $"{trackInfo.TrackSummary.Event} on {shipmentDateTimeUTC} UTC at ({trackInfo.TrackSummary.EventCity},{trackInfo.TrackSummary.EventState})";
 
-                            mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(shipmentStatus, trackInfo.ID, Common.Now, trackInfo.TrackSummary.Event, shipmentDateTimeUTC, isReturnTracking);
+                            try
+                            {
+                                mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(shipmentStatus, trackInfo.ID, Common.Now, trackInfo.TrackSummary.Event, shipmentDateTimeUTC, isReturnTracking);
+                            }
+                            catch (Exception )
+                            {
+                                //Handle Error to do not break out queue.
+                            }
                         }
                     }
                 }
