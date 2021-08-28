@@ -269,8 +269,8 @@ namespace AM.Core
             request.RequestedShipment.RequestedPackageLineItems[0].CustomerReferences[0] = new CustomerReference() { CustomerReferenceType = CustomerReferenceType.CUSTOMER_REFERENCE, Value = refNotes.Length > 39 ? refNotes.Substring(0, 39) : refNotes };
 
             request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested = new PackageSpecialServicesRequested();
-            //request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SpecialServiceTypes = new PackageSpecialServiceType[1];
-            //request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SpecialServiceTypes[0] = PackageSpecialServiceType.SIGNATURE_OPTION;
+            request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SpecialServiceTypes = new string[1];
+            request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SpecialServiceTypes[0] = "SIGNATURE_OPTION";
             request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SignatureOptionDetail = new SignatureOptionDetail();
             request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SignatureOptionDetail.OptionType = SignatureOptionType.INDIRECT;
 
@@ -280,11 +280,10 @@ namespace AM.Core
         {
             string[] specialServices = shipmentSpecialService.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             request.RequestedShipment.SpecialServicesRequested = new ShipmentSpecialServicesRequested();
-            request.RequestedShipment.SpecialServicesRequested.SpecialServiceTypes = new string[1];
+            request.RequestedShipment.SpecialServicesRequested.SpecialServiceTypes = new string[specialServices.Length];
+            
             List<string> specialServiceList = new List<string>();
-            
-            specialServiceList.Add("SIGNATURE_OPTION");
-            
+                        
             for (int i = 0; i < specialServices.Length; i++)
             {
                 //Here we have to check that If SATURDAY_DELIVERY option is enabled then ShipTimeStamp day should be Friday, otherwise it will considered as an error for that mail piece.
