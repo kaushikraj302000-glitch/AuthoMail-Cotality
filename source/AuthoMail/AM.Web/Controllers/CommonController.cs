@@ -212,16 +212,36 @@ namespace AM.Web.Controllers
                     }
 
                     // sequence validation
+                    foreach (var file in pdffile)
+                    {
+                        if (file != null)
+                        {
+                            int value;
+                            if (!int.TryParse(file.FileName.Split('_')[0], out value))
+                            {
+                                ModelState.AddModelError("", $"The pdf {file.FileName} does not contain the order sequence number.");
+                                goto Error;
+                            }
+                        }
+                        else
+                        {
+                            ModelState.AddModelError("", "Please upload PDF file.");
+                            goto Error;
+                        }
+                    }
+
                     // store files in temp folder
                     string root = Config.MailRequestAPI_FilesDownloadPath;
                     string downloadPath = System.IO.Path.Combine(root, "TempWebFiles");
                     List<string> downloadedFiles = new List<string>();
                     if (!Directory.Exists(downloadPath))
                         Directory.CreateDirectory(downloadPath);
-                    foreach (var file in pdffile)
+                    var orderedPdfsList = pdffile.Select(x => new { FileObject = x, FileOrder = int.Parse(x.FileName.Split('_')[0]) }).OrderBy(x => x.FileOrder);
+
+                    foreach (var file in orderedPdfsList)
                     {
-                        string downloadfilePath = System.IO.Path.Combine(downloadPath, file.FileName);
-                        file.SaveAs(downloadfilePath);
+                        string downloadfilePath = System.IO.Path.Combine(downloadPath, file.FileObject.FileName);
+                        file.FileObject.SaveAs(downloadfilePath);
                         downloadedFiles.Add(downloadfilePath);
                     }
 
