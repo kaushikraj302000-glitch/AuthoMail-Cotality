@@ -1089,11 +1089,30 @@ namespace AM.Core
 
             // From Address
             eVSReq.CustomerRefNo = mailPiece.Id.ToString();
-            eVSReq.FromName = (mailPiece.RetRcptFirstName + " " + mailPiece.RetRcptLastName).Trim();
+
+            if (mailPiece.RetRcptFirstName.TrimIfNotNull().WordCount() == 2)
+            {
+                eVSReq.FromName = mailPiece.RetRcptFirstName.TrimIfNotNull();
+                if ($"{mailPiece.RetRcptLastName.TrimIfNotNull()} {mailPiece.RetRcptOrganization.TrimIfNotNull()}".Trim().Length > 50)
+                {
+                    eVSReq.FromFirm = $"{mailPiece.RetRcptLastName.TrimIfNotNull()} {mailPiece.RetRcptOrganization.TrimIfNotNull()}".Trim().Substring(0, 50);
+                }
+                else
+                {
+                    eVSReq.FromFirm = $"{mailPiece.RetRcptLastName.TrimIfNotNull()} {mailPiece.RetRcptOrganization.TrimIfNotNull()}".Trim();
+                }
+
+            }
+            else
+            {
+                if ($"{mailPiece.RetRcptFirstName.TrimIfNotNull()} {mailPiece.RetRcptLastName.TrimIfNotNull()} {mailPiece.RetRcptOrganization.TrimIfNotNull()}".Trim().Length > 50)
+                    eVSReq.FromFirm = $"{mailPiece.RetRcptFirstName.TrimIfNotNull()} {mailPiece.RetRcptLastName.TrimIfNotNull()} {mailPiece.RetRcptOrganization.TrimIfNotNull()}".Trim().Substring(0, 50);
+                else
+                    eVSReq.FromFirm = $"{mailPiece.RetRcptFirstName.TrimIfNotNull()} {mailPiece.RetRcptLastName.TrimIfNotNull()} {mailPiece.RetRcptOrganization.TrimIfNotNull()}".Trim();
+            }
 
             eVSReq.FromAptOrSuiteorOther = mailPiece.RetRcptAddressAptOrSuiteOrOther;
             eVSReq.FromStreetAddress = (mailPiece.RetRcptAddressStreet + " " + mailPiece.RetRcptAddrOptionalLine1BelowStreet).Trim();
-            eVSReq.FromFirm = mailPiece.RetRcptOrganization;
             if (String.IsNullOrWhiteSpace(eVSReq.FromName) && String.IsNullOrWhiteSpace(eVSReq.FromFirm))
             {
                 eVSReq.FromFirm = clientName;
@@ -1106,8 +1125,30 @@ namespace AM.Core
             eVSReq.FromPhone = string.IsNullOrWhiteSpace(mailPiece.RetRcptPhone) ? new string('0', 10) : mailPiece.RetRcptPhone.RemoveFormatting();
 
             // To Address
-            eVSReq.ToFirm = string.IsNullOrEmpty(mailPiece.RcptOrganization) ? string.Empty : mailPiece.RcptOrganization;
-            eVSReq.ToName = (mailPiece.RcptFirstName + " " + mailPiece.RcptLastName).Trim();
+
+            if (mailPiece.RcptFirstName.TrimIfNotNull().WordCount() == 2)
+            {
+                eVSReq.ToName = mailPiece.RcptFirstName.TrimIfNotNull();
+                if ($"{mailPiece.RcptLastName.TrimIfNotNull()} {mailPiece.RcptOrganization.TrimIfNotNull()}".Trim().Length > 50)
+                {
+                    eVSReq.ToFirm = $"{mailPiece.RcptLastName.TrimIfNotNull()} {mailPiece.RcptOrganization.TrimIfNotNull()}".Trim().Substring(0, 50);
+                }
+                else
+                {
+                    eVSReq.ToFirm = $"{mailPiece.RcptLastName.TrimIfNotNull()} {mailPiece.RcptOrganization.TrimIfNotNull()}".Trim();
+                }
+
+            }
+            else
+            {
+                if ($"{mailPiece.RcptFirstName.TrimIfNotNull()} {mailPiece.RcptLastName.TrimIfNotNull()} {mailPiece.RcptOrganization.TrimIfNotNull()}".Trim().Length > 50)
+                    eVSReq.ToFirm = $"{mailPiece.RcptFirstName.TrimIfNotNull()} {mailPiece.RcptLastName.TrimIfNotNull()} {mailPiece.RcptOrganization.TrimIfNotNull()}".Trim().Substring(0, 50);
+                else
+                    eVSReq.ToFirm = $"{mailPiece.RcptFirstName.TrimIfNotNull()} {mailPiece.RcptLastName.TrimIfNotNull()} {mailPiece.RcptOrganization.TrimIfNotNull()}".Trim();
+            }
+
+            //eVSReq.ToFirm = string.IsNullOrEmpty(mailPiece.RcptOrganization) ? string.Empty : mailPiece.RcptOrganization;
+            //eVSReq.ToName = (mailPiece.RcptFirstName + " " + mailPiece.RcptLastName).Trim();
             eVSReq.ToAptOrSuiteorOther = mailPiece.RcptAddressAptOrSuiteOrOther;
             eVSReq.ToStreetAddress = (mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet).Trim();
             eVSReq.ToCity = mailPiece.RcptAddressCity;
