@@ -350,5 +350,11 @@ namespace AM.Lib
             return value.IsNullOrWhiteSpace() || (!value.IsNullOrWhiteSpace() && (value.Contains("USA") || value.Contains("US") || value.Contains("The United States of America") || value.Contains("United States of America") || value.Contains("United States")));
         }
 
+        public static int WordCount(this string value)
+        {
+            char[] delimiters = new char[] { ' ', '\r', '\n' };
+            return value.Split(delimiters, StringSplitOptions.RemoveEmptyEntries).Length;
+        }
+
     }
 }
