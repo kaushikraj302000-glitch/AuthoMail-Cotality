@@ -14,7 +14,7 @@
                         @Html.ValidationMessageFor(model => model.RecipientInfo.Recipient.Prefix, "", new { @class = "text-danger" })
                     </div>
                 </div>*@
-            <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")" id="businessIddiv">
+            <div class="col-md-4" id="businessIddiv">
                 @if (ViewBag.BusinessId.Count == 1)
                 {
                     <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
