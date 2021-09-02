@@ -295,8 +295,8 @@ namespace AM.Console
                             else
                             {
                                 mailPieceDTO.IsReturnInfoSpecified = true;
-                                mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = node.ReturnInfo.Address.Line1;
-                                mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = node.ReturnInfo.Address.Line2;
+                                mailPieceDTO.RetRcptFirstName = node.ReturnInfo.Address.Line1;
+                                mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = node.ReturnInfo.Address.Line2;
                                 mailPieceDTO.RetRcptAddressStreet = node.ReturnInfo.Address.Line3;
                                 mailPieceDTO.RetRcptAddressCity = node.ReturnInfo.Address.City;
                                 mailPieceDTO.RetRcptAddressState = node.ReturnInfo.Address.State;
