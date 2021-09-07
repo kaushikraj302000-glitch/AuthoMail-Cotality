@@ -58,7 +58,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="form-group">
-                        <label for="Status">Status</label>
+                        <label for="Status">Shipping Status</label>
                         <select class="selectpicker" id="Status" data-live-search="true" data-live-search-placeholder="Search Status">
                             <option value="">
                                 Select Status
@@ -111,12 +111,57 @@
         });
 
         $("#filterData").click(function () {
-            debugger;
             var selectedData = $("#date").val().split('-');
             var startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
             var endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
-            var url = baseUrl + "Report/DownloadPVReconReport?startDate=<startDate>&endDate=<endDate>&pvCode=<channel>&fileName=<fileName>&timezoneOffset=<timezoneOffset>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#PrintVendors").val()).replace("<fileName>", "PVReconReport").replace("<timezoneOffset>", new Date().getTimezoneOffset());
-            window.location = url;
+
+            $.ajax({
+                type: "POST",
+                url: baseUrl + "Report/_DownloadPVReconReport",
+                data: JSON.stringify({
+                    clientIds:$("#ClientId").val(),
+                    startDate: startDate,
+                    endDate: endDate,
+                    status: $("#Status").val(),
+                    shippingMethods: $('#ShippingMethod').val(),
+                    timezoneOffset: new Date().getTimezoneOffset()
+                }),
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    //console.log(response);
+                    if (response.Success) {
+                        if (response.Object != null) {
+
+                            window.location = baseUrl + 'Report/DownloadPVReconReport?fileGuid=' + response.Object.model.FileGuid
+                          + '&filename=' + response.Object.model.FileName;
+                        }
+                        else {
+                            window.clui.globalAlert({
+                                message: "@AM.Services.Config.Web_Msg_NoRecordFound",
+                                alertType: 'red',
+                                timeout: 5000
+                            });
+                        }
+                    } else {
+
+                            window.clui.globalAlert({
+                                message: response.ErrorMessage,
+                                alertType: 'red',
+                                timeout: 5000
+                            });
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    window.clui.globalAlert({
+                        message: "@AM.Services.Config.Web_Msg_Ajax_CommonError",
+                        alertType: 'red',
+                        timeout: 5000
+                    });
+
+                }
+
+            });
+
         });
     </script>
 }
