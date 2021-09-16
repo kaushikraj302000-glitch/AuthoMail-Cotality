@@ -330,14 +330,32 @@ namespace AM.Web.Controllers
 
         public ActionResult PVReconReport()
         {
+            if (User.IsInRole(AMRoles.Admin))
+            {
+                var list = new List<SelectListItem>();
+                var clientGroup = homeSvc.GetAllActiveClient().GroupBy(s => s.GroupAlias);
+                foreach (var group in clientGroup)
+                {
+                    var groupName = new SelectListGroup { Name = group.Key };
+                    foreach (var value in group)
+                    {
+                        SelectListItem item = new SelectListItem { Text = value.Name, Value = value.Id.ToString(), Group = groupName };
+                        list.Add(item);
+                    }
+                }
+                //ViewBag.ClientId = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
+                ViewBag.ClientId = list;
+            }
+
             return View();
         }
 
-        public ActionResult DownloadPVReconReport(string pvCode, string startDate, string endDate, string fileName, int timezoneOffset)
+        [HttpPost]
+        public ActionResult _DownloadPVReconReport(string pvCode, string startDate, string endDate, string fileName, int timezoneOffset, List<int> clientIds, string status, List<string> shippingMethods)
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToStartDateTime().EstToUtc();
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToEndDateTime().EstToUtc();
-            var data = repoSvc.GetPVReconReport(pvCode, exactStartDate, exactEndDate);
+            var data = repoSvc.GetPVReconReport(pvCode, exactStartDate, exactEndDate, clientIds, status, shippingMethods);
             var model = Mapper.Map<List<MonthlyReconReportViewModel>>(data);
             model.ForEach(m =>
             {
@@ -354,16 +372,28 @@ namespace AM.Web.Controllers
                 foreach (var column in columnsToDelete)
                     dataTable.Columns.Remove(column);
             }
-
             var memoryStream = ExcelHelper.ExportDataSet(dataTable);
             memoryStream.Seek(0, SeekOrigin.Begin);
 
-            var fileNameArry = new string[] { fileName, exactStartDate.ToString("MMddyyy"), "TO", exactEndDate.ToString("MMddyyy"), pvCode.ToString() };
-            fileName = string.Join("_", fileNameArry.Where(s => s != "").ToArray());
-            fileName = string.Format("{0}.xlsx", fileName);
-            return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            string fileGuid = Guid.NewGuid().ToString();
+            TempData[fileGuid] = memoryStream.ToArray();
+
+            return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = $"PVReconReport_{exactStartDate.ToString("MMddyyyy")}_To_{exactEndDate.ToString("MMddyyyy")}.xlsx" } }), JsonRequestBehavior.AllowGet);
         }
 
+        public ActionResult DownloadPVReconReport(string fileGuid, string fileName)
+        {
+            if (TempData[fileGuid] != null)
+            {
+                byte[] data = TempData[fileGuid] as byte[];
+                return File(data, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            else
+            {
+                return new EmptyResult();
+            }
+
+        }
         public ActionResult EnvelopesUsageReport()
         {
             ViewBag.Envelopes = new SelectList(invSvc.GetEnvelopes(), "Id", "EnvelopeName");
@@ -374,7 +404,7 @@ namespace AM.Web.Controllers
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-            var model = repoSvc.GetEnvelopesUsageReport(User.Identity.GetClientId().Value,envelopeId, printVendorCode, exactStartDate, exactEndDate);
+            var model = repoSvc.GetEnvelopesUsageReport(User.Identity.GetClientId().Value, envelopeId, printVendorCode, exactStartDate, exactEndDate);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.SubmittedOn) }), JsonRequestBehavior.AllowGet);
         }
     }

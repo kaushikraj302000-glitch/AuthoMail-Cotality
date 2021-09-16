@@ -46,7 +46,7 @@ namespace AM.Services
         MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate);
         List<PrintVendor> GetActivePrintVendors();
         List<PrintVendorLocations> GetActivePrintVendorsWithLocation();
-        List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate);
+        List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate, List<int> clientId, string status, List<string> shippingMethod);
         List<EnvelopeInventoryUsage> GetEnvelopesUsageReport(int clientId, int? envelopeId, string printVendorCode, DateTime startDate, DateTime endDate);
     }
     public class ReportService : ServiceBase, IReportService
@@ -842,17 +842,73 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
             return data;
         }
 
-        public List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate)
+        public List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate, List<int> clientIdlst, string status, List<string> shippingMethod)
         {
-            string query = "[dbo].[uspweb_PVReconReport] @pvCode, @startDate, @endDate";
-            var data = db.Query<MonthlyReconReportViewModel>(query,
-                new
-                {
-                    pvCode = pvCode,
-                    startDate = startDate,
-                    endDate = endDate
-                }).ToList();
-            return data != null ? data.OrderBy(d => d.SubmittedOn).ToList() : data;
+            string query = $@"
+                    SELECT C.AppCode, B.BatchName AS BatchName, P.UniqueId,P.BusinessFriendlyIdValue AS LoanNumber
+                    ,P.RcptFirstName AS [FirstName],P.RcptLastName AS [LastName]
+                    ,P.RcptAddressStreet AS [Address],P.RcptAddressCity AS [City],P.RcptAddressState AS [State],P.RcptAddressZIP AS [ZIP]
+                    ,S.Code AS Channel ,P.DocumentOrPackageType AS [DocType]
+                    ,B.ReceivedOn, P.ShippedOn, P.PulledBackOn, P.PrintLocation
+                    ,P.ShippingStatus AS [Status], P.TrackingNo, P.[FileName]
+                    ,P.TotalPages, P.TotalSheets,ISNULL(MPP.LETTER,0) AS [LetterPageCount],ISNULL(MPP.LEGAL,0) AS [LegalPageCount], P.TotalBlankPages
+                    ,P.IsEDeliveryRequested, PCD.ShippingCarrier + ' / ' + PCD.ShippingServiceType AS [ShippingMethod]
+                    ,ISNULL(REPLACE(REPLACE(P.ErrorDesc, CHAR(13), ''), CHAR(10), ''),'') AS ErrorDesc
+                    ,P.Inserts,PT.PrintBatchName, PT.SubmittedOn, P.DeliveryStatus, P.DeliveryDate, P.ShippingCost, E.EnvelopeName
+                    FROM AM.MailPieces P
+                    INNER JOIN AM.DocTypes D ON P.DocTypeId=D.Id 
+                    INNER JOIN Common.PnSConfigDetail PCD ON P.PnSConfigDetailId=PCD.Id
+                    INNER JOIN Common.Clients C ON P.ClientId=C.Id
+                    INNER JOIN AM.MailBatches B ON P.MailBatchId=B.Id
+                    INNER JOIN Common.SFTChannels S ON B.SFTChannelId=S.Id
+                    INNER JOIN PnS.MRDFRequest REQ ON P.UniqueId=REQ.UniqueId
+                    INNER JOIN PnS.PrintTrailBatches PT ON REQ.PrintTrailBatchId=PT.Id
+                    INNER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id
+                    LEFT OUTER JOIN 
+                    (
+	                    SELECT *
+	                    FROM 
+	                    (
+		                    SELECT 
+		                    [MailPieceId],[PageSize],[PageCount]
+		                    FROM [Common].[MailPiecePageInfo]
+	                    ) AS s
+	                    PIVOT
+	                    (
+		                    MAX([PageCount])
+		                    FOR [PageSize] IN ([LETTER],[LEGAL])
+	                    )AS pvt2
+                    )MPP on MPP.MailPieceId=P.Id
+                    WHERE PT.SubmittedOn BETWEEN @startDate AND @endDate ";
+
+            DynamicParameters parameter = new DynamicParameters();
+            parameter.Add("@startDate", startDate);
+            parameter.Add("@endDate", endDate);
+
+            if (clientIdlst != null && clientIdlst.Count > 0)
+            {
+                query = string.Format("{0} and P.ClientId in @clientId", query);
+                parameter.Add("@clientId", clientIdlst);
+            }
+            if (!status.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} and P.ShippingStatus = @ShippingStatus", query);
+                parameter.Add("@ShippingStatus", status);
+            }
+            if (shippingMethod != null && shippingMethod.Count > 0)
+            {
+                List<string> shipMethod = new List<string>();
+                List<string> shipCarrier = new List<string>();
+                shippingMethod.ForEach(s => shipCarrier.Add(s.Split('-').First()));
+                shippingMethod.ForEach(s => shipMethod.Add(s.Split('-')[1]));
+                query = string.Format("{0} and PCD.ShippingServiceType IN @shippingMethod AND PCD.ShippingCarrier IN @shippingCarrier", query);
+                parameter.Add("@shippingMethod", shipMethod);
+                parameter.Add("@shippingCarrier", shipCarrier);
+            }
+            
+            query = string.Format("{0} ORDER BY PT.SubmittedOn", query);
+            var data = db.Query<MonthlyReconReportViewModel>(query, parameter).ToList();
+            return data;
         }
 
         public List<EnvelopeInventoryUsage> GetEnvelopesUsageReport(int clientId, int? envelopeId, string printVendorCode, DateTime startDate, DateTime endDate)

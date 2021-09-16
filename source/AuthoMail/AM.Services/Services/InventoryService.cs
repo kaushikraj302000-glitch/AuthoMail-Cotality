@@ -79,7 +79,7 @@ where e.EnvelopeName=@envelopeCode", new { envelopeCode = envelopeCode });
                 {
                     if (envelope.Id == 0)
                     {
-                        string sql = "INSERT INTO [Common].[Envelopes] ([EnvelopeName],[EnvelopeDesc],[PartNumber] ,[IsBREEnvelope],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn]) OUTPUT INSERTED.[Id] VALUES(@EnvelopeName ,@EnvelopeDesc,@PartNumber ,@IsBREEnvelope,@CreatedBy,@ModifiedBy,@CreatedOn,@ModifiedOn)";
+                        string sql = "INSERT INTO [Common].[Envelopes] ([EnvelopeName],[EnvelopeDesc],[PartNumber],[IsTrackingRequired] ,[IsBREEnvelope],[CreatedBy],[ModifiedBy],[CreatedOn],[ModifiedOn]) OUTPUT INSERTED.[Id] VALUES(@EnvelopeName ,@EnvelopeDesc,@PartNumber,@IsTrackingRequired ,@IsBREEnvelope,@CreatedBy,@ModifiedBy,@CreatedOn,@ModifiedOn)";
                         envelope.CreatedBy = envelope.ModifiedBy = userId;
                         envelope.CreatedOn = envelope.ModifiedOn = DateTime.UtcNow;
                         envelope.Id = db.QuerySingleOrDefault<int>(sql, envelope, transaction: t);
