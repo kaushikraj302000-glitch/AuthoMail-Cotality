@@ -44,7 +44,7 @@ namespace AM.Web.Models
                 {
                     var response = await httpResponse.Content.ReadAsStringAsync();
                     var user = JsonConvert.DeserializeObject<CLUser>(response);
-                    if (user != null && user.enabled && user.applicationCode.ToUpper() == "AUTHOMAIL")
+                    if (user != null && user.enabled)
                     {
                         return new KeyValuePair<bool, string>(true, "Valid user");
                     }
