@@ -38,15 +38,16 @@ namespace AM.Web.Models
             {
                 System.Net.ServicePointManager.SecurityProtocol |= System.Net.SecurityProtocolType.Tls11 | System.Net.SecurityProtocolType.Tls12;
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-                string url = $"{Config.CLAuth_UserDetailsUrl}{username}".Replace("{OrganizationId}", Config.CLAuth_OrganizationId);
+                string url = $"{Config.CLAuth_UserDetailsUrl}".Replace("{OrganizationId}", Config.CLAuth_OrganizationId);
                 HttpResponseMessage httpResponse = await httpClient.GetAsync(url);
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var response = await httpResponse.Content.ReadAsStringAsync();
-                    var user = JsonConvert.DeserializeObject<CLUser>(response);
-                    if (user != null && user.enabled)
+                    var usersList = JsonConvert.DeserializeObject<AxisUsers>(response);
+                    if (usersList != null && usersList.users.Count() > 0)
                     {
-                        return new KeyValuePair<bool, string>(true, "Valid user");
+                        if (usersList.users.Any(x => x.username == $"{username}@corelogic.com"))
+                            return new KeyValuePair<bool, string>(true, "Valid user");
                     }
                     return new KeyValuePair<bool, string>(false, "Not valid user");
                 }
