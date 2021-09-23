@@ -42,10 +42,10 @@ namespace AM.Core
                     log.Debug("Prep Job queue is empty.");
                     return false;
                 }
-                //Parallel.ForEach(mailBatches, (mailBatch) =>
-                //{
-                foreach (var mailBatch in mailBatches)
+                Parallel.ForEach(mailBatches, (mailBatch) =>
                 {
+                    //    foreach (var mailBatch in mailBatches)
+                    //{
                     using (IMailBatchService mailBatchSvc = new MailBatchService())
                     using (IClientService clientSvc = new ClientService())
                     using (ICommonService commonSvc = new CommonService())
@@ -899,8 +899,8 @@ namespace AM.Core
                             SendUnexpectedExceptionEmail(msg);
                         }
                     }
-                }
-                //});
+                    //}
+                });
             }
             log.Debug("PrepPnSJob Completed");
             return true;
