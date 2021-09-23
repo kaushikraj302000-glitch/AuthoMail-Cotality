@@ -152,26 +152,24 @@ namespace AM.Core
             request.RequestedShipment.ShipTimestamp = mailPiece.EffectiveReceivedOnEst.Value; // Ship date and time
             request.RequestedShipment.DropoffType = DropoffType.REGULAR_PICKUP;
 
-            request.RequestedShipment.ServiceType = (AM.Core.ShipWebServiceRef.ServiceType)Enum.Parse(typeof(AM.Core.ShipWebServiceRef.ServiceType), docType.ShippingServiceType.ToString());
+            request.RequestedShipment.ServiceType = docType.ShippingServiceType.ToString();
 
             // For FedEx GROUND packages the packaging type must be "YOUR_PACKAGING".
             if (docType.ShippingServiceType == ShippingServiceType.FEDEX_GROUND.ToString() || docType.ShippingServiceType == ShippingServiceType.GROUND_HOME_DELIVERY.ToString())
             {
-                request.RequestedShipment.PackagingType = PackagingType.YOUR_PACKAGING;
+                request.RequestedShipment.PackagingType = "YOUR_PACKAGING";
             }
             else
             {
-                request.RequestedShipment.PackagingType = PackagingType.FEDEX_ENVELOPE;
+                request.RequestedShipment.PackagingType = "FEDEX_ENVELOPE";
             }
 
             // Packaging type FEDEX_BOK, FEDEX_PAK, FEDEX_TUBE, YOUR_PACKAGING, ...
             request.RequestedShipment.TotalWeight = new Weight(); // Total weight information
             request.RequestedShipment.TotalWeight.Value = 1.0M;
             request.RequestedShipment.TotalWeight.Units = WeightUnits.LB;
-            request.RequestedShipment.RateRequestTypes = new RateRequestType[1] { RateRequestType.ACCOUNT }; // Rate types requested LIST, MULTIWEIGHT, ...
+            request.RequestedShipment.RateRequestTypes = new RateRequestType[1] { RateRequestType.NONE }; // Rate types requested LIST, MULTIWEIGHT, ...
             request.RequestedShipment.PackageCount = "1";
-            request.RequestedShipment.PackageDetail = RequestedPackageDetailType.INDIVIDUAL_PACKAGES;
-            request.RequestedShipment.PackageDetailSpecified = true;
 
             SetSender(request, shipperInfo);
             //
@@ -187,8 +185,10 @@ namespace AM.Core
             request.RequestedShipment.ShippingChargesPayment = new Payment(); // Payment information
             request.RequestedShipment.ShippingChargesPayment.PaymentType = PaymentType.SENDER;
             request.RequestedShipment.ShippingChargesPayment.Payor = new Payor();
-            request.RequestedShipment.ShippingChargesPayment.Payor.AccountNumber = fedExAccInfo.AccountNumber; // Replace "XXX" with the payor account number
-            request.RequestedShipment.ShippingChargesPayment.Payor.CountryCode = Config.Core_CountryCode;
+            request.RequestedShipment.ShippingChargesPayment.Payor.ResponsibleParty = new Party();
+            request.RequestedShipment.ShippingChargesPayment.Payor.ResponsibleParty.AccountNumber = fedExAccInfo.AccountNumber; // Replace "XXX" with the payor account number
+            request.RequestedShipment.ShippingChargesPayment.Payor.ResponsibleParty.Address = new ShipWebServiceRef.Address();
+            request.RequestedShipment.ShippingChargesPayment.Payor.ResponsibleParty.Address.CountryCode = Config.Core_CountryCode;
         }
 
         private void SetLabelDetails(ProcessShipmentRequest request, MailPieceDTO mailPiece)
@@ -269,8 +269,8 @@ namespace AM.Core
             request.RequestedShipment.RequestedPackageLineItems[0].CustomerReferences[0] = new CustomerReference() { CustomerReferenceType = CustomerReferenceType.CUSTOMER_REFERENCE, Value = refNotes.Length > 39 ? refNotes.Substring(0, 39) : refNotes };
 
             request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested = new PackageSpecialServicesRequested();
-            request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SpecialServiceTypes = new PackageSpecialServiceType[1];
-            request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SpecialServiceTypes[0] = PackageSpecialServiceType.SIGNATURE_OPTION;
+            request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SpecialServiceTypes = new string[1];
+            request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SpecialServiceTypes[0] = "SIGNATURE_OPTION";
             request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SignatureOptionDetail = new SignatureOptionDetail();
             request.RequestedShipment.RequestedPackageLineItems[0].SpecialServicesRequested.SignatureOptionDetail.OptionType = SignatureOptionType.INDIRECT;
 
@@ -280,26 +280,28 @@ namespace AM.Core
         {
             string[] specialServices = shipmentSpecialService.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             request.RequestedShipment.SpecialServicesRequested = new ShipmentSpecialServicesRequested();
-            List<ShipmentSpecialServiceType> specialServiceList = new List<ShipmentSpecialServiceType>();
+            request.RequestedShipment.SpecialServicesRequested.SpecialServiceTypes = new string[specialServices.Length];
+            
+            List<string> specialServiceList = new List<string>();
+                        
             for (int i = 0; i < specialServices.Length; i++)
             {
                 //Here we have to check that If SATURDAY_DELIVERY option is enabled then ShipTimeStamp day should be Friday, otherwise it will considered as an error for that mail piece.
-                if (specialServices[i] == ShipmentSpecialServiceType.SATURDAY_DELIVERY.ToString())
+                if (specialServices[i] == "SATURDAY_DELIVERY")
                 {
                     if (fedexShipTimeStamp.DayOfWeek == DayOfWeek.Friday)
                     {
-                        specialServiceList.Add((ShipmentSpecialServiceType)Enum.Parse(typeof(ShipmentSpecialServiceType), specialServices[i]));
+                        specialServiceList.Add(specialServices[i]);
                     }
                 }
-                else if (specialServices[i] == ShipmentSpecialServiceType.SATURDAY_PICKUP.ToString())
+                else if (specialServices[i] == "SATURDAY_PICKUP")
                 {
                     if (fedexShipTimeStamp.DayOfWeek == DayOfWeek.Saturday)
                     {
-                        specialServiceList.Add((ShipmentSpecialServiceType)Enum.Parse(typeof(ShipmentSpecialServiceType), specialServices[i]));
+                        specialServiceList.Add(specialServices[i]);
                     }
                 }
             }
-            request.RequestedShipment.SpecialServicesRequested.SpecialServiceTypes = new ShipmentSpecialServiceType[1];
             request.RequestedShipment.SpecialServicesRequested.SpecialServiceTypes = specialServiceList.ToArray();
         }
 

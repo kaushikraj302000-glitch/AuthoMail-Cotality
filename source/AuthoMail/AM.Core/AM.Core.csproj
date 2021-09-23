@@ -274,19 +274,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
-    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.CancelPendingShipmentReply.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.cancelPendingShipmentResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.CreatePendingShipmentReply.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.createPendingShipmentResponse.datasource">
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </None>
-    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.deleteShipmentResponse.datasource">
+    <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.deleteTagResponse1.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\ShipWebServiceRef\AM.Core.ShipWebServiceRef.ProcessShipmentReply.datasource">
