@@ -12,6 +12,7 @@ namespace AM.Services
     public interface IMailPieceService : IDisposable
     {
         int InsertBatchMailPieceDetails(MailPieceDTO mailPiece, List<MailPieceCustomInfo> mailPieceCustomInfo, DateTime? receivedOn = null, DateTime? downloadedOn = null);
+        int InsertBatchMailPieceDetails(MailPieceDTO mailPiece, List<MailPieceCustomInfo> mailPieceCustomInfo, bool isReshipped);
         List<MailPieceDTO> GetMailPiecesByMailBatchId(int mailBatchId);
         List<MailPieceDTO> GetMailPiecesByPrintBatchId(int printBatchId);
         int InsertBatchMailPieceCustomDetails(List<MailPieceCustomInfo> mailPieceCustomInfos);
@@ -78,6 +79,22 @@ namespace AM.Services
             {
                 InsertMailPieceEDeliveryDetails(mailPiece, receivedOn, downloadedOn);
             }
+
+            return mailPieceId;
+        }
+
+        public int InsertBatchMailPieceDetails(MailPieceDTO mailPiece, List<MailPieceCustomInfo> mailPieceCustomInfo, bool isReshipped)
+        {
+            string query = "INSERT INTO [AM].[MailPieces]([UniqueId], [ClientId], [MailBatchId], [BusinessFriendlyIdName], [BusinessFriendlyIdValue], [FileName], [FilePattern], [DocumentOrPackageType], [DueDate], [ShippingStatus], [IsRcptInfoSpecified], [RcptPrefix], [RcptFirstName], [RcptMiddleName], [RcptLastName], [RcptSuffix], [RcptPhone], [RcptOrganization], [CoRcptPrefix], [CoRcptFirstName], [CoRcptMiddleName], [CoRcptLastName], [CoRcptSuffix], [CoRcptPhone], [CoRcptOrganization], [RcptAddrOptionalLine1AboveStreet], [RcptAddrOptionalLine2AboveStreet], [RcptAddressStreet], [RcptAddressAptOrSuiteOrOther], [RcptAddrOptionalLine1BelowStreet], [RcptAddrOptionalLine2BelowStreet], [RcptAddressCity], [RcptAddressState], [RcptAddressZIP], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ErrorCode], [ErrorDesc], [IsQCRequested], [IsQCPerformed], [DocTypeId], [PrintLocation], [EffectiveReceivedOnEst], [RcptAddressTypes], [StdSubmissionTime], [MaxSubmissionTime], [PrintTrailId], [PDFFileSize], [RcptAddressCountry], [RetRcptAddressCountry], [IsEDeliveryRequested], [IsFallBackRequested], [RcptEmailId], [ExpiryDate], [PnSConfigDetailId], [Inserts], [TotalBlankPages], [BlankPageNumbers], [ShipperId]) Output Inserted.Id VALUES ( @UniqueId, @ClientId, @MailBatchId, SUBSTRING(@BusinessFriendlyIdName,1,255), SUBSTRING(@BusinessFriendlyIdValue,1,255), @FileName, @FilePattern, SUBSTRING(@DocumentOrPackageType,1,255), @DueDate, @ShippingStatus, @IsRcptInfoSpecified, SUBSTRING(@RcptPrefix,1,255), SUBSTRING(@RcptFirstName,1,255), SUBSTRING(@RcptMiddleName,1,255), SUBSTRING(@RcptLastName,1,255), SUBSTRING(@RcptSuffix,1,255), SUBSTRING(@RcptPhone,1,255), SUBSTRING(@RcptOrganization,1,255), SUBSTRING(@CoRcptPrefix,1,255), SUBSTRING(@CoRcptFirstName,1,255), SUBSTRING(@CoRcptMiddleName,1,255), SUBSTRING(@CoRcptLastName,1,255), SUBSTRING(@CoRcptSuffix,1,255), SUBSTRING(@CoRcptPhone,1,255), SUBSTRING(@CoRcptOrganization,1,255), SUBSTRING(@RcptAddrOptionalLine1AboveStreet,1,255), SUBSTRING(@RcptAddrOptionalLine2AboveStreet,1,255), SUBSTRING(@RcptAddressStreet,1,255), SUBSTRING(@RcptAddressAptOrSuiteOrOther,1,255), SUBSTRING(@RcptAddrOptionalLine1BelowStreet,1,255), SUBSTRING(@RcptAddrOptionalLine2BelowStreet,1,255), SUBSTRING(@RcptAddressCity,1,255), SUBSTRING(@RcptAddressState,1,255), SUBSTRING(@RcptAddressZIP,1,255), @IsReturnInfoSpecified, SUBSTRING(@RetRcptPrefix,1,255), SUBSTRING(@RetRcptFirstName,1,255), SUBSTRING(@RetRcptMiddleName,1,255), SUBSTRING(@RetRcptLastName,1,255), SUBSTRING(@RetRcptSuffix,1,255), SUBSTRING(@RetRcptPhone,1,255), SUBSTRING(@RetRcptOrganization,1,255), SUBSTRING(@RetRcptAddrOptionalLine1AboveStreet,1,255), SUBSTRING(@RetRcptAddrOptionalLine2AboveStreet,1,255), SUBSTRING(@RetRcptAddressStreet,1,255), SUBSTRING(@RetRcptAddressAptOrSuiteOrOther,1,255), SUBSTRING(@RetRcptAddrOptionalLine1BelowStreet,1,255), SUBSTRING(@RetRcptAddrOptionalLine2BelowStreet,1,255), SUBSTRING(@RetRcptAddressCity,1,255), SUBSTRING(@RetRcptAddressState,1,255), SUBSTRING(@RetRcptAddressZIP,1,255), @ErrorCode, @ErrorDesc, @IsQCRequested, @IsQCPerformed, @DocTypeId, @PrintLocation, @EffectiveReceivedOnEst, @RcptAddressTypes, @StdSubmissionTime, @MaxSubmissionTime, @PrintTrailId, @PDFFileSize, @RcptAddressCountry, @RetRcptAddressCountry, @IsEDeliveryRequested, @IsFallBackRequested, SUBSTRING(@RcptEmailId, @ExpiryDate, @PnSConfigDetailId, @Inserts, @TotalBlankPages, @BlankPageNumbers, @ShipperId )";
+
+            int mailPieceId = db.ExecuteScalar<int>(query, mailPiece);
+
+            mailPieceCustomInfo.ForEach(c =>
+            {
+                c.MailPieceId = mailPieceId;
+            });
+
+            InsertBatchMailPieceCustomDetails(mailPieceCustomInfo);
 
             return mailPieceId;
         }
@@ -392,7 +409,7 @@ namespace AM.Services
 
         public Task<IEnumerable<BatchResponse>> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId)
         {
-            string query = string.Format(apiResponseQuery, " MailBatchId IN (SELECT Id FROM AM.MailBatches MB WHERE MB.SFTChannelId=@SFTChannelId AND MB.PipelineStatus= @PipelineStatus AND MB.IsReportPrepped=1 AND MB.IsReportedBack=0)");            
+            string query = string.Format(apiResponseQuery, " MailBatchId IN (SELECT Id FROM AM.MailBatches MB WHERE MB.SFTChannelId=@SFTChannelId AND MB.PipelineStatus= @PipelineStatus AND MB.IsReportPrepped=1 AND MB.IsReportedBack=0)");
 
             var mailPieceDictionary = new Dictionary<int, BatchResponse>();
 

@@ -58,6 +58,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -172,6 +173,7 @@
     <Compile Include="Controllers\DelfusTemplateAPIController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\BaseAPIController.cs" />
+    <Compile Include="Controllers\ReShipAPIController.cs" />
     <Compile Include="Controllers\PdfOperationAPIController.cs" />
     <Compile Include="Controllers\ReportsController.cs" />
     <Compile Include="Controllers\ScanController.cs" />
@@ -330,6 +332,10 @@
     <None Include="Project_Readme.html" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AM.Entities\AM.Entities.csproj">
+      <Project>{F25362E2-A823-430E-8187-3BCA3FD4C891}</Project>
+      <Name>AM.Entities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\AM.Lib\AM.Lib.csproj">
       <Project>{75996573-6449-4675-a5ff-f1c39c84d685}</Project>
       <Name>AM.Lib</Name>

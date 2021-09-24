@@ -51,6 +51,7 @@
     [RetRcptAddressState]                 VARCHAR (255)    NULL,
     [RetRcptAddressZIP]                   VARCHAR (255)    NULL,
     [RetRcptAddressCountry]               VARCHAR (255)    NULL,
+    [IsReshippedBatch] BIT NULL, 
     CONSTRAINT [PK_Batch] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_MailBatches_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
     CONSTRAINT [FK_MailBatches_SFTChannel] FOREIGN KEY ([SFTChannelId]) REFERENCES [Common].[SFTChannels] ([Id])

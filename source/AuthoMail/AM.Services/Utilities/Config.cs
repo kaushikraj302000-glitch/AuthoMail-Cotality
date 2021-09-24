@@ -288,6 +288,8 @@ namespace AM.Services
         #region Web Pdf File API Url
         [Description("Web Pdf File API Url")]
         public static string Web_Pdf_API_Url { get; private set; }
+        [Description("Web Reship File API Url")]
+        public static string Web_Reship_API_Url { get; private set; }
         #endregion
 
         #region CLAuth API
