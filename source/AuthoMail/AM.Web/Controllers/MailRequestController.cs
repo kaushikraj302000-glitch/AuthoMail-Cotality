@@ -823,8 +823,8 @@ bufferSize: 4096, useAsync: true)) { }
 
                 if (mailPiece.ReturnInfo.Recipient != null)
                 {
-                    if (mailPiece.ReturnInfo.Recipient.FirstName.IsNullOrWhiteSpace())
-                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Return recipient first name is mandatory." };
+                    if (mailPiece.ReturnInfo.Recipient.FirstName.IsNullOrWhiteSpace() && mailPiece.ReturnInfo.Recipient.Organization.IsNullOrWhiteSpace())
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Return recipient first name or organization is mandatory." };
                 }
                 else
                 {
