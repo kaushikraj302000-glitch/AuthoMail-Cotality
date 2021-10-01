@@ -70,6 +70,8 @@ namespace PCI.Service
         public static string UnexpectedEmail_Subject { get; private set; }
         public static string UnexpectedEmail_ToEmail { get; private set; }
         public static string UnexpectedEmail_CcEmail { get; private set; }
+        public static string DocGenAPIUrl { get; private set; }
+        public static string ManifestTemplatePath { get; private set; }
 
         static Common()
         {
@@ -149,6 +151,9 @@ namespace PCI.Service
                 UnexpectedEmail_Subject = ConfigurationManager.AppSettings["UnexpectedEmail_Subject"].Trim();
                 UnexpectedEmail_ToEmail = ConfigurationManager.AppSettings["UnexpectedEmail_ToEmail"].Trim();
                 UnexpectedEmail_CcEmail = ConfigurationManager.AppSettings["UnexpectedEmail_CcEmail"].Trim();
+
+                DocGenAPIUrl = sysSettings["Common_DocGen_API"];
+                ManifestTemplatePath = sysSettings["PnS_ManifestTemplatePath"];
             }
             catch (Exception ex)
             {

@@ -70,7 +70,7 @@ namespace AM.Scanner.Controllers
         {
             using (new PerfTimerLogger("GetAllBatchForScan[BaseAPIController]: "))
             {
-                var headers = new List<string>() { "Client", "Status", "Day Total" };
+                var headers = new List<string>() { "Client", "Status", "IsBulk", "Day Total" };
 
                 var batchWistCounts = scannerSvc.GetRecentBatchesStats();
                 var dayWiseCounts = scannerSvc.GetScanStats();
@@ -108,8 +108,8 @@ namespace AM.Scanner.Controllers
                     }
 
                     values.Add(status);
+                    values.Add(daySummary?.IsBulk.ToString());
                     values.Add(dayTotal);
-
                     foreach (var batch in batches)
                     {
                         var b = appCode.SingleOrDefault(a => a.BatchName == batch);

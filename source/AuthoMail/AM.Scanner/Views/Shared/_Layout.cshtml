@@ -33,18 +33,31 @@
                             clientdetailsList.Add(clientdetail);
                         }
                     }
+
+                    @{
+                        string[] BulkClientListWithName = System.Web.Configuration.WebConfigurationManager.AppSettings["BulkClientList"].Split(',');
+                        List<AM.Scanner.Models.ClientDetails> bulkclientdetailsList = new List<AM.Scanner.Models.ClientDetails>();
+                        for (int i = 0; i < ClientListWithName.Length; i++)
+                        {
+                            AM.Scanner.Models.ClientDetails bulkclientdetail = new AM.Scanner.Models.ClientDetails();
+                            bulkclientdetail.ClientName = ClientListWithName[i].ToString();
+                            bulkclientdetail.ClientCode = ClientListWithName[i].ToString();
+                            bulkclientdetailsList.Add(bulkclientdetail);
+                        }
+                    }
                     <ul class="nav navbar-nav">
                         <li>@Html.ActionLink("Home", "Index", "Home")</li>
-                        @*<li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Scan <b class="caret"></b></a>
+                        <li>@Html.ActionLink("Bulk Scan", "BulkScan", "Scan")</li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Bulk Scan <b class="caret"></b></a>
                             <ul class="dropdown-menu">
-                                @foreach (var client in clientdetailsList)
+                                @foreach (var client in bulkclientdetailsList)
                                 {
-                                    <li><a href="\Scan\Index?clientCode=@client.ClientCode">@client.ClientName</a></li>
+                                    <li><a href="~/Scan/BulkScan?clientCode=@client.ClientCode">@client.ClientName</a></li>
                                 }
 
                             </ul>
-                        </li>*@
+                        </li>
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Reports <b class="caret"></b></a>
                             <ul class="dropdown-menu">
@@ -52,10 +65,10 @@
                                 {
                                     <li><a href="~/Reports/ScanedDocuments?clientCode=@client.ClientCode">@client.ClientName</a></li>
                                 }
-                                
+
                             </ul>
                         </li>
-                        
+
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Pending Scan <b class="caret"></b></a>
                             <ul class="dropdown-menu">
@@ -63,7 +76,6 @@
                                 {
                                     <li><a href="~/Reports/PendingScanning?clientCode=@client.ClientCode">@client.ClientName</a></li>
                                 }
-
                             </ul>
                         </li>
                     </ul>
@@ -74,16 +86,12 @@
     }
     <div class="body-content">
         @RenderBody()
-        @*<hr />
-            <footer>
-                <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
-            </footer>*@
     </div>
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @RenderSection("scripts", required: false)
-<script>
+    <script>
        var baseUrl = '@Url.Content("~/")';
         function getParameterByName(name) {
             name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -145,6 +153,6 @@
             }
 
         });
-</script>
+    </script>
 </body>
 </html>

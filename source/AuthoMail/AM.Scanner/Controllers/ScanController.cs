@@ -61,6 +61,16 @@ namespace AM.Scanner.Controllers
                 return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
             }
         }
+        [HttpPost]
+        public ActionResult RegisterBulkScan(string barcode, string clientCode, string batchName, int packages)
+        {
+            using (new PerfTimerLogger("RegisterBulkScan[ScanController]: "))
+            {
+                string machineName = GetIPAddress();
+                Services.BulkScanDetails scanDetails = scannerSvc.RegisterBulkScan(barcode, clientCode, User.Identity.Name, machineName, batchName);
+                return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
+            }
+        }
 
         [HttpGet]
         public ActionResult GetScannedDocuments(string clientCode, string batchName)
@@ -70,7 +80,7 @@ namespace AM.Scanner.Controllers
                 var getScannedList = scannerSvc.GetScannedMailPieces(clientCode, batchName);
                 return Json(new { model = getScannedList }, JsonRequestBehavior.AllowGet);
             }
-            
+
         }
 
         public ActionResult GetScanCountByBatchName(string clientCode, string batchName)
@@ -124,5 +134,13 @@ namespace AM.Scanner.Controllers
             return View();
         }
         #endregion SingleScan
+
+        #region Bulk Scan
+        public ActionResult BulkScan(string clientCode, string batchTime)
+        {
+            logger.Info("Bulk Scan");
+            return View();
+        }
+        #endregion
     }
 }
