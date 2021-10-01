@@ -205,29 +205,10 @@ namespace AM.Web.Controllers
             {
                 try
                 {
-                    if (pdffile == null)
+                    if (pdffile[0] == null)
                     {
                         ModelState.AddModelError("", "Please upload PDF file.");
                         goto Error;
-                    }
-
-                    // sequence validation
-                    foreach (var file in pdffile)
-                    {
-                        if (file != null)
-                        {
-                            int value;
-                            if (!int.TryParse(file.FileName.Split('_')[0], out value))
-                            {
-                                ModelState.AddModelError("", $"The pdf {file.FileName} does not contain the order sequence number.");
-                                goto Error;
-                            }
-                        }
-                        else
-                        {
-                            ModelState.AddModelError("", "Please upload PDF file.");
-                            goto Error;
-                        }
                     }
 
                     // store files in temp folder
@@ -236,15 +217,34 @@ namespace AM.Web.Controllers
                     List<string> downloadedFiles = new List<string>();
                     if (!Directory.Exists(downloadPath))
                         Directory.CreateDirectory(downloadPath);
-                    var orderedPdfsList = pdffile.Select(x => new { FileObject = x, FileOrder = int.Parse(x.FileName.Split('_')[0]) }).OrderBy(x => x.FileOrder);
 
-                    foreach (var file in orderedPdfsList)
+                    // sequence validation
+                    if (pdffile.Count > 1)
                     {
-                        string downloadfilePath = System.IO.Path.Combine(downloadPath, file.FileObject.FileName);
-                        file.FileObject.SaveAs(downloadfilePath);
+                        foreach (var file in pdffile)
+                        {
+                            int value;
+                            if (!int.TryParse(file.FileName.Split('_')[0], out value))
+                            {
+                                ModelState.AddModelError("", $"The pdf {file.FileName} does not contain the order sequence number.");
+                                goto Error;
+                            }
+                        }
+                        var orderedPdfsList = pdffile.Select(x => new { FileObject = x, FileOrder = int.Parse(x.FileName.Split('_')[0]) }).OrderBy(x => x.FileOrder);
+                        foreach (var file in orderedPdfsList)
+                        {
+                            string downloadfilePath = System.IO.Path.Combine(downloadPath, file.FileObject.FileName);
+                            file.FileObject.SaveAs(downloadfilePath);
+                            downloadedFiles.Add(downloadfilePath);
+                        }
+                    }
+                    else
+                    {
+                        string downloadfilePath = System.IO.Path.Combine(downloadPath, pdffile[0].FileName);
+                        pdffile[0].SaveAs(downloadfilePath);
                         downloadedFiles.Add(downloadfilePath);
                     }
-
+                   
                     mailPiece.ClientCode = supSvc.FindByClientId(User.Identity.GetClientId().Value).AppCode;
 
                     var mailRequestController = new MailRequestController(pnSAPISvc, docTypeSvc, mailpieceSvc);
