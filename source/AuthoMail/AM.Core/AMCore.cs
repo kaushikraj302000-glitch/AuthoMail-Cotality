@@ -1090,7 +1090,7 @@ namespace AM.Core
             // From Address
             eVSReq.CustomerRefNo = mailPiece.Id.ToString();
 
-            if (mailPiece.RetRcptFirstName.TrimIfNotNull().WordCount() == 2)
+            if (!string.IsNullOrWhiteSpace(mailPiece.RetRcptFirstName) && mailPiece.RetRcptFirstName.TrimIfNotNull().WordCount() == 2)
             {
                 eVSReq.FromName = mailPiece.RetRcptFirstName.TrimIfNotNull();
                 if ($"{mailPiece.RetRcptLastName.TrimIfNotNull()} {mailPiece.RetRcptOrganization.TrimIfNotNull()}".Trim().Length > 50)
@@ -1126,7 +1126,7 @@ namespace AM.Core
 
             // To Address
 
-            if (mailPiece.RcptFirstName.TrimIfNotNull().WordCount() == 2)
+            if (!string.IsNullOrWhiteSpace(mailPiece.RcptFirstName) && mailPiece.RcptFirstName.TrimIfNotNull().WordCount() == 2)
             {
                 eVSReq.ToName = mailPiece.RcptFirstName.TrimIfNotNull();
                 if ($"{mailPiece.RcptLastName.TrimIfNotNull()} {mailPiece.RcptOrganization.TrimIfNotNull()}".Trim().Length > 50)
