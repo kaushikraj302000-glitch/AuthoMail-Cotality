@@ -80,6 +80,7 @@ namespace AM.Scanner.Controllers
 
                 var objList = new List<object>();
                 var clientList = new HashSet<string>(System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split(','));
+                var bulkClientList = new HashSet<string>(System.Web.Configuration.WebConfigurationManager.AppSettings["BulkClientList"].Split(','));
                 var clientWiseBatches = batchWistCounts.Where(m => clientList.Contains(m.AppCode)).GroupBy(s => s.AppCode);
                 foreach (var appCode in clientWiseBatches)
                 {
@@ -108,7 +109,7 @@ namespace AM.Scanner.Controllers
                     }
 
                     values.Add(status);
-                    values.Add(daySummary?.IsBulk.ToString());
+                    values.Add(bulkClientList.Contains(appCode.Key).ToString().ToLower());
                     values.Add(dayTotal);
                     foreach (var batch in batches)
                     {

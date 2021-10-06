@@ -62,7 +62,7 @@ namespace AM.Scanner.Controllers
             }
         }
         [HttpPost]
-        public ActionResult RegisterBulkScan(string barcode, string clientCode, string batchName, int packages)
+        public ActionResult RegisterBulkScan(string barcode, string clientCode, string batchName)
         {
             using (new PerfTimerLogger("RegisterBulkScan[ScanController]: "))
             {

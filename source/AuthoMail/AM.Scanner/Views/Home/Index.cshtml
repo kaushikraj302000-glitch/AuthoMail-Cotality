@@ -246,7 +246,8 @@
     function calcDataTableHeight(decreaseTableHeight) {
         return ($(window).innerHeight() - 200) - decreaseTableHeight;
     };
-    function BuildTable(response) {
+        function BuildTable(response) {
+            debugger;
         var table = "<table id='example' class='table table-bordered table-condensed table-striped' style='margin-bottom:5px;'>";
        // var colorcode = ["#17a2b8!important;", "#466baf!important;", "#ffc107!important;"];
         var colorcode = ["#ffc107!important;","#17a2b8!important;"];
@@ -303,6 +304,7 @@
                             tbody += "<td class='aligncenter ' style='color:" + dayColor + ";background-color:" + cellBGColor + ";' title='" + response.headers[j+1] + " of " + v[0] + "'>" + v[j+1] + "</td>";
                             break;
                         case 3:
+                            debugger;
                             isBulk = v[2] != null ? JSON.parse(v[2]):false;
                             break;
                         default:
@@ -341,7 +343,7 @@
                                     } else {
                                         tbody += "<td class='aligncenter'><a title='" + v[0] + " : " + response.headers[j] + "' href='" + baseUrl + "Scan/Index?clientCode=" + v[0] + "&batchName=" + response.headers[j] + "'><pre class='preclass ' style='" + batchbgcolor + ";" + cellBGColor + "' >" + v[j] + "</pre></a></td>";
                                     }
-                                    
+
                                 }
 
                             }

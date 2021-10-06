@@ -62,7 +62,7 @@ namespace AM.Services
                 // var batchWiseCount =GetRecentBatchesListStats(clientCode,db).Single(b => b.BatchName == batchName);
                 db.Dispose();
                 //TODO need list MailPieces
-                
+
                 //scanCountData.JobName = registerScanData.JobName;
                 //scanCountData.Code = registerScanData.Code;
                 //scanCountData.Message = registerScanData.Message;
