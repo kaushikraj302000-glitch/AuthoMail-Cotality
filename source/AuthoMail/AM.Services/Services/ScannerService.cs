@@ -19,7 +19,7 @@ namespace AM.Services
         List<ScanedDocument> GetScanReportData(string clientCode, string barcodeValue, string loanNumber, string printOnFrom, string printOnTo, string shippedOnFrom, string shippedOnTo);
         List<PendingScanning> GetPendingScanning(string clientCode);
         USPSScanDetails RegisterUSPSScan(int mailPieceId, string trackingNo, string clientCode);
-        BulkScanDetails RegisterBulkScan(string barcode, string clientCode, string username, string machineName, string batchName);
+        List<RegisterScanDetails> RegisterBulkScan(string barcode, string clientCode, string username, string machineName, string batchName);
     }
     public class ScannerService : ServiceBase, IScannerService
     {
@@ -50,26 +50,16 @@ namespace AM.Services
                 throw e;
             }
         }
-        public BulkScanDetails RegisterBulkScan(string barcode, string clientCode, string username, string machineName, string batchName)
+        public List<RegisterScanDetails> RegisterBulkScan(string barcode, string clientCode, string username, string machineName, string batchName)
         {
             barcode = barcode.Replace(clientCode, "");
             try
             {
                 var estToday = DateTime.UtcNow.UtcToEst().Date;
                 string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid, @batchName, @estDate", "SP_BulkRegisterScan");
-                var scanCountData = new BulkScanDetails();// GetScanStats(clientCode);
-                scanCountData.MailPieces = db.Query<RegisterScanDetails>(query, new { barcode = barcode, clientCode = clientCode, operatorid = username, machineid = machineName, batchName = batchName, estDate = estToday }).ToList();
-                // var batchWiseCount =GetRecentBatchesListStats(clientCode,db).Single(b => b.BatchName == batchName);
+                var registerScanDetails = db.Query<RegisterScanDetails>(query, new { barcode = barcode, clientCode = clientCode, operatorid = username, machineid = machineName, batchName = batchName, estDate = estToday }).ToList();
                 db.Dispose();
-                //TODO need list MailPieces
-
-                //scanCountData.JobName = registerScanData.JobName;
-                //scanCountData.Code = registerScanData.Code;
-                //scanCountData.Message = registerScanData.Message;
-                //scanCountData.AppCode = clientCode;
-                //scanCountData.TrackingNo = registerScanData.TrackingNo;
-                return scanCountData;
-
+                return registerScanDetails;
             }
             catch (Exception e)
             {

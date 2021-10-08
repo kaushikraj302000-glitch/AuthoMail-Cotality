@@ -67,7 +67,7 @@ namespace AM.Scanner.Controllers
             using (new PerfTimerLogger("RegisterBulkScan[ScanController]: "))
             {
                 string machineName = GetIPAddress();
-                Services.BulkScanDetails scanDetails = scannerSvc.RegisterBulkScan(barcode, clientCode, User.Identity.Name, machineName, batchName);
+                var scanDetails = scannerSvc.RegisterBulkScan(barcode, clientCode, User.Identity.Name, machineName, batchName);
                 return Json(new { model = scanDetails }, JsonRequestBehavior.AllowGet);
             }
         }
