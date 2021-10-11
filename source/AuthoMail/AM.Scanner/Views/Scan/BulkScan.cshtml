@@ -116,14 +116,14 @@
     <div class="col-md-7">
         <div class="form-inline">
             <div class="form-group">
-                <label class="sr-only" for="exampleInputEmail3">Front Barcode</label>
-                <input type="text" class="form-control" id="code1" placeholder="Front Barcode" tabindex="3">
+                <label class="sr-only" for="exampleInputEmail3">Manifest Barcode</label>
+                <input type="text" class="form-control" id="code1" placeholder="Manifest Barcode" tabindex="1">
             </div>
             <div class="form-group">
                 <label class="sr-only" for="exampleInputEmail3">Total Packages</label>
-                <input type="text" class="form-control" id="totalPackages" placeholder="Total Packages" tabindex="1">
+                <input type="text" class="form-control" id="totalPackages" placeholder="Total Packages" tabindex="2">
             </div>
-            <button type="button" id="clearData" class="btn btn-warning" tabindex="5">Clear</button>
+            <button type="button" id="clearData" class="btn btn-warning" tabindex="3">Clear</button>
             <div id="Messagedata" style="height: 35px; margin-top: 8px; margin-left: -1px;">
                 <div id="message" class="form-group">
                 </div>
@@ -270,7 +270,7 @@
                         $("#message").show();
                         $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Error Code " + xhr.status + ":</strong> " + databaseError + "</div>");
                         $("#code1").val("");
-                        $("#code2").val("");
+                        $("#totalPackages").val("");
                         $("#code1").focus();
                     }
                 });
@@ -312,7 +312,7 @@
                         $("#message").show();
                         $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><strong>Error Code " + xhr.status + ":</strong> " + databaseError + "</div>");
                         $("#code1").val("");
-                        $("#code2").val("");
+                        $("#totalPackages").val("");
                         $("#code1").focus();
                     }
                 });
@@ -340,6 +340,7 @@
             /*---- Scanned Batch Count using Ajax  ----*/
             /*---- Parameter:{ operationcode , clientCode }  ----*/
             jQuery(document).ready(function ($) {
+                $("#code1").focus();
                 $('.modal-dialog').draggable({ handle: ".modal-header" });
                 $('.modal-dialog').find(".modal-header").css('cursor', 'move');
 
@@ -446,94 +447,39 @@
                                 url: '@Url.Content("~/Scan/RegisterBulkScan")',
                                 data: { barcode: code1Value, clientCode: clientCode, batchName: batchName },
                                 success: function (response) {
-                                    debugger;
-                                    response.forEach(function ProcessResult(object) {
-                                        debugger;
-                                        var code = object.model.Code;
-                                        var trackingNo = object.model.TrackingNo;
-                                        var message = object.model.Message;
-                                        if (code == "Valid" || code == "QC" || code == "Pulledback") {
-                                            totalScanned = parseInt(totalfiles);
-                                            $("#todayscount").text(totalScanned + "/" + totalfiles);
-                                            if (message == null || message == "") {
-                                                message = successmsg;
-                                            }
-                                            UpdateProgressCount(totalScanned, totalfiles);
-
-                                            $("#message").empty();
-                                            $("#message").show();
-                                            $("#message").append("<div class='alert alert-success' style=' font-family:Copperplate Gothic;'>" + message + "</div>");
-                                            $('#message').delay(2000).fadeOut('slow');
-                                            if (code == "QC") {
-                                                $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.JobName + "<br>  Code: " + code + "'  class='lblAMC lbl-warning' for='success'>" + trackingNo + "</lable>");
-                                                $("#genmodalTitle").removeClass("alert alert-danger");
-                                                $("#genmodalTitle").text("QC is requested for this mailpiece, please perform quality check before mailing.");
-                                                $("#genmodalTitle").addClass("alert alert-info");
-                                                $("#generalmodal").modal("show");
-                                                $("#code1").val("");
-                                            }
-                                            if (code == "Pulledback") {
-                                                $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.JobName + "<br>  Code: " + code + "'  class='lblAMC lbl-danger' for='success'>" + trackingNo + "</lable>");
-                                                $("#genmodalTitle").removeClass("alert alert-info");
-                                                $("#genmodalTitle").text("Pullback is requested for this mailpiece, please DO NOT mail.");
-                                                $("#genmodalTitle").addClass("alert alert-danger");
-                                                $("#generalmodal").modal("show");
-                                                $("#code1").val("");
-                                                $("#totalPackages").val("");
-                                            }
-                                            if (code == "Valid") {
-                                                $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + object.model.JobName + "<br>  Code: " + code + "'  class='lblAMC lbl-success' for='success'>" + trackingNo + "</lable>");
-                                                $("#code1").val("");
-                                                $("#totalPackages").val("");
-                                                $("#code1").focus();
-                                            }
-                                            $('[data-toggle="tooltip"]').tooltip();
-                                            if (totalfiles == totalScanned) {
-                                                $("#modalTitle").removeClass("alert alert-danger");
-                                                $("#modalTitle").text(modalsuccess);
-                                                $("#modalTitle").addClass("alert alert-success");
-                                                $("#submitModal").text("OK");
-                                                $("#cancelModal").hide();
-                                                $("#code1").val("");
-                                                $("#totalPackages").val("");
-                                                $("#smallModal").modal("show");
-                                                return;
-                                            }
+                                    var data = response.model;
+                                    for (var i = 0; i < data.length; i++) {
+                                        if (data[i].Code == "Valid") {
+                                            $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[i].JobName + "<br>  Code: Valid' class='lblAMC lbl-success' for='success" + i + "' > " + data[i].TrackingNo + " </label>");
                                         }
-                                        else if (code == "Rescan") {
+                                        else if (data[i].Code == "QC") {
+                                            $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[i].JobName + "<br>  Code: QC'  class='lblAMC lbl-warning' for='warning" + i + "' > " + data[i].TrackingNo + " </label>");
+                                        }
+                                        else if (data[i].Code == "Pulledback") {
+                                            $("#SuccessscannedCode").prepend("<label data-toggle='tooltip' data-container='body' data-placement='top' data-html='true' title='Batch Name: " + data[i].JobName + "<br>  Code: Pulledback'  class='lblAMC lbl-danger' for='danger" + i + "' > " + data[i].TrackingNo + " </label>");
+                                        }
+                                        else if (data[i].Code == "Rescan") {
                                             $("#message").empty();
                                             $("#message").show();
                                             if (message == null || message == "") {
                                                 message = duplicatemsg;
                                             }
-                                            $("#message").append("<div class='alert alert-warning' style=' font-family:Copperplate Gothic;'>" + message + "</div>");
-                                            $("#RescannedCode").prepend("<div style='margin:2px;' class='form-group'><button class='lblAMC lbl-warning' disabled >" + trackingNo + "</button></div>");
-                                            $("#code1").val("");
-                                            $("#code1").focus();
+                                            $("#message").append("<div class='alert alert-warning' style=' font-family:Copperplate Gothic;'>" + data[i].Message + "</div>");
+                                            $("#RescannedCode").prepend("<div style='margin:2px;' class='form-group'><button class='lblAMC lbl-warning' disabled >" + data[i].TrackingNo  + "</button></div>");
                                         }
-                                        else if (code == "Invalid") {
+                                        else (data[i].Code == "Invalid") {
                                             $("#message").empty();
                                             $("#message").show();
                                             if (message == null || message == "") {
-                                                $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'>Document with barcode " + code2Value + " could not be found.</div>");
+                                                $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'>Document with barcode " + data[i].TrackingNo + " could not be found.</div>");
                                             }
                                             else {
-                                                $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><b>" + message + "</b></div>");
+                                                $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'><b>" + data[i].Message  + "</b></div>");
                                             }
-                                            $("#code1").val("");
-                                            $("#code1").focus();
-                                            $("#WrongCode").prepend("<div style='margin:2px;' class='form-group'><label class='lblAMC lbl-danger' disabled>" + code2Value + "</label></div>");
                                         }
-                                        else {
-                                            $("#message").empty();
-                                            $("#message").show();
-                                            $("#wrongRow").show();
-                                            $("#message").append("<div class='alert alert-danger' style=' font-family:Copperplate Gothic;'>" + code1Value + " " + mismatch + "</div>");
-                                            $("#code1").val("");
-                                            $("#code1").focus();
-                                            $("#WrongCode").prepend("<div style='margin:2px;' class='form-group'><label class='lblAMC lbl-danger' disabled>" + code2Value + "</label></div>");
-                                        }
-                                    });
+                                    }
+                                    $("#code1").val("");
+                                    $("#code1").focus();
                                 },
                                 error: function (xhr, response) {
                                     $("#message").empty();
