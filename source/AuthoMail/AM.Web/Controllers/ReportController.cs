@@ -343,19 +343,22 @@ namespace AM.Web.Controllers
                         list.Add(item);
                     }
                 }
-                //ViewBag.ClientId = new SelectList(homeSvc.GetAllActiveClient(), "Id", "Name");
                 ViewBag.ClientId = list;
+            }
+            else
+            {
+                ViewBag.ClientId = User.Identity.GetClientId();
             }
 
             return View();
         }
 
         [HttpPost]
-        public ActionResult _DownloadPVReconReport(string pvCode, string startDate, string endDate, string fileName, int timezoneOffset, List<int> clientIds, string status, List<string> shippingMethods)
+        public ActionResult _DownloadPVReconReport(string printVendorCode, string startDate, string endDate, string fileName, int timezoneOffset, List<int> clientIds, string status, List<string> shippingMethods)
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToStartDateTime().EstToUtc();
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToEndDateTime().EstToUtc();
-            var data = repoSvc.GetPVReconReport(pvCode, exactStartDate, exactEndDate, clientIds, status, shippingMethods);
+            var data = repoSvc.GetPVReconReport(printVendorCode, exactStartDate, exactEndDate, clientIds, status, shippingMethods);
             var model = Mapper.Map<List<MonthlyReconReportViewModel>>(data);
             model.ForEach(m =>
             {
