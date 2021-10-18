@@ -50,28 +50,26 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="form-group">
-                        <label for="Channel">Print Vendors</label>
+                        <label for="PrintVendors">Print Vendors</label>
                         @Html.Action("_PrintVendorList", "Common")
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="form-group">
                         <label for="Status">Shipping Status</label>
                         <select class="selectpicker" id="Status" data-live-search="true" data-live-search-placeholder="Search Status">
-                            <option value="">
-                                Select Status
-                            </option>
+                            <option value="">Select Status</option>
                             <option value="InProgress">In Progress</option>
                             <option value="PulledBack">Pulledback</option>
                             <option value="Shipped">Shipped</option>
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="form-group">
-                        <label for="BatchId">Shipping Method</label>
+                        <label for="ShippingMethod">Shipping Method</label>
                         <select class="selectpicker" id="ShippingMethod" multiple="multiple">
                             <option value="USPS-IMB">USPS-IMB</option>
                             <option value="USPS-PRIORITY">USPS-PRIORITY</option>
@@ -82,13 +80,18 @@
                 </div>
                 @if (User.IsInRole(AM.Entities.AMRoles.Admin))
                 {
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <div class="form-group">
                             <label for="ClientId">Clients</label>
                             @Html.DropDownList("ClientId", ViewBag.ClientId as IEnumerable<SelectListItem>, htmlAttributes: new { @class = "selectpicker", @multiple = "multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
                         </div>
                     </div>
                 }
+                else
+                {
+                    <input type="hidden" name="ClientId" id="ClientId" value="@ViewBag.ClientId" />
+                }
+                <div class="clearfix"></div>
                 <div class="col-md-1">
                     <div class="form-group ">
                         <label for="input1"></label>
@@ -104,6 +107,7 @@
 </div>
 <!-- end table template code -->
 @section Scripts{
+    @Scripts.Render("~/bundles/datatables")
     <script>
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
@@ -114,11 +118,12 @@
             var selectedData = $("#date").val().split('-');
             var startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
             var endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
-
+            var printVendorCode = $("#PrintVendors option:selected").text() != "Select Print Vendor" ? $("#PrintVendors option:selected").val() : null;
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_DownloadPVReconReport",
                 data: JSON.stringify({
+                    printVendorCode: printVendorCode,
                     clientIds:$("#ClientId").val(),
                     startDate: startDate,
                     endDate: endDate,

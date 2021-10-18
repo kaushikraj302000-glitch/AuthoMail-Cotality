@@ -120,7 +120,7 @@ namespace AM.Reporting
                         msg.IsBodyHtml = true;
                         msg.To.Add(AppConfig.FedExReport_Email_To);
                         msg.CC.Add(AppConfig.FedExReport_Email_Cc);
-                        msg.Subject = "{0} : {1} {2} {3}".Fill(Config.Common_Environment, "USAA", AppConfig.FedExReportSubject, todayDate.ToString("MM-dd-yyyy hh:mm"));
+                        msg.Subject = $"{Config.Common_Environment} : {AppConfig.FedExReportSubject} {todayDate.ToString("MM-dd-yyyy hh:mm")}";
                         msg.Priority = MailPriority.Normal;
 
                         string bodyTags = @"<!DOCTYPE html><html xmlns='http://www.w3.org/1999/xhtml'><head><meta http-equiv='Content-Style-Type' content='text/css'></head><body><center><%REPLACE%></center></body></html>";

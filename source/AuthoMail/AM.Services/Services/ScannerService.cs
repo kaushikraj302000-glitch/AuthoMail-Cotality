@@ -19,6 +19,7 @@ namespace AM.Services
         List<ScanedDocument> GetScanReportData(string clientCode, string barcodeValue, string loanNumber, string printOnFrom, string printOnTo, string shippedOnFrom, string shippedOnTo);
         List<PendingScanning> GetPendingScanning(string clientCode);
         USPSScanDetails RegisterUSPSScan(int mailPieceId, string trackingNo, string clientCode);
+        List<RegisterScanDetails> RegisterBulkScan(string barcode, string clientCode, string username, string machineName, string batchName);
     }
     public class ScannerService : ServiceBase, IScannerService
     {
@@ -49,7 +50,23 @@ namespace AM.Services
                 throw e;
             }
         }
-
+        public List<RegisterScanDetails> RegisterBulkScan(string barcode, string clientCode, string username, string machineName, string batchName)
+        {
+            barcode = barcode.Replace(clientCode, "");
+            try
+            {
+                var estToday = DateTime.UtcNow.UtcToEst().Date;
+                string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid, @batchName, @estDate", "SP_BulkRegisterScan");
+                var registerScanDetails = db.Query<RegisterScanDetails>(query, new { barcode = barcode, clientCode = clientCode, operatorid = username, machineid = machineName, batchName = batchName, estDate = estToday }).ToList();
+                db.Dispose();
+                return registerScanDetails;
+            }
+            catch (Exception e)
+            {
+                log.Error(e.Message.ToString());
+                throw e;
+            }
+        }
         public Dictionary<string, ScanDetails> GetScanStats()
         {
             try

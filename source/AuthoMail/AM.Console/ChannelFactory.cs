@@ -46,6 +46,9 @@ namespace AM.Console
                 case "DELFUS":
                     return new DELFUSChannel(channelCode, channelType);
 
+                case "TDBANK":
+                    return new TDBankChannel(channelCode, channelType);
+
                 // AuthoMail XML schema
                 //Parameter for Print Ready Client should be like PRINTREADY|AppCode Sweep/Trigger
                 //Parameter for regular Client should be like AppCode Sweep/Trigger

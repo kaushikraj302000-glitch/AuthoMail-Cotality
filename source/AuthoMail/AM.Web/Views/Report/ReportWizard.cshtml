@@ -91,14 +91,14 @@
                                 <div class='alert alert-yellow'><div>No business friendly id found!</div></div>
                             }
                         </div>
-                        <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="DocType">Document Type</label>
                                 @Html.DropDownList("DocType", ViewBag.DocType as SelectList, htmlAttributes: new { @class = "selectpicker", @multiple = "multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Document Type" })
                             </div>
 
                         </div>
-                        <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
+                        <div class="col-md-2">
                             <div class="form-group">
                                 <label for="Status">Status</label>
                                 <select class="selectpicker" id="Status" data-live-search="true" data-live-search-placeholder="Search Status">
@@ -114,7 +114,7 @@
                             </div>
 
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="form-group">
                                 <label for="Channel">Channel</label>
                                 @Html.Action("_Channel", "Common")

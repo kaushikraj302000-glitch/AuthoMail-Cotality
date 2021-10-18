@@ -864,6 +864,7 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
                     INNER JOIN PnS.MRDFRequest REQ ON P.UniqueId=REQ.UniqueId
                     INNER JOIN PnS.PrintTrailBatches PT ON REQ.PrintTrailBatchId=PT.Id
                     INNER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id
+                    INNER JOIN Common.ShipperInformation SI ON P.ShipperId=SI.Id
                     LEFT OUTER JOIN 
                     (
 	                    SELECT *
@@ -895,6 +896,13 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
                 query = string.Format("{0} and P.ShippingStatus = @ShippingStatus", query);
                 parameter.Add("@ShippingStatus", status);
             }
+
+            if (!pvCode.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} and SI.PrintVendorCode = @PVCode", query);
+                parameter.Add("@PVCode", pvCode);
+            }
+
             if (shippingMethod != null && shippingMethod.Count > 0)
             {
                 List<string> shipMethod = new List<string>();
