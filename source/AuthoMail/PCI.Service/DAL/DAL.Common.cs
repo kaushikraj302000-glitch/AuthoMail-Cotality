@@ -105,6 +105,12 @@ namespace PCI.Service
             return dallasTimings.DataTableAccessor<DallasBatchTiming>(false).ToList();
         }
 
+        public static List<DallasBatchTiming> GetDallasBatchTimingsFromTable()
+        {
+            var dallasTimings = db.ExecuteDataSet(CommandType.Text, "SELECT * FROM Common.DallasBatchTimings");
+            return dallasTimings.DataTableAccessor<DallasBatchTiming>(false).ToList();
+        }
+
         public static int UpdatePrintTrailBatchStatus(int printTrailBatchId, string pipeLineStatus, DateTime timestamp)
         {
             return db.ExecuteSqlNonQuery("UPDATE [PnS].[PrintTrailBatches] SET {0}On = @p1 WHERE Id = @p2".Fill(pipeLineStatus), timestamp, printTrailBatchId);

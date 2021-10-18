@@ -168,6 +168,20 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="IsTrackingRequired" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="b68e2f02-d6e2-4858-bad4-fa323f78eace" ChangeDateTime="06/22/2021 10:13:28">
+    <Property Name="ElementName" Value="[AM].[FloodClientMapping].[IX_ClientId_ClientName]" />
+    <Property Name="ElementType" Value="SqlIndex" />
+    <Property Name="ParentElementName" Value="[AM].[FloodClientMapping]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="[IX_Unique_ClientId_ClientName]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="bd9d8d88-7664-44bb-9597-5ef2418b0173" ChangeDateTime="08/02/2021 12:40:06">
+    <Property Name="ElementName" Value="[Common].[DallasBatchTimings].[IsWeekEnd]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Common].[DallasBatchTimings]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="IsSaturday" />
+  </Operation>
   <Operation Name="Rename Refactor" Key="ff5e4c47-4cc1-4e5b-84b7-066d120eb5f4" ChangeDateTime="05/31/2021 06:48:57">
     <Property Name="ElementName" Value="[Common].[DallasPostages].[InsertOne]" />
     <Property Name="ElementType" Value="SqlSimpleColumn" />
