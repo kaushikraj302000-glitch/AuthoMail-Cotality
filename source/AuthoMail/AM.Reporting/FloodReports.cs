@@ -48,14 +48,14 @@ namespace AM.Reporting
 
         private static void SendEmailNotificationToFlood(List<ReportWizard> mpDetails, string reportFilePath, string subject)
         {
-            var columnName = String.Join(",", "MailPieceId", "BatchId", "Channel", "Document Or PackageType", "Loan Number", "Tracking Number", "Received On (Est)", "Printed On (Est)", "Mailed On (Est)", "File Name", "Client Code", "Shipping Method", "First Name", "Last Name", "Street", "City", "State", "ZIP", "Print Location", "Pages Shipped", "Blank Pages", "Status", "Inserts", "Print File Name", "Envelope Name", "Delivery Date", "Delivery Status", "Requestor Name", "Property Street", "Property City", "Property State", "Property Zip");
+            var columnName = String.Join("|", "MailPieceId", "BatchId", "Channel", "Document Or PackageType", "Loan Number", "Tracking Number", "Received On (Est)", "Printed On (Est)", "Mailed On (Est)", "File Name", "Client Code", "Shipping Method", "First Name", "Last Name", "Street", "City", "State", "ZIP", "Print Location", "Pages Shipped", "Blank Pages", "Status", "Inserts", "Print File Name", "Envelope Name", "Delivery Date", "Delivery Status", "Requestor Name", "Property Street", "Property City", "Property State", "Property Zip");
 
             StringBuilder reconReport = new StringBuilder(columnName);
 
             reconReport.AppendLine();
             foreach (var mp in mpDetails)
             {
-                var line = String.Join(",", mp.MailPieceId, mp.BatchId.ToCsvString(), mp.Channel, mp.DocumentOrPackageType, mp.LoanNumber.ToCsvString(), mp.TrackingNo.ToCsvString(), mp.ReceivedOn.HasValue ? (DateTime?)mp.ReceivedOn.Value.UtcToEst() : null, mp.PrintedOn.HasValue ? (DateTime?)mp.PrintedOn.Value.UtcToEst() : null, mp.MailedOn.HasValue ? (DateTime?)mp.MailedOn.Value.UtcToEst() : null, mp.FileName, mp.ClientCode, mp.ShippingMethod, mp.FirstName, mp.LastName, mp.RcptAddressStreet, mp.City, mp.State, mp.ZIP, mp.PrintLocation, mp.PagesShipped, mp.BlankPages, mp.State, mp.Inserts, mp.PrintFileName, mp.EnvelopeName, mp.DeliveryDate, mp.DeliveryStatus, mp.RequestorName, mp.PropertyStreetAddress, mp.PropertyCity, mp.PropertyState, mp.PropertyZip);
+                var line = String.Join("|", mp.MailPieceId, mp.BatchId.ToCsvString(), mp.Channel, mp.DocumentOrPackageType, mp.LoanNumber.ToCsvString(), mp.TrackingNo.ToCsvString(), mp.ReceivedOn.HasValue ? (DateTime?)mp.ReceivedOn.Value.UtcToEst() : null, mp.PrintedOn.HasValue ? (DateTime?)mp.PrintedOn.Value.UtcToEst() : null, mp.MailedOn.HasValue ? (DateTime?)mp.MailedOn.Value.UtcToEst() : null, mp.FileName, mp.ClientCode, mp.ShippingMethod, mp.FirstName, mp.LastName, mp.RcptAddressStreet, mp.City, mp.State, mp.ZIP, mp.PrintLocation, mp.PagesShipped, mp.BlankPages, mp.State, mp.Inserts, mp.PrintFileName, mp.EnvelopeName, mp.DeliveryDate, mp.DeliveryStatus, mp.RequestorName, mp.PropertyStreetAddress, mp.PropertyCity, mp.PropertyState, mp.PropertyZip);
                 reconReport.AppendLine(line);
             }
 

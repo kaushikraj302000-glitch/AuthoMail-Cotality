@@ -89,6 +89,10 @@
                         </div>
                     </div>
                 }
+                else
+                {
+                    <input type="hidden" name="ClientId" id="ClientId" value="@ViewBag.ClientId" />
+                }
                 <div class="col-md-1">
                     <div class="form-group ">
                         <label for="input1"></label>
@@ -104,6 +108,7 @@
 </div>
 <!-- end table template code -->
 @section Scripts{
+    @Scripts.Render("~/bundles/datatables")
     <script>
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
@@ -114,11 +119,12 @@
             var selectedData = $("#date").val().split('-');
             var startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
             var endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
-
+            var printVendorCode = $("#PrintVendors option:selected").text() != "Select Print Vendor" ? $("#PrintVendors option:selected").val() : null;
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_DownloadPVReconReport",
                 data: JSON.stringify({
+                    printVendorCode: printVendorCode,
                     clientIds:$("#ClientId").val(),
                     startDate: startDate,
                     endDate: endDate,
