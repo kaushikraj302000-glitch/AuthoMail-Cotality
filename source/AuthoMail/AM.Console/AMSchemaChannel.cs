@@ -629,14 +629,6 @@ namespace AM.Console
                 }
             }
 
-            if ((SFTChannel.Code.Contains("PENFED") || SFTChannel.Code.Contains("BECU")) && availableTriggerFilePaths.Count > 0)
-            {
-                if (SFTChannel.Host.Contains("FAGOSFTP"))
-                {
-                    availableTriggerFilePaths = availableTriggerFilePaths.Where(path => Path.GetFileNameWithoutExtension(path).StartsWith(Config.Common_EnvironmentInitial)).ToList();
-                }
-            }
-
             return availableTriggerFilePaths;
         }
         #endregion

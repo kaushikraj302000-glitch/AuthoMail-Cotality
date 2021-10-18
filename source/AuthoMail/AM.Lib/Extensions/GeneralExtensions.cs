@@ -204,6 +204,62 @@ namespace AM.Lib
             }
         }
 
+        public static List<T> FromDataTable<T>(this DataTable dt)
+        {
+            List<T> data = new List<T>();
+            foreach (DataRow row in dt.Rows)
+            {
+                T item = GetItem<T>(row);
+                data.Add(item);
+            }
+            return data;
+        }
+        public static T GetItem<T>(DataRow dr)
+        {
+            Type temp = typeof(T);
+            T obj = Activator.CreateInstance<T>();
+
+            foreach (DataColumn column in dr.Table.Columns)
+            {
+                foreach (PropertyInfo prop in temp.GetProperties())
+                {
+                    var clname = prop.Name;
+
+                    var displayName = (DisplayNameAttribute)prop.GetCustomAttribute(typeof(DisplayNameAttribute), true);
+                    if (displayName != null)
+                    {
+                        clname = displayName.DisplayName;
+                    }
+
+                    if (clname == column.ColumnName)
+                    {
+                        if (prop.PropertyType.IsValueType && Nullable.GetUnderlyingType(prop.PropertyType) != null)
+                        // if property is nullable, underlying nullable type will eval as true.
+                        {
+                            if (dr[column.ColumnName] == null || dr[column.ColumnName] == DBNull.Value || dr[column.ColumnName] == "")
+                            {
+                                prop.SetValue(obj, null, null);
+                            }
+                            else
+                                prop.SetValue(obj, Convert.ChangeType(dr[column.ColumnName], Nullable.GetUnderlyingType(prop.PropertyType)), null);
+                        }
+                        else if (prop.PropertyType.IsValueType)
+                        {
+                            prop.SetValue(obj, Convert.ChangeType(dr[column.ColumnName], prop.PropertyType), null);
+                        }
+                        else
+                        {
+                            prop.SetValue(obj, dr[column.ColumnName], null);
+                        }
+                    }
+                    else
+                        continue;
+                }
+            }
+            return obj;
+        }
+
+
         public static string RemoveCSVStringFormat(this string str)
         {
             return str.Replace("\"", "");

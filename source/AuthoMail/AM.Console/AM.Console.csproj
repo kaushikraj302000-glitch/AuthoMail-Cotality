@@ -92,6 +92,7 @@
     <Compile Include="AlaskaChannel.cs" />
     <Compile Include="AlaskaSchema.cs" />
     <Compile Include="AMCChannel.cs" />
+    <Compile Include="TDBankChannel.cs" />
     <Compile Include="IChannel.cs" />
     <Compile Include="PAMSchemaChannel.cs" />
     <Compile Include="CalcStdPrepStartTime.cs" />
@@ -155,6 +156,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="CustomTemplates\MTBANK\2813735_REP.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CustomTemplates\TDBANK\LienFollowUpLetter.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CustomTemplates\TDBANK\LienNotificationLetter.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="log4net.config">
