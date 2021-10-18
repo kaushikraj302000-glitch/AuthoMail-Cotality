@@ -95,13 +95,13 @@
                                 <div class='alert alert-yellow'><div>No business friendly id found!</div></div>
                             }
                         </div>
-                        <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
+                        <div class="col-md-3">
                             <div class="form-group">
                                 <label for="DocType">Document Type</label>
                                 @Html.DropDownList("DocType", ViewBag.DocType as SelectList, htmlAttributes: new { @class = "selectpicker", @multiple = "multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Document Type" })
                             </div>
                         </div>
-                        <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
+                        <div class="col-md-2">
                             <div class="form-group">
                                 <label for="Status">Status</label>
                                 <select class="selectpicker" id="Status" data-live-search="true" data-live-search-placeholder="Search Status">
@@ -117,7 +117,7 @@
                             </div>
 
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="form-group">
                                 <label for="Channel">Channel</label>
                                 @Html.Action("_Channel", "Common")
@@ -197,7 +197,7 @@
                         }
 
                         <div class="col-md-1">
-                            <div class="form-group ">
+                            <div class="form-group " style="padding-top:27px;">
                                 <label for="filterData">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                                 <button type="button" id="filterData" class="btn btn-primary" title="Search">
                                     <span class="sr-only">Filter</span>
@@ -206,7 +206,7 @@
                             </div>
                         </div>
                         <div class="col-md-1" style="margin-left: -2%;">
-                            <div class="form-group ">
+                            <div class="form-group " style="padding-top:27px;">
                                 <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                                 <button type="button" id="downloadFilter" title="Download Search Output" class="btn btn-primary">
                                     <i class="fa fa-download"></i>
@@ -214,7 +214,7 @@
                             </div>
                         </div>
                         <div class="col-md-1" style="margin-left: -2%;">
-                            <div class="form-group ">
+                            <div class="form-group " style="padding-top:27px;">
                                 <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                                 <button type="button" id="resetFilter" title="Reset" class="btn btn-transparent-blue">
                                     <i class="fa fa-undo"></i>
@@ -238,7 +238,7 @@
 
         </div>
     </div>
-    <div class="panel-body" id="searchMailPieceList"></div>
+    <div class="panel-body" id="searchMailPieceList" style="margin-top:20px;"></div>
 </div>
 <!--Search table html template code -->
 <div id="SearchTableContent" style="display:none">

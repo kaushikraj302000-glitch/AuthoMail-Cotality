@@ -51,7 +51,7 @@
                     </div>
 
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="form-group">
                         <label for="Envelopes">Envelopes</label>
                         @Html.DropDownList("Envelopes", ViewBag.Envelopes as SelectList, "All Envelope", htmlAttributes: new { @class = "selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Envelope" })
@@ -64,7 +64,7 @@
                     </div>
                 </div>
                 <div class="col-md-1">
-                    <div class="form-group ">
+                    <div class="form-group " style="margin-top: 27px;">
                         <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;</label>
                         <button type="button" id="filterData" class="btn btn-primary" style=" padding-top: 6%;">
                             <span class="sr-only">Filter</span>
@@ -85,12 +85,12 @@
         <div class="panel-title">
             Envelopes Usage Report : <span class="normaltext" id="headerdate"></span>
             @*<label for="labelBatch" id="labelBatch" class="normallabel"></label>
-            <span id="batchListSelect">
+                <span id="batchListSelect">
 
-            </span>*@
+                </span>*@
         </div>
     </div>
-    <div class="panel-body" id="EnvelopesUsageList"></div>
+    <div class="panel-body" id="EnvelopesUsageList" style="margin-top:10px;"></div>
 </div>
 
 <!-- table html template code -->

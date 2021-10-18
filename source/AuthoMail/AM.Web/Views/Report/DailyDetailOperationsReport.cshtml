@@ -15,6 +15,10 @@
         word-wrap: break-word;
         color: red;
     }
+
+    .margin-bottom-15px {
+        margin-bottom: 15px;
+    }
 </style>
 <div class="panel-group">
     <div class="panel panel-default">
@@ -94,7 +98,7 @@
             </span>
         </div>
     </div>
-    <div class="panel-body" id="dailyMailPieceList"></div>
+    <div class="panel-body" id="dailyMailPieceList" style="margin-top:10px;"></div>
 </div>
 
 <!-- table html template code -->
@@ -236,7 +240,7 @@
                 {
                     extend: 'csv',
                     text: '<i class="fa fa-file-excel-o fa-2x"></i>',
-                    className: 'btn btn-primary',
+                        className: 'btn btn-primary margin-bottom-15px',
                     filename: filename,
                     title: title,
                     exportOptions: {
