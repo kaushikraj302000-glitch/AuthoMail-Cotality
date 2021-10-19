@@ -383,6 +383,26 @@ namespace AM.Console
                         sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
                     }
                     break;
+                case "TDBANK":
+                    //NOTE : Below zip file naming convention is EDG Naming convention.
+                    zipFileName = "{0}FAGOS.ZYIAC.N0010393.TDOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                    zipFilePath = Path.Combine(localReportPath, zipFileName);
+                    ftpUploadPath = Path.Combine(deliveryUploadPath, zipFileName);
+                    resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();
+                    using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                    {
+                        foreach (string filePath in resXmlList)
+                        {
+                            string fileName = Path.GetFileName(filePath);
+                            newFile.CreateEntryFromFile(filePath, fileName);
+                            //After upload change extention as a Complete
+                            File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
+                        }
+                    }
+                    sftSite.UploadFile(zipFilePath, ftpUploadPath);
+                    File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
+                    Thread.Sleep(1000);
+                    break;
                 case "PENFED":
 
                     //NOTE : Below zip file naming convention is EDG Naming convention.
