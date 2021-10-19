@@ -251,16 +251,7 @@ namespace AM.Services
         public static int Web_SubmissionSFTChannelId { get; set; }
         #endregion Support
 
-        #region EllieMae_API
-
-        public static string EllieMae_UserId { get; set; }
-        public static string EllieMae_UserPass { get; set; }
-        public static string EllieMae_GrantType { get; set; }
-        public static string EllieMae_Scope { get; set; }
-        public static string EllieMae_BaseURL { get; set; }
-        public static string EllieMae_TokenUrl { get; set; }
-        public static string EllieMae_UploadResponseURL { get; set; }
-        public static int EllieMae_MaxResponseCount { get; set; }
+        #region API
         public static string MailRequestAPI_FilesDownloadPath { get; set; }
         public static int MailRequestAPI_MaxRequestSize { get; set; }
         public static int MailRequestAPI_MaxRetries { get; set; }

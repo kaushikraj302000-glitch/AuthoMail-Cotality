@@ -123,32 +123,6 @@ namespace AM.Console
             log.Debug("ReportedBack job is completed.");
         }
 
-        public static async Task<string> GenerateToken()
-        {
-            HttpClient client = new HttpClient();
-            string baseAddress = Path.Combine(Config.EllieMae_BaseURL, Config.EllieMae_TokenUrl);
-
-            string grant_type = Config.EllieMae_GrantType;
-            string client_id = Config.EllieMae_UserId;
-            string client_secret = Config.EllieMae_UserPass;
-            string scope = Config.EllieMae_Scope;
-
-            var form = new Dictionary<string, string>
-                    {
-                        {"grant_type", grant_type},
-                        {"client_id", client_id},
-                        {"client_secret", client_secret},
-                        {"scope", scope}
-                    };
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-            HttpResponseMessage tokenResponse = await client.PostAsync(baseAddress, new FormUrlEncodedContent(form));
-            var jsonContent = await tokenResponse.Content.ReadAsStringAsync();
-            var jObj = JObject.Parse(jsonContent);
-
-            return jObj.GetValue("access_token").ToString();
-        }
-
         private static void ProcessGeneralReportedBack(string channelCode)
         {
             using (IMailBatchService mailBatchSvc = new MailBatchService())
