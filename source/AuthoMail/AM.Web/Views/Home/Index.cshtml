@@ -621,7 +621,7 @@
                         cnt++;
                     }
                     // console.log(chartData);
-                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'), 300, 534);
+                    drawChart(chartData, "weeklyChart", 'Batch Details : ' + moment(startDate).format('MM/DD/YYYY') + " - " + moment(endDate).format('MM/DD/YYYY'), 300, 620);
 
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
@@ -1229,7 +1229,7 @@
                         cnt++;
                     }
 
-                    drawDailySummaryChart(chartData, "DailySummaryByDocType", 'MailPiece Status', 467, 534);
+                    drawDailySummaryChart(chartData, "DailySummaryByDocType", 'MailPiece Status', 467, 620);
                 }, error: function (err) {
                     $('#DailySummaryByDocType').html("<div class='alert alert-red' style='margin-bottom:10px;'><span>" + commonmsg + "</span></div>");
                 }
