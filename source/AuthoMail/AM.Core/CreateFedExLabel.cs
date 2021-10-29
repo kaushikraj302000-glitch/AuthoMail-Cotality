@@ -168,7 +168,7 @@ namespace AM.Core
             request.RequestedShipment.TotalWeight = new Weight(); // Total weight information
             request.RequestedShipment.TotalWeight.Value = 1.0M;
             request.RequestedShipment.TotalWeight.Units = WeightUnits.LB;
-            request.RequestedShipment.RateRequestTypes = new RateRequestType[1] { RateRequestType.NONE }; // Rate types requested LIST, MULTIWEIGHT, ...
+            request.RequestedShipment.RateRequestTypes = new RateRequestType[1] { RateRequestType.LIST }; // Rate types requested LIST, MULTIWEIGHT, ...
             request.RequestedShipment.PackageCount = "1";
 
             SetSender(request, shipperInfo);
