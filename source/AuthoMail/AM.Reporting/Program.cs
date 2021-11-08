@@ -86,6 +86,16 @@ namespace AM.Reporting
                 case "FLOODAUTO":
                     FloodReports.GenerateMonthlyReport();
                     break;
+                case "DelfusReport":
+                    switch (args[1])
+                    {
+                        case "ErrorReport":
+                            DelfusReporting.GenerateErrorReport();
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
                 default:
                     break;
             }

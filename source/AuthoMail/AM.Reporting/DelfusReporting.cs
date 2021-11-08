@@ -1,0 +1,107 @@
+﻿using AM.Lib;
+using AM.Services;
+using AM.Services.Services;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Mail;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace AM.Reporting
+{
+    class DelfusReporting
+    {
+        private static log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        internal static void GenerateErrorReport()
+        {
+            try
+            {
+                log.Debug("TaxCommercial Error Report Execution Triggered at {0} Est".Fill(Common.Now.UtcToEst()));
+                List<MailPieces> errorReportData;
+                List<DelfusErrorReport> taxcomerrorReportData;
+                using (IClientService clientSvc = new ClientService())
+                using (IReportService reportSvc = new ReportService())
+                using (IDelfusTemplateService delfusTemplateService = new DelfusTemplateService())
+                {
+                    var clientInfo = clientSvc.GetClientByAppCode("TAXCOM").Result;
+                    DateTime currentTime = Common.EstToday;
+                    DateTime endDate = currentTime.Date.AddDays(-1);
+                    DateTime startDate = currentTime.Date.AddMonths(-1);
+                    //NOTE : Please change UTC to EST code when Daylight saving is off in service call
+                    errorReportData = reportSvc.GetErrorReportByDateOrBatch(clientInfo.Id, startDate, endDate, null, "");
+                    taxcomerrorReportData = delfusTemplateService.GetTaxCommercialErrorData(startDate, endDate).Result.ToList();
+
+                    if (taxcomerrorReportData.Count > 0 || errorReportData.Count > 0)
+                    {
+                        GenerateErrorReport(errorReportData, taxcomerrorReportData, startDate, endDate);
+                    }
+                }
+                log.Debug("TaxCommercial Error Report Execution Completed at {0} Est".Fill(Common.Now.UtcToEst()));
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error occured while generating TaxCommercial Error Report", ex);
+            }
+        }
+
+        private static void GenerateErrorReport(List<MailPieces> errorReportData, List<DelfusErrorReport> taxcomerrorReportData, DateTime startDate, DateTime endDate)
+        {
+            string subject = "{0} : {1}".Fill(Config.Common_Environment, AppConfig.TaxComErrorReportEmailSubject.Fill($"{ startDate.ToString("MMddyyyy")}_To_{ endDate.ToString("MMddyyyy")}"));
+
+            string body = $"TaxCommercial Error Report For : { startDate.ToString("MMddyyyy")}_To_{endDate.ToString("MMddyyyy")}";
+
+            var columnName = String.Join(",", "ClientID", "Loan Number", "Document Type", "Delivery Type", "FileName", "Error Reason", "Receive Date", "Recipient Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip");
+
+            StringBuilder reconReport = new StringBuilder(columnName);
+
+            reconReport.AppendLine();
+
+            foreach (var mp in taxcomerrorReportData)
+            {
+                var line = String.Join(",", mp.RD_CUST_ID, mp.RD_LOAN_ID.ToCsvString(), mp.DocumentType, "", mp.PdfFileName, mp.DisqualifyReason.ToCsvString(), mp.DownloadedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), mp.RecipientName, mp.RD_SITUS_STR_NM, mp.RD_SITUS_CITY_NM, mp.RD_SITUS_STATE_ABBR, mp.RD_SITUS_ZIP_CD);
+                reconReport.AppendLine(line);
+            }
+
+            foreach (var mp in errorReportData)
+            {
+                var line = String.Join(",", "", mp.BusinessFriendlyIdValue.ToCsvString(), mp.DocumentOrPackageType, mp.DocTypes.ShippingServiceType, mp.FileName, mp.ErrorDesc, mp.MailBatches.ReceivedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), mp.RcptName, mp.RcptAddressStreet, mp.RcptAddressCity, mp.RcptAddressState, mp.RcptAddressZIP);
+                reconReport.AppendLine(line);
+            }
+            string reportFilePath = Path.Combine(AppConfig.TaxComErrorReportPath, $"TaxCommercialErrorReport_{startDate.ToString("MMddyyyy")}_To_{ endDate.ToString("MMddyyyy")}.csv");
+            File.WriteAllText(reportFilePath, reconReport.ToString());
+
+            SendReportToTaxCommercialTeam(reportFilePath, subject, body);
+        }
+
+        private static void SendReportToTaxCommercialTeam(string reportFilePath, string subject, string body)
+        {
+            try
+            {
+                using (SmtpClient smtpClient = new SmtpClient())
+                {
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = false;
+                        msg.To.Add(AppConfig.TaxComEmailTo);
+                        msg.CC.Add(AppConfig.TaxComEmailCc);
+                        msg.Subject = subject;
+                        msg.Priority = MailPriority.Normal;
+                        msg.Body = body;
+
+                        if (File.Exists(reportFilePath))
+                            msg.Attachments.Add(new Attachment(reportFilePath));
+
+                        smtpClient.Send(msg);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error occured while sending TaxCommercial Report :", ex);
+            }
+        }
+    }
+}

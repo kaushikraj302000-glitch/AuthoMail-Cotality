@@ -89,6 +89,13 @@ namespace AM.Reporting
 
         public static string USAAMTDEmailTo { get; private set; }
         public static string USAAMTDEmailCc { get; private set; }
+
+
+        public static string TaxComEmailTo { get; private set; }
+        public static string TaxComEmailCc { get; private set; }
+        public static string TaxComErrorReportEmailSubject { get; private set; }
+        public static string TaxComErrorReportPath { get; private set; }
+
         static AppConfig()
         {
             DallasEMailTo = ConfigurationManager.AppSettings["DallasEMailTo"].Trim();
@@ -147,6 +154,12 @@ namespace AM.Reporting
             FloodMonthlyEMailTo = ConfigurationManager.AppSettings["FloodMonthlyEMailTo"].Trim();
             FloodMonthlyEMailCc = ConfigurationManager.AppSettings["FloodMonthlyEMailCc"].Trim();
             FloodMonthlyReportPath = ConfigurationManager.AppSettings["FloodMonthlyReportPath"].Trim();
+
+            TaxComEmailTo = ConfigurationManager.AppSettings["TaxComEmailTo"].Trim();
+            TaxComEmailCc = ConfigurationManager.AppSettings["TaxComEmailCc"].Trim();
+
+            TaxComErrorReportEmailSubject = ConfigurationManager.AppSettings["TaxComErrorReportEmailSubject"].Trim();
+            TaxComErrorReportPath = ConfigurationManager.AppSettings["TaxComErrorReportPath"].Trim();
         }
     }
 }

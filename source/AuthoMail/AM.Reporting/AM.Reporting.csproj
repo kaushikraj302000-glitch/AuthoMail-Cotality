@@ -75,6 +75,7 @@
     <Compile Include="DallasNotification.cs" />
     <Compile Include="DALLASReconReport.cs" />
     <Compile Include="CarrierTrackingInfo.cs" />
+    <Compile Include="DelfusReporting.cs" />
     <Compile Include="FedExPickUP.cs" />
     <Compile Include="FloodReports.cs" />
     <Compile Include="GOSReports.cs" />
@@ -138,6 +139,7 @@
     <Folder Include="FloodReconReport\" />
     <Folder Include="GOSReconReport\" />
     <Folder Include="PCIReconReport\" />
+    <Folder Include="TaxComReport\ErrorReports\" />
     <Folder Include="USAAReport\ErrorReports\" />
     <Folder Include="USAAReport\MonthlyReconReports\" />
     <Folder Include="USAAReport\WeeklyReports\" />
