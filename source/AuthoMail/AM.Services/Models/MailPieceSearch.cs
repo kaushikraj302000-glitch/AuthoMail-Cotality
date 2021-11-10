@@ -592,6 +592,8 @@ namespace AM.Services
         public int TotalBlankPages { get; set; }
         public bool IsEDeliveryRequested { get; set; }
         public string ShippingMethod { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
         public string EnvelopeName { get; set; }
         public string ErrorDesc { get; set; }
         public string Inserts { get; set; }

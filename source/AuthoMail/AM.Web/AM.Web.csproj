@@ -627,6 +627,7 @@
     <Content Include="Views\Admin\_EnvelopeStockAndAlertDetails.cshtml" />
     <Content Include="Views\Report\EnvelopesUsageReport.cshtml" />
     <Content Include="Views\Common\SingleLoanEntry.cshtml" />
+    <Content Include="Views\Report\DuplicateReport.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
