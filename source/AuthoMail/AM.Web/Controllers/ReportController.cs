@@ -410,5 +410,25 @@ namespace AM.Web.Controllers
             var model = repoSvc.GetEnvelopesUsageReport(User.Identity.GetClientId().Value, envelopeId, printVendorCode, exactStartDate, exactEndDate);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.SubmittedOn) }), JsonRequestBehavior.AllowGet);
         }
+
+        public ActionResult DuplicateReport()
+        {
+            return View();
+        }
+        [HttpPost]
+        public ActionResult _GetDuplicateReport(string startDate, string channel)
+        {
+            try
+            {
+                var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                var data = repoSvc.GetDuplicateReportByDate(User.Identity.GetClientId().Value, exactStartDate, channel);
+                var model = Mapper.Map<List<MonthlyReconReportViewModel>>(data);
+                return Json(JsonResponseFactory.SuccessResponse(new { model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
     }
 }
