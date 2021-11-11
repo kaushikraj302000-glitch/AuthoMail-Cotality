@@ -61,7 +61,7 @@ namespace AM.Reporting
 
             File.WriteAllText(reportFilePath, reconReport.ToString());
 
-            SendReportToCLTeam(reportFilePath, subject, "Flood Monthly Report", AppConfig.GOSReconEMailTo, AppConfig.GOSReconEMailCc);
+            SendReportToCLTeam(reportFilePath, subject, "Flood Monthly Report", AppConfig.FloodMonthlyEMailTo, AppConfig.FloodMonthlyEMailCc);
         }
 
         private static bool SendReportToCLTeam(string reconReportPath, string subject, string body, string to, string cc)
