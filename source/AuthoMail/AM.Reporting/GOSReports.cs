@@ -268,7 +268,7 @@ namespace AM.Reporting
                 using (IReportService reportSvc = new ReportService())
                 {
                     var clientCodes = clientList.IsNullOrWhiteSpace() ? null : clientList.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-
+                    log.Debug($"GOS Data Reporting : Client Codes {string.Join(",", clientCodes)}");
                     var _3monthClientCodes = clientCodes.Where(x => AppConfig.GOSDaily3MonthAppCodes.Contains(x)).ToList();
 
                     var otherClientCodes = clientCodes.Except(_3monthClientCodes).ToList();
@@ -276,14 +276,16 @@ namespace AM.Reporting
                     var today = Common.EstToday;
                     var startTime = new DateTime(today.AddMonths(-1).Year, today.AddMonths(-1).Month, 1);
                     var endTime = today.AddSeconds(-1);
-
+                    log.Debug("GOS Data Reporting Process Started");
                     GenerateReport(reportSvc, otherClientCodes, startTime, endTime, statusMaps);
-
+                    log.Debug("GOS Data Reporting Process Completed");
                     if (AppConfig.GOSDaily3MonthAppCodes != null && AppConfig.GOSDaily3MonthAppCodes.Count() > 0)
                     {
+                        log.Debug($"GOS Data Reporting Process For 3 Months Clients Started : {string.Join(",", AppConfig.GOSDaily3MonthAppCodes)}");
                         startTime = startTime.AddMonths(-2);
                         endTime = today.AddSeconds(-1);
                         GenerateReport(reportSvc, _3monthClientCodes, startTime, endTime, statusMaps);
+                        log.Debug("GOS Data Reporting Process For 3 Months Clients Completed");
                     }
                 }
                 log.Debug("GOS Daily report Execution completed at {0} Est".Fill(Common.Now.UtcToEst()));
@@ -296,12 +298,15 @@ namespace AM.Reporting
 
         private static void GenerateReport(IReportService reportSvc, List<string> clientCodes, DateTime startTime, DateTime endTime, List<StatusMap> statusMaps)
         {
+            log.Debug("GOS Data Reporting FedEx Tracking Update Process Started");
             CarrierTrackingInfo.CheckForShipmentTracking(null, clientCodes, startTime, endTime);
-
+            log.Debug("GOS Data Reporting FedEx Tracking Update Process Completed");
+            log.Debug("GOS Data Reporting USPS Tracking Update Process Started");
             CarrierTrackingInfo.CheckForUSPSeVSShipmentTracking(null, clientCodes, startTime, endTime);
-
+            log.Debug("GOS Data Reporting USPS Tracking Update Process Completed");
+            log.Debug("GOS Data Reporting Generation Data Fetching Started");
             var gosBatchDetails = reportSvc.GetGOSDataPointReport(startTime, endTime, clientCodes);
-
+            log.Debug("GOS Data Reporting Generation Data Fetching Completed");
             gosBatchDetails.ForEach(x =>
             {
                 if (statusMaps.Any(s => x.DeliveryStatus != null && x.DeliveryStatus.Contains(s.OriginalStatus)))
@@ -327,6 +332,7 @@ namespace AM.Reporting
 
             foreach (var appCode in clientCodes)
             {
+                log.Debug($"GOS Data Reporting Generation Data Report Generation Started For Client : {appCode}");
                 //NOTE : Please change UTC to EST code when Daylight saving is off in service call
                 var appCodeWiseData = gosBatchDetails.Where(c => c.AppCode == appCode);
 
@@ -368,7 +374,7 @@ namespace AM.Reporting
                         var combinedStatus = distinctOngoingStatus.Distinct().ToList();
 
                         string tblStatusRowData = "";
-                        foreach (var status in combinedStatus.Where(x=>x!=null))
+                        foreach (var status in combinedStatus.Where(x => x != null))
                         {
                             tblStatusRowData += $"<tr><td style='text-align: right;'>{status}</td>";
                             tblStatusRowData += $"<td>{productCode.Count(x => x.ConvertedDeliveryStatus == status && x.ShippingCarrier == "FedEx")}</td>";
@@ -442,6 +448,8 @@ namespace AM.Reporting
 
                     SendReportToCLTeam(reportFilePath, $"{appCode} MTD Delivery Status Report For Date {Common.EstToday.Date.ToString("MM-dd-yyyy")}", sb.ToString(), appCodeEmailList[appCode], AppConfig.GOSDailyDataPointEMailCc);
                 }
+
+                log.Debug($"GOS Data Reporting Generation Data Report Generation Completed For Client : {appCode}");
             }
         }
     }
