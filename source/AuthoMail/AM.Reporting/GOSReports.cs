@@ -282,7 +282,7 @@ namespace AM.Reporting
                     if (AppConfig.GOSDaily3MonthAppCodes != null && AppConfig.GOSDaily3MonthAppCodes.Count() > 0)
                     {
                         log.Debug($"GOS Data Reporting Process For 3 Months Clients Started : {string.Join(",", AppConfig.GOSDaily3MonthAppCodes)}");
-                        startTime = startTime.AddMonths(-2);
+                        startTime = startTime.AddMonths(-1);
                         endTime = today.AddSeconds(-1);
                         GenerateReport(reportSvc, _3monthClientCodes, startTime, endTime, statusMaps);
                         log.Debug("GOS Data Reporting Process For 3 Months Clients Completed");
