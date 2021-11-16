@@ -140,50 +140,104 @@ namespace AM.Console
                     int responseCount = mailAPIResponses.Count;
                     int maxResponse = sftChannelDetails.APIMaxResponseCount;
 
-                    using (HttpClient httpClient = new HttpClient())
+                    switch (channelCode)
                     {
-                        var token = await GenerateToken(httpClient, sftChannelDetails);
-                        log.Debug("Token Generated");
+                        case "AMC":
+                            using (HttpClient httpClient = new HttpClient())
+                            {
+                                var responseBatches = mailAPIResponses.Batch(Config.MailResponseAPI_MaxParallelCallBack);
+                                foreach (var resBatches in responseBatches)
+                                {
+                                    var outResponse = resBatches.Select(responsePackage => SubmitBatchResponseMC(httpClient, responsePackage, sftChannelDetails));
+
+                                    await Task.WhenAll(outResponse.ToArray());
+                                }
+                            }
+                            break;
+                        default:
+                            using (HttpClient httpClient = new HttpClient())
+                            {
+                                var token = await GenerateToken(httpClient, sftChannelDetails);
+                                log.Debug("Token Generated");
 
 
-                        // set default headers
-                        httpClient.DefaultRequestHeaders.Accept.Clear();
-                        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                        httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+                                // set default headers
+                                httpClient.DefaultRequestHeaders.Accept.Clear();
+                                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                                httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
 
-                        // Parallel submit
-                        var responseBatches = mailAPIResponses
-                            .Batch(sftChannelDetails.APIMaxResponseCount);
+                                // Parallel submit
+                                var responseBatches = mailAPIResponses
+                                    .Batch(sftChannelDetails.APIMaxResponseCount);
 
-                        foreach (var resBatches in responseBatches.Batch(Config.MailResponseAPI_MaxParallelCallBack))
-                        {
-                            var outResponse = resBatches.Select(responseBatch => SubmitBatchResponse(httpClient, responseBatch, sftChannelDetails));
+                                foreach (var resBatches in responseBatches.Batch(Config.MailResponseAPI_MaxParallelCallBack))
+                                {
+                                    var outResponse = resBatches.Select(responseBatch => SubmitBatchResponseEM(httpClient, responseBatch, sftChannelDetails));
 
-                            var responseTasks = outResponse.ToArray();
+                                    var responseTasks = outResponse.ToArray();
 
-                            await Task.WhenAll(responseTasks);
-                        }
+                                    await Task.WhenAll(responseTasks);
+                                }
 
 
-                        //// Sequential submit
-                        //var responseBatches = mailAPIResponses.Batch(sftChannelDetails.APIMaxResponseCount);
-                        //foreach (var responseBatch in responseBatches)
-                        //{
-                        //    await SubmitBatchResponse(httpClient, responseBatch, sftChannelDetails);
-                        //}
+                                //// Sequential submit
+                                //var responseBatches = mailAPIResponses.Batch(sftChannelDetails.APIMaxResponseCount);
+                                //foreach (var responseBatch in responseBatches)
+                                //{
+                                //    await SubmitBatchResponse(httpClient, responseBatch, sftChannelDetails);
+                                //}
+                            }
+                            break;
                     }
                 }
                 catch (Exception ex)
                 {
                     log.Error(ex);
-                    var msg = $"Exception thrown at the time of calling EllieMae API services {ex.ToString()}";
+                    var msg = $"Exception thrown at the time of calling {channelCode} API services {ex.ToString()}";
                     MailUtility.SendUnexpectedExceptionEmail(msg);
                 }
             }
         }
 
-        private static async Task SubmitBatchResponse(HttpClient httpClient, IEnumerable<MailAPIResponse> responseBatch, SFTChannel sftChannelDetails)
+        private static async Task SubmitBatchResponseMC(HttpClient httpClient, MailAPIResponse response, SFTChannel sftChannelDetails)
+        {
+            using (IMailPieceService mailPieceSvc = new MailPieceService())
+            using (ICommonService commonSvc = new CommonService())
+            using (IGeneralService genSvc = new GeneralService())
+            {
+                HttpResponseMessage responseResult = null;
+                try
+                {
+                    responseResult = await genSvc.SendAPIResponseMC(httpClient, sftChannelDetails.APIResponseURL, sftChannelDetails.GetHeaders(), response);
+
+                    var responseJson = await responseResult.Content.ReadAsStringAsync();
+
+                    log.Debug(responseJson);
+
+                    if (!responseResult.IsSuccessStatusCode)
+                    {
+                        var msg = $"Error occured while sending response to MC endpoint with Status Code : {responseResult.StatusCode},RequestMessage {responseResult.RequestMessage}, Error : {await responseResult?.Content?.ReadAsStringAsync()}";
+                        log.Error(msg);
+                        MailUtility.SendAPIUnexpectedExceptionEmail(msg);
+                        return;
+                    }
+                    else
+                    {
+                        await commonSvc.UpdateBatchPipeLineStatusByMailPieceId(response.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Unexpected error occured while sending response to MC endpoint with Error : {0}".Fill(ex.Message);
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    return;
+                }
+            }
+        }
+
+        private static async Task SubmitBatchResponseEM(HttpClient httpClient, IEnumerable<MailAPIResponse> responseBatch, SFTChannel sftChannelDetails)
         {
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             using (ICommonService commonSvc = new CommonService())
