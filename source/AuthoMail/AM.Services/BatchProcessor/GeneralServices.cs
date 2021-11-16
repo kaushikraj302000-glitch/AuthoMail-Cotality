@@ -378,34 +378,32 @@ namespace AM.Services
 
         public void USPSTrackingCall(List<TrackingReport> mailPieces, bool isReturnTracking)
         {
-            int requestTrackingCount = mailPieces.Count;
             int maxTrackRequest = 35;
-            int trackedRequests = 0;
-            double loopCount = Math.Ceiling(requestTrackingCount / (float)maxTrackRequest);
-            using (IUSPSService uspsSvc = new USPSService())
+
+            string systemUserId = string.Empty;
+
             using (ICommonService commonSvc = new CommonService())
             {
-                for (double i = 0; i < loopCount; i++)
-                {
-                    List<TrackID> trackIDs = new List<TrackID>();
-                    mailPieces.Skip(trackedRequests).Take(maxTrackRequest).ToList().ForEach(r =>
-                    {
-                        trackIDs.Add(new TrackID() { ID = isReturnTracking ? r.ReturnTrackingNo : r.TrackingNo });
-                    });
+                systemUserId = commonSvc.GetSystemUserId();
+            }
 
+            var trackBatches = mailPieces.ChunkBy(maxTrackRequest);
+
+            Parallel.ForEach(trackBatches, (batches) =>
+            {
+                using (IUSPSService uspsSvc = new USPSService())
+                {
                     TrackFieldAPIRequest trackFieldRequest = new TrackFieldAPIRequest()
                     {
-                        TrackID = trackIDs
+                        TrackID = batches.Select(x => new TrackID() { ID = isReturnTracking ? x.ReturnTrackingNo : x.TrackingNo }).ToList()
                     };
 
-                    var trackingInfos = uspsSvc.GetTrackingDetailsAsync(commonSvc.GetSystemUserId(), trackFieldRequest).Result;
+                    var trackingInfos = uspsSvc.GetTrackingDetailsAsync(systemUserId, trackFieldRequest).Result;
 
                     if (trackingInfos.HasError)
                     {
-                        continue;
+                        return;
                     }
-
-                    trackedRequests += maxTrackRequest;
 
                     using (IMailPieceService mailPieceSvc = new MailPieceService())
                     {
@@ -425,14 +423,14 @@ namespace AM.Services
                             {
                                 mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(shipmentStatus, trackInfo.ID, Common.Now, trackInfo.TrackSummary.Event, shipmentDateTimeUTC, isReturnTracking);
                             }
-                            catch (Exception )
+                            catch (Exception)
                             {
                                 //Handle Error to do not break out queue.
                             }
                         }
                     }
                 }
-            }
+            });
         }
     }
 }
