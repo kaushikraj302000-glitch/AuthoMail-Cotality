@@ -1113,11 +1113,11 @@ bufferSize: 4096, useAsync: true)) { }
                                 reader.Close();
                             }
                         }
-                        catch (Exception e)
+                        catch (Exception ex)
                         {
                             var msg = $"'{System.IO.Path.GetFileName(file)}' pdf file is either corrupt or invalid.";
                             var errresult = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Invalid_PDF_File, ErrorDesc = msg, ReceivedOn = receivedTime };
-
+                            log.Error($"Error occured while reading pdf file {ex}");
                             return new { Key = HttpStatusCode.BadRequest, Value = errresult };
                         }
                     }
