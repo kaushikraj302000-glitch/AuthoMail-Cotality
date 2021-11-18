@@ -191,7 +191,10 @@ namespace PCI.Service
         {
             foreach (var pieceId in resPieceIds)
             {
-                var res = printVendorResponseData.Single(row => row.Field<int>("PieceId") == pieceId);
+                var res = printVendorResponseData.SingleOrDefault(row => row.Field<int>("PieceId") == pieceId);
+
+                if (res == null)
+                    continue;
 
                 string errorUpdate = res.Field<string>("Disposition").Trim() == "7" ?
                     ", ErrId=7, ErrDesc='System was unable to print or ship this mailpiece. It has to be resent after necessary amendments.'" : "";
