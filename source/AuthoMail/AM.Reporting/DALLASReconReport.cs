@@ -93,5 +93,78 @@ namespace AM.Reporting
             return isEmailSent;
         }
 
+        internal static void GenerateAMPostageReconReport()
+        {
+            try
+            {
+                log.Debug("AM Postage recon report Execution Triggered at {0} Est".Fill(Common.Now.UtcToEst()));
+                List<AMPostageData> amPostageDetails;
+                using (IReportService reportSvc = new ReportService())
+                {
+                    DateTime endDate = Common.EstToday.AddDays(-1);
+                    DateTime startDate = endDate.AddDays(-6);
+
+                    //NOTE : Please change UTC to EST code when Daylight saving is off in service call
+                    amPostageDetails = reportSvc.GetAMPostageData(startDate, endDate);
+
+                    if (amPostageDetails.Count > 0)
+                    {
+                        var columnName = String.Join(",", "UserId", "APIName", "APIRequestedOn", "BarcodeNumber", "Postage Cost", "Email-Id", "UserName");
+
+                        StringBuilder reconReport = new StringBuilder(columnName);
+
+                        reconReport.AppendLine();
+                        foreach (var batch in amPostageDetails)
+                        {
+                            var line = String.Join(",", batch.UserId, batch.APIName, batch.APIRequestedOn, batch.BarcodeNumber, batch.Postage, batch.Email, batch.UserName);
+                            reconReport.AppendLine(line);
+                        }
+                        string reportFilePath = Path.Combine(AppConfig.AMPostageReconReportPath, $"AMPostageReconReport_{startDate.ToString("MMddyyyy")}_{endDate.ToString("MMddyyyy")}.csv");
+                        File.WriteAllText(reportFilePath, reconReport.ToString());
+
+                        SendAMPostageReportToCLTeam(reportFilePath, startDate, endDate);
+                    }
+                }
+                log.Debug("AM Postage recon report Execution Completed at {0} Est".Fill(Common.Now.UtcToEst()));
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error occured while generating Reconcilation Report for AM Postage", ex);
+            }
+        }
+
+        private static bool SendAMPostageReportToCLTeam(string reconReportPath, DateTime startTime, DateTime endTime)
+        {
+            bool isEmailSent = false;
+
+            try
+            {
+                using (SmtpClient smtpClient = new SmtpClient())
+                {
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = false;
+                        msg.To.Add(AppConfig.AMPostageReconEMailTo);
+                        msg.CC.Add(AppConfig.AMPostageReconEMailCc);
+                        msg.Subject = $"{Config.Common_Environment} : {AppConfig.AMPostageReconEMailSubject.Fill(endTime.ToString("MM/dd/yyyy"))}";
+                        msg.Priority = MailPriority.Normal;
+                        msg.Body = $"AM Postage Recon Report For : {startTime} To {endTime}";
+
+                        if (File.Exists(reconReportPath))
+                            msg.Attachments.Add(new Attachment(reconReportPath));
+
+                        smtpClient.Send(msg);
+                        isEmailSent = true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
+
+            return isEmailSent;
+        }
+
     }
 }

@@ -157,6 +157,18 @@ namespace AM.Services
             }
         }
     }
+
+    public class AMPostageData
+    {
+        public string APIName { get; set; }
+        public DateTime APIRequestedOn { get; set; }
+        public string BarcodeNumber { get; set; }
+        public int ClientId { get; set; }
+        public string UserId { get; set; }
+        public string Email { get; set; }
+        public string UserName { get; set; }
+        public decimal Postage { get; set; }
+    }
     public class ReportWizard
     {
         public int MailPieceId { get; set; }
