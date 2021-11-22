@@ -48,7 +48,7 @@ namespace AM.Services
         List<PrintVendorLocations> GetActivePrintVendorsWithLocation();
         List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate, List<int> clientId, string status, List<string> shippingMethod);
         List<EnvelopeInventoryUsage> GetEnvelopesUsageReport(int clientId, int? envelopeId, string printVendorCode, DateTime startDate, DateTime endDate);
-        List<MonthlyReconReportViewModel> GetDuplicateReportByDate(int clientId, DateTime startDate, string channel);
+        List<MonthlyReconReportViewModel> GetDuplicateReportByDate(int clientId, DateTime startDate, DateTime endDate, string channel);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -936,12 +936,12 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
             return db.Query<EnvelopeInventoryUsage>(query, new { EnvelopeId = envelopeId, PrintVendorCode = printVendorCode, StartDate = startDate, EndDate = endDate }).ToList();
         }
 
-        public List<MonthlyReconReportViewModel> GetDuplicateReportByDate(int clientId, DateTime startDate, string channel)
+        public List<MonthlyReconReportViewModel> GetDuplicateReportByDate(int clientId, DateTime startDate, DateTime endDate, string channel)
         {
             string query = @"SELECT P.Id,P.UniqueId,P.MailBatchId,B.BatchName,B.ReceivedOn,X.BusinessFriendlyIdValue AS LoanNumber
                             , X.DocumentOrPackageType AS DocType, X.[FileName],X.RcptAddressCity AS City,X.RcptAddressStreet AS Address
                             , X.RcptAddressState AS State, X.RcptAddressZIP AS Zip,X.RcptFirstName AS FirstName,X.RcptLastName AS LastName
-                            , S.Code AS Channel, D.ShippingCarrier, D.ShippingServiceType
+                            , S.Code AS Channel, D.ShippingCarrier, D.ShippingServiceType, P.ShippingStatus AS [Status], P.ShippedOn
                             FROM AM.MailPieces P
                             INNER JOIN AM.MailBatches B ON P.MailBatchId = B.Id
                             INNER JOIN Common.SFTChannels S ON B.SFTChannelId=S.Id
@@ -965,7 +965,7 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
                     clientId = clientId,
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
                     startDate = (startDate.AddDays(-5).ToStartDateTime()).EstToUtc(),
-                    endDate = (startDate.ToEndDateTime()).EstToUtc()
+                    endDate = (endDate.ToEndDateTime()).EstToUtc()
                 }
                 ).ToList();
             return data;

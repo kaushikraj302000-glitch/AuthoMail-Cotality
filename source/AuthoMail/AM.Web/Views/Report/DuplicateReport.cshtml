@@ -37,7 +37,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="date">Select Date (EST)</label>
-                        <div class="input-group date" id="datepicker4">
+                        <div class="input-group daterange" id="datepicker4">
                             <input type="text" class="form-control" id="date">
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
@@ -96,6 +96,8 @@
                 <th class="LoanNumber">@Html.Action("GetHeadingForBusinessId", "Common")</th>
                 <th class="FileName">File Name</th>
                 <th class="ReceivedDate">Received Date <span class="fontcapitalize">(Local)</span></th>
+                <th class="Status">Shipping Status</th>
+                <th class="ShippiedDate">Shipped Date <span class="fontcapitalize">(Local)</span></th>
                 @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                 {
                     <th class="FirstName">First Name</th>
@@ -124,6 +126,8 @@
                 <td><span>{LoanNumber}</span></td>
                 <td><span>{FileName}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
+                <td><span>{ShippingStatusFormatted}</span></td>
+                <td><span>{ShippedOnFormatted}</span></td>
                 @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                 {
                     <td><span>{FirstName}</span></td>
@@ -197,7 +201,7 @@
                     filename: filename,
                     title: title,
                     exportOptions: {
-                        columns: [".ClientBatchId", ".MailPieceId", ".Channel", ".DocType",".DeliveryType", ".LoanNumber", ".FileName", ".ReceivedDate", ".FirstName", ".LastName", ".RecipientAddress", ".RecipientCity", ".RecipientState", ".RecipientZip", ".ShippingMethod"],
+                        columns: [".ClientBatchId", ".MailPieceId", ".Channel", ".DocType", ".DeliveryType", ".LoanNumber", ".FileName", ".ReceivedDate", ".Status", ".ShippedDate", ".FirstName", ".LastName", ".RecipientAddress", ".RecipientCity", ".RecipientState", ".RecipientZip", ".ShippingMethod"],
                     }
                 }
                 ],
@@ -231,16 +235,35 @@
         }
         function FormatObject(Model) {
             $(Model).each(function () {
-                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.ReceivedOnFormatted = this.ReceivedOn == null ? "--" : moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                this.ShippedOnFormatted = this.ShippedOn == null ? "--" :moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
+                var status = "";
+                switch (this.Status) {
+
+                    case "PulledBack":
+                        status = '<span class="label medium label-yellow">' + this.Status + '</span>';
+                        break;
+                    case "Error":
+                        status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.Status + '</span>';
+                        break;
+                    case "Shipped":
+                        status = '<span class="label medium label-success">' + this.Status + '</span>';
+                        break;
+                    case "InProgress":
+                        status = '<span class="label medium label-blue">' + this.Status + '</span>';
+                        break;
+                }
+                this.ShippingStatusFormatted = status;
             });
             return Model;
         }
         function FilterData() {
             $("#errorHeader").hide();
             $("#errorList").hide();
-            var selectedData = $("#date").val();
-            var startDate = moment(selectedData.trim()).format("MM/DD/YYYY");
+            var selectedData = $("#date").val().split('-');
+            var startDate = moment(selectedData[0].trim()).format("MM/DD/YYYY");
+            var endDate = moment(selectedData[1].trim()).format("MM/DD/YYYY");
 
             var el = $('#errorList');
             $("#headerdate").html(startDate + " EST");
@@ -248,7 +271,7 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetDuplicateReport",
-                data: JSON.stringify({ startDate: startDate, channel: $("#Channel").val() }),
+                data: JSON.stringify({ startDate: startDate, endDate : endDate, channel: $("#Channel").val() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     if (response.Success) {

@@ -416,12 +416,13 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetDuplicateReport(string startDate, string channel)
+        public ActionResult _GetDuplicateReport(string startDate, string endDate, string channel)
         {
             try
             {
                 var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-                var data = repoSvc.GetDuplicateReportByDate(User.Identity.GetClientId().Value, exactStartDate, channel);
+                var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                var data = repoSvc.GetDuplicateReportByDate(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
                 var model = Mapper.Map<List<MonthlyReconReportViewModel>>(data);
                 return Json(JsonResponseFactory.SuccessResponse(new { model }), JsonRequestBehavior.AllowGet);
             }
