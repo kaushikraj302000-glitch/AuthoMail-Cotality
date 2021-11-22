@@ -262,7 +262,7 @@ namespace AM.Services
 
         public MailAPIResponse GenerateMailAPIResponse(BatchResponse batchResponse)
         {
-            List<APIMetaData> customInfos = batchResponse.MailPieceCustomInfo == null ? null : batchResponse.MailPieceCustomInfo.Select(r => new APIMetaData() { Key = r.Key, Value = r.Value }).Where(r => !r.Key.StartsWith("AM:")).ToList();
+            List<APIMetaData> customInfos = batchResponse.MailPieceCustomInfo == null || batchResponse.MailPieceCustomInfo.Any(x => x == null) ? null : batchResponse.MailPieceCustomInfo.Select(r => new APIMetaData() { Key = r.Key, Value = r.Value }).Where(r => !r.Key.StartsWith("AM:")).ToList();
             MailAPIResponse response = new MailAPIResponse()
             {
                 Id = batchResponse.UniqueId,
@@ -425,7 +425,7 @@ namespace AM.Services
                             {
                                 mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(shipmentStatus, trackInfo.ID, Common.Now, trackInfo.TrackSummary.Event, shipmentDateTimeUTC, isReturnTracking);
                             }
-                            catch (Exception )
+                            catch (Exception)
                             {
                                 //Handle Error to do not break out queue.
                             }
