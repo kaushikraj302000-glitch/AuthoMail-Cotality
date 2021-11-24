@@ -30,6 +30,7 @@ namespace AM.Services
         List<MailAPIResponse> GenerateMailAPIResponse(List<BatchResponse> batchResponses);
         string GeneralJsonReport(string mpUniqueId);
         Task<HttpResponseMessage> SendAPIResponse(HttpClient httpClient, string responseURL, IEnumerable<MailAPIResponse> responseReport);
+        Task<HttpResponseMessage> SendAPIResponseMC(HttpClient httpClient, string responseURL, Dictionary<string, string> requestHeaders, MailAPIResponse response);
         string GeneralXMLReport(List<MailPieces> mailPieces, string clientCode);
         string GeneralXMLBatchErrorReport(MailBatchDTO mailBatch, string clientCode);
         void USPSTrackingCall(List<TrackingReport> mailPieces, bool isReturnTracking);
@@ -338,6 +339,28 @@ namespace AM.Services
             return httpClient.PostAsync(responseURL, content);
         }
 
+        public Task<HttpResponseMessage> SendAPIResponseMC(HttpClient httpClient, string responseURL, Dictionary<string, string> headers, MailAPIResponse response)
+        {
+            JsonSerializerSettings dateFormatSettings = new JsonSerializerSettings
+            {
+                DateFormatHandling = DateFormatHandling.IsoDateFormat
+            };
+
+            string json = JsonConvert.SerializeObject(response, dateFormatSettings);
+
+            var apiKey = headers.SingleOrDefault(x => x.Key == "X-API-Key");
+
+            string hashdata = XmlUtil.ComputHash(apiKey.Value, json);
+            httpClient.DefaultRequestHeaders.Accept.Clear();
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.Add("X-API-Key", apiKey.Value);
+            httpClient.DefaultRequestHeaders.Add("X-API-Signature", hashdata);
+
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            return httpClient.PostAsync(responseURL, content);
+        }
 
         public async static Task<string> GetToken()
         {
