@@ -142,7 +142,7 @@ namespace AM.Console
 
                     switch (channelCode)
                     {
-                        case "AMC":
+                        case "API_AMC":
                             using (HttpClient httpClient = new HttpClient())
                             {
                                 var responseBatches = mailAPIResponses.Batch(Config.MailResponseAPI_MaxParallelCallBack);
