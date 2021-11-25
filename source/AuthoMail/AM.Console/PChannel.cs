@@ -143,15 +143,13 @@ namespace AM.Console
                     switch (channelCode)
                     {
                         case "API_AMC":
-                            using (HttpClient httpClient = new HttpClient())
-                            {
-                                var responseBatches = mailAPIResponses.Batch(Config.MailResponseAPI_MaxParallelCallBack);
-                                foreach (var resBatches in responseBatches)
-                                {
-                                    var outResponse = resBatches.Select(responsePackage => SubmitBatchResponseMC(httpClient, responsePackage, sftChannelDetails));
 
-                                    await Task.WhenAll(outResponse.ToArray());
-                                }
+                            var responseMCBatches = mailAPIResponses.Batch(maxResponse);
+                            foreach (var resBatches in responseMCBatches)
+                            {
+                                var outResponse = resBatches.Select(responsePackage => SubmitBatchResponseMC(responsePackage, sftChannelDetails));
+
+                                await Task.WhenAll(outResponse.ToArray());
                             }
                             break;
                         default:
@@ -200,7 +198,7 @@ namespace AM.Console
             }
         }
 
-        private static async Task SubmitBatchResponseMC(HttpClient httpClient, MailAPIResponse response, SFTChannel sftChannelDetails)
+        private static async Task SubmitBatchResponseMC(MailAPIResponse response, SFTChannel sftChannelDetails)
         {
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             using (ICommonService commonSvc = new CommonService())
@@ -209,22 +207,25 @@ namespace AM.Console
                 HttpResponseMessage responseResult = null;
                 try
                 {
-                    responseResult = await genSvc.SendAPIResponseMC(httpClient, sftChannelDetails.APIResponseURL, sftChannelDetails.GetHeaders(), response);
-
-                    var responseJson = await responseResult.Content.ReadAsStringAsync();
-
-                    log.Debug(responseJson);
-
-                    if (!responseResult.IsSuccessStatusCode)
+                    using (HttpClient httpClient = new HttpClient())
                     {
-                        var msg = $"Error occured while sending response to MC endpoint with Status Code : {responseResult.StatusCode},RequestMessage {responseResult.RequestMessage}, Error : {await responseResult?.Content?.ReadAsStringAsync()}";
-                        log.Error(msg);
-                        MailUtility.SendAPIUnexpectedExceptionEmail(msg);
-                        return;
-                    }
-                    else
-                    {
-                        await commonSvc.UpdateBatchPipeLineStatusByMailPieceId(response.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                        responseResult = await genSvc.SendAPIResponseMC(httpClient, sftChannelDetails.APIResponseURL, sftChannelDetails.GetHeaders(), response);
+
+                        var responseJson = await responseResult.Content.ReadAsStringAsync();
+                        log.Debug(responseResult);
+                        log.Debug(responseJson);
+
+                        if (!responseResult.IsSuccessStatusCode)
+                        {
+                            var msg = $"Error occured while sending response to MC endpoint with Status Code : {responseResult.StatusCode},RequestMessage {responseResult.RequestMessage}, Error : {await responseResult?.Content?.ReadAsStringAsync()}";
+                            log.Error(msg);
+                            MailUtility.SendAPIUnexpectedExceptionEmail(msg);
+                            return;
+                        }
+                        else
+                        {
+                            await commonSvc.UpdateBatchPipeLineStatusByMailPieceId(response.Id, BatchPipelineStatus.ReportedBack, Common.Now);
+                        }
                     }
                 }
                 catch (Exception ex)
