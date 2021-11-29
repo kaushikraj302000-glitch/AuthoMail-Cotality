@@ -238,6 +238,7 @@
     <Build Include="Common\Tables\DallasBatchTimings.sql" />
     <Build Include="dbo\Stored Procedures\SP_BulkRegisterScan.sql" />
     <Build Include="Common\Tables\UserShipAccMapping.sql" />
+    <Build Include="API\Tables\FedEx.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AM.Database.refactorlog" />
