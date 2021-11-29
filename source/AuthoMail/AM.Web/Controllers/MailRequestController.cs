@@ -1231,14 +1231,7 @@ bufferSize: 4096, useAsync: true))
                 serializer.Serialize(stringwriter, mailBatch);
                 return stringwriter.ToString();
             }
-        }
-
-        [HttpGet, Route("getdoctype")]
-        public object GetReturnAddressInfoByDocTypeName(string doctypeName)
-        {
-            var doctype = doctypeSvc.GetDocTypeByDocTypeName(User.Identity.GetClientId().Value, doctypeName);
-            return doctype;
-        }
+        }        
 
         public class MailPieceValidationResult
         {
