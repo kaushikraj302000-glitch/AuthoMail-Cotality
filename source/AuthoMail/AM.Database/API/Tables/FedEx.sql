@@ -1,6 +1,6 @@
 ﻿CREATE TABLE [API].[FedEx]
 (
-	[Id] INT NOT NULL ,
+	[Id] INT NOT NULL IDENTITY ,
 	[APIName] [nvarchar](255) NOT NULL,
 	[UserId] [nvarchar](255) NULL,
 	[IsAPIError] [bit] NOT NULL,
