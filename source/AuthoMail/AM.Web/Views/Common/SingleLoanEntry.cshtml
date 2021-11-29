@@ -170,19 +170,22 @@
             $.ajax(
                 {
                     type: "GET",
-                    url: baseUrl + "api/getdoctype",
+                    url: baseUrl + "Common/GetReturnAddressInfoByDocTypeName",
                     data: {
                         doctypeName: doctypeName
                     },
                     success: function (response) {
                         console.log(response);
-                        $('#ReturnInfo_Recipient_FirstName').val(response.RetRcptFirstName);
-                        $('#ReturnInfo_Recipient_MiddleName').val(response.RetRcptMiddleName);
-                        $('#ReturnInfo_Recipient_LastName').val(response.RetRcptLastName);
-                        $('#ReturnInfo_Address_Street').val(response.RetRcptAddressStreet);
-                        $('#ReturnInfo_Address_City').val(response.RetRcptAddressCity);
-                        $('#ReturnInfo_Address_State').val(response.RetRcptAddressState);
-                        $('#ReturnInfo_Address_Zip').val(response.RetRcptAddressZIP);
+                        if (response.Success) {
+                            var data = response.Object;
+                            $('#ReturnInfo_Recipient_FirstName').val(data.RetRcptFirstName);
+                            $('#ReturnInfo_Recipient_MiddleName').val(data.RetRcptMiddleName);
+                            $('#ReturnInfo_Recipient_LastName').val(data.RetRcptLastName);
+                            $('#ReturnInfo_Address_Street').val(data.RetRcptAddressStreet);
+                            $('#ReturnInfo_Address_City').val(data.RetRcptAddressCity);
+                            $('#ReturnInfo_Address_State').val(data.RetRcptAddressState);
+                            $('#ReturnInfo_Address_Zip').val(data.RetRcptAddressZIP);
+                        }                       
                     },
                     error: function () {
                         //alert("error");

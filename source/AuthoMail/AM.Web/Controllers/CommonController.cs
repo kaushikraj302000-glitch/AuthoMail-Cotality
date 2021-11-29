@@ -198,6 +198,12 @@ namespace AM.Web.Controllers
             return PartialView();
         }
 
+        [HttpGet]
+        public ActionResult GetReturnAddressInfoByDocTypeName(string doctypeName)
+        {
+            var doctype = docTypeSvc.GetDocTypeByDocTypeName(User.Identity.GetClientId().Value, doctypeName);
+            return Json(JsonResponseFactory.SuccessResponse(doctype), JsonRequestBehavior.AllowGet);
+        }
         #region SingleLoanEntry
         [HttpGet]
         public ActionResult SingleLoanEntry(string msg)
@@ -273,7 +279,7 @@ namespace AM.Web.Controllers
                         pdffile[0].SaveAs(downloadfilePath);
                         downloadedFiles.Add(downloadfilePath);
                     }
-                   
+
                     mailPiece.ClientCode = supSvc.FindByClientId(User.Identity.GetClientId().Value).AppCode;
 
                     var mailRequestController = new MailRequestController(pnSAPISvc, docTypeSvc, mailpieceSvc);
