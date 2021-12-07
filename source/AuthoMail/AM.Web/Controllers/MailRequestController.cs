@@ -797,8 +797,8 @@ bufferSize: 4096, useAsync: true)) { }
                     yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Recipient Address is mandatory." };
                 }
 
-                if (mailPiece.RecipientInfo.Recipient.FirstName.IsNullOrWhiteSpace())
-                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient first name is mandatory." };
+                if (mailPiece.RecipientInfo.Recipient.FirstName.IsNullOrWhiteSpace() && mailPiece.RecipientInfo.Recipient.LastName.IsNullOrWhiteSpace() && mailPiece.RecipientInfo.Recipient.Organization.IsNullOrWhiteSpace())
+                    yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Either Organization name or Recipient first name or Recipient last name is mandatory." };
             }
 
             if (mailPiece.ReturnInfo != null)

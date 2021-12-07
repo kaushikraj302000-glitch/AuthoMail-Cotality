@@ -1203,7 +1203,7 @@ namespace AM.Console
             if (mailPiece.RetRcptAddressStreet.IsNullOrWhiteSpace() || mailPiece.RetRcptAddressCity.IsNullOrWhiteSpace() || mailPiece.RetRcptAddressState.IsNullOrWhiteSpace() || mailPiece.RetRcptAddressZIP.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return address details are missing or invalid in package." };
 
-            if (mailPiece.RcptFirstName.IsNullOrWhiteSpace() && mailPiece.RcptLastName.IsNullOrWhiteSpace())
+            if (mailPiece.RcptOrganization.IsNullOrWhiteSpace() && mailPiece.RcptFirstName.IsNullOrWhiteSpace() && mailPiece.RcptLastName.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient's first and last name are missing or invalid in package." };
 
             if (mailPiece.DocumentOrPackageType.IsNullOrWhiteSpace())
