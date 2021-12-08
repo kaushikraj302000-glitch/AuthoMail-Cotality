@@ -285,14 +285,14 @@ namespace AM.Console
                     mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CustomerName1", Value = loanInfo.CustomerName1 });
                     mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CustomerName2", Value = loanInfo.CustomerName2 });
                     mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "MailingAddress1", Value = loanInfo.MailingAddress1 });
-                    //mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "City1", Value = loanInfo.City1 });
-                    //mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "State1", Value = loanInfo.State1 });
-                    //mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "ZipCode1", Value = loanInfo.ZipCode1 });
+                    mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "City1", Value = loanInfo.City1 });
+                    mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "State1", Value = loanInfo.State1 });
+                    mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "ZipCode1", Value = loanInfo.ZipCode1 });
 
                     mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "MailingAddress2", Value = loanInfo.MailingAddress2 });
-                    //mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "City2", Value = loanInfo.City2 });
-                    //mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "State2", Value = loanInfo.State2 });
-                    //mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "ZipCode2", Value = loanInfo.ZipCode2 });
+                    mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "City2", Value = loanInfo.City2 });
+                    mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "State2", Value = loanInfo.State2 });
+                    mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "ZipCode2", Value = loanInfo.ZipCode2 });
                     mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "AccountEndingIn", Value = loanInfo.AccountEndingIn });
                     mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyAddress", Value = loanInfo.PropertyAddress });
                     mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "Greeting", Value = loanInfo.Greeting });
@@ -527,10 +527,10 @@ namespace AM.Console
                             CustomerName1 = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "CustomerName1")?.Value,
                             CustomerName2 = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "CustomerName2")?.Value,
                             MailingAddress1 = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "MailingAddress1").Value,
-                            //City1 = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "City1").Value,
-                            //State1 = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "State1").Value,
-                            //ZipCode1 = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "ZipCode1").Value,
-                            MailingAddress2 = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "MailingAddress2").Value,
+                            City1 = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "City1").Value,
+                            State1 = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "State1").Value,
+                            ZipCode1 = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "ZipCode1").Value,
+                            //MailingAddress2 = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "MailingAddress2").Value,
                             //City2 = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "City2").Value,
                             //State2 = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "State2").Value,
                             //ZipCode2 = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "ZipCode2").Value,
