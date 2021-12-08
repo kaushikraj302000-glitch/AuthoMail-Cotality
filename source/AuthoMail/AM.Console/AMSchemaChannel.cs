@@ -1046,7 +1046,11 @@ namespace AM.Console
                 {
                     pageCount = reader.NumberOfPages;
                     mailPieceDTO.TotalPages = pageCount;//System is going to store TotalPages only for AM.EDMailPieces table from here
-                    blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
+
+                    if (mbi.Client.IsReqBlankPageValidation)
+                    {
+                        blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
+                    }
                 }
 
                 //NOTE : Here system is storing file size of received pdf in KB
