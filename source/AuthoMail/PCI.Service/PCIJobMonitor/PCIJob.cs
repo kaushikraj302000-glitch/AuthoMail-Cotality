@@ -603,7 +603,7 @@ namespace PCI.Service
 
                     foreach (var mpByConfig in mpgroupedByConfiguration)
                     {
-                        var insertsNames = !mpByConfig.Key.Inserts.IsNullOrWhiteSpace() ? $"-{mpByConfig.Key.Inserts.Replace(",", "_")}" : "";
+                        var insertsNames = !mpByConfig.Key.Inserts.IsNullOrWhiteSpace() ? $"-INSERTS" : "";
 
                         var batchUploadPath = Path.Combine(printTrailDetail.FromADEDir, mpGroup.Key.AppCode, mpGroup.Key.EffectiveDate.ToString("MMddyyyy"), mpGroup.Key.DallasBatchName, mpByConfig.Key.ShippingCarrier + "_" + mpByConfig.Key.ShippingServiceType + "_" + mpByConfig.Key.PrintSize, $"{mpByConfig.Key.EnvelopeName}{insertsNames}");
 
@@ -628,7 +628,7 @@ namespace PCI.Service
 
                     var batchRequestPath = Path.Combine(Common.BundlingRootFolder, ptBatchDetail.Id.ToString(), Common.BundlingRequestFolderName);
 
-                    var barcode = $"BS{ptBatchDetail.Id}{mpGroup.Key.DallasBatchName}{mpGroup.Key.EffectiveDate.ToString("MMddyyyy")}";
+                    var barcode = $"BS{ptBatchDetail.Id}{mpGroup.Key.AppCode}{mpGroup.Key.DallasBatchName}{mpGroup.Key.EffectiveDate.ToString("MMddyyyy")}";
 
                     log.InfoFormat("Creating Dallas Batch Folders For Barcode Manifest Pdf PrintTrailBatchId : {0}", ptBatchDetail.Id);
                     batchRequestPath.CreateDirectoryIfNotExist();
