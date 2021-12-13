@@ -141,6 +141,7 @@ CREATE UNIQUE NONCLUSTERED INDEX [IX_MailBatches_UniqueId]
 GO
 CREATE NONCLUSTERED INDEX [IX_MailBatches_ValidatedOn]
     ON [AM].[MailBatches]([ValidatedOn] ASC) WITH (FILLFACTOR = 70);
+GO
 
 CREATE NONCLUSTERED INDEX [IX_MailBatches_PipelineSFTChannelIdDownloadedOn]
     ON [AM].[MailBatches]([PipelineStatus] ASC, [SFTChannelId] ASC, [IsDownloaded] ASC, [IsValidated] ASC);
