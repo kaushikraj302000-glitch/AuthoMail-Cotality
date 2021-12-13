@@ -10,8 +10,11 @@
 
 GO
 
-CREATE INDEX [IX_EnvelopeStock_EnvelopeId] ON [Common].[EnvelopeStock] ([EnvelopeId])
-
+CREATE CLUSTERED INDEX [IX_EnvelopeStock_EnvelopeId]
+    ON [Common].[EnvelopeStock]([EnvelopeId] ASC);
 GO
 
-CREATE INDEX [IX_EnvelopeStock_ShipperId] ON [Common].[EnvelopeStock] ([ShipperId])
+CREATE NONCLUSTERED INDEX [IX_EnvelopeStock_ShipperId]
+    ON [Common].[EnvelopeStock]([ShipperId] ASC);
+GO
+
