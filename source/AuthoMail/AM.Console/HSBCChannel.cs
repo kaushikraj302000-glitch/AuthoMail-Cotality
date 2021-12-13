@@ -435,7 +435,7 @@ namespace AM.Console
 
                     commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
                 }
-                Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
+                Channel.CalculateDueDateAndPrintLocation(client, mailBatch, mailPieceData);
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
             }
         }

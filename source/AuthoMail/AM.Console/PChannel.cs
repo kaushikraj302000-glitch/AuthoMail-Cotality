@@ -6,6 +6,7 @@ using MoreLinq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -763,56 +764,64 @@ namespace AM.Console
         #endregion
 
         #region EffectiveReceivedOn DueDate PrintLocation Logic
-        public static void CalculateDueDateAndPrintLocation(CommonService commonSvc, DocTypeService docTypeSvc, MailPieceService mailPieceSvc, Client client, MailBatchDTO mailBatch, List<MailPieceDTO> mailPieces)
+        public static void CalculateDueDateAndPrintLocation(Client client, MailBatchDTO mailBatch, List<MailPieceDTO> mailPieces)
         {
             log.Debug("Calculation of Due Date and Print location job is started.");
-
-            var sweepTimings = commonSvc.GetSweepTimings();
-
-            foreach (MailPieceDTO mailPiece in mailPieces)
+            List<Sweep> sweepTimings = new List<Sweep>();
+            using (ICommonService commonSvc = new CommonService())
             {
-                if (mailPiece.ShippingStatus == ShippingStatus.Error.ToString())
+                sweepTimings = commonSvc.GetSweepTimings();
+            }
+
+            Parallel.ForEach(mailPieces, (mailPiece) =>
+            {
+                using (ICommonService commonSvc = new CommonService())
+                using (IDocTypeService docTypeSvc = new DocTypeService())
+                using (IMailPieceService mailPieceSvc = new MailPieceService())
                 {
-                    if (!mailPiece.DocTypeId.HasValue)
+                    if (mailPiece.ShippingStatus == ShippingStatus.Error.ToString())
                     {
-                        //NOTE : If System didn't find any doctypeid for particular mail piece then it will take default max cut-off time of that particular client for calculating effective received on date.
-                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docTypeSvc.GetDocTypeWithMaximumCutOffTimeByClientId(client.Id), mailBatch.ReceivedOn.Value);
+                        if (!mailPiece.DocTypeId.HasValue)
+                        {
+                            //NOTE : If System didn't find any doctypeid for particular mail piece then it will take default max cut-off time of that particular client for calculating effective received on date.
+                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docTypeSvc.GetDocTypeWithMaximumCutOffTimeByClientId(client.Id), mailBatch.ReceivedOn.Value);
+                        }
+                        else
+                        {
+                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
+                        }
+                    }
+                    else if (mailPiece.IsEDeliveryRequested)
+                    {
+                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
+                        mailPiece.DueDate = mailPiece.ExpiryDate;
+                        mailPiece.StdSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddMinutes(30).EstToUtc();
+                        mailPiece.MaxSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddHours(4).EstToUtc();
                     }
                     else
                     {
-                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
+                        DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+
+                        //Here first we will calculate effective received on date and based on that we will calculate due date,Print location, print trail id,etc. for that
+                        //Here storing effective receivedon in EST format
+                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docType, mailBatch.ReceivedOn.Value);
+                        //Calculate Due Date for Mail Pieces doc type wise
+                        mailPiece.DueDate = commonSvc.GetDueDate(client.Id, docType, mailPiece.EffectiveReceivedOnEst.Value);
+                        //Set print location where mail piece will go for print and ship
+                        //mailPiece.PrintTrailId = commonSvc.GetPrintTrail(mailPiece.PnSConfigDetailId.Value, mailPiece.EffectiveReceivedOnEst.Value);
+                        var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value, mailPiece.EffectiveReceivedOnEst);
+                        mailPiece.ShipperId = printVendorDetails.ShipperId;
+                        mailPiece.PrintLocation = commonSvc.GetShipperInformation(printVendorDetails.ShipperId).PrintLocation;
+                        //This field will be used for monitoring data    
+                        mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
+                        mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
                     }
-                }
-                else if (mailPiece.IsEDeliveryRequested)
-                {
-                    mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
-                    mailPiece.DueDate = mailPiece.ExpiryDate;
-                    mailPiece.StdSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddMinutes(30).EstToUtc();
-                    mailPiece.MaxSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddHours(4).EstToUtc();
-                }
-                else
-                {
-                    DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
 
-                    //Here first we will calculate effective received on date and based on that we will calculate due date,Print location, print trail id,etc. for that
-                    //Here storing effective receivedon in EST format
-                    mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docType, mailBatch.ReceivedOn.Value);
-                    //Calculate Due Date for Mail Pieces doc type wise
-                    mailPiece.DueDate = commonSvc.GetDueDate(client.Id, docType, mailPiece.EffectiveReceivedOnEst.Value);
-                    //Set print location where mail piece will go for print and ship
-                    //mailPiece.PrintTrailId = commonSvc.GetPrintTrail(mailPiece.PnSConfigDetailId.Value, mailPiece.EffectiveReceivedOnEst.Value);
-                    var printVendorDetails = commonSvc.GetPrintVendorDetailsByPrintTrailId(mailPiece.PrintTrailId.Value, mailPiece.EffectiveReceivedOnEst);
-                    mailPiece.ShipperId = printVendorDetails.ShipperId;
-                    mailPiece.PrintLocation = commonSvc.GetShipperInformation(printVendorDetails.ShipperId).PrintLocation;
-                    //This field will be used for monitoring data    
-                    mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
-                    mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                    mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+
+                    CheckForDuplicateRecord(mailPieceSvc, mailPiece, mailBatch, client);
                 }
-
-                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-
-                CheckForDuplicateRecord(mailPieceSvc, mailPiece, mailBatch, client);
-            }
+            });
             log.Debug("Calculation of Due Date and Print location Job is ended.");
         }
 
@@ -848,7 +857,7 @@ namespace AM.Console
                 // Here batching in 5 address look up because USPS support only 5 per transaction.
                 var addressBatches = addressRequestes.Batch(5);
 
-                List<AddressResponse> addressResponses = new List<AddressResponse>();
+                ConcurrentBag<AddressResponse> addressResponses = new ConcurrentBag<AddressResponse>();
 
                 Parallel.ForEach(addressBatches, (verifyBatch) =>
                 {
@@ -867,7 +876,10 @@ namespace AM.Console
                         {
                             throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
                         }
-                        addressResponses.AddRange(verifierAddResponse.AddressResponses);
+                        foreach (var addRes in verifierAddResponse.AddressResponses)
+                        {
+                            addressResponses.Add(addRes);
+                        }
                     }
                 });
                 #endregion

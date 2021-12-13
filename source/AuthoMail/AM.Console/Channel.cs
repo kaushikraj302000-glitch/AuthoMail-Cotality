@@ -6,6 +6,7 @@ using MoreLinq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -589,20 +590,19 @@ namespace AM.Console
         #endregion
 
         #region EffectiveReceivedOn DueDate PrintLocation Logic
-        public static void CalculateDueDateAndPrintLocation(MailBatchDTO mailBatch, List<MailPieceDTO> mailPieces)
+        public static void CalculateDueDateAndPrintLocation(Client client, MailBatchDTO mailBatch, List<MailPieceDTO> mailPieces)
         {
             log.Debug("Calculation of Due Date and Print location job is started.");
-            using (IMailBatchService mailBatchSvc = new MailBatchService())
-            using (IMailPieceService mailPieceSvc = new MailPieceService())
-            using (IDocTypeService docTypeSvc = new DocTypeService())
+            List<Sweep> sweepTimings = new List<Sweep>();
             using (ICommonService commonSvc = new CommonService())
-            using (IClientService clientSvc = new ClientService())
             {
-                var sweepTimings = commonSvc.GetSweepTimings();
-
-                Client client = clientSvc.GetClientById(mailBatch.ClientId);
-
-                foreach (MailPieceDTO mailPiece in mailPieces)
+                sweepTimings = commonSvc.GetSweepTimings();
+            }
+            Parallel.ForEach(mailPieces, (mailPiece) =>
+            {
+                using (ICommonService commonSvc = new CommonService())
+                using (IDocTypeService docTypeSvc = new DocTypeService())
+                using (IMailPieceService mailPieceSvc = new MailPieceService())
                 {
                     if (mailPiece.ShippingStatus == ShippingStatus.Error.ToString())
                     {
@@ -646,7 +646,7 @@ namespace AM.Console
 
                     CheckForDuplicateRecord(mailPieceSvc, mailPiece, mailBatch, client);
                 }
-            }
+            });
             log.Debug("Calculation of Due Date and Print location Job is ended.");
         }
 
@@ -687,7 +687,7 @@ namespace AM.Console
                     // Here batching in 5 address look up because USPS support only 5 per transaction.
                     var addressBatches = addressRequestes.Batch(5);
 
-                    List<AddressResponse> addressResponses = new List<AddressResponse>();
+                    ConcurrentBag<AddressResponse> addressResponses = new ConcurrentBag<AddressResponse>();
 
                     Parallel.ForEach(addressBatches, (verifyBatch) =>
                     {
@@ -706,9 +706,12 @@ namespace AM.Console
                             {
                                 throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
                             }
-                            addressResponses.AddRange(verifierAddResponse.AddressResponses);
+                            foreach (var addRes in verifierAddResponse.AddressResponses)
+                            {
+                                addressResponses.Add(addRes);
+                            }
                         }
-                    });                    
+                    });
                     #endregion
 
                     foreach (MailPieceDTO mailPiece in validMailPieces.Where(mp => (mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested))
