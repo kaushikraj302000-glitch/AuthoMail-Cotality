@@ -264,7 +264,7 @@ namespace AM.Services
                                 GetTrackReplyAndUpdateValue(reply, jobRunTime, isReturnTracking);
                             }
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             return;
                         }
