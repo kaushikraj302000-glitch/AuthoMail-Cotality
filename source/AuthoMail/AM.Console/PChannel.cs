@@ -768,16 +768,13 @@ namespace AM.Console
         {
             log.Debug("Calculation of Due Date and Print location job is started.");
             List<Sweep> sweepTimings = new List<Sweep>();
+
             using (ICommonService commonSvc = new CommonService())
+            using (IDocTypeService docTypeSvc = new DocTypeService())
+            using (IMailPieceService mailPieceSvc = new MailPieceService())
             {
                 sweepTimings = commonSvc.GetSweepTimings();
-            }
-
-            Parallel.ForEach(mailPieces, (mailPiece) =>
-            {
-                using (ICommonService commonSvc = new CommonService())
-                using (IDocTypeService docTypeSvc = new DocTypeService())
-                using (IMailPieceService mailPieceSvc = new MailPieceService())
+                foreach (var mailPiece in mailPieces)
                 {
                     if (mailPiece.ShippingStatus == ShippingStatus.Error.ToString())
                     {
@@ -821,7 +818,7 @@ namespace AM.Console
 
                     CheckForDuplicateRecord(mailPieceSvc, mailPiece, mailBatch, client);
                 }
-            });
+            }
             log.Debug("Calculation of Due Date and Print location Job is ended.");
         }
 
