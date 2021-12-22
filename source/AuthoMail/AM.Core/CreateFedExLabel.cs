@@ -221,8 +221,8 @@ namespace AM.Core
         {
             request.RequestedShipment.Recipient = new Party(); // Recipient information
             request.RequestedShipment.Recipient.Contact = new Contact();
-            request.RequestedShipment.Recipient.Contact.PersonName = string.Format("{0} {1}", mailPiece.RcptFirstName, mailPiece.RcptLastName);
-            //request.RequestedShipment.Recipient.Contact.CompanyName = loan.RecipientCompanyName;
+            request.RequestedShipment.Recipient.Contact.PersonName = $"{mailPiece.RcptFirstName} {mailPiece.RcptLastName}";
+            request.RequestedShipment.Recipient.Contact.CompanyName = mailPiece.RcptOrganization;
             request.RequestedShipment.Recipient.Contact.PhoneNumber = string.IsNullOrEmpty(mailPiece.RcptPhone) ? "0000000000" : "+1" + mailPiece.RcptPhone;
             request.RequestedShipment.Recipient.Address = new ShipWebServiceRef.Address();
             request.RequestedShipment.Recipient.Address.StreetLines = new string[] { mailPiece.RcptAddressStreet, mailPiece.RcptAddrOptionalLine1BelowStreet, mailPiece.RcptAddrOptionalLine2BelowStreet };
@@ -281,9 +281,9 @@ namespace AM.Core
             string[] specialServices = shipmentSpecialService.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             request.RequestedShipment.SpecialServicesRequested = new ShipmentSpecialServicesRequested();
             request.RequestedShipment.SpecialServicesRequested.SpecialServiceTypes = new string[specialServices.Length];
-            
+
             List<string> specialServiceList = new List<string>();
-                        
+
             for (int i = 0; i < specialServices.Length; i++)
             {
                 //Here we have to check that If SATURDAY_DELIVERY option is enabled then ShipTimeStamp day should be Friday, otherwise it will considered as an error for that mail piece.

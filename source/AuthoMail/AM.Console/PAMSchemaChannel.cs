@@ -1024,7 +1024,8 @@ namespace AM.Console
                                 {
                                     throw new Exception("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceList.Count, totalNodes));
                                 }
-                                PChannel.CalculateDueDateAndPrintLocation(commonService, docTypeSvc, mailPieceSvc, client, mailBatch, mailPieceList);
+
+                                PChannel.CalculateDueDateAndPrintLocation(client, mailBatch, mailPieceList);
 
                                 if (mailPieceList.All(mp => mp.IsEDeliveryRequested && mp.ShippingStatus != ShippingStatus.Error.ToString()))
                                 {
@@ -1034,7 +1035,6 @@ namespace AM.Console
                                 else
                                     commonService.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now).Wait();
                             }
-
                         }
                         catch (Exception ex)
                         {
@@ -1254,7 +1254,7 @@ namespace AM.Console
             if (mailPiece.RetRcptAddressStreet.IsNullOrWhiteSpace() || mailPiece.RetRcptAddressCity.IsNullOrWhiteSpace() || mailPiece.RetRcptAddressState.IsNullOrWhiteSpace() || mailPiece.RetRcptAddressZIP.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return address details are missing or invalid in package." };
 
-            if (mailPiece.RcptFirstName.IsNullOrWhiteSpace() && mailPiece.RcptLastName.IsNullOrWhiteSpace())
+            if (mailPiece.RcptOrganization.IsNullOrWhiteSpace() && mailPiece.RcptFirstName.IsNullOrWhiteSpace() && mailPiece.RcptLastName.IsNullOrWhiteSpace())
                 yield return new MailPieceValidationResult() { Code = OutComeCodes.Recipient_Details_Missing_Or_Invalid, ErrorMessage = "Recipient's first and last name are missing or invalid in package." };
 
             if (mailPiece.DocumentOrPackageType.IsNullOrWhiteSpace())

@@ -158,10 +158,10 @@
     <None Include="CustomTemplates\MTBANK\2813735_REP.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="CustomTemplates\TDBANK\LienFollowUpLetter.docx">
+    <None Include="CustomTemplates\TDBANK\30DaysFollowUpLetter.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="CustomTemplates\TDBANK\LienNotificationLetter.docx">
+    <None Include="CustomTemplates\TDBANK\LienLetter.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="log4net.config">

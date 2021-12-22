@@ -62,6 +62,7 @@ namespace AM.Web.Controllers
         public ActionResult MonthlyReconReport()
         {
             ViewBag.dateList = repoSvc.GetMonthlyReconDate(User.Identity.GetClientId().Value);
+            ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value).FirstOrDefault();
             return View();
         }
         [HttpPost]
@@ -76,7 +77,7 @@ namespace AM.Web.Controllers
 
         }
 
-        public ActionResult DownloadMonthlyReconReport(string startDate, string endDate, string channel, string fileName, int timezoneOffset)
+        public ActionResult DownloadMonthlyReconReport(string startDate, string endDate, string channel, string fileName, int timezoneOffset, string buId)
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
@@ -106,6 +107,13 @@ namespace AM.Web.Controllers
                 foreach (var column in columnsToDelete)
                     dataTable.Columns.Remove(column);
             }
+
+            if (!buId.IsNullOrWhiteSpace())
+            {
+                dataTable.Columns["LoanNumber"].ColumnName = buId;
+                dataTable.AcceptChanges();
+            }
+
 
             var memoryStream = ExcelHelper.ExportDataSet(dataTable);
             memoryStream.Seek(0, SeekOrigin.Begin);

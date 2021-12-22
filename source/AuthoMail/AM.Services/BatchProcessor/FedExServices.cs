@@ -238,34 +238,37 @@ namespace AM.Services
         {
             DateTime jobRunTime = Common.Now;
 
-            int totalMailPieceCount = mailPieces.Count;
-            int checkedMailPieceCount = 0;
             int maxRequest = 30;
-            double loopCount = Math.Ceiling(totalMailPieceCount / (float)maxRequest);
 
             using (IFedExService fedExSvc = new FedExService())
             {
                 FedExAccountInfo fedExAccountDetails = fedExSvc.GetFedExAccountDetailsByAccountCode(Config.Common_FedExTrackingAccountCode);
                 if (fedExAccountDetails != null)
                 {
-                    for (double i = 0; i < loopCount; i++)
+                    var trackingBatches = mailPieces.ChunkBy(maxRequest);
+
+                    Parallel.ForEach(trackingBatches, new ParallelOptions { MaxDegreeOfParallelism = 10 }, (batches) =>
                     {
-                        var takenMailPieces = mailPieces.Skip(checkedMailPieceCount).Take(maxRequest).ToList();
-                        checkedMailPieceCount += maxRequest;
-
-                        TrackRequest request = CreateTrackRequest(takenMailPieces, fedExAccountDetails, isReturnTracking);
-                        TrackPortTypeClient service = new TrackPortTypeClient();
-                        service.Endpoint.Address = new System.ServiceModel.EndpointAddress(Config.Common_FedExTrackingUrl);
-
-                        ServicePointManager.Expect100Continue = true;
-                        ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                        // Call the Track web service passing in a TrackRequest and returning a TrackReply
-                        TrackReply reply = service.track(request);
-                        if (reply.HighestSeverity == NotificationSeverityType.SUCCESS || reply.HighestSeverity == NotificationSeverityType.NOTE || reply.HighestSeverity == NotificationSeverityType.WARNING)
+                        try
                         {
-                            GetTrackReplyAndUpdateValue(reply, jobRunTime, isReturnTracking);
+                            TrackRequest request = CreateTrackRequest(batches.ToList(), fedExAccountDetails, isReturnTracking);
+                            TrackPortTypeClient service = new TrackPortTypeClient();
+                            service.Endpoint.Address = new System.ServiceModel.EndpointAddress(Config.Common_FedExTrackingUrl);
+
+                            ServicePointManager.Expect100Continue = true;
+                            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                            // Call the Track web service passing in a TrackRequest and returning a TrackReply
+                            TrackReply reply = service.track(request);
+                            if (reply.HighestSeverity == NotificationSeverityType.SUCCESS || reply.HighestSeverity == NotificationSeverityType.NOTE || reply.HighestSeverity == NotificationSeverityType.WARNING)
+                            {
+                                GetTrackReplyAndUpdateValue(reply, jobRunTime, isReturnTracking);
+                            }
                         }
-                    }
+                        catch (Exception)
+                        {
+                            return;
+                        }
+                    });
                 }
             }
         }

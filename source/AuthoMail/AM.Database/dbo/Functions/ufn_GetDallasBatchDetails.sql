@@ -66,7 +66,8 @@ BEGIN
 	b.PrintBatch,b.IsSubmitted,b.PipelineStatus,preq.PrintBatchName,b.JobName,preq.SubmittedOn,
 	req.PieceId,req.PrintTrailBatchId, req.JobId,req.[Date] AS MRDFReqDate,req.PDFFileName, req.UniqueId,req.MailPieceStatus, 
 	res.ProcessingTimeStamp,
-	PCD.ShippingServiceType,PCD.ShippingCarrier,d.IsBRE,
+	PCD.ShippingServiceType,PCD.ShippingCarrier
+	,CASE WHEN m.Inserts IS NOT NULL AND LEN(RTRIM(LTRIM(m.Inserts)))>0 THEN CAST(1 AS BIT) WHEN d.IsBRE=1 THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END AS IsBRE,
 	c.AppCode,c.Name AS ClientName,(SELECT BatchName FROM @dallasBatchesTimes WHERE EffectiveReceivedOnEst between StartDate AND EndDate AND ShippingCarrier=PCD.ShippingCarrier AND ShippingServiceType=PCD.ShippingServiceType  AND AppCode=c.AppCode) BatchName,
 	req.FilePath
 	FROM [AM].[MailPieces] m

@@ -13,9 +13,9 @@ namespace AM.Entities
         public string LetterID { get; set; }
         [DisplayName("Current Date")]
         public DateTime? CurrentDate { get; set; }
-        [DisplayName("Customer Name 1")]
+        [DisplayName("Customer Name (1)")]
         public string CustomerName1 { get; set; }
-        [DisplayName("Customer Name 2")]
+        [DisplayName("Customer Name (2)")]
         public string CustomerName2 { get; set; }
         [DisplayName("Mailing Address (1)")]
         public string MailingAddress1 { get; set; }
@@ -33,7 +33,7 @@ namespace AM.Entities
         public string State2 { get; set; }
         [DisplayName("Zip Code (2)")]
         public string ZipCode2 { get; set; }
-        [DisplayName("Account Ending In")]
+        [DisplayName("Accounting Ending In")]
         public string AccountEndingIn { get; set; }
         [DisplayName("Property Address")]
         public string PropertyAddress { get; set; }

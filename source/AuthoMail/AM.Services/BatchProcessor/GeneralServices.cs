@@ -30,6 +30,7 @@ namespace AM.Services
         List<MailAPIResponse> GenerateMailAPIResponse(List<BatchResponse> batchResponses);
         string GeneralJsonReport(string mpUniqueId);
         Task<HttpResponseMessage> SendAPIResponse(HttpClient httpClient, string responseURL, IEnumerable<MailAPIResponse> responseReport);
+        Task<HttpResponseMessage> SendAPIResponseMC(HttpClient httpClient, string responseURL, Dictionary<string, string> requestHeaders, MailAPIResponse response);
         string GeneralXMLReport(List<MailPieces> mailPieces, string clientCode);
         string GeneralXMLBatchErrorReport(MailBatchDTO mailBatch, string clientCode);
         void USPSTrackingCall(List<TrackingReport> mailPieces, bool isReturnTracking);
@@ -262,7 +263,7 @@ namespace AM.Services
 
         public MailAPIResponse GenerateMailAPIResponse(BatchResponse batchResponse)
         {
-            List<APIMetaData> customInfos = batchResponse.MailPieceCustomInfo == null ? null : batchResponse.MailPieceCustomInfo.Select(r => new APIMetaData() { Key = r.Key, Value = r.Value }).Where(r => !r.Key.StartsWith("AM:")).ToList();
+            List<APIMetaData> customInfos = batchResponse.MailPieceCustomInfo == null || batchResponse.MailPieceCustomInfo.Any(x => x == null) ? null : batchResponse.MailPieceCustomInfo.Select(r => new APIMetaData() { Key = r.Key, Value = r.Value }).Where(r => !r.Key.StartsWith("AM:")).ToList();
             MailAPIResponse response = new MailAPIResponse()
             {
                 Id = batchResponse.UniqueId,
@@ -338,6 +339,28 @@ namespace AM.Services
             return httpClient.PostAsync(responseURL, content);
         }
 
+        public Task<HttpResponseMessage> SendAPIResponseMC(HttpClient httpClient, string responseURL, Dictionary<string, string> headers, MailAPIResponse response)
+        {
+            JsonSerializerSettings dateFormatSettings = new JsonSerializerSettings
+            {
+                DateFormatHandling = DateFormatHandling.IsoDateFormat
+            };
+
+            string json = JsonConvert.SerializeObject(response, dateFormatSettings);
+
+            var apiKey = headers.SingleOrDefault(x => x.Key == "X-API-Key");
+
+            string hashdata = XmlUtil.ComputHash(apiKey.Value, json);
+            httpClient.DefaultRequestHeaders.Accept.Clear();
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.Add("X-API-Key", apiKey.Value);
+            httpClient.DefaultRequestHeaders.Add("X-API-Signature", hashdata);
+
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            return httpClient.PostAsync(responseURL, content);
+        }
 
         public async static Task<string> GetToken()
         {
@@ -378,34 +401,32 @@ namespace AM.Services
 
         public void USPSTrackingCall(List<TrackingReport> mailPieces, bool isReturnTracking)
         {
-            int requestTrackingCount = mailPieces.Count;
             int maxTrackRequest = 35;
-            int trackedRequests = 0;
-            double loopCount = Math.Ceiling(requestTrackingCount / (float)maxTrackRequest);
-            using (IUSPSService uspsSvc = new USPSService())
+
+            string systemUserId = string.Empty;
+
             using (ICommonService commonSvc = new CommonService())
             {
-                for (double i = 0; i < loopCount; i++)
-                {
-                    List<TrackID> trackIDs = new List<TrackID>();
-                    mailPieces.Skip(trackedRequests).Take(maxTrackRequest).ToList().ForEach(r =>
-                    {
-                        trackIDs.Add(new TrackID() { ID = isReturnTracking ? r.ReturnTrackingNo : r.TrackingNo });
-                    });
+                systemUserId = commonSvc.GetSystemUserId();
+            }
 
+            var trackBatches = mailPieces.ChunkBy(maxTrackRequest);
+
+            Parallel.ForEach(trackBatches, (batches) =>
+            {
+                using (IUSPSService uspsSvc = new USPSService())
+                {
                     TrackFieldAPIRequest trackFieldRequest = new TrackFieldAPIRequest()
                     {
-                        TrackID = trackIDs
+                        TrackID = batches.Select(x => new TrackID() { ID = isReturnTracking ? x.ReturnTrackingNo : x.TrackingNo }).ToList()
                     };
 
-                    var trackingInfos = uspsSvc.GetTrackingDetailsAsync(commonSvc.GetSystemUserId(), trackFieldRequest).Result;
+                    var trackingInfos = uspsSvc.GetTrackingDetailsAsync(systemUserId, trackFieldRequest).Result;
 
                     if (trackingInfos.HasError)
                     {
-                        continue;
+                        return;
                     }
-
-                    trackedRequests += maxTrackRequest;
 
                     using (IMailPieceService mailPieceSvc = new MailPieceService())
                     {
@@ -425,14 +446,14 @@ namespace AM.Services
                             {
                                 mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(shipmentStatus, trackInfo.ID, Common.Now, trackInfo.TrackSummary.Event, shipmentDateTimeUTC, isReturnTracking);
                             }
-                            catch (Exception )
+                            catch (Exception)
                             {
                                 //Handle Error to do not break out queue.
                             }
                         }
                     }
                 }
-            }
+            });
         }
     }
 }

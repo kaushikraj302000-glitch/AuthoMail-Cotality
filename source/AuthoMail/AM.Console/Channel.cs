@@ -2,9 +2,11 @@
 using AM.Lib;
 using AM.Services;
 using AM.USPSLib;
+using MoreLinq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -588,20 +590,17 @@ namespace AM.Console
         #endregion
 
         #region EffectiveReceivedOn DueDate PrintLocation Logic
-        public static void CalculateDueDateAndPrintLocation(MailBatchDTO mailBatch, List<MailPieceDTO> mailPieces)
+        public static void CalculateDueDateAndPrintLocation(Client client, MailBatchDTO mailBatch, List<MailPieceDTO> mailPieces)
         {
             log.Debug("Calculation of Due Date and Print location job is started.");
-            using (IMailBatchService mailBatchSvc = new MailBatchService())
-            using (IMailPieceService mailPieceSvc = new MailPieceService())
-            using (IDocTypeService docTypeSvc = new DocTypeService())
+            List<Sweep> sweepTimings = new List<Sweep>();
+            
             using (ICommonService commonSvc = new CommonService())
-            using (IClientService clientSvc = new ClientService())
+            using (IDocTypeService docTypeSvc = new DocTypeService())
+            using (IMailPieceService mailPieceSvc = new MailPieceService())
             {
-                var sweepTimings = commonSvc.GetSweepTimings();
-
-                Client client = clientSvc.GetClientById(mailBatch.ClientId);
-
-                foreach (MailPieceDTO mailPiece in mailPieces)
+                sweepTimings = commonSvc.GetSweepTimings();
+                foreach (var mailPiece in mailPieces)
                 {
                     if (mailPiece.ShippingStatus == ShippingStatus.Error.ToString())
                     {
@@ -646,6 +645,7 @@ namespace AM.Console
                     CheckForDuplicateRecord(mailPieceSvc, mailPiece, mailBatch, client);
                 }
             }
+
             log.Debug("Calculation of Due Date and Print location Job is ended.");
         }
 
@@ -675,33 +675,27 @@ namespace AM.Console
                 {
                     #region Address Validation Logic
                     //Get validate Addresses for each records
-                    List<AddressResponse> addressResponses = new List<AddressResponse>();
                     List<AddressRequest> addressRequestes = new List<AddressRequest>();
+
+                    var sysUserId = commonSvc.GetSystemUserId();
 
                     var usMPs = validMailPieces.Where(mp => (((mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested) && mp.RcptAddressCountry.IsCountryUS())).ToList();
 
-                    foreach (var mailPiece in usMPs) // Here system will verify only those address which have fallbackrequested=true or Edeliveryrequested=false and if country exist than it will check for country name must be from above metioned one
+                    addressRequestes.AddRange(usMPs.Select(mp => new AddressRequest() { Id = mp.UniqueId.ToString(), StreetAddress = mp.RcptAddressStreet + " " + mp.RcptAddrOptionalLine1BelowStreet, City = mp.RcptAddressCity, State = mp.RcptAddressState, Zip4 = mp.RcptAddressZIP.SeparateZip4And5(4), Zip5 = mp.RcptAddressZIP.SeparateZip4And5(5) }));
+
+                    // Here batching in 5 address look up because USPS support only 5 per transaction.
+                    var addressBatches = addressRequestes.Batch(5);
+
+                    ConcurrentBag<AddressResponse> addressResponses = new ConcurrentBag<AddressResponse>();
+
+                    Parallel.ForEach(addressBatches, (verifyBatch) =>
                     {
-                        AddressRequest addressRequest = new AddressRequest() { Id = mailPiece.UniqueId.ToString(), StreetAddress = mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet, City = mailPiece.RcptAddressCity, State = mailPiece.RcptAddressState, Zip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4), Zip5 = mailPiece.RcptAddressZIP.SeparateZip4And5(5) };
-
-                        addressRequestes.Add(addressRequest);
-                    }
-
-                    int requestAddressCount = addressRequestes.Count;
-                    int maxAddressVerification = 5;
-                    int verifiedAddressCount = 0;
-                    double loopCount = Math.Ceiling(requestAddressCount / (float)maxAddressVerification);
-
-                    for (double i = 0; i < loopCount; i++)
-                    {
-                        var takenAddressesList = addressRequestes.Skip(verifiedAddressCount).Take(maxAddressVerification).ToList();
-                        VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = takenAddressesList };
-                        verifiedAddressCount += maxAddressVerification;
+                        VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = verifyBatch.ToList() };
                         VerifierAddressResponse verifierAddResponse;
 
                         using (IUSPSService uspsSvc = new USPSService())
                         {
-                            verifierAddResponse = uspsSvc.VerifyAddressAsync(commonSvc.GetSystemUserId(), verifierAddRequest).Result;
+                            verifierAddResponse = uspsSvc.VerifyAddressAsync(sysUserId, verifierAddRequest).Result;
                         }
 
                         if (verifierAddResponse != null)
@@ -711,10 +705,12 @@ namespace AM.Console
                             {
                                 throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
                             }
-
-                            addressResponses.AddRange(verifierAddResponse.AddressResponses);
+                            foreach (var addRes in verifierAddResponse.AddressResponses)
+                            {
+                                addressResponses.Add(addRes);
+                            }
                         }
-                    }
+                    });
                     #endregion
 
                     foreach (MailPieceDTO mailPiece in validMailPieces.Where(mp => (mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested))

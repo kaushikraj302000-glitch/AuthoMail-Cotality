@@ -37,7 +37,7 @@ namespace AM.Console
                 case "ALASKA":
                     return new AlaskaChannel(channelCode, channelType);
 
-                case "CAPONE":
+                case "FLOODINTEGRATION":
                     return new CapOneChannel(channelCode, channelType);
 
                 case "HSBC":

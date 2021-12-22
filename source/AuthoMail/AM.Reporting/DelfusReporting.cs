@@ -27,9 +27,9 @@ namespace AM.Reporting
                 using (IDelfusTemplateService delfusTemplateService = new DelfusTemplateService())
                 {
                     var clientInfo = clientSvc.GetClientByAppCode("TAXCOM").Result;
-                    DateTime currentTime = Common.EstToday;
-                    DateTime endDate = currentTime.Date.AddDays(-1);
-                    DateTime startDate = currentTime.Date.AddMonths(-1);
+                    DateTime utcNow = DateTime.UtcNow;
+                    DateTime startDate = utcNow.UtcToEst().ToStartDateTime().EstToUtc();
+                    DateTime endDate = utcNow.UtcToEst().ToEndDateTime().EstToUtc();
                     //NOTE : Please change UTC to EST code when Daylight saving is off in service call
                     errorReportData = reportSvc.GetErrorReportByDateOrBatch(clientInfo.Id, startDate, endDate, null, "");
                     taxcomerrorReportData = delfusTemplateService.GetTaxCommercialErrorData(startDate, endDate).Result.ToList();

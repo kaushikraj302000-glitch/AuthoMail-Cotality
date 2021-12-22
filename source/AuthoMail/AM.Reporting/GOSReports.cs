@@ -276,9 +276,14 @@ namespace AM.Reporting
                     var today = Common.EstToday;
                     var startTime = new DateTime(today.AddMonths(-1).Year, today.AddMonths(-1).Month, 1);
                     var endTime = today.AddSeconds(-1);
-                    log.Debug("GOS Data Reporting Process Started");
-                    GenerateReport(reportSvc, otherClientCodes, startTime, endTime, statusMaps);
-                    log.Debug("GOS Data Reporting Process Completed");
+
+                    if (otherClientCodes.Count > 0)
+                    {
+                        log.Debug("GOS Data Reporting Process Started");
+                        GenerateReport(reportSvc, otherClientCodes, startTime, endTime, statusMaps);
+                        log.Debug("GOS Data Reporting Process Completed");
+                    }
+
                     if (AppConfig.GOSDaily3MonthAppCodes != null && AppConfig.GOSDaily3MonthAppCodes.Count() > 0)
                     {
                         log.Debug($"GOS Data Reporting Process For 3 Months Clients Started : {string.Join(",", AppConfig.GOSDaily3MonthAppCodes)}");
