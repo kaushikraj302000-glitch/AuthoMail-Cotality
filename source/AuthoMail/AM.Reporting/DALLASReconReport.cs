@@ -109,14 +109,14 @@ namespace AM.Reporting
 
                     if (amPostageDetails.Count > 0)
                     {
-                        var columnName = String.Join(",", "UserId", "APIName", "APIRequestedOn", "BarcodeNumber", "Postage Cost", "Email-Id", "UserName");
+                        var columnName = String.Join(",", "Client Code", "APIRequestedOn", "BarcodeNumber", "Postage Cost", "UserName");
 
                         StringBuilder reconReport = new StringBuilder(columnName);
 
                         reconReport.AppendLine();
                         foreach (var batch in amPostageDetails)
                         {
-                            var line = String.Join(",", batch.UserId, batch.APIName, batch.APIRequestedOn, batch.BarcodeNumber, batch.Postage, batch.Email, batch.UserName);
+                            var line = String.Join(",", batch.AppCode, batch.APIRequestedOn, batch.BarcodeNumber, batch.Postage, batch.UserName);
                             reconReport.AppendLine(line);
                         }
                         string reportFilePath = Path.Combine(AppConfig.AMPostageReconReportPath, $"AMPostageReconReport_{startDate.ToString("MMddyyyy")}_{endDate.ToString("MMddyyyy")}.csv");
