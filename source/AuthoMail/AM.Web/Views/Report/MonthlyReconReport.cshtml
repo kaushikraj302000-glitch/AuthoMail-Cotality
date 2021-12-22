@@ -31,6 +31,7 @@
                                 <option value="@item">@item</option>
                             }
                         </select>
+                        <input type="hidden" value="@ViewBag.BusinessId" id="businessIdentifierName" />
                     </div>
 
                 </div>
@@ -273,9 +274,10 @@
         }
         $("#filterData").click(function () {
             var selectedData = $("#dates").val().split('-');
+            var buid = $("#businessIdentifierName").val().trim();
             var startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
             var endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
-            var url = baseUrl + "Report/DownloadMonthlyReconReport?startDate=<startDate>&endDate=<endDate>&channel=<channel>&fileName=<fileName>&timezoneOffset=<timezoneOffset>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#Channel").val()).replace("<fileName>", "MonthlyReconReport").replace("<timezoneOffset>",new Date().getTimezoneOffset());
+            var url = baseUrl + "Report/DownloadMonthlyReconReport?startDate=<startDate>&endDate=<endDate>&channel=<channel>&fileName=<fileName>&timezoneOffset=<timezoneOffset>&buId=<buid>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#Channel").val()).replace("<fileName>", "MonthlyReconReport").replace("<timezoneOffset>", new Date().getTimezoneOffset()).replace("<buid>", buid);
             window.location = url;
             //FilterData();
         });
