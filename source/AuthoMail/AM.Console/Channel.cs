@@ -594,7 +594,8 @@ namespace AM.Console
         {
             log.Debug("Calculation of Due Date and Print location job is started.");
             List<Sweep> sweepTimings = new List<Sweep>();
-            
+
+
             using (ICommonService commonSvc = new CommonService())
             using (IDocTypeService docTypeSvc = new DocTypeService())
             using (IMailPieceService mailPieceSvc = new MailPieceService())
@@ -646,6 +647,7 @@ namespace AM.Console
                 }
             }
 
+
             log.Debug("Calculation of Due Date and Print location Job is ended.");
         }
 
@@ -688,29 +690,29 @@ namespace AM.Console
 
                     ConcurrentBag<AddressResponse> addressResponses = new ConcurrentBag<AddressResponse>();
 
-                    Parallel.ForEach(addressBatches, (verifyBatch) =>
-                    {
-                        VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = verifyBatch.ToList() };
-                        VerifierAddressResponse verifierAddResponse;
+                    Parallel.ForEach(addressBatches, new ParallelOptions { MaxDegreeOfParallelism = 8 }, (verifyBatch) =>
+                     {
+                         VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = verifyBatch.ToList() };
+                         VerifierAddressResponse verifierAddResponse;
 
-                        using (IUSPSService uspsSvc = new USPSService())
-                        {
-                            verifierAddResponse = uspsSvc.VerifyAddressAsync(sysUserId, verifierAddRequest).Result;
-                        }
+                         using (IUSPSService uspsSvc = new USPSService())
+                         {
+                             verifierAddResponse = uspsSvc.VerifyAddressAsync(sysUserId, verifierAddRequest).Result;
+                         }
 
-                        if (verifierAddResponse != null)
-                        {
-                            //if any error at VerifierAddressResponse level then throw unexpected error and exit from loop
-                            if (verifierAddResponse.HasError)
-                            {
-                                throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
-                            }
-                            foreach (var addRes in verifierAddResponse.AddressResponses)
-                            {
-                                addressResponses.Add(addRes);
-                            }
-                        }
-                    });
+                         if (verifierAddResponse != null)
+                         {
+                             //if any error at VerifierAddressResponse level then throw unexpected error and exit from loop
+                             if (verifierAddResponse.HasError)
+                             {
+                                 throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
+                             }
+                             foreach (var addRes in verifierAddResponse.AddressResponses)
+                             {
+                                 addressResponses.Add(addRes);
+                             }
+                         }
+                     });
                     #endregion
 
                     foreach (MailPieceDTO mailPiece in validMailPieces.Where(mp => (mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested))
