@@ -856,7 +856,7 @@ namespace AM.Console
 
                 ConcurrentBag<AddressResponse> addressResponses = new ConcurrentBag<AddressResponse>();
 
-                Parallel.ForEach(addressBatches, (verifyBatch) =>
+                Parallel.ForEach(addressBatches, new ParallelOptions { MaxDegreeOfParallelism = 8 }, (verifyBatch) =>
                 {
                     VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = verifyBatch.ToList() };
                     VerifierAddressResponse verifierAddResponse;
