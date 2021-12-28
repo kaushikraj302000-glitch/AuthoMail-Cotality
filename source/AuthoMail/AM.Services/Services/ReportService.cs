@@ -49,6 +49,7 @@ namespace AM.Services
         List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate, List<int> clientId, string status, List<string> shippingMethod);
         List<EnvelopeInventoryUsage> GetEnvelopesUsageReport(int clientId, int? envelopeId, string printVendorCode, DateTime startDate, DateTime endDate);
         List<MonthlyReconReportViewModel> GetDuplicateReportByDate(int clientId, DateTime startDate, DateTime endDate, string channel);
+        List<AMPostageData> GetAMPostageData(DateTime startDate, DateTime endDate);
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -969,6 +970,19 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
                 }
                 ).ToList();
             return data;
+        }
+
+        public List<AMPostageData> GetAMPostageData(DateTime startDate, DateTime endDate)
+        {
+            string query = @"SELECT C.AppCode, U.UserId,U.APIRequestedOn,U.BarcodeNumber,U.Postage,US.UserName 
+                             FROM API.USPSeVS U
+                             INNER JOIN Profile.Users US ON U.UserId=US.Id
+                             LEFT OUTER JOIN AM.MailPieces P ON SUBSTRING(U.BarcodeNumber,9,LEN(U.BarcodeNumber)-8) = P.TrackingNo
+							 LEFT OUTER JOIN Common.Clients C ON P.ClientId=C.Id
+                             WHERE U.APIRequestedOn BETWEEN @StartDate AND @EndDate
+                             AND (U.IsAPIError = 0 AND U.IsUSPSError = 0)
+                             ORDER BY U.APIRequestedOn";
+            return db.Query<AMPostageData>(query, new { StartDate = startDate.ToStartDateTime().EstToUtc(), EndDate = endDate.ToEndDateTime().EstToUtc() }).ToList();
         }
     }
 }

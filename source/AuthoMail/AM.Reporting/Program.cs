@@ -42,6 +42,9 @@ namespace AM.Reporting
                 case "DALLASRecon":
                     DALLASReconReport.GenerateDALLASReconReport();
                     break;
+                case "AMPostageRecon":
+                    DALLASReconReport.GenerateAMPostageReconReport();
+                    break;
                 case "GOS":
                     switch (args[1])
                     {
