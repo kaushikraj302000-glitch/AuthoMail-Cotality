@@ -412,7 +412,7 @@ namespace AM.Services
 
             var trackBatches = mailPieces.ChunkBy(maxTrackRequest);
 
-            Parallel.ForEach(trackBatches, new ParallelOptions { MaxDegreeOfParallelism = 16 }, (batches) =>
+            Parallel.ForEach(trackBatches, new ParallelOptions { MaxDegreeOfParallelism = 8 }, (batches) =>
             {
                 using (IUSPSService uspsSvc = new USPSService())
                 {

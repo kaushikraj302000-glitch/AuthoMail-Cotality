@@ -247,7 +247,7 @@ namespace AM.Services
                 {
                     var trackingBatches = mailPieces.ChunkBy(maxRequest);
 
-                    Parallel.ForEach(trackingBatches, new ParallelOptions { MaxDegreeOfParallelism = 16 }, (batches) =>
+                    Parallel.ForEach(trackingBatches, new ParallelOptions { MaxDegreeOfParallelism = 8 }, (batches) =>
                     {
                         try
                         {
