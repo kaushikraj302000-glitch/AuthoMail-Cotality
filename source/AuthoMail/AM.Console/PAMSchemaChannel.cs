@@ -553,7 +553,10 @@ namespace AM.Console
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(mailBatchSFTChannel.Protocol), mailBatchSFTChannel.Host, mailBatchSFTChannel.UserName, mailBatchSFTChannel.Password, 300000);
             sftSite.Connect();
 
-            sftSite.UploadFile(errorReportPath, remoteFilePath);
+            if (client.IsResponseRequired)
+            {
+                sftSite.UploadFile(errorReportPath, remoteFilePath);
+            }
 
             if (sftSite.IsFileAvailable(Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".zip")))
                 MoveBatchToBackupDir(sftSite, Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".zip"));

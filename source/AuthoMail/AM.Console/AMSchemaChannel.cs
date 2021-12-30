@@ -554,7 +554,10 @@ namespace AM.Console
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(mailBatchSFTChannel.Protocol), mailBatchSFTChannel.Host, mailBatchSFTChannel.UserName, mailBatchSFTChannel.Password, 300000);
             sftSite.Connect();
 
-            sftSite.UploadFile(errorReportPath, remoteFilePath);
+            if (client.IsResponseRequired)
+            {
+                sftSite.UploadFile(errorReportPath, remoteFilePath);
+            }
 
             if (sftSite.IsFileAvailable(Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".zip")))
                 MoveBatchToBackupDir(sftSite, Path.Combine(mailBatchSFTChannel.ToADEDir, mbi.BatchName + ".zip"));
@@ -1369,6 +1372,11 @@ namespace AM.Console
                 // Batch status Reported Back
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
 
+                if (!mbi.Client.IsResponseRequired)
+                {
+                    commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
+                }
+
                 //NOTE: Inserting Error Notification in this because system is not going to update any further status for batch due to full batch is invalid
                 commonSvc.InsertErrorNotifications(mbi.MailBatch.Id);
                 MailUtility.SendSubscribedErrorNotificationEmail(mbi, mailPieces, commonSvc.GetErrorNotificationEmailSubscriberList(mbi.Client.Id));
@@ -1394,7 +1402,10 @@ namespace AM.Console
                         {
                             newFile.CreateEntryFromFile(errorReportPath, errorReportFileName);
                         }
-                        sftSite.UploadFile(zipFilePath, ftpUploadPath);
+                        if (mbi.Client.IsResponseRequired)
+                        {
+                            sftSite.UploadFile(zipFilePath, ftpUploadPath);
+                        }
                         Thread.Sleep(1000);//This line is added to avoid any duplication of file name.
 
                         File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
@@ -1410,15 +1421,21 @@ namespace AM.Console
                         {
                             newFile.CreateEntryFromFile(errorReportPath, errorReportFileName);
                         }
-                        sftSite.UploadFile(zipFilePath, ftpUploadPath);
+                        if (mbi.Client.IsResponseRequired)
+                        {
+                            sftSite.UploadFile(zipFilePath, ftpUploadPath);
+                        }
                         Thread.Sleep(1000);//This line is added to avoid any duplication of file name.
 
                         File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
                         break;
                     default:
                         ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
-                        sftSite.UploadFile(errorReportPath, ftpUploadPath);
-
+                        
+                        if (mbi.Client.IsResponseRequired)
+                        {
+                            sftSite.UploadFile(errorReportPath, ftpUploadPath);
+                        }
                         break;
                 }
 
