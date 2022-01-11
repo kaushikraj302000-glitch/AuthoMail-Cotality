@@ -416,9 +416,9 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
 
             if (floodClients.Select(x => x.Id).Intersect(clientId).Any())
             {
-                extraColumns = " ,CST.[RequestorName], CST.[PropertyStreetAddress], CST.[PropertyCity], CST.[PropertyState], CST.[PropertyZip]";
+                extraColumns = " ,CST.[RequestorName], CST.[PropertyStreetAddress], CST.[PropertyCity], CST.[PropertyState], CST.[PropertyZip], CST.[LoanNumber] AS FloodLoan_Number";
 
-                columnList = "[RequestorName],[PropertyStreetAddress],[PropertyCity],[PropertyState],[PropertyZip]";
+                columnList = "[RequestorName],[PropertyStreetAddress],[PropertyCity],[PropertyState],[PropertyZip],[LoanNumber]";
             }
 
 

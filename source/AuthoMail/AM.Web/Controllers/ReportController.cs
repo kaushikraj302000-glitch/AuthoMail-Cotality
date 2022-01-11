@@ -298,6 +298,12 @@ namespace AM.Web.Controllers
                 {
                     dataTable.Columns.Remove("ProductCode");
                 }
+
+                if (dataTable.Columns.Contains("LoanNumber"))
+                {
+                    dataTable.Columns["LoanNumber"].ColumnName = businessFriendlyIdName;
+                }
+
                 var memoryStream = ExcelHelper.ExportDataSet(dataTable);
                 memoryStream.Seek(0, SeekOrigin.Begin);
 
