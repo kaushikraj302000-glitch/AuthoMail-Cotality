@@ -322,7 +322,38 @@ bufferSize: 4096, useAsync: true)) { }
 
                 using (IClientService clientService = new ClientService())
                 {
-                    client = await clientService.GetClientByAppCode(mailPiece.ClientCode);
+                    if (sftChannel.Code.Contains("API_AMC"))
+                    {
+                        var clientId = clientService.GetAMCClientIdMaps().SingleOrDefault(x => x.AMCCustId == mailPiece.ClientCode);
+
+                        if (clientId == null)
+                        {
+                            string msg = "Invalid client code specified.";
+
+                            await StoreInvalidOrBadRequest(manifest[0], provider.FileData, errorPath, mailPiece.Id, msg, addPackageResult.Id);
+
+                            DeleteFiles(downloadedFiles);
+
+                            sw.Stop();
+                            requestLog.Id = addPackageResult.Id;
+                            requestLog.MailPieceId = mailPiece.Id;
+                            requestLog.Status = OutComeCodes.Invalid_ClientCode;
+                            requestLog.HTTPStatusCode = (int)HttpStatusCode.BadRequest;
+                            requestLog.APIResponse = msg;
+                            requestLog.ReceivedOn = receivedOn;
+                            requestLog.Validate = sw.Elapsed.TotalSeconds;
+                            await pnsApiSvc.UpdatePackageStatus(requestLog);
+
+                            if (mailPiece.DocumentOrPackage != null) mailPiece.DocumentOrPackage.IncludePatternBaseString = false;
+                            var res = GetErrorResponse(mailPiece, new MailPieceValidationResult { Code = OutComeCodes.Invalid_ClientCode, ErrorMessage = msg }, receivedOn);
+                            return Request.CreateResponse(HttpStatusCode.BadRequest, res);
+                        }
+
+                        client = clientService.GetClientById(clientId.ClientId);
+                    }
+                    else
+                        client = await clientService.GetClientByAppCode(mailPiece.ClientCode);
+
                     if (client == null)
                     {
                         string msg = "Invalid client code specified.";
@@ -1148,7 +1179,7 @@ bufferSize: 4096, useAsync: true)) { }
 
                         return new { Key = HttpStatusCode.BadRequest, Value = errresult };
                     }
-                    
+
                     List<string> filesToZip = new List<string>();
 
                     string xml = mailBatch.Serialize<MailBatch>();
@@ -1231,7 +1262,7 @@ bufferSize: 4096, useAsync: true))
                 serializer.Serialize(stringwriter, mailBatch);
                 return stringwriter.ToString();
             }
-        }        
+        }
 
         public class MailPieceValidationResult
         {
