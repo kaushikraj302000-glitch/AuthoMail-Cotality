@@ -213,11 +213,11 @@ namespace AM.Console
                         responseResult = await genSvc.SendAPIResponseMC(httpClient, sftChannelDetails.APIResponseURL, sftChannelDetails.GetHeaders(), response);
 
                         var responseJson = await responseResult.Content.ReadAsStringAsync();
-                        log.Debug(responseResult);
-                        log.Debug(responseJson);
 
                         if (!responseResult.IsSuccessStatusCode)
                         {
+                            log.Debug(responseResult);
+                            log.Debug(responseJson);
                             var msg = $"Error occured while sending response to MC endpoint with Status Code : {responseResult.StatusCode},RequestMessage {responseResult.RequestMessage}, Error : {await responseResult?.Content?.ReadAsStringAsync()}";
                             log.Error(msg);
                             MailUtility.SendAPIUnexpectedExceptionEmail(msg);
