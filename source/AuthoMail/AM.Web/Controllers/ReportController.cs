@@ -299,7 +299,7 @@ namespace AM.Web.Controllers
                     dataTable.Columns.Remove("ProductCode");
                 }
 
-                if (dataTable.Columns.Contains("LoanNumber"))
+                if (dataTable.Columns.Contains("LoanNumber") && !businessFriendlyIdName.IsNullOrWhiteSpace())
                 {
                     dataTable.Columns["LoanNumber"].ColumnName = businessFriendlyIdName;
                 }
