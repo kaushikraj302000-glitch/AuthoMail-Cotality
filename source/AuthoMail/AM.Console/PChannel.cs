@@ -146,11 +146,19 @@ namespace AM.Console
                         case "API_AMC":
 
                             var responseMCBatches = mailAPIResponses.Batch(maxResponse);
-                            foreach (var resBatches in responseMCBatches)
+                            using (HttpClient httpClient = new HttpClient())
                             {
-                                var outResponse = resBatches.Select(responsePackage => SubmitBatchResponseMC(responsePackage, sftChannelDetails));
+                                var apiKey = sftChannelDetails.GetHeaders().SingleOrDefault(x => x.Key == "X-API-Key");
+                                httpClient.DefaultRequestHeaders.Clear();
+                                httpClient.DefaultRequestHeaders.Accept.Clear();
+                                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                                httpClient.DefaultRequestHeaders.Add("X-API-Key", apiKey.Value);
+                                foreach (var resBatches in responseMCBatches)
+                                {
+                                    var outResponse = resBatches.Select(responsePackage => SubmitBatchResponseMC(httpClient, responsePackage, sftChannelDetails.APIResponseURL, apiKey.Value));
 
-                                await Task.WhenAll(outResponse.ToArray());
+                                    await Task.WhenAll(outResponse.ToArray());
+                                }
                             }
                             break;
                         default:
@@ -199,7 +207,7 @@ namespace AM.Console
             }
         }
 
-        private static async Task SubmitBatchResponseMC(MailAPIResponse response, SFTChannel sftChannelDetails)
+        private static async Task SubmitBatchResponseMC(HttpClient httpClient, MailAPIResponse response, string apiResponseUrl, string apiKey)
         {
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             using (ICommonService commonSvc = new CommonService())
@@ -208,25 +216,22 @@ namespace AM.Console
                 HttpResponseMessage responseResult = null;
                 try
                 {
-                    using (HttpClient httpClient = new HttpClient())
+                    responseResult = await genSvc.SendAPIResponseMC(httpClient, apiResponseUrl, apiKey, response);
+
+                    var responseJson = await responseResult.Content.ReadAsStringAsync();
+
+                    if (!responseResult.IsSuccessStatusCode)
                     {
-                        responseResult = await genSvc.SendAPIResponseMC(httpClient, sftChannelDetails.APIResponseURL, sftChannelDetails.GetHeaders(), response);
-
-                        var responseJson = await responseResult.Content.ReadAsStringAsync();
-
-                        if (!responseResult.IsSuccessStatusCode)
-                        {
-                            log.Debug(responseResult);
-                            log.Debug(responseJson);
-                            var msg = $"Error occured while sending response to MC endpoint with Status Code : {responseResult.StatusCode},RequestMessage {responseResult.RequestMessage}, Error : {await responseResult?.Content?.ReadAsStringAsync()}";
-                            log.Error(msg);
-                            MailUtility.SendAPIUnexpectedExceptionEmail(msg);
-                            return;
-                        }
-                        else
-                        {
-                            await commonSvc.UpdateBatchPipeLineStatusByMailPieceId(response.Id, BatchPipelineStatus.ReportedBack, Common.Now);
-                        }
+                        log.Debug(responseResult);
+                        log.Debug(responseJson);
+                        var msg = $"Error occured while sending response to MC endpoint with Status Code : {responseResult.StatusCode},RequestMessage {responseResult.RequestMessage}, Error : {await responseResult?.Content?.ReadAsStringAsync()}";
+                        log.Error(msg);
+                        MailUtility.SendAPIUnexpectedExceptionEmail(msg);
+                        return;
+                    }
+                    else
+                    {
+                        await commonSvc.UpdateBatchPipeLineStatusByMailPieceId(response.Id, BatchPipelineStatus.ReportedBack, Common.Now);
                     }
                 }
                 catch (Exception ex)
