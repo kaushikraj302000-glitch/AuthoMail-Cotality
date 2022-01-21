@@ -13,12 +13,14 @@ namespace AM.Services
     public interface IClientService : IDisposable//Home Service interface that has number of methods
     {
         Client GetClientById(int clientId);
+        Task<Client> GetClientByIdAsync(int clientId);
         Task<Client> GetClientByAppCode(string appCode);
         Task<Client> GetClientByName(string clientName);
         List<ClientSFTChannel> GetClientSFTChannelMapDetails(int clientId);
         Task<SFTChannel> GetSFTChannelDetailsBySFTChannelId(int sftChannelId);
         SFTChannel GetSFTChannelDetailsBySFTChannelCode(string sftChannelCode);
         List<ClientAMCCustIdMap> GetAMCClientIdMaps();
+        Task<int?> GetAMCClientIdByCustId(string custId);
         List<Client> GetClientsByAlias(string alias);
     }
     public class ClientService : ServiceBase, IClientService //It implements Interfaces 
@@ -28,6 +30,12 @@ namespace AM.Services
             string query = "SELECT * FROM [Common].[Clients] WHERE IsAMActive=1 and Id = @Id ";
             var data = db.QuerySingleOrDefault<Client>(query, new { Id = clientId });
             return data;
+        }
+
+        public async Task<Client> GetClientByIdAsync(int clientId)
+        {
+            string query = "SELECT * FROM [Common].[Clients] WHERE IsAMActive=1 and Id = @Id ";
+            return await db.QuerySingleOrDefaultAsync<Client>(query, new { Id = clientId });
         }
 
         public async Task<Client> GetClientByAppCode(string appCode)
@@ -73,6 +81,13 @@ namespace AM.Services
             string query = "SELECT [ClientId],[AMCCustId] FROM [AM].[ClientAMCCustIdMap]";
 
             return db.Query<ClientAMCCustIdMap>(query, null).ToList();
+        }
+
+        public async Task<int?> GetAMCClientIdByCustId(string custId)
+        {
+            string query = "SELECT [ClientId] FROM [AM].[ClientAMCCustIdMap] WHERE AMCCustId=@CustId";
+
+            return await db.QuerySingleOrDefaultAsync<int?>(query, new { CustId = custId });
         }
 
         public List<Client> GetClientsByAlias(string alias)

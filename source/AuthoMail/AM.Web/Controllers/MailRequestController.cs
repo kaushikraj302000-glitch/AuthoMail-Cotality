@@ -324,7 +324,7 @@ bufferSize: 4096, useAsync: true)) { }
                 {
                     if (sftChannel.Code.Contains("API_AMC"))
                     {
-                        var clientId = clientService.GetAMCClientIdMaps().SingleOrDefault(x => x.AMCCustId == mailPiece.ClientCode);
+                        var clientId = await clientService.GetAMCClientIdByCustId(mailPiece.ClientCode);
 
                         if (clientId == null)
                         {
@@ -349,7 +349,7 @@ bufferSize: 4096, useAsync: true)) { }
                             return Request.CreateResponse(HttpStatusCode.BadRequest, res);
                         }
 
-                        client = clientService.GetClientById(clientId.ClientId);
+                        client = await clientService.GetClientByIdAsync(clientId.Value);
                     }
                     else
                         client = await clientService.GetClientByAppCode(mailPiece.ClientCode);
