@@ -2,10 +2,12 @@
 using AM.Lib;
 using AM.Services.Services;
 using AM.USPSLib.TrackV2;
+using Dapper;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Asn1.Ocsp;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -34,6 +36,7 @@ namespace AM.Services
         string GeneralXMLReport(List<MailPieces> mailPieces, string clientCode);
         string GeneralXMLBatchErrorReport(MailBatchDTO mailBatch, string clientCode);
         void USPSTrackingCall(List<TrackingReport> mailPieces, bool isReturnTracking);
+        void USPSTrackingData(List<TrackingReport> mailPieces, bool isReturnTracking);
     }
 
     public class GeneralService : ServiceBase, IGeneralService
@@ -450,6 +453,66 @@ namespace AM.Services
                     }
                 }
             });
+        }
+
+        public void USPSTrackingData(List<TrackingReport> mailPieces, bool isReturnTracking)
+        {
+            int maxTrackRequest = 35;
+
+            string systemUserId = string.Empty;
+
+            using (ICommonService commonSvc = new CommonService())
+            {
+                systemUserId = commonSvc.GetSystemUserId();
+            }
+
+            var trackBatches = mailPieces.ChunkBy(maxTrackRequest);
+            ConcurrentBag<TrackingDump> trackingResponses = new ConcurrentBag<TrackingDump>();
+            var jobRunTime = Common.Now;
+            Parallel.ForEach(trackBatches, new ParallelOptions { MaxDegreeOfParallelism = 8 }, (batches) =>
+            {
+                using (IUSPSService uspsSvc = new USPSService())
+                {
+                    TrackFieldAPIRequest trackFieldRequest = new TrackFieldAPIRequest()
+                    {
+                        TrackID = batches.Select(x => new TrackID() { ID = isReturnTracking ? x.ReturnTrackingNo : x.TrackingNo }).ToList()
+                    };
+
+                    var trackingInfos = uspsSvc.GetTrackingDetailsAsync(systemUserId, trackFieldRequest).Result;
+
+                    if (trackingInfos.HasError)
+                    {
+                        return;
+                    }
+
+                    foreach (var trackInfo in trackingInfos.TrackInfo)
+                    {
+                        if (trackInfo == null || trackInfo.TrackSummary == null)
+                        {
+                            continue;
+                        }
+                        var shipmentDateTimeEst = (trackInfo.TrackSummary.EventDate + " " + trackInfo.TrackSummary.EventTime).Trim().AnyFormatToDateTime();
+
+                        var shipmentDateTimeUTC = shipmentDateTimeEst.HasValue ? (DateTime?)shipmentDateTimeEst.Value.EstToUtc() : null;
+
+                        var shipmentStatus = $"{trackInfo.TrackSummary.Event} on {shipmentDateTimeUTC} UTC at ({trackInfo.TrackSummary.EventCity},{trackInfo.TrackSummary.EventState})";
+
+                        trackingResponses.Add(new TrackingDump() { TrackingNo = trackInfo.ID, IsReturnTracking = isReturnTracking, DeliveryDate = shipmentDateTimeUTC, DeliveryStatus = trackInfo.TrackSummary.Event, ShipmentStatus = shipmentStatus, ShipmentStatusUpdatedOn = jobRunTime, ShippingCarrier = "USPS" });
+                    }
+                }
+            });
+
+            if (trackingResponses != null)
+            {
+                try
+                {
+                    db.QuerySingleOrDefault<int>("[dbo].[usp_InsertTrackingDump] @TrackingDump", new { TrackingDump = trackingResponses.ToList().ToDataTable() }, commandType: System.Data.CommandType.StoredProcedure);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+            }
         }
     }
 }

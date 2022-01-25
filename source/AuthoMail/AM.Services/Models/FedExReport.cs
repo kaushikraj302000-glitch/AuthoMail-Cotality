@@ -43,4 +43,16 @@ namespace AM.Services
         public string ReturnDeliveryStatus { get; set; }
         public DateTime? ReturnDeliveryDate { get; set; }
     }
+
+    public class TrackingDump
+    {
+        public string TrackingNo { get; set; }
+
+        public bool IsReturnTracking { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShipmentStatus { get; set; }
+        public DateTime? ShipmentStatusUpdatedOn { get; set; }
+        public string DeliveryStatus { get; set; }
+        public DateTime? DeliveryDate { get; set; }
+    }
 }

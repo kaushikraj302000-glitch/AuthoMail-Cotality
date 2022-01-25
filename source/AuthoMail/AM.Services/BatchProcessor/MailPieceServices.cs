@@ -46,7 +46,7 @@ namespace AM.Services
         private string apiResponseQuery = @"SELECT * FROM
                             (
                                 SELECT MP.*,MB.ReceivedOn
-                                ,CASE WHEN S.Code LIKE 'API_AMC%' THEN (SELECT AMCustId FROM AM.ClientAMCCustIdMap AC WHERE AC.ClientId=CC.Id) ELSE CC.AppCode END AppCode
+                                ,CASE WHEN S.Code LIKE 'API_AMC%' THEN (SELECT AMCCustId FROM AM.ClientAMCCustIdMap AC WHERE AC.ClientId=CC.Id) ELSE CC.AppCode END AppCode
                                 ,PCD.ShippingCarrier,PCD.ShippingServiceType 
                                 FROM AM.MailPieces MP 
                                 INNER JOIN AM.MailBatches MB ON MP.MailBatchId = MB.Id

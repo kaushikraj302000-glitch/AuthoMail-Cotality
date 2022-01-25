@@ -253,7 +253,8 @@ namespace AM.Reporting
             try
             {
                 log.Debug("GOS Daily report Execution Triggered at {0} Est".Fill(Common.Now.UtcToEst()));
-
+                log.Debug("Going");
+                log.Debug($"File Name : {AppConfig.GOSStatusMappingFile}");
                 var statusExcel = new XLS(AppConfig.GOSStatusMappingFile);
 
                 var statusTable = statusExcel.GetData("Sheet1");
@@ -284,7 +285,7 @@ namespace AM.Reporting
                         log.Debug("GOS Data Reporting Process Completed");
                     }
 
-                    if (AppConfig.GOSDaily3MonthAppCodes != null && AppConfig.GOSDaily3MonthAppCodes.Count() > 0)
+                    if (_3monthClientCodes.Count > 0)
                     {
                         log.Debug($"GOS Data Reporting Process For 3 Months Clients Started : {string.Join(",", AppConfig.GOSDaily3MonthAppCodes)}");
                         startTime = startTime.AddMonths(-1);
@@ -304,11 +305,19 @@ namespace AM.Reporting
         private static void GenerateReport(IReportService reportSvc, List<string> clientCodes, DateTime startTime, DateTime endTime, List<StatusMap> statusMaps)
         {
             log.Debug("GOS Data Reporting FedEx Tracking Update Process Started");
-            CarrierTrackingInfo.CheckForShipmentTracking(null, clientCodes, startTime, endTime);
+            FedExTrackingData(startTime, endTime, null, clientCodes);
+            //CarrierTrackingInfo.CheckForShipmentTracking(null, clientCodes, startTime, endTime);
             log.Debug("GOS Data Reporting FedEx Tracking Update Process Completed");
+
             log.Debug("GOS Data Reporting USPS Tracking Update Process Started");
-            CarrierTrackingInfo.CheckForUSPSeVSShipmentTracking(null, clientCodes, startTime, endTime);
+            USPSTrackingData(startTime, endTime, null, clientCodes);
+            //CarrierTrackingInfo.CheckForUSPSeVSShipmentTracking(null, clientCodes, startTime, endTime);
             log.Debug("GOS Data Reporting USPS Tracking Update Process Completed");
+
+            log.Debug("GOS Data Tracking Data Updates Started");
+            reportSvc.UpdateTrackingInformation();
+            log.Debug("GOS Data Tracking Data Updates Completed");
+
             log.Debug("GOS Data Reporting Generation Data Fetching Started");
             var gosBatchDetails = reportSvc.GetGOSDataPointReport(startTime, endTime, clientCodes);
             log.Debug("GOS Data Reporting Generation Data Fetching Completed");
@@ -396,55 +405,6 @@ namespace AM.Reporting
                         rows.AppendLine($"<tr class='trProduct'>{tblRowData}</tr>");
                         rows.AppendLine($"{tblStatusRowData}");
                     }
-
-                    //var lstByReturnProductCode = appCodeWiseData.Where(x => !x.ReturnTrackingNo.IsNullOrWhiteSpace()).GroupBy(x => x.ProductCode);
-
-                    //StringBuilder ongoingRows = new StringBuilder();
-                    //foreach (var ongoingProdlst in lstByOnGoingProductCode)
-                    //{
-                    //    string tblRowData = "";
-                    //    tblRowData += $"<td>{ongoingProdlst.Key}</td>";
-                    //    tblRowData += $"<td>{ongoingProdlst.Count(x => x.ShippingCarrier == "FedEx")}</td>";
-                    //    tblRowData += $"<td>{ongoingProdlst.Count(x => x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
-                    //    tblRowData += $"<td>{ongoingProdlst.Count(x => x.ShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
-                    //    tblRowData += $"<td>{ongoingProdlst.Count()}</td>";
-
-                    //    string tblStatusRowData = "";
-                    //    foreach (var lstByStatus in ongoingProdlst.GroupBy(x => x.ConvertedDeliveryStatus.ToTitleCase()))
-                    //    {
-                    //        tblStatusRowData += $"<tr><td style='text-align: right;'>{lstByStatus.Key}</td>";
-                    //        tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ShippingCarrier == "FedEx")}</td>";
-                    //        tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
-                    //        tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
-                    //        tblStatusRowData += $"<td>{lstByStatus.Count()}</td></tr>";
-                    //    }
-                    //    ongoingRows.AppendLine($"<tr class='trProduct'>{tblRowData}</tr>");
-                    //    ongoingRows.AppendLine($"{tblStatusRowData}");
-                    //}
-
-                    //StringBuilder returnRows = new StringBuilder();
-                    //foreach (var returnProdlst in lstByReturnProductCode)
-                    //{
-                    //    string tblRowData = "";
-                    //    tblRowData += $"<td>{returnProdlst.Key}</td>";
-                    //    tblRowData += $"<td>{returnProdlst.Count(x => x.ReturnShippingCarrier == "FedEx")}</td>";
-                    //    tblRowData += $"<td>{returnProdlst.Count(x => x.ReturnShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
-                    //    tblRowData += $"<td>{returnProdlst.Count(x => x.ReturnShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
-                    //    tblRowData += $"<td>{returnProdlst.Count()}</td>";
-
-                    //    string tblStatusRowData = "";
-                    //    foreach (var lstByStatus in returnProdlst.GroupBy(x => x.ConvertedReturnDeliveryStatus.ToTitleCase()))
-                    //    {
-                    //        tblStatusRowData += $"<tr><td style='text-align: right;'>{lstByStatus.Key}</td>";
-                    //        tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ReturnShippingCarrier == "FedEx")}</td>";
-                    //        tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ReturnShippingCarrier == "USPS" && x.ShippingServiceType == "PRIORITY")}</td>";
-                    //        tblStatusRowData += $"<td>{lstByStatus.Count(x => x.ReturnShippingCarrier == "USPS" && (x.ShippingServiceType == "IMB" || x.ShippingServiceType == "FIRSTCLASS"))}</td>";
-                    //        tblStatusRowData += $"<td>{lstByStatus.Count()}</td></tr>";
-                    //    }
-                    //    returnRows.AppendLine($"<tr class='trProduct'>{tblRowData}</tr>");
-                    //    returnRows.AppendLine($"{tblStatusRowData}");
-                    //}
-
                     sb = sb.Replace("<%AppCode%>", appCode);
 
                     sb = sb.Replace("{OngoingData}", rows.ToString());
@@ -455,6 +415,83 @@ namespace AM.Reporting
                 }
 
                 log.Debug($"GOS Data Reporting Generation Data Report Generation Completed For Client : {appCode}");
+            }
+        }
+
+        private static void USPSTrackingData(DateTime startTime, DateTime endTime, string alias = null, List<string> clientCodes = null)
+        {
+            List<TrackingReport> mailPieces;
+            using (IReportService reportSvc = new ReportService())
+            {
+                mailPieces = reportSvc.GetUSPSeVSDataForTracking(startTime, endTime, alias, clientCodes);
+            }
+
+            if (mailPieces == null || mailPieces.Count == 0)
+                return;
+
+            var pendingUSPSTrackingMps = mailPieces.Where(mp => mp.DeliveryStatus.IsNullOrWhiteSpace() || (!mp.DeliveryStatus.IsNullOrWhiteSpace() && !mp.DeliveryStatus.ToLower().Contains("delivered"))).ToList();
+
+            using (IGeneralService generalSvc = new GeneralService())
+            {
+                generalSvc.USPSTrackingData(pendingUSPSTrackingMps, false);
+
+                var returnUSPSTrackingInfo = mailPieces.Where(mp => !string.IsNullOrWhiteSpace(mp.ReturnTrackingNo) && mp.ReturnTrackingNo.StartsWith("9")).ToList();
+
+                var pendingUSPSReturnTrackingMps = returnUSPSTrackingInfo.Where(mp => mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() || (!mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() && !mp.ReturnDeliveryStatus.ToLower().Contains("delivered"))).ToList();
+
+                generalSvc.USPSTrackingData(pendingUSPSReturnTrackingMps, true);
+            }
+
+            var returnFedExTrackingInfo = mailPieces.Where(mp => !string.IsNullOrWhiteSpace(mp.ReturnTrackingNo) && (mp.ReturnTrackingNo.StartsWith("3") || mp.ReturnTrackingNo.StartsWith("7") || mp.ReturnTrackingNo.StartsWith("2"))).ToList();
+
+            var pendingFedExReturnTrackingMps = returnFedExTrackingInfo.Where(mp => mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() || (!mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() && !mp.ReturnDeliveryStatus.ToLower().Contains("delivered"))).ToList();
+
+            if (pendingFedExReturnTrackingMps.Count == 0)
+                return;
+
+            using (IFedExService fedExSvc = new FedExService())
+            {
+                fedExSvc.FedExTrackingData(pendingFedExReturnTrackingMps, true);
+            }
+        }
+
+        private static void FedExTrackingData(DateTime startDate, DateTime endDate, string alias = null, List<string> clientCodes = null)
+        {
+            List<TrackingReport> mailPieces;
+            using (IReportService reportSvc = new ReportService())
+            {
+                mailPieces = reportSvc.GetFedExDataForTracking(startDate, endDate, alias, clientCodes);
+            }
+
+            if (mailPieces == null || mailPieces.Count == 0)
+                return;
+
+            var pendingTrackingMps = mailPieces.Where(mp => mp.DeliveryStatus.IsNullOrWhiteSpace() || (!mp.DeliveryStatus.IsNullOrWhiteSpace() && !mp.DeliveryStatus.ToLower().Contains("delivered"))).ToList();
+
+            using (IFedExService fedExSvc = new FedExService())
+            {
+                fedExSvc.FedExTrackingData(pendingTrackingMps);
+            }
+
+            var returnFedExTrackingMps = mailPieces.Where(mp => !string.IsNullOrWhiteSpace(mp.ReturnTrackingNo) && (mp.ReturnTrackingNo.StartsWith("7") || mp.ReturnTrackingNo.StartsWith("3") || mp.ReturnTrackingNo.StartsWith("2"))).ToList();
+
+            var pendingFedExReturnTrackingMps = returnFedExTrackingMps.Where(mp => mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() || (!mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() && !mp.ReturnDeliveryStatus.ToLower().Contains("delivered"))).ToList();
+
+            using (IFedExService fedExSvc = new FedExService())
+            {
+                fedExSvc.FedExTrackingData(pendingFedExReturnTrackingMps, true);
+            }
+
+            var returnUSPSTrackingMps = mailPieces.Where(mp => !string.IsNullOrWhiteSpace(mp.ReturnTrackingNo) && (mp.ReturnTrackingNo.StartsWith("9"))).ToList();
+
+            var pendingUSPSReturnTrackingMps = returnUSPSTrackingMps.Where(mp => mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() || (!mp.ReturnDeliveryStatus.IsNullOrWhiteSpace() && !mp.ReturnDeliveryStatus.ToLower().Contains("delivered"))).ToList();
+
+            if (pendingUSPSReturnTrackingMps.Count == 0)
+                return;
+
+            using (IGeneralService generalSvc = new GeneralService())
+            {
+                generalSvc.USPSTrackingData(pendingUSPSReturnTrackingMps, true);
             }
         }
     }
