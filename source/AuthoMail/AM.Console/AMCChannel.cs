@@ -528,7 +528,7 @@ namespace AM.Console
                     MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
                     //TODO: Can we have multiple business identifier in client business?
-                    ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.GetBusinessIdNameFromClientId(client.Id);
+                    ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.CheckBusinessIdNameAlreadyExist(client.Id, "Loan Number");
 
                     if (clientBusinessIdDetails == null)
                     {
