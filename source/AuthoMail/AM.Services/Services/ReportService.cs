@@ -50,6 +50,7 @@ namespace AM.Services
         List<EnvelopeInventoryUsage> GetEnvelopesUsageReport(int clientId, int? envelopeId, string printVendorCode, DateTime startDate, DateTime endDate);
         List<MonthlyReconReportViewModel> GetDuplicateReportByDate(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<AMPostageData> GetAMPostageData(DateTime startDate, DateTime endDate);
+        void UpdateTrackingInformation();
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -983,6 +984,11 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
                              AND (U.IsAPIError = 0 AND U.IsUSPSError = 0)
                              ORDER BY U.APIRequestedOn";
             return db.Query<AMPostageData>(query, new { StartDate = startDate.ToStartDateTime().EstToUtc(), EndDate = endDate.ToEndDateTime().EstToUtc() }).ToList();
+        }
+        public void UpdateTrackingInformation()
+        {
+            db.Execute("usp_UpdateTrackingInfo");
+            return;
         }
     }
 }
