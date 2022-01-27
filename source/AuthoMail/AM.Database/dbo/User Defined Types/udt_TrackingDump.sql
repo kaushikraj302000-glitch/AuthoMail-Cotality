@@ -1,4 +1,4 @@
-﻿CREATE TYPE [dbo].[TrackingDump] AS TABLE
+﻿CREATE TYPE [dbo].[udt_TrackingDump] AS TABLE
 (
 	[TrackingNo] NVARCHAR(50) NULL, 
     [IsReturnTracking] BIT NULL, 

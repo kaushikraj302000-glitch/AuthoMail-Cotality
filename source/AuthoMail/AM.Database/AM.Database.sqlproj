@@ -240,7 +240,7 @@
     <Build Include="Common\Tables\UserShipAccMapping.sql" />
     <Build Include="API\Tables\FedEx.sql" />
     <Build Include="dbo\Stored Procedures\usp_InsertTrackingDump.sql" />
-    <Build Include="dbo\User Defined Types\TrackingDump.sql" />
+    <Build Include="dbo\User Defined Types\udt_TrackingDump.sql" />
     <Build Include="dbo\Stored Procedures\usp_UpdateTrackingInfo.sql" />
     <Build Include="AM\Tables\TrackingDump.sql" />
   </ItemGroup>

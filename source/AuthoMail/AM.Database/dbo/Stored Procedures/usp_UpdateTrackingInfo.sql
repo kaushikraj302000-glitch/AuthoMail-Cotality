@@ -1,5 +1,4 @@
-﻿CREATE PROCEDURE dbo.[usp_UpdateTrackingInfo]
-
+﻿CREATE PROCEDURE [dbo].[usp_UpdateTrackingInfo]
 AS
 BEGIN
 SET NOCOUNT ON
@@ -35,3 +34,4 @@ SET NOCOUNT ON
 	DELETE FROM AM.[TrackingDump] WHERE IsReturnTracking=1
 
 END
+GO
