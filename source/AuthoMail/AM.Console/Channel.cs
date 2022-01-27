@@ -229,7 +229,7 @@ namespace AM.Console
 
                         string localReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, Util.AMResponseFolderName, preppedPrintBatch.PrintBatchId.ToString());
                         //Here we are passing localReportPath as PrintBatches folder structure AMRoot/AMResponses/PrintBatchId
-                        UploadReportsToIncrementalClients(deliverables, localReportPath, sftSite, sftChannelDetails);
+                        UploadReportsToIncrementalClients(deliverables, localReportPath, sftSite, sftChannelDetails, client);
 
                         mailBatchSvc.UpdatePrintBatchPipelineStatus(preppedPrintBatch.PrintBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                     }
@@ -329,7 +329,7 @@ namespace AM.Console
             }
         }
 
-        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite, SFTChannel sftChannel)
+        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite, SFTChannel sftChannel, Client client)
         {
             string deliveryUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
             string errorUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Error).UploadPath;
@@ -401,7 +401,10 @@ namespace AM.Console
                             File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
                         }
                     }
-                    sftSite.UploadFile(zipFilePath, ftpUploadPath);
+
+                    if (client.IsResponseRequired)
+                        sftSite.UploadFile(zipFilePath, ftpUploadPath);
+
                     File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
                     Thread.Sleep(1000);
                     break;
@@ -422,7 +425,10 @@ namespace AM.Console
                             File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
                         }
                     }
-                    sftSite.UploadFile(zipFilePath, ftpUploadPath);
+
+                    if (client.IsResponseRequired)
+                        sftSite.UploadFile(zipFilePath, ftpUploadPath);
+
                     File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
                     Thread.Sleep(1000);
                     break;
@@ -443,7 +449,10 @@ namespace AM.Console
                             File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
                         }
                     }
-                    sftSite.UploadFile(zipFilePath, ftpUploadPath);
+
+                    if (client.IsResponseRequired)
+                        sftSite.UploadFile(zipFilePath, ftpUploadPath);
+
                     File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
                     Thread.Sleep(1000);
                     break;
@@ -454,8 +463,9 @@ namespace AM.Console
                     {
                         string fileName = Path.GetFileName(filePath);
                         ftpUploadPath = Path.Combine(deliveryUploadPath, fileName);
-                        sftSite.UploadFile(filePath, ftpUploadPath);
 
+                        if (client.IsResponseRequired)
+                            sftSite.UploadFile(filePath, ftpUploadPath);
 
                         //After upload change extention as a Complete
                         File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
@@ -468,8 +478,9 @@ namespace AM.Console
                     {
                         string fileName = Path.GetFileName(filePath);
                         ftpUploadPath = Path.Combine(deliveryUploadPath, fileName);
-                        sftSite.UploadFile(filePath, ftpUploadPath);
 
+                        if (client.IsResponseRequired)
+                            sftSite.UploadFile(filePath, ftpUploadPath);
 
                         //After upload change extention as a Complete
                         File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
@@ -578,7 +589,7 @@ namespace AM.Console
                     string reportPath = Path.Combine(Config.Common_AuthoMailRootFolder, mbi.Client.AppCode, mbi.MailBatch.Id.ToString(), Util.AMResponseFolderName);
 
                     //Here we are passing localReportPath as MailBatch folder structure AMRoot/USAA/MailBatchId/AMResponses
-                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite, sftChannel);
+                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite, sftChannel, mbi.Client);
 
                     GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverables, sftChannel);
                     isUploaded = true;

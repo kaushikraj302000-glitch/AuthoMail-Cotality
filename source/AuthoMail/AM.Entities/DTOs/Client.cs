@@ -21,6 +21,7 @@ namespace AM.Entities
         public int RetentionPeriod { get; set; }
         public string Contact1Email { get; set; }
         public string Contact2Email { get; set; }
+        public bool IsResponseRequired { get; set; }
     }
 
     public class ClientSFTChannel

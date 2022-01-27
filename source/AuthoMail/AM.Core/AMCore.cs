@@ -1319,6 +1319,11 @@ namespace AM.Core
                         }
 
                         commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
+
+                        if (!mbi.Client.IsResponseRequired)
+                        {
+                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
+                        }
                     }
                     break;
             }
