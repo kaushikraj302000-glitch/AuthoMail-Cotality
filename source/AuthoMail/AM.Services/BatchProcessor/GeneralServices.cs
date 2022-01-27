@@ -339,7 +339,7 @@ namespace AM.Services
             return httpClient.PostAsync(responseURL, content);
         }
 
-        public Task<HttpResponseMessage> SendAPIResponseMC(HttpClient httpClient, string responseURL, string apiKey, MailAPIResponse response)
+        public async Task<HttpResponseMessage> SendAPIResponseMC(HttpClient httpClient, string responseURL, string apiKey, MailAPIResponse response)
         {
             JsonSerializerSettings dateFormatSettings = new JsonSerializerSettings
             {
@@ -355,7 +355,7 @@ namespace AM.Services
             StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
             content.Headers.Clear();
             content.Headers.Add("X-API-Signature", hashdata);
-            return httpClient.PostAsync(responseURL, content);
+            return await httpClient.PostAsync(responseURL, content);
         }
 
         public async static Task<string> GetToken()
