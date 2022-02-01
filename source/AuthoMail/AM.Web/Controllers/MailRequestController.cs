@@ -286,7 +286,7 @@ bufferSize: 4096, useAsync: true)) { }
                 {
                     Id = Guid.NewGuid()
                 };
-
+                log.DebugFormat("MailPieceId: {0} of MailBatchId: {1}", mpId, mailBatch.Id);
                 manifest = provider.FormData.GetValues("Manifest");
                 var filekeys = provider.FileData.Select(f => f.Headers.ContentDisposition.Name).ToList();
                 //validation for "Manifest"
