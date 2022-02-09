@@ -99,6 +99,10 @@ namespace AM.Entities
                 return "NA";
             }
         }
+        public bool HasReturnLabel { get; set; }
+        public string ReturnShippingCarrier { get; set; }
+        public string ReturnShippingServiceType { get; set; }
+        public string ReturnShippingAccountCode { get; set; }
     }
     public class DocTypeVM
     {

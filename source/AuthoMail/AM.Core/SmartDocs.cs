@@ -26,13 +26,22 @@ namespace AM.Core
         private Font arial = FontFactory.GetFont("Arial", 12.5f);
         private Font arialBold = FontFactory.GetFont("Arial", 12f, Font.BOLD);
 
-        public SmartDocResponse GenerateUSPSIMBCoverLetter(string appCode, string coverTemplatePDFPath, string outputDir, Dictionary<string, string> mailPieceData)
+        public SmartDocResponse GenerateUSPSIMBCoverLetter(string appCode, string coverTemplatePDFPath, string outputDir, Dictionary<string, string> mailPieceData, bool isReturnLabel = false)
         {
             appCode = Config.Common_Environment == Env.Prod ? appCode : "TEST";
 
             SmartDocResponse response = new SmartDocResponse();
 
-            string coverLetterPDFPath = Path.Combine(outputDir, string.Format("CoverLetter_{0}.pdf", mailPieceData["MailPieceId"]));
+            string labelFilePath = string.Empty;
+
+            if (isReturnLabel)
+            {
+                labelFilePath = Path.Combine(outputDir, string.Format("ReturnLabel_{0}.pdf", mailPieceData["MailPieceId"]));
+            }
+            else
+            {
+                labelFilePath = Path.Combine(outputDir, string.Format("CoverLetter_{0}.pdf", mailPieceData["MailPieceId"]));
+            }
 
             #region Generate Cover Letter
 
@@ -53,16 +62,16 @@ namespace AM.Core
             }
             try
             {
-                PdfUtil.PdfFormFiller(coverTemplatePDFPath, coverLetterPDFPath, mailPieceData);
+                PdfUtil.PdfFormFiller(coverTemplatePDFPath, labelFilePath, mailPieceData);
 
-                if (!File.Exists(coverLetterPDFPath))
+                if (!File.Exists(labelFilePath))
                 {
                     response.HasError = true;
                     response.ExceptionDetail = "Unable to generate cover letter.";
                     return response;
                 }
 
-                response.CoverLetterPath = coverLetterPDFPath;
+                response.CoverLetterPath = labelFilePath;
             }
             catch (Exception ex)
             {
@@ -124,13 +133,22 @@ namespace AM.Core
             #endregion
         }
 
-        public SmartDocResponse GenerateeVSPriorityExpressCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName)
+        public SmartDocResponse GenerateeVSPriorityExpressCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName, bool isReturnLabel = false)
         {
             SmartDocResponse response = new SmartDocResponse();
 
             response.ShippingServiceType = eVSReq.ServiceType.Value;
 
-            string coverLetterPDFPath = Path.Combine(outputDir, string.Format("eVSCoverLetter_{0}.pdf", mailPieceId));
+            string labelFilePath = string.Empty;
+
+            if (isReturnLabel)
+            {
+                labelFilePath = Path.Combine(outputDir, string.Format("eVSReturnLabel_{0}.pdf", mailPieceId));
+            }
+            else
+            {
+                labelFilePath = Path.Combine(outputDir, string.Format("eVSCoverLetter_{0}.pdf", mailPieceId));
+            }
 
             #region Generate Cover Letter
 
@@ -146,26 +164,20 @@ namespace AM.Core
                     {
                         log.Error("Error occured in MailPieceId - {0} while requesting eVS priority express label with following Error {1}".Fill(mailPieceId, eVSRes.Error.Description));
 
-                        eVSRes = uspsSvc.RequesteVSLabelAsync(sysUserId, eVSReq).Result;
-
-                        if (eVSRes.HasError)
-                        {
-                            response.HasError = true;
-                            response.ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
-                            response.ExceptionCode = OutComeCodes.Unknown_Error;
-                            return response;
-                        }
+                        response.HasError = true;
+                        response.ExceptionDetail = "Error occured while generating eVS label for MailPiece-Id:{0} with Exception : {1}".Fill(mailPieceId, eVSRes.Error.Description);
+                        response.ExceptionCode = OutComeCodes.Unknown_Error;
+                        return response;
                     }
-                    response.ShippingServiceType = eVSReq.ServiceType.Value;
 
-                    File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
+                    File.WriteAllBytes(labelFilePath, Convert.FromBase64String(eVSRes.LabelImageString));
 
                     //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
                     if (!Config.Common_LandscapeUSPSLabels.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Any(e => e.ToUpper() == envelopeName.ToUpper()))
                     {
-                        ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
+                        ConvertLetterSizeLabel(labelFilePath, outputDir, mailPieceId);
                     }
-                    response.CoverLetterPath = coverLetterPDFPath;
+                    response.CoverLetterPath = labelFilePath;
                 }
 
                 response.TrackingCode = eVSRes.TrackingNumber;
@@ -219,13 +231,22 @@ namespace AM.Core
             File.Move(newCoverLetterPath, coverLetterPDFPath);
         }
 
-        public SmartDocResponse GenerateeVSPriorityCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName)
+        public SmartDocResponse GenerateeVSPriorityCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName, bool isReturnLabel = false)
         {
             SmartDocResponse response = new SmartDocResponse();
 
             response.ShippingServiceType = eVSReq.ServiceType.Value;
 
-            string coverLetterPDFPath = Path.Combine(outputDir, string.Format("eVSCoverLetter_{0}.pdf", mailPieceId));
+            string labelFilePath = string.Empty;
+
+            if (isReturnLabel)
+            {
+                labelFilePath = Path.Combine(outputDir, string.Format("eVSReturnLabel_{0}.pdf", mailPieceId));
+            }
+            else
+            {
+                labelFilePath = Path.Combine(outputDir, string.Format("eVSCoverLetter_{0}.pdf", mailPieceId));
+            }
 
             #region Generate Cover Letter
 
@@ -245,15 +266,15 @@ namespace AM.Core
                         return response;
                     }
 
-                    File.WriteAllBytes(coverLetterPDFPath, Convert.FromBase64String(eVSRes.LabelImageString));
+                    File.WriteAllBytes(labelFilePath, Convert.FromBase64String(eVSRes.LabelImageString));
 
                     //Here system is creating new PDF for military addresses only label's size LABEL4X6L to Letter size. 
                     if (!Config.Common_LandscapeUSPSLabels.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Any(e => e.ToUpper() == envelopeName.ToUpper()))
                     {
-                        ConvertLetterSizeLabel(coverLetterPDFPath, outputDir, mailPieceId);
+                        ConvertLetterSizeLabel(labelFilePath, outputDir, mailPieceId);
                     }
 
-                    response.CoverLetterPath = coverLetterPDFPath;
+                    response.CoverLetterPath = labelFilePath;
                 }
 
                 response.TrackingCode = eVSRes.TrackingNumber;
@@ -273,7 +294,7 @@ namespace AM.Core
             #endregion
         }
 
-        public SmartDocResponse GenerateDoc(List<string> coverLetterPDFPaths, string pdfAttachmentPath, string outputDocumentPath, float contentScalePercent, int noOfCopies, string printFormat, List<string> endPagePDFPaths = null)
+        public SmartDocResponse GenerateDoc(List<string> coverLetterPDFPaths, string pdfAttachmentPath, string outputDocumentPath, float contentScalePercent, int noOfCopies, string printFormat, string returnLabelFilePath, List<string> endPagePDFPaths = null)
         {
             List<string> mergePdfCollection = new List<string>();
             SmartDocResponse response = new SmartDocResponse();
@@ -315,6 +336,12 @@ namespace AM.Core
                     for (int i = 0; i < noOfCopies; i++)
                     {
                         mergePdfCollection.Add(mergeReadyFilePath);
+                    }
+
+                    //Here system will add return label before end page
+                    if (!returnLabelFilePath.IsNullOrWhiteSpace())
+                    {
+                        mergePdfCollection.Add(returnLabelFilePath);
                     }
 
                     //Here system will add end page if any
@@ -366,6 +393,11 @@ namespace AM.Core
                 if (File.Exists(shrinkPDFPath))
                 {
                     File.Delete(shrinkPDFPath);
+                }
+
+                if (File.Exists(returnLabelFilePath))
+                {
+                    File.Delete(returnLabelFilePath);
                 }
 
                 foreach (var endPagePDFPath in endPagePDFPaths)

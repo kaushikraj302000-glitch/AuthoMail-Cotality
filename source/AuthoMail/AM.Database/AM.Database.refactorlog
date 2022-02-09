@@ -196,4 +196,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="InsertOnePostageCost" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="4d377d80-2b29-4bb8-95a1-7af5f6fea415" ChangeDateTime="02/08/2022 06:49:13">
+    <Property Name="ElementName" Value="[AM].[DocTypes].[ReturnShippingMethod]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[AM].[DocTypes]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ReturnShippingServiceType" />
+  </Operation>
 </Operations>
