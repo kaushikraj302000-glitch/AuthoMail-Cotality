@@ -22,6 +22,7 @@ namespace AM.Core
         private static Random random = new Random();
         private static readonly List<string> fallBackCodes = new List<string>() { "3051", "3049", "3052" };
         private static readonly List<string> fallBackDescriptions = new List<string>() { "Recipient Postal Code not found", "Recipient Postal-State Mismatch", "DPO that does not allow the requested mail service", "does not allow the requested mail service", "service not supported" };
+        private static readonly List<string> returnfallBackDescriptions = new List<string>() { "Shipper Postal Code not found" };
         private static readonly List<string> fedExExceptionCodes = new List<string>() { "3022", "1000", "2998", "Unknown_Error" };
         private static readonly List<string> fedExExceptionDescriptions = new List<string>() { "General Failure" };
         private static readonly List<string> uspsExceptionCodes = new List<string>() { "80040B18", "Unknown_Error" };
@@ -772,11 +773,32 @@ namespace AM.Core
                                                     log.Info($"Return Label Information For MailPieceId : {mailPiece.Id} - TrackingCode : {returnResponse.TrackingCode} - PostageCost : {returnResponse.PostageCost}");
                                                     break;
                                                 }
-                                                else if (returnResponse.HasError && (uspsKnownExceptionDescriptions.Any(desc => returnResponse.ExceptionDetail.ToLower().Contains(desc.ToLower())) || fallBackDescriptions.Any(desc => returnResponse.ExceptionDetail.ToLower().Contains(desc.ToLower()))))
+                                                else if (returnResponse.HasError && uspsKnownExceptionDescriptions.Any(desc => returnResponse.ExceptionDetail.ToLower().Contains(desc.ToLower())))
                                                 {
                                                     //Known error so break from while loop and error out record
                                                     log.Error($"{returnResponse.HasError} , {returnResponse.ExceptionCode} , {returnResponse.ExceptionDetail}");
                                                     break;
+                                                }
+                                                else if (returnResponse.HasError && (fallBackDescriptions.Any(desc => returnResponse.ExceptionDetail.ToLower().Contains(desc.ToLower())) || returnfallBackDescriptions.Any(desc => returnResponse.ExceptionDetail.ToLower().Contains(desc.ToLower()))))
+                                                {
+                                                    //Known error so break from while loop and error out record
+                                                    log.Error($"{returnResponse.HasError} , {returnResponse.ExceptionCode} , {returnResponse.ExceptionDetail}");
+                                                    returnResponse = MakeUSPSRequest(reteVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId, true);
+
+                                                    if (!returnResponse.HasError)
+                                                    {
+                                                        returnLabelFilePath = returnResponse.CoverLetterPath;
+                                                        mailPiece.ReturnTrackingNo = returnResponse.TrackingCode;
+                                                        log.Info($"Return Label Information For MailPieceId : {mailPiece.Id} - TrackingCode : {returnResponse.TrackingCode} - PostageCost : {returnResponse.PostageCost}");
+                                                        break;
+                                                    }
+                                                    else
+                                                    {
+                                                        log.Error($"Priority had some unexpected error code {returnResponse.ExceptionCode} and error description {returnResponse.ExceptionDetail}");
+
+                                                        System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
+                                                        reTrycnt++;
+                                                    }
                                                 }
                                                 else
                                                 {
@@ -854,6 +876,29 @@ namespace AM.Core
                                                 log.Info($"Return Label Information For MailPieceId : {mailPiece.Id} - TrackingCode : {returnResponse.TrackingCode} - PostageCost : {returnResponse.PostageCost}");
                                                 break;
                                             }
+                                            else if (returnResponse.HasError && (fallBackDescriptions.Any(desc => returnResponse.ExceptionDetail.ToLower().Contains(desc.ToLower())) || returnfallBackDescriptions.Any(desc => returnResponse.ExceptionDetail.ToLower().Contains(desc.ToLower()))))
+                                            {
+                                                //Known error so break from while loop and error out record
+                                                log.Error($"{returnResponse.HasError} , {returnResponse.ExceptionCode} , {returnResponse.ExceptionDetail}");
+
+                                                var reteVSRequest = GenerateReturnEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY, systemUserId);
+                                                returnResponse = MakeUSPSRequest(reteVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId, true);
+
+                                                if (!returnResponse.HasError)
+                                                {
+                                                    returnLabelFilePath = returnResponse.CoverLetterPath;
+                                                    mailPiece.ReturnTrackingNo = returnResponse.TrackingCode;
+                                                    log.Info($"Return Label Information For MailPieceId : {mailPiece.Id} - TrackingCode : {returnResponse.TrackingCode} - PostageCost : {returnResponse.PostageCost}");
+                                                    break;
+                                                }
+                                                else
+                                                {
+                                                    log.Error($"Priority had some unexpected error code {returnResponse.ExceptionCode} and error description {returnResponse.ExceptionDetail}");
+
+                                                    System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
+                                                    reTrycnt++;
+                                                }
+                                            }
                                             else
                                             {
                                                 log.Error($"FedEx had some unexpected error code {returnResponse.ExceptionCode} and error description {returnResponse.ExceptionDetail}");
@@ -867,6 +912,19 @@ namespace AM.Core
                                         }
                                     }
 
+                                    if (returnResponse.HasError)
+                                    {
+                                        //NOTE : If result false then mark as an error and update status for that mail piece
+                                        mailPiece.TotalPages = 0;
+                                        mailPiece.PrintLocation = null;
+                                        mailPiece.PrintTrailId = null;
+                                        mailPiece.DueDate = null;
+                                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                        mailPiece.ErrorCode = OutComeCodes.Invalid_ShippingDetail;
+                                        mailPiece.ErrorDesc = string.Format("Error occured while generating return label {0}|{1}", OutComeCodes.Invalid_ShippingDetail, returnResponse.ExceptionDetail);
+                                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                        continue;
+                                    }
                                 }
 
                                 //Here system will add rear cover page only when print location is Dallas CL

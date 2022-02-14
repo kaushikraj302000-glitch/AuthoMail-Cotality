@@ -15,6 +15,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
+using System.Web;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
@@ -184,7 +185,7 @@ namespace AM.Console
 
             var rootElement = batchXML.DocumentElement;
             var mbCustomInfoNode = rootElement.SelectSingleNode("x:CustomInfo", nsManager);
-            var mbReturnInfoNode = rootElement.SelectSingleNode("x:ReturnInfoNode", nsManager);
+            var mbReturnInfoNode = rootElement.SelectSingleNode("x:ReturnInfo", nsManager);
 
             List<XmlNode> printAndShipNodes = new List<XmlNode>();
             List<XmlNode> eDeliveryNodes = new List<XmlNode>();
@@ -317,7 +318,7 @@ namespace AM.Console
 
                 //AM Mail Batch Custom Info
                 MailBatchCustomInfo mailBatchCustomInfo;
-                var customeInfoElement = batchXML.DocumentElement.SelectSingleNode("./CustomInfo", nsManager);
+                var customeInfoElement = batchXML.DocumentElement.SelectSingleNode("./x:CustomInfo", nsManager);
                 if (customeInfoElement != null)
                 {
                     foreach (XmlElement element in customeInfoElement.ChildNodes)
@@ -328,7 +329,7 @@ namespace AM.Console
                 }
 
                 //AM Mail Batch Return Info
-                var returnInfoElement = batchXML.DocumentElement.SelectSingleNode("./ReturnInfo", nsManager);
+                var returnInfoElement = batchXML.DocumentElement.SelectSingleNode("./x:ReturnInfo", nsManager);
                 if (returnInfoElement != null)
                 {
                     var returnRcptInfoElement = returnInfoElement.SelectSingleNode("./x:Recipient", nsManager);
@@ -336,13 +337,13 @@ namespace AM.Console
                     {
                         mailBatch.IsReturnInfoSpecified = true;
 
-                        mailBatch.RetRcptFirstName = returnRcptInfoElement.SelectSingleNode("./x:FirstName/text()", nsManager)?.Value;
-                        mailBatch.RetRcptLastName = returnRcptInfoElement.SelectSingleNode("./x:LastName/text()", nsManager)?.Value;
-                        mailBatch.RetRcptMiddleName = returnRcptInfoElement.SelectSingleNode("./x:MiddleName/text()", nsManager)?.Value;
-                        mailBatch.RetRcptOrganization = returnRcptInfoElement.SelectSingleNode("./x:Organization/text()", nsManager)?.Value;
-                        mailBatch.RetRcptPhone = returnRcptInfoElement.SelectSingleNode("./x:Phone/text()", nsManager)?.Value;
-                        mailBatch.RetRcptPrefix = returnRcptInfoElement.SelectSingleNode("./x:Prefix/text()", nsManager)?.Value;
-                        mailBatch.RetRcptSuffix = returnRcptInfoElement.SelectSingleNode("./x:Suffix/text()", nsManager)?.Value;
+                        mailBatch.RetRcptFirstName = returnRcptInfoElement.Attributes["FirstName"]?.Value;
+                        mailBatch.RetRcptLastName = returnRcptInfoElement.Attributes["LastName"]?.Value;
+                        mailBatch.RetRcptMiddleName = returnRcptInfoElement.Attributes["MiddleName"]?.Value;
+                        mailBatch.RetRcptOrganization = returnRcptInfoElement.Attributes["Organization"]?.Value;
+                        mailBatch.RetRcptPhone = returnRcptInfoElement.Attributes["Phone"]?.Value;
+                        mailBatch.RetRcptPrefix = returnRcptInfoElement.Attributes["Prefix"]?.Value;
+                        mailBatch.RetRcptSuffix = returnRcptInfoElement.Attributes["Suffix"]?.Value;
                     }
 
                     var returnAddressElement = returnInfoElement.SelectSingleNode("./x:Address", nsManager);
@@ -350,15 +351,16 @@ namespace AM.Console
                     {
                         mailBatch.IsReturnInfoSpecified = true;
 
-                        mailBatch.RetRcptAddrOptionalLine1AboveStreet = returnAddressElement.SelectSingleNode("./x:OptionalLine1AboveStreet/text()", nsManager)?.Value;
-                        mailBatch.RetRcptAddrOptionalLine2AboveStreet = returnAddressElement.SelectSingleNode("./x:OptionalLine2AboveStreet/text()", nsManager)?.Value;
-                        mailBatch.RetRcptAddressStreet = returnAddressElement.SelectSingleNode("./x:Street/text()", nsManager)?.Value;
-                        mailBatch.RetRcptAddressAptOrSuiteOrOther = returnAddressElement.SelectSingleNode("./x:AptOrSuiteOrOther/text()", nsManager)?.Value;
-                        mailBatch.RetRcptAddrOptionalLine1BelowStreet = returnAddressElement.SelectSingleNode("./x:OptionalLine1BelowStreet/text()", nsManager)?.Value;
-                        mailBatch.RetRcptAddrOptionalLine2BelowStreet = returnAddressElement.SelectSingleNode("./x:OptionalLine2BelowStreet/text()", nsManager)?.Value;
-                        mailBatch.RetRcptAddressCity = returnAddressElement.SelectSingleNode("./x:City/text()", nsManager)?.Value;
-                        mailBatch.RetRcptAddressState = returnAddressElement.SelectSingleNode("./x:State/text()", nsManager)?.Value;
-                        mailBatch.RetRcptAddressZIP = returnAddressElement.SelectSingleNode("./x:Zip/text()", nsManager)?.Value;
+                        mailBatch.RetRcptAddrOptionalLine1AboveStreet = returnAddressElement.Attributes["OptionalLine1AboveStreet"]?.Value;
+                        mailBatch.RetRcptAddrOptionalLine2AboveStreet = returnAddressElement.Attributes["OptionalLine2AboveStreet"]?.Value;
+                        mailBatch.RetRcptAddressStreet = returnAddressElement.Attributes["Street"]?.Value;
+                        mailBatch.RetRcptAddressAptOrSuiteOrOther = returnAddressElement.Attributes["AptOrSuiteOrOther"]?.Value;
+                        mailBatch.RetRcptAddrOptionalLine1BelowStreet = returnAddressElement.Attributes["OptionalLine1BelowStreet"]?.Value;
+                        mailBatch.RetRcptAddrOptionalLine2BelowStreet = returnAddressElement.Attributes["OptionalLine2BelowStreet"]?.Value;
+                        mailBatch.RetRcptAddressCity = returnAddressElement.Attributes["City"]?.Value;
+                        mailBatch.RetRcptAddressState = returnAddressElement.Attributes["State"]?.Value;
+                        mailBatch.RetRcptAddressZIP = returnAddressElement.Attributes["Zip"]?.Value;
+                        mailBatch.RetRcptAddressCountry = returnAddressElement.Attributes["Country"]?.Value;
                     }
                 }
                 else
@@ -450,7 +452,7 @@ namespace AM.Console
                 File.Copy(sourceFile, destFile, true);
             }
 
-            File.WriteAllText(amFilePath, reqXML.Fill(uniqueId, clientCode, clientBatchId, priority, documentOrPackageType, customeInfoElement?.OuterXml, returnInfoElement?.OuterXml, package?.OuterXml));
+            File.WriteAllText(amFilePath, reqXML.Fill(uniqueId, HttpUtility.HtmlEncode(clientCode), clientBatchId, priority, HttpUtility.HtmlEncode(documentOrPackageType), customeInfoElement?.OuterXml, returnInfoElement?.OuterXml, package?.OuterXml));
 
             return clientBatchDirectory;
         }
@@ -505,7 +507,7 @@ namespace AM.Console
                 }
             }
 
-            File.WriteAllText(amFilePath, reqXML.Fill(uniqueId, clientCode, clientBatchId, priority, documentOrPackageType, customeInfoElement?.OuterXml, returnInfoElement?.OuterXml, mpNodes));
+            File.WriteAllText(amFilePath, reqXML.Fill(uniqueId, HttpUtility.HtmlEncode(clientCode), clientBatchId, priority, HttpUtility.HtmlEncode(documentOrPackageType), customeInfoElement?.OuterXml, returnInfoElement?.OuterXml, mpNodes));
 
             return clientBatchDirectory;
         }
