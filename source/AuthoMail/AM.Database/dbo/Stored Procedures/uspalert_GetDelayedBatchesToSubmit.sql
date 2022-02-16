@@ -15,6 +15,6 @@ BEGIN
  LEFT OUTER JOIN [AM].[DocTypes] d ON mp.DocTypeId=d.Id 
  LEFT OUTER JOIN Common.PnSConfigDetail PCD ON mp.PnSConfigDetailId = PCD.Id
  WHERE mb.ReceivedOn between DATEADD(day,-7,GETUTCDATE()) AND DATEADD(minute,-@cutOffMinutes,GETUTCDATE()) AND (mp.ShippingStatus is NULL or (mp.ShippingStatus in ('InProgress','Shipped') AND (rq.UniqueId is NULL or ISNULL(bs.IsSubmitted,0)=0)) or (mp.ShippingStatus = 'Error' AND mp.ErrorDesc IS NULL) or (mp.ShippingStatus = 'PulledBack' AND not exists (SELECT Id FROM AM.PullBackRequests WHERE MailPieceId = mp.Id)) or (mb.ClientId IS NULL) or (mp.IsEDeliveryRequested = 1 AND emp.IsInvitationSent = 0 AND emp.PipelineStatus <> 'ReportedBack'))
- or (rq.MailPieceStatus='Shipped' AND mp.IsPickedUp <> 1 AND mp.DueDate < GETUTCDATE() AND PCD.ShippingCarrier='FedEx' AND mb.ReceivedOn>='2019-01-01 05:00:00')
+ or (rq.MailPieceStatus='Shipped' AND mp.IsPickedUp <> 1 AND mp.DueDate < GETUTCDATE() AND PCD.ShippingCarrier='FedEx' AND mb.ReceivedOn>=DATEADD(DAY,-30,GETUTCDATE()))
 END
     
