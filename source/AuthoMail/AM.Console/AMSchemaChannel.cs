@@ -1051,6 +1051,11 @@ namespace AM.Console
                     pageCount = reader.NumberOfPages;
                     mailPieceDTO.TotalPages = pageCount;//System is going to store TotalPages only for AM.EDMailPieces table from here
 
+                    if (pageCount == 0)
+                    {
+                        return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "Pdf file is either corrupt or does not contain any page." };
+                    }
+
                     if (mbi.Client.IsReqBlankPageValidation)
                     {
                         blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
