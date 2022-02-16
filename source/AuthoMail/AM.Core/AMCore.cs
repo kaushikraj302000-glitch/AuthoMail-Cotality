@@ -1601,20 +1601,33 @@ namespace AM.Core
                 case "AMC":
                     using (IAMCService amcSvc = new AMCService())
                     {
-                        string errorGoFileName = "ErrReport.go";
-                        string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
+                        var errorRecords = mailPieces.Where(x => x.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
 
-                        string errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
-
-                        string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
-
-                        StringBuilder errorData = amcSvc.AMCErrorReport(mailPieces);
-                        if (errorData != null)
+                        if (errorRecords.Count > 0)
                         {
-                            File.WriteAllText(errorReportPath, errorData.ToString());
+                            string errorReportFileName = $"Error-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
 
-                            commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
+                            string errorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                            StringBuilder errorData = amcSvc.AMCErrorReport(mailPieces);
+
+                            File.WriteAllText(errorReportPath, errorData.ToString());
                         }
+
+                        var pulledBackRecords = mailPieces.Where(x => x.ShippingStatus == ShippingStatus.PulledBack.ToString()).ToList();
+
+                        if (pulledBackRecords.Count > 0)
+                        {
+                            string deliveryReportFileName = $"Delivery-{mbi.BatchName}-{mbi.Client.AppCode}-{commonSvc.GetReportingSequence()}-{Common.Now.ToString("yyyyMMdd-HHmmss")}.txt";
+
+                            string deliveryReportPath = Path.Combine(mbi.AMResponsePath, deliveryReportFileName);
+
+                            StringBuilder deliveryReport = amcSvc.AMCDeliveryReport(pulledBackRecords);
+
+                            File.WriteAllText(deliveryReportPath, deliveryReport.ToString());
+
+                        }
+                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
                     }
                     break;
                 case "ALASKA":
