@@ -174,6 +174,11 @@ namespace AM.Web.Controllers
                         dataTable.Columns.Remove(column);
                 }
 
+                if (dataTable.Columns.Contains("LoanNumber") && !BusinessFriendlyIdName.IsNullOrWhiteSpace())
+                {
+                    dataTable.Columns["LoanNumber"].ColumnName = BusinessFriendlyIdName;
+                }
+
                 var memoryStream = ExcelHelper.ExportDataSet(dataTable);
                 memoryStream.Seek(0, SeekOrigin.Begin);
                 TempData[fileGuid] = memoryStream.ToArray();
