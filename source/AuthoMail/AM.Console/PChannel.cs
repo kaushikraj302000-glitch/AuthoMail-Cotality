@@ -857,6 +857,13 @@ namespace AM.Console
                 #region Address Validation Logic
                 //Get validate Addresses for each records
                 List<AddressRequest> addressRequestes = new List<AddressRequest>();
+                
+                Client client;
+                
+                using (IClientService clientSvc = new ClientService())
+                {
+                    client = clientSvc.GetClientById(mailBatch.ClientId);
+                }
 
                 var sysUserId = commonSvc.GetSystemUserId();
 
@@ -910,11 +917,14 @@ namespace AM.Console
 
                     if (addressResponse != null && addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
                     {
-                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                        mailPiece.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
-                        mailPiece.ErrorDesc = !string.IsNullOrEmpty(addressResponse.VerifierDesc) ? addressResponse.VerifierDesc : addressResponse.Error.Description;
-                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                        continue;
+                        if (client.IsHardAddrValidationRequired)
+                        {
+                            mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                            mailPiece.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
+                            mailPiece.ErrorDesc = !string.IsNullOrEmpty(addressResponse.VerifierDesc) ? addressResponse.VerifierDesc : addressResponse.Error.Description;
+                            mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                            continue;
+                        }
                     }
 
                     if (!mailPiece.RcptAddressCountry.IsCountryUS())

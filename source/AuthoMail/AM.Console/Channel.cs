@@ -690,6 +690,8 @@ namespace AM.Console
                     //Get validate Addresses for each records
                     List<AddressRequest> addressRequestes = new List<AddressRequest>();
 
+                    var client = clientSvc.GetClientById(mailBatch.ClientId);
+
                     var sysUserId = commonSvc.GetSystemUserId();
 
                     var usMPs = validMailPieces.Where(mp => (((mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested) && mp.RcptAddressCountry.IsCountryUS())).ToList();
@@ -741,11 +743,14 @@ namespace AM.Console
 
                         if (addressResponse != null && addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
                         {
-                            mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                            mailPiece.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
-                            mailPiece.ErrorDesc = !string.IsNullOrEmpty(addressResponse.VerifierDesc) ? addressResponse.VerifierDesc : addressResponse.Error.Description;
-                            mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                            continue;
+                            if (client.IsHardAddrValidationRequired)
+                            {
+                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                mailPiece.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
+                                mailPiece.ErrorDesc = !string.IsNullOrEmpty(addressResponse.VerifierDesc) ? addressResponse.VerifierDesc : addressResponse.Error.Description;
+                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                continue;
+                            }
                         }
 
                         if (!mailPiece.RcptAddressCountry.IsCountryUS())

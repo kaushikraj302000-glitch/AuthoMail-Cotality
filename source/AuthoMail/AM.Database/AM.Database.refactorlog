@@ -203,4 +203,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="ReturnShippingServiceType" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="f7a647b2-6ec9-4395-9357-d61cbbe00578" ChangeDateTime="02/18/2022 06:59:28">
+    <Property Name="ElementName" Value="[Common].[Clients].[IsAddressValidationRequired]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Common].[Clients]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="IsHardAddrValidationRequired" />
+  </Operation>
 </Operations>

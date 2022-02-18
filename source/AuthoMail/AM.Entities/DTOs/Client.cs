@@ -22,6 +22,7 @@ namespace AM.Entities
         public string Contact1Email { get; set; }
         public string Contact2Email { get; set; }
         public bool IsResponseRequired { get; set; }
+        public bool IsHardAddrValidationRequired { get; set; }
     }
 
     public class ClientSFTChannel
