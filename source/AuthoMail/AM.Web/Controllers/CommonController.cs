@@ -309,5 +309,18 @@ namespace AM.Web.Controllers
         }
 
         #endregion SingleLoanEntry
+
+        [HttpGet]
+        public ActionResult ReshipPackage()
+        {
+            ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeName");
+            ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
+            var estToday = DateTime.UtcNow.UtcToEst().Date;
+            // EST Week
+            ViewBag.startDate = (estToday + new TimeSpan(0, 0, 0)).ToString("MM/dd/yy");
+            ViewBag.endDate = (estToday + new TimeSpan(23, 59, 59)).ToString("MM/dd/yy");
+
+            return View();
+        }
     }
 }
