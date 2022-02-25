@@ -133,12 +133,8 @@
     <table class="table table-responsive pullbacktable">
         <thead>
             <tr>
-                <th>
-                    <input type="checkbox" id="selectall" class="cl-check" />
-                    <label for="selectall"></label>
-                </th>
+                <th>Action</th>
                 <th>Shipping Status</th>
-                <th>Pullback Requested</th>
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
@@ -162,9 +158,8 @@
     <table>
         <tbody id="pullbackBody">
             <tr class="row-small">
-                <td><span>{CheckboxFormatted}</span></td>
+                <td><span>{ReshipAction}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
-                <td><span>{IsPullBackRequestedFormatted}</span></td>
                 <td><span>{BusinessIdValue}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
                 @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
@@ -259,7 +254,7 @@
             $("#headerdate").html(startDate + " to " + endDate + " EST");
             $.ajax({
                 type: "POST",
-                url: baseUrl + "RequestPullBack/_GetMailPieceList",
+                url: baseUrl + "Common/_GetReshipMailPieceList",
                 data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(), docType: docType, startDate: startDate, endDate: endDate }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
@@ -269,13 +264,10 @@
                             $("#loading").hide();
                             $("#pullbackHeader").show();
                             $("#pullbackList").show();
-                            //console.log(response.Object.model.length);
                             if (response.Object.model.length > 0) {
                                 var data = FormatObject(response.Object.model);
                                 $("#pullbackList").html("");
-                                //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#pullbackBody", "#pullbackContent", "#pullbackTableContent", "#pullbackList");
-                                CheckboxCheck();
                             }
                             else {
                                 $("#pullbackList").html(" <div style='margin-bottom:10px;' class='alert alert-yellow'><span class='sbold'>@AM.Services.Config.Web_Msg_NoRecordFound</span></div>")
@@ -337,27 +329,9 @@
                 "dom": "<'row' <'col-md-12'B>><'row'<'col-md-6 col-sm-12'l><'col-md-6 col-sm-12'f>r><'table-scrollable't><'row'<'col-md-5 col-sm-12'i><'col-md-7 col-sm-12'p>>", // horizobtal scrollable datatable
 
             });
-
-
-            $('#selectall').change(function () {
-                //console.log("test");
-                var checked = jQuery(this).is(":checked");
-                $(".checkall", oTable.fnGetNodes()).each(function () {
-                    if (checked) {
-                        $(this).next().next().addClass("spinnericon");
-                        $(this).prop("checked", true);
-
-                    } else {
-                        $(this).prop("checked", false);
-                        $(this).next().next().removeClass("spinnericon");
-                    }
-                });
-            });
         }
         function FormatObject(Model) {
-            var cnt = 1;
             $(Model).each(function () {
-                var requestedPullback = this.IsPullBackRequested ? '<span id="IsPullBackRequested_' + cnt + '"><span  class="label medium label-yellow">Yes</span></span>' : '<span id="IsPullBackRequested_' + cnt + '"><span class="label medium label-success">No</span></span>';
                 var errormsg = this.ErrorDesc == null ? '@AM.Services.Config.Web_Msg_NoErrorDescription' : this.ErrorDesc;
                 var status = "";
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
@@ -365,7 +339,6 @@
 
                     case "PulledBack":
                         status = '<span class="label medium label-yellow">' + this.Status + '</span>';
-
                         break;
                     case "Error":
                         status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + errormsg + '" data-placement="left">' + this.Status + '</span>';
@@ -374,7 +347,7 @@
                         status = '<span class="label medium label-success">' + this.Status + '</span>';
                         break;
                     case "InProgress":
-                        status = '<span id="statusid_' + cnt + '"><span class="label medium label-blue">' + this.Status + '</span></span>';
+                        status = '<span class="label medium label-blue">' + this.Status + '</span>';
                         break;
                     case "eDelivered":
                         status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
@@ -385,29 +358,7 @@
                 this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
                 this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
                 this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
-                this.IsPullBackRequestedFormatted = requestedPullback;
-
-                var checkbox = '<span id="resPullBack_' + cnt + '" data-trigger="hover" data-html="true" data-toggle="popover" data-placement="right"></span>';
-                switch (this.Status) {
-                    case "PulledBack":
-                    case "Error":
-                    case "Shipped":
-                    case "eDelivered":
-                        checkbox = checkbox + '<input type="checkbox" disabled id="checkbox-demo_' + cnt + '"  class="cl-check" /><label for="checkbox-demo_' + cnt + '"></label>';
-                        break;
-                    case "InProgress":
-                        if (this.IsPullBackRequested) {
-                            checkbox = checkbox + '<input type="checkbox" disabled id="checkbox-demo_' + cnt + '"  class="cl-check" /><label for="checkbox-demo_' + cnt + '"></label>';
-                        }
-                        else {
-                            checkbox = checkbox + '<input type="checkbox" id="checkbox-demo_' + cnt + '" data-cnt="' + cnt + '" data-mailpieceid="' + this.UniqueId + '" class="cl-check checkall" /><label for="checkbox-demo_' + cnt + '"></label><span id="spinner_' + cnt + '"><i class="fa faspinner text-blue"></i></span>';
-                        }
-
-                        break;
-
-                }
-                cnt++;
-                this.CheckboxFormatted = checkbox;
+                this.ReshipAction = this.IsWithinRetentionPeriod && (this.Status != "Error") ? '<a href="#" data-mailbatchid="' + this.MailBatchId + '" data-mailpieceid="' + this.MailPieceId + '" onclick="ReshiptTransaction(this);" style="cursor: pointer;font-size:1.2em;margin-right:10%;" data-toggle="tooltip" title="Reship Package" class="btn btn-transparent-green btn-sm"><i class="fa fa-truck"></i> </a>' : '--';
             });
 
             return Model;
@@ -510,9 +461,7 @@
                             $("#checkbox-demo_" + cnts[i]).prop('checked', false);
                             $("#spinner_" + cnts[i]).removeClass("spinnericon");
                         }
-
                     }
-
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
                     Spinners("#pullback", "fa-reply");
@@ -521,9 +470,29 @@
                     el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
                     $("#myModal").modal("show");
                 }
-
             });
-
         });
+
+        function ReshiptTransaction(obj) {
+            var mbId = $(obj).data("mailbatchid");
+            var mpId = $(obj).data("mailpieceid");
+            $.ajax({
+                type: "GET",
+                url: baseUrl + "Common/ReshipMailPiece",
+                data: { mbId: mbId, mpId: mpId },
+                success: function (response) {
+                    if (response.Success) {
+                        alertMessage('green', response.Object);
+                    }
+                    else {
+                        alertMessage('red', response.ErrorMessage);
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    var msg = '@AM.Services.Config.Web_Msg_Ajax_CommonError';
+                    alertMessage('red', msg);
+                }
+            });
+        }
     </script>
 }

@@ -15,6 +15,7 @@ using System.Net.Http;
 using System.IO;
 using AM.Lib;
 using AM.Services.Services;
+using System.Globalization;
 
 namespace AM.Web.Controllers
 {
@@ -163,7 +164,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> ReshipPackage(int mbId, int mpId)
+        public async Task<ActionResult> ReshipMailPiece(int mbId, int mpId)
         {
             try
             {
@@ -321,6 +322,49 @@ namespace AM.Web.Controllers
             ViewBag.endDate = (estToday + new TimeSpan(23, 59, 59)).ToString("MM/dd/yy");
 
             return View();
+        }
+
+        [HttpPost]
+        public ActionResult _GetReshipMailPieceList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, string startDate, string endDate)
+        {
+            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+
+            //Ref only. remove it. also check doctype is required or not.
+            var model = repoSvc.GetReshipRequestList(businessFriendlyIdName, businessFriendlyIdValue, docType, exactStartDate, exactEndDate, User.Identity.GetClientId().Value);
+
+            model.ForEach(x =>
+            {
+                x.IsWithinRetentionPeriod = CheckWithinRetentionPeriod(x.RetentionPeriod, Common.Now, x.ReceivedOn.Value, x.ClientId);
+            });
+            //var model = Mapper.Map<List<MailPieceViewModel>>(data);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.Status == "InProgress").ThenBy(s => s.IsPullBackRequested).ThenByDescending(s => s.Status == "PulledBack").ThenByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
+        }
+
+        private bool CheckWithinRetentionPeriod(int retentionDays, DateTime now, DateTime receivedOn, int clientId)
+        {
+            int days = retentionDays;
+            DateTime startDate = now;
+            do
+            {
+                startDate = startDate.AddDays(-1);
+                days -= IsBusinessDay(startDate, Config.GetHolidaysByClientId(clientId), false, false) ? 1 : 0;
+            } while (0 != days);
+
+            return startDate < receivedOn;
+        }
+        private static bool IsBusinessDay(DateTime date, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
+        {
+            if (holidays.Select(c => c.HolidayDate).Contains(date.Date))
+                return false;
+
+            if (date.DayOfWeek == DayOfWeek.Saturday)
+                return isSatWorkDay;
+
+            if (date.DayOfWeek == DayOfWeek.Sunday)
+                return isSunWorkDay;
+
+            return true;
         }
     }
 }

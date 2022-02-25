@@ -51,6 +51,8 @@ namespace AM.Services
         List<MonthlyReconReportViewModel> GetDuplicateReportByDate(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<AMPostageData> GetAMPostageData(DateTime startDate, DateTime endDate);
         void UpdateTrackingInformation();
+        List<ReshipMailPieceViewModel> GetReshipRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, int clientId);
+
     }
     public class ReportService : ServiceBase, IReportService
     {
@@ -989,6 +991,45 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
         {
             db.Execute("usp_UpdateTrackingInfo");
             return;
+        }
+
+        public List<ReshipMailPieceViewModel> GetReshipRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, int clientId)
+        {
+            string query = @"select m.BusinessFriendlyIdValue as BusinessIdValue,m.UniqueId,m.FileName,(m.RcptFirstName+ ' ' +m.RcptLastName) as Name,
+                            m.RcptAddressStreet as Address,m.TotalPages,m.TotalBlankPages,m.IsPullBackRequested,m.ShippingStatus as Status,m.DueDate,m.TrackingNo,m.ErrorCode,m.ErrorDesc,IsEDeliveryRequested,
+                            b.ReceivedOn,
+                            d.DocTypeName as DocType,
+                            c.AppCode,c.RetentionPeriod,c.Id AS ClientId, m.MailBatchId,m.Id AS MailPieceId
+                            from AM.MailPieces m 
+                            inner join AM.MailBatches b on m.MailBatchId=b.Id
+                            inner join Common.Clients c on m.ClientId=c.Id
+                            LEFT OUTER JOIN [Profile].[Users] u on m.[PulledBackRequestedBy]=u.Id 
+                            left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+                            left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
+                            where ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
+
+            DynamicParameters parameter = new DynamicParameters();
+            parameter.Add("@clientId", clientId);
+            if (!string.IsNullOrWhiteSpace(businessFriendlyIdName))
+            {
+                query = string.Format("{0} and m.BusinessFriendlyIdName=@BusinessFriendlyIdName", query);
+                parameter.Add("@BusinessFriendlyIdName", businessFriendlyIdName);
+            }
+            if (!string.IsNullOrWhiteSpace(businessFriendlyIdValue))
+            {
+                query = string.Format("{0} and m.businessFriendlyIdValue=@businessFriendlyIdValue", query);
+                parameter.Add("@businessFriendlyIdValue", businessFriendlyIdValue);
+            }
+            if (docType.HasValue)
+            {
+                query = string.Format("{0} and d.Id = @docTypeId", query);
+                parameter.Add("@docTypeId", docType);
+            }
+            query = string.Format("{0} and b.ReceivedOn BETWEEN @startDate and @endDate order by b.ReceivedOn desc", query);
+            parameter.Add("@startDate", startDate.ToStartDateTime().EstToUtc());
+            parameter.Add("@endDate", endDate.ToEndDateTime().EstToUtc());
+            var data = db.Query<ReshipMailPieceViewModel>(query, parameter).ToList();
+            return data;
         }
     }
 }
