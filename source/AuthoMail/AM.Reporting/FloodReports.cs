@@ -1,4 +1,5 @@
-﻿using AM.Lib;
+﻿using AM.Entities;
+using AM.Lib;
 using AM.Services;
 using AM.Services.Models;
 using log4net;
@@ -44,6 +45,57 @@ namespace AM.Reporting
             {
                 log.Error("Error occured while generating Flood Monthly received batch report", ex);
             }
+        }
+
+        internal static void GenerateCapOneErrorReport()
+        {
+            try
+            {
+                log.Debug("Flood CapOne Client Error Report Execution Triggered at {0} Est".Fill(Common.Now.UtcToEst()));
+                List<ReportWizard> mpDetails;
+                DateTime currentTime = Common.EstToday;
+                DateTime endDate = currentTime.Date.ToEndDateTime();
+                DateTime startDate = currentTime.Date.ToStartDateTime();
+                using (IClientService clientSvc = new ClientService())
+                using (IReportService reportSvc = new ReportService())
+                {
+                    var floodClients = clientSvc.GetClientsByAlias("Flood Integration").Where(x => x.AppCode == "CAPONE");
+                    //NOTE : Please change UTC to EST code when Daylight saving is off in service call
+                    mpDetails = reportSvc.GetReportWizard(floodClients.Select(x => x.Id).ToList(), null, null, startDate, endDate, null, null, null, null, null);
+                    var errorMps = mpDetails.Where(x => x.Status == ShippingStatus.Error.ToString()).ToList();
+                    if (errorMps.Count == 0)
+                    {
+                        log.Debug($"Flood CapOne Client Error Report does not contain any records so exiting from the process at {Common.Now.UtcToEst()} Est");
+                        return;
+                    }
+
+                    string reportFilePath = Path.Combine(AppConfig.FloodMonthlyReportPath, $"CapOneErrorReport_{startDate.ToString("MMddyyyy")}.csv");
+                    GenerateReportForCapOne(errorMps, reportFilePath, $"CapOne Error Report For {startDate.ToString("MMddyyyy")}");
+                }
+                log.Debug("Flood CapOne Client Error Report Execution Completed at {0} Est".Fill(Common.Now.UtcToEst()));
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error occured while generating Flood Monthly received batch report", ex);
+            }
+        }
+
+        private static void GenerateReportForCapOne(List<ReportWizard> mpDetails, string reportFilePath, string subject)
+        {
+            var columnName = String.Join(",", "Batch Id", "MailPiece Id", "Channel", "Document Type", "Flood Cert Number", "Lender Loan Number", "File Name", "Error Code", "Error Text", "Received On (Est)", "First Name", "Last Name", "Street", "City", "State", "ZIP", "Shipping Method");
+
+            StringBuilder reconReport = new StringBuilder(columnName);
+
+            reconReport.AppendLine();
+            foreach (var mp in mpDetails)
+            {
+                var line = String.Join(",", mp.BatchId.ToCsvString(), mp.MailPieceId, mp.Channel, mp.DocumentOrPackageType, mp.LoanNumber.ToCsvString(), mp.FloodLoan_Number.ToCsvString(), mp.FileName, mp.ErrorCode, mp.ErrorDesc, mp.ReceivedOn.Value.UtcToEst(), mp.FirstName, mp.LastName, mp.RcptAddressStreet, mp.City, mp.State, mp.ZIP, mp.ShippingMethod);
+                reconReport.AppendLine(line);
+            }
+
+            File.WriteAllText(reportFilePath, reconReport.ToString());
+
+            SendReportToCLTeam(reportFilePath, subject, "Capital One Error Report", AppConfig.FloodMonthlyEMailTo, AppConfig.FloodMonthlyEMailCc);
         }
 
         private static void SendEmailNotificationToFlood(List<ReportWizard> mpDetails, string reportFilePath, string subject)

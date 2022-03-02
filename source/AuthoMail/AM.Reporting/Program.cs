@@ -87,7 +87,17 @@ namespace AM.Reporting
                     USAADailyMTDVolumeReporting.GenerateMTDReport();
                     break;
                 case "FLOODAUTO":
-                    FloodReports.GenerateMonthlyReport();
+                    switch (args[1])
+                    {
+                        case "MonthlyReport":
+                            FloodReports.GenerateMonthlyReport();
+                            break;
+                        case "CapOneErrorReport":
+                            FloodReports.GenerateCapOneErrorReport();
+                            break;
+                        default:
+                            break;
+                    }                   
                     break;
                 case "DelfusReport":
                     switch (args[1])

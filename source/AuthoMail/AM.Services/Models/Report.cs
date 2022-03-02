@@ -208,5 +208,7 @@ namespace AM.Services
         public string PropertyState { get; set; }
         public string PropertyZip { get; set; }
         public string FloodLoan_Number { get; set; }
+        public string ErrorCode { get; set; }
+        public string ErrorDesc { get; set; }
     }
 }

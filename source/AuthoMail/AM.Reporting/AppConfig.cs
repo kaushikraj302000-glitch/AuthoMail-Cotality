@@ -58,6 +58,11 @@ namespace AM.Reporting
         public static string FloodMonthlyEMailTo { get; private set; }
         public static string FloodMonthlyEMailCc { get; private set; }
         public static string FloodMonthlyReportPath { get; private set; }
+
+        public static string CapOneErrorEMailTo { get; private set; }
+        public static string CapOneErrorEMailCc { get; private set; }
+        public static string CapOneErrorReportPath { get; private set; }
+
         public static Dictionary<string, string> GOSDailyEmailListByAppCode
         {
             get
@@ -172,6 +177,10 @@ namespace AM.Reporting
             AMPostageReconEMailCc = ConfigurationManager.AppSettings["AMPostageReconEMailCc"].Trim();
             AMPostageReconEMailSubject = ConfigurationManager.AppSettings["AMPostageReconEMailSubject"].Trim();
             AMPostageReconReportPath = ConfigurationManager.AppSettings["AMPostageReconReportPath"].Trim();
+
+            CapOneErrorEMailTo = ConfigurationManager.AppSettings["CapOneErrorEMailTo"].Trim();
+            CapOneErrorEMailCc = ConfigurationManager.AppSettings["CapOneErrorEMailCc"].Trim();
+            CapOneErrorReportPath = ConfigurationManager.AppSettings["CapOneErrorReportPath"].Trim();
         }
     }
 }
