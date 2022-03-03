@@ -235,7 +235,7 @@
             var startDate = moment(selectedData[0].trim()).format("MM/DD/YYYY");
             var endDate = moment(selectedData[1].trim()).format("MM/DD/YYYY");
             var envelopeId = $("#Envelopes").val() != "" ? parseInt($("#Envelopes").val()) : null;
-            var printVendorCode = $("#PrintVendors option:selected").text() != "Select Print Vendor" ? $("#PrintVendors option:selected").text() : null;
+            var printVendorCode = $("#PrintVendors option:selected").text() != "Select Print Vendor" ? $("#PrintVendors option:selected").val() : null;
             $("#headerdate").html(startDate + " to " + endDate + " EST");
             var el = $('#EnvelopesUsageList');
             $("#loading").show();
