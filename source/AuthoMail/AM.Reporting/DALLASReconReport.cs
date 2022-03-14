@@ -116,7 +116,7 @@ namespace AM.Reporting
                         reconReport.AppendLine();
                         foreach (var batch in amPostageDetails)
                         {
-                            var line = String.Join(",", batch.AppCode, batch.APIRequestedOn, batch.BarcodeNumber, batch.Postage, batch.UserName);
+                            var line = String.Join(",", batch.AppCode, batch.APIRequestedOn, batch.BarcodeNumber, batch.Postage, batch.UserName.Replace("@milestonetechnoconsulting.com", ""));
                             reconReport.AppendLine(line);
                         }
                         string reportFilePath = Path.Combine(AppConfig.AMPostageReconReportPath, $"AMPostageReconReport_{startDate.ToString("MMddyyyy")}_{endDate.ToString("MMddyyyy")}.csv");

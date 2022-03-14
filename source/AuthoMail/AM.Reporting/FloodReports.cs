@@ -69,7 +69,7 @@ namespace AM.Reporting
                         return;
                     }
 
-                    string reportFilePath = Path.Combine(AppConfig.FloodMonthlyReportPath, $"CapOneErrorReport_{startDate.ToString("MMddyyyy")}.csv");
+                    string reportFilePath = Path.Combine(AppConfig.CapOneErrorReportPath, $"CapOneErrorReport_{startDate.ToString("MMddyyyy")}.csv");
                     GenerateReportForCapOne(errorMps, reportFilePath, $"CapOne Error Report For {startDate.ToString("MMddyyyy")}");
                 }
                 log.Debug("Flood CapOne Client Error Report Execution Completed at {0} Est".Fill(Common.Now.UtcToEst()));
@@ -95,7 +95,7 @@ namespace AM.Reporting
 
             File.WriteAllText(reportFilePath, reconReport.ToString());
 
-            SendReportToCLTeam(reportFilePath, subject, "Capital One Error Report", AppConfig.FloodMonthlyEMailTo, AppConfig.FloodMonthlyEMailCc);
+            SendReportToCLTeam(reportFilePath, subject, "Capital One Error Report", AppConfig.CapOneErrorEMailTo, AppConfig.CapOneErrorEMailCc);
         }
 
         private static void SendEmailNotificationToFlood(List<ReportWizard> mpDetails, string reportFilePath, string subject)
