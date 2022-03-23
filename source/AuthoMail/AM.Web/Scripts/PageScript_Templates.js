@@ -32,6 +32,7 @@
                 headerName: 'Action', field: 'FileName', sortable: false, cellRenderer: function (params) {
                     if (params.data.Status == true) {
                         var buttons = '<button title="Download Template" type="button" class="btn btn-success btn-sm downloadtemplate" data-id="' + params.data.FileName + '"><i class="fa fa-download"></i></button>';
+                        buttons += ' <button type="button" title="Download Large Font Template" class="btn btn-primary btn-sm largefonttemplate" data-id="' + params.data.FileName + "_16PT" + '"><i class="fa fa-arrow-circle-down"></i></button>';
                         buttons += ' <button type="button" title="View Template History" class="btn btn-info btn-sm historytemplate" data-id="' + params.data.FileName + '"><i class="fa fa-history"></i></button>';
                         buttons += ' <button type="button" title="Delete Template" class="btn btn-danger btn-sm removetemplate" data-id="' + params.data.FileName + '"><i class="fa fa-trash"></i></button>';
                         var eDiv = document.createElement('span');
@@ -42,6 +43,10 @@
                         });
                         var downloadtemplate = eDiv.querySelector('.downloadtemplate');
                         downloadtemplate.addEventListener('click', function () {
+                            DownloadTemplate($(this));
+                        });
+                        var largefonttemplate = eDiv.querySelector('.largefonttemplate');
+                        largefonttemplate.addEventListener('click', function () {
                             DownloadTemplate($(this));
                         });
                         var removetemplate = eDiv.querySelector('.removetemplate');
@@ -92,7 +97,7 @@
                                 params.api.sizeColumnsToFit();
                             });
                         });
-                        
+
                     },
                 };
                 // gridOptions.api.setRowData(data);
@@ -193,7 +198,7 @@
                     var table = $('#templatelisttable').DataTable();
                     if (response.Success) {
                         uploadedFile += 1;
-                        
+
 
                     } else {
                         totalError += 1;
@@ -348,6 +353,41 @@
             }
         });
     }
+
+    function DownloadLargeFontTemplate(obj) {
+        var context = $(obj);
+        $(obj).attr('disabled', 'disabled');
+        $(obj).find('i').removeClass('fa-download');
+        $(obj).find('i').addClass('fa-spining fa-spinner fa-spin');
+        var fileName = $(obj).data('id');
+        $.ajax({
+            type: "POST",
+            url: baseUrl + "DelfusTemplate/DownloadDelfusTemplate",
+            data: { fileName: fileName },
+            dataType: "json",
+            success: function (response) {
+                //console.log(response);
+                if (response.Success) {
+                    var stream = response.Object.stream;
+                    var sampleArr = base64ToArrayBuffer(stream);
+                    saveByteArray(response.Object.fileName, sampleArr);
+                }
+                else {
+                    alertMessage("red", response.ErrorMessage);
+                }
+                $(context).removeAttr('disabled');
+                $(context).find('i').removeClass('fa-spining fa-spinner fa-spin');
+                $(context).find('i').addClass('fa-download');
+            },
+            error: function (err) {
+                //console.log(err);
+                $(context).removeAttr('disabled');
+                $(context).find('i').removeClass('fa-spining fa-spinner fa-spin');
+                $(context).find('i').addClass('fa-download');
+            }
+        });
+    }
+
     function base64ToArrayBuffer(base64) {
         var binaryString = window.atob(base64);
         var binaryLen = binaryString.length;

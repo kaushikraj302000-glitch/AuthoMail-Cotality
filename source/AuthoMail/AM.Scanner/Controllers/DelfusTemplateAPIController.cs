@@ -30,15 +30,26 @@ namespace AM.Scanner.Controllers
                 //Create HTTP Response.
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
 
+                string originalFileName = fileName.Replace("_16PT", "");
+
+                string filePath = string.Empty;
                 //Set the File Path.
-                string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), fileName);
+                if (fileName.Contains("_16PT"))
+                {
+                    originalFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_16PT.{Path.GetExtension(originalFileName)}";
+                    filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "16PT", originalFileName);
+                }
+                else
+                {
+                    filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), originalFileName);
+                }
 
                 //Check whether File exists.
                 if (!File.Exists(filePath))
                 {
                     //Throw 404 (Not Found) exception if File not found.
                     response.StatusCode = HttpStatusCode.NotFound;
-                    response.ReasonPhrase = string.Format("File not found: {0} .", fileName);
+                    response.ReasonPhrase = string.Format("File not found: {0} .", originalFileName);
                     return response;
                 }
 
@@ -53,16 +64,16 @@ namespace AM.Scanner.Controllers
 
                 //Set the Content Disposition Header Value and FileName.
                 response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment");
-                response.Content.Headers.ContentDisposition.FileName = fileName;
+                response.Content.Headers.ContentDisposition.FileName = originalFileName;
 
                 //Set the File Content Type.
-                response.Content.Headers.ContentType = new MediaTypeHeaderValue(MimeMapping.GetMimeMapping(fileName));
+                response.Content.Headers.ContentType = new MediaTypeHeaderValue(MimeMapping.GetMimeMapping(originalFileName));
                 return response;
             }
             catch (Exception e)
             {
                 log.Error(e.ToString());
-                return Request.CreateResponse(HttpStatusCode.BadRequest,e.Message);
+                return Request.CreateResponse(HttpStatusCode.BadRequest, e.Message);
             }
         }
 
