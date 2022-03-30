@@ -88,7 +88,6 @@ namespace AM.Console
                     #region Download Zip
                     string zipFileName = "{0}.zip".Fill(batchName);
                     string localZipFilePath = Path.Combine(channelDownloadPath, zipFileName);
-                    string localexcelFilePath = Path.Combine(channelDownloadPath, batchName, batchName + ".xlsx");
                     string ftpZipFilePath = Path.Combine(SFTChannel.ToADEDir, zipFileName);
                     string ftpTriggerFilePath = Path.Combine(SFTChannel.ToADEDir, "{0}.go".Fill(batchName));
                     string localArchivePath = Path.Combine(Config.Common_AuthoMailRootFolder, "Archive", batchName + ".xlsx");
@@ -127,6 +126,17 @@ namespace AM.Console
                         continue;
                     }
                     #endregion
+
+                    var xlsFile = Directory.EnumerateFiles(extractedDir, "*.xlsx");
+
+                    if (xlsFile.Count() == 0)
+                    {
+                        var msg = "Excel file is missing in zip file of {0}.".Fill(batchName);
+                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), "");
+                        continue;
+                    }
+
+                    var localexcelFilePath = xlsFile.SingleOrDefault();
 
                     // Code for reading Excel file
                     DataTable excelData;
