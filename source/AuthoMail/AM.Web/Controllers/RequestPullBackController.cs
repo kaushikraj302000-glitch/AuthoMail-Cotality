@@ -37,13 +37,13 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetMailPieceList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, string startDate, string endDate)
+        public ActionResult _GetMailPieceList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, string startDate, string endDate, string channel)
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
 
             //Ref only. remove it. also check doctype is required or not.
-            var model = pullBackSvc.GetPullBackRequestList(businessFriendlyIdName, businessFriendlyIdValue, docType, exactStartDate, exactEndDate, User.Identity.GetClientId().Value);
+            var model = pullBackSvc.GetPullBackRequestList(businessFriendlyIdName, businessFriendlyIdValue, docType, exactStartDate, exactEndDate, channel.IsNullOrWhiteSpace() ? null : channel, User.Identity.GetClientId().Value);
 
             //var model = Mapper.Map<List<MailPieceViewModel>>(data);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.Status == "InProgress").ThenBy(s => s.IsPullBackRequested).ThenByDescending(s => s.Status == "PulledBack").ThenByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);

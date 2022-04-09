@@ -20,7 +20,7 @@ namespace AM.Services
         int UpdateAMBatchStatus(string mpId);
         int UpdateUSPSApiCancelErrorDesc(string mpId);
         string GetPnSBatchPipelineStatusByPrintBatchId(int printBatchId);
-        List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, int clientId);
+        List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, string channel, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId);
         bool GeneratePullBackForm(List<PullBackRequestForm> pullBackData);
@@ -88,7 +88,7 @@ namespace AM.Services
         }
 
         //public List<MailPieces> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId)
-        public List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, int clientId)
+        public List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, string channel, int clientId)
         {
             string query = @"select m.BusinessFriendlyIdValue as BusinessIdValue,m.UniqueId,m.FileName,(m.RcptFirstName+ ' ' +m.RcptLastName) as Name,
                             m.RcptAddressStreet as Address,m.TotalPages,m.TotalBlankPages,m.IsPullBackRequested,m.ShippingStatus as Status,m.DueDate,m.TrackingNo,m.ErrorCode,m.ErrorDesc,IsEDeliveryRequested,
@@ -98,10 +98,11 @@ namespace AM.Services
                             from AM.MailPieces m 
                             inner join AM.MailBatches b on m.MailBatchId=b.Id
                             inner join Common.Clients c on m.ClientId=c.Id
+                            LEFT OUTER JOIN Common.SFTChannels s on b.SFTChannelId=s.Id
                             LEFT OUTER JOIN [Profile].[Users] u on m.[PulledBackRequestedBy]=u.Id 
                             left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
                             left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
-                            where ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
+                            where m.ShippingStatus<>'Error' AND ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
 
             DynamicParameters parameter = new DynamicParameters();
             parameter.Add("@clientId", clientId);
@@ -119,6 +120,11 @@ namespace AM.Services
             {
                 query = string.Format("{0} and d.Id = @docTypeId", query);
                 parameter.Add("@docTypeId", docType);
+            }
+            if (!channel.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} and s.Code = @sftChannelId", query);
+                parameter.Add("@sftChannelId", channel);
             }
             query = string.Format("{0} and b.ReceivedOn BETWEEN @startDate and @endDate order by b.ReceivedOn desc", query);
             parameter.Add("@startDate", startDate.ToStartDateTime().EstToUtc());
