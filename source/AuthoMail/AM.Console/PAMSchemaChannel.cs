@@ -731,34 +731,54 @@ namespace AM.Console
                                 mailPieceDTO.MailBatchId = mbi.MailBatch.Id;
                                 mailPieceDTO.ShippingStatus = ShippingStatus.InProgress.ToString();
 
+                                var requests = XmlUtil.Deserialize<MailPiece>(mailPieceNode.OuterXml);
                                 try
                                 {
-                                    var requests = XmlUtil.Deserialize<MailPiece>(mailPieceNode.OuterXml);
-
+                                    mailPieceDTO.UniqueId = requests.Id == null || requests.Id == Guid.Empty ? Guid.NewGuid() : requests.Id;
                                     mailPieceDTO.BusinessFriendlyIdName = requests.BusinessFriendlyIdName.TrimIfNotNull();
+                                    mailPieceDTO.BusinessFriendlyIdValue = requests.BusinessFriendlyIdValue.TrimIfNotNull();
+                                    mailPieceDTO.DocumentOrPackageType = requests.DocumentOrPackageType == null ? mailBatch.DocumentOrPackageType : requests.DocumentOrPackageType;
+
+                                    mailPieceDTO.FileName = requests.DocumentOrPackage.Name.TrimIfNotNull();
+                                    mailPieceDTO.FilePattern = requests.DocumentOrPackage.Pattern.TrimIfNotNull();
+                                    mailPieceDTO.Inserts = requests.DocumentOrPackage.Inserts.TrimIfNotNull();
 
                                     //Here we are inserting BusinessIdentifier for Client if not exist.
                                     if (!businessIdNames.ContainsKey(mailPieceDTO.BusinessFriendlyIdName))
                                     {
-                                        using (ICommonService commonService = new CommonService())
+                                        try
                                         {
-                                            ClientBusinessIdentifier clientBusinessIdDetails = commonService.CheckBusinessIdNameAlreadyExist(client.Id, mailPieceDTO.BusinessFriendlyIdName);
-                                            if (clientBusinessIdDetails == null)
+                                            using (ICommonService commonService = new CommonService())
                                             {
-                                                commonService.InsertBusinessIdentifierName(client.Id, mailPieceDTO.BusinessFriendlyIdName.TrimIfNotNull());
+                                                ClientBusinessIdentifier clientBusinessIdDetails = commonService.CheckBusinessIdNameAlreadyExist(client.Id, mailPieceDTO.BusinessFriendlyIdName);
+                                                if (clientBusinessIdDetails == null)
+                                                {
+                                                    commonService.InsertBusinessIdentifierName(client.Id, mailPieceDTO.BusinessFriendlyIdName.TrimIfNotNull());
+                                                }
                                             }
+                                        }
+                                        catch (SqlException ex)
+                                        {
+                                            if (ex.Number == 2601) // Cannot insert duplicate key row in object error
+                                            {
+                                                var msg = "Error occured in ValidateBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
+                                                log.Error(msg, ex);
+                                                MailUtility.SendUnexpectedExceptionEmail(msg);
+                                                return;
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            var msg = "Error occured in ValidateBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
+                                            log.Error(msg, ex);
+                                            MailUtility.SendUnexpectedExceptionEmail(msg);
+                                            return;
                                         }
 
                                         businessIdNames.TryAdd(mailPieceDTO.BusinessFriendlyIdName, true);
                                     }
 
-                                    mailPieceDTO.BusinessFriendlyIdValue = requests.BusinessFriendlyIdValue.TrimIfNotNull();
-                                    mailPieceDTO.DocumentOrPackageType = requests.DocumentOrPackageType == null ? mailBatch.DocumentOrPackageType : requests.DocumentOrPackageType;
-                                    mailPieceDTO.UniqueId = requests.Id == null || requests.Id == Guid.Empty ? Guid.NewGuid() : requests.Id;
 
-                                    mailPieceDTO.FileName = requests.DocumentOrPackage.Name.TrimIfNotNull();
-                                    mailPieceDTO.FilePattern = requests.DocumentOrPackage.Pattern.TrimIfNotNull();
-                                    mailPieceDTO.Inserts = requests.DocumentOrPackage.Inserts.TrimIfNotNull();
                                     if (!string.IsNullOrEmpty(mailPieceDTO.FilePattern))
                                     {
                                         var file = Directory.EnumerateFiles(mbi.AMRequestPath, "*" + mailPieceDTO.FilePattern + "*.pdf").SingleOrDefault();
@@ -957,6 +977,19 @@ namespace AM.Console
                                     var msg = "Unable to process package info node for mail batch {0}".Fill(mbi.BatchName);
 
                                     log.Error(msg, ex);
+
+                                    if (requests.CustomInfo != null)
+                                    {
+                                        mailPieceCustomInfo = new List<MailPieceCustomInfo>();
+
+                                        foreach (var cstmInfo in requests.CustomInfo)
+                                        {
+                                            customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = cstmInfo.Key.TrimIfNotNull(), DataType = cstmInfo.DataType, Value = cstmInfo.Value.TrimIfNotNull() };
+
+                                            mailPieceCustomInfo.Add(customInfo);
+                                        }
+                                        mailPieceDTO.MailPieceCustomInfo = mailPieceCustomInfo;
+                                    }
 
                                     mailPieceDTO.ErrorCode = OutComeCodes.Unknown_Error;
                                     mailPieceDTO.ErrorDesc = "Error occured while processing package with error {0}".Fill(ex.Message);
