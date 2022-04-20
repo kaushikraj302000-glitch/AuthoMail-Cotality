@@ -93,8 +93,8 @@ namespace AM.Console
 
                     if (!sftSite.IsFileAvailable(ftpZipFilePath))
                     {
-                        var msg = "'{0}.zip' file is missing on SFT site.".Fill(batchName);
-                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), "");
+                        var msg = "{0}.zip file is missing on SFT site.".Fill(batchName);
+                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), "", msg);
                         continue;
                     }
 
@@ -113,9 +113,9 @@ namespace AM.Console
                     }
                     catch (Exception ex)
                     {
-                        var msg = "Unable to extract '{0}.zip' file.".Fill(batchName);
+                        var msg = $"Unable to extract '{batchName}.zip' file with error message {ex.Message}";
                         log.Error(msg, ex);
-                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), localZipFilePath);
+                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), localZipFilePath, msg);
                         continue;
                     }
                     #endregion
@@ -172,16 +172,16 @@ namespace AM.Console
             }
             catch (XmlException ex)
             {
-                var msg = "'{0}.xml' is not a valid XML document.".Fill(batchName);
+                var msg = $"{batchName}.xml is not a valid XML document.";
                 log.Error(msg, ex);
-                ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOn, msg), localZipFilePath);
+                ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOn, msg), localZipFilePath, msg);
                 return;
             }
             catch (Exception ex)
             {
-                var msg = "'{0}.xml' is not a valid XML document.".Fill(batchName);
+                var msg = $"{batchName}.xml is not a valid XML document.";
                 log.Error(msg, ex);
-                ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOn, msg), localZipFilePath);
+                ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOn, msg), localZipFilePath, msg);
                 return;
             }
 
@@ -349,7 +349,7 @@ namespace AM.Console
                 }
                 catch (Exception ex)
                 {
-                    var msg = "Error occured while inserting AMC batches details for Batch '{0}.xml'".Fill(batchName);
+                    var msg = $"Error occured while inserting AMC batches details for Batch {batchName}";
                     log.Error(msg, ex);
                     MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
                 }
@@ -465,7 +465,7 @@ namespace AM.Console
 
         #endregion
 
-        private void ReportInvalidBatch(MailBatchDTO mailBatch, string localZipFilePath)
+        private void ReportInvalidBatch(MailBatchDTO mailBatch, string localZipFilePath, string errorMessage)
         {
             Client client = clientSvc.GetClientById(mailBatch.ClientId);
 
@@ -484,7 +484,7 @@ namespace AM.Console
 
             string invalidBatchPath = Path.Combine(mbi.AMResponsePath, invalidBatchFileName);
 
-            File.WriteAllText(invalidBatchPath, string.Empty);
+            File.WriteAllText(invalidBatchPath, errorMessage);
 
             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
 
@@ -495,7 +495,10 @@ namespace AM.Console
 
             sftSite.UploadFile(invalidBatchPath, remoteFilePath);
             if (sftSite.IsFileAvailable(Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip")))
+            {
+                log.Info($"{mbi.BatchName} is available with last modified time {sftSite.LastModifiedTimeOfFile(Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip"))}");
                 MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip"));
+            }
 
             MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + "_Complete.go"));
 
@@ -554,18 +557,18 @@ namespace AM.Console
                     }
                     catch (XmlException ex)
                     {
-                        var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
+                        var msg = $"{mbi.BatchName}.xml is not a valid XML document.";
                         log.Error(msg, ex);
 
-                        ReportInvalidBatch(mailBatch, "");
+                        ReportInvalidBatch(mailBatch, "", msg);
 
                         continue;
                     }
                     catch (Exception ex)
                     {
-                        var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
+                        var msg = $"{mbi.BatchName}.xml is not a valid XML document.";
                         log.Error(msg, ex);
-                        ReportInvalidBatch(mailBatch, "");
+                        ReportInvalidBatch(mailBatch, "", msg);
                         continue;
                     }
 
@@ -864,12 +867,12 @@ namespace AM.Console
                         }
                         catch (Exception ex)
                         {
-                            var msg = "Unable to process package info node for mail batch {0}".Fill(mbi.BatchName);
+                            var msg = $"Unable to process package info node for mail batch {mbi.BatchName}";
 
                             log.Error(msg, ex);
 
                             mailPieceDTO.ErrorCode = OutComeCodes.Unknown_Error;
-                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.ToString();
+                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                         }
 
