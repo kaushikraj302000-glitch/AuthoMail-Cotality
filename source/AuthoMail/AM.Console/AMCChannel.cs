@@ -896,6 +896,12 @@ namespace AM.Console
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                 mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
                             }
+
+                            if (ex.Number == -2)
+                            {
+                                //If Timeout exception occured while processing batch then we are re-processing whole batch completly and breaking out from foreach loop.
+                                break;
+                            }
                         }
                     }
 

@@ -764,7 +764,13 @@ namespace AM.Console
                                                 var msg = "Error occured in ValidateBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
                                                 log.Error(msg, ex);
                                                 MailUtility.SendUnexpectedExceptionEmail(msg);
-                                                return;
+                                                break;
+                                            }
+
+                                            if (ex.Number == -2)
+                                            {
+                                                //If Timeout exception occured while processing batch then we are re-processing whole batch completly and breaking out from foreach loop.
+                                                break;
                                             }
                                         }
                                         catch (Exception ex)
@@ -772,7 +778,7 @@ namespace AM.Console
                                             var msg = "Error occured in ValidateBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
                                             log.Error(msg, ex);
                                             MailUtility.SendUnexpectedExceptionEmail(msg);
-                                            return;
+                                            break;
                                         }
 
                                         businessIdNames.TryAdd(mailPieceDTO.BusinessFriendlyIdName, true);
@@ -1017,6 +1023,12 @@ namespace AM.Console
                                             mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
                                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                             mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
+                                        }
+
+                                        if (ex.Number == -2)
+                                        {
+                                            //If Timeout exception occured while processing batch then we are re-processing whole batch completly and breaking out from foreach loop.
+                                            break;
                                         }
                                     }
                                 }
