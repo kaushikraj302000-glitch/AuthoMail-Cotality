@@ -178,6 +178,7 @@
                         console.log(response);
                         if (response.Success) {
                             var data = response.Object;
+                            $('#ReturnInfo_Recipient_Organization').val(data.RetRcptOrganization);
                             $('#ReturnInfo_Recipient_FirstName').val(data.RetRcptFirstName);
                             $('#ReturnInfo_Recipient_MiddleName').val(data.RetRcptMiddleName);
                             $('#ReturnInfo_Recipient_LastName').val(data.RetRcptLastName);
