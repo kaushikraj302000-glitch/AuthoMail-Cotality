@@ -945,23 +945,24 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
             string query = @"SELECT P.Id,P.UniqueId,P.MailBatchId,B.BatchName,B.ReceivedOn,X.BusinessFriendlyIdValue AS LoanNumber
                             , X.DocumentOrPackageType AS DocType, X.[FileName],X.RcptAddressCity AS City,X.RcptAddressStreet AS Address
                             , X.RcptAddressState AS State, X.RcptAddressZIP AS Zip,X.RcptFirstName AS FirstName,X.RcptLastName AS LastName
-                            , S.Code AS Channel, D.ShippingCarrier, D.ShippingServiceType, P.ShippingStatus AS [Status], P.ShippedOn
+                            , S.Code AS Channel, PCD.ShippingCarrier, PCD.ShippingServiceType, P.ShippingStatus AS [Status], P.ShippedOn
                             FROM AM.MailPieces P
                             INNER JOIN AM.MailBatches B ON P.MailBatchId = B.Id
                             INNER JOIN Common.SFTChannels S ON B.SFTChannelId=S.Id
-                            INNER JOIN v_DocTypes D ON D.PnSConfigDetailId = P.PnSConfigDetailId AND D.Id = P.DocTypeId
+                            INNER JOIN AM.DocTypes D ON D.Id = P.DocTypeId
+                            INNER JOIN Common.PnSConfigDetail PCD ON P.PnSConfigDetailId = PCD.Id
                             INNER JOIN
                             (
                                 SELECT RcptFirstName, RcptLastName, RcptAddressStreet, RcptAddressState, RcptAddressCity, RcptAddressZIP, BusinessFriendlyIdValue, [FileName], P.DocumentOrPackageType, COUNT(*) AS  TotalRecords
                                 FROM AM.MailPieces P
                                 INNER JOIN AM.MailBatches B ON P.MailBatchId= B.Id
-                                WHERE P.EffectiveReceivedOnEst BETWEEN @startDate AND @endDate AND P.ClientId = @clientId AND P.ShippingStatus NOT IN ('Error','PulledBack')
+                                WHERE P.EffectiveReceivedOnEst BETWEEN @startDate AND @endDate AND P.ClientId = @clientId AND P.ShippingStatus NOT IN ('Error')
                                 GROUP BY P.RcptFirstName,P.RcptLastName,P.RcptAddressStreet,P.RcptAddressState,P.RcptAddressCity,P.RcptAddressZIP,P.BusinessFriendlyIdValue,P.[FileName],P.DocumentOrPackageType
                                 HAVING COUNT(*) > 1
                             )X ON X.RcptFirstName = P.RcptFirstName AND X.RcptLastName = P.RcptLastName AND X.BusinessFriendlyIdValue = P.BusinessFriendlyIdValue
                             AND X.DocumentOrPackageType = P.DocumentOrPackageType AND X.FileName = P.FileName AND X.RcptAddressCity = P.RcptAddressCity
                             AND X.RcptAddressStreet = P.RcptAddressStreet AND X.RcptAddressState=P.RcptAddressState AND X.RcptAddressZIP = P.RcptAddressZIP
-                            WHERE P.EffectiveReceivedOnEst BETWEEN @startDate AND @endDate AND P.ClientId = @clientId AND P.ShippingStatus NOT IN ('Error','PulledBack')
+                            WHERE P.EffectiveReceivedOnEst BETWEEN @startDate AND @endDate AND P.ClientId = @clientId AND P.ShippingStatus NOT IN ('Error')
                             ORDER BY P.RcptFirstName,P.RcptLastName,P.RcptAddressStreet,P.RcptAddressState,P.RcptAddressCity,P.RcptAddressZIP,P.BusinessFriendlyIdValue,P.[FileName],P.DocumentOrPackageType";
             var data = db.Query<MonthlyReconReportViewModel>(query,
                 new

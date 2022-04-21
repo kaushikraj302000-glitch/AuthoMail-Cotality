@@ -87,6 +87,10 @@
                             @Html.DropDownList("DocType", ViewBag.DocType as SelectList, "Select Document Type", htmlAttributes: new { @class = "selectpicker", @data_live_search = "true", @data_live_search_placeholder = "Search Document Type" })
 
                         </div>
+                        <div class="form-group col-md-2">
+                            <label for="Channel">Channel</label>
+                            @Html.Action("_Channel", "Common")
+                        </div>
                     </div>
                     <div class="col-md-4">
                         <div class="form-group">
@@ -269,7 +273,7 @@
             $.ajax({
                 type: "POST",
                 url: baseUrl + "RequestPullBack/_GetMailPieceList",
-                data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(), docType: docType, startDate: startDate, endDate: endDate }),
+                data: JSON.stringify({ BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(), BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(), docType: docType, startDate: startDate, endDate: endDate, Channel: $("#Channel").val()}),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     //console.log(response);

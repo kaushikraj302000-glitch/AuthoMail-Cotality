@@ -708,11 +708,18 @@ namespace AM.Console
                         mailPieceDTO.MailBatchId = mbi.MailBatch.Id;
                         mailPieceDTO.ShippingStatus = ShippingStatus.InProgress.ToString();
 
+                        var requests = XmlUtil.Deserialize<MailPiece>(mailPieceNode.OuterXml);
                         try
                         {
-                            var requests = XmlUtil.Deserialize<MailPiece>(mailPieceNode.OuterXml);
 
                             mailPieceDTO.BusinessFriendlyIdName = requests.BusinessFriendlyIdName.TrimIfNotNull();
+                            mailPieceDTO.BusinessFriendlyIdValue = requests.BusinessFriendlyIdValue.TrimIfNotNull();
+                            mailPieceDTO.DocumentOrPackageType = requests.DocumentOrPackageType == null ? mailBatch.DocumentOrPackageType : requests.DocumentOrPackageType;
+                            mailPieceDTO.UniqueId = requests.Id == null || requests.Id == Guid.Empty ? Guid.NewGuid() : requests.Id;
+
+                            mailPieceDTO.FileName = requests.DocumentOrPackage.Name.TrimIfNotNull();
+                            mailPieceDTO.FilePattern = requests.DocumentOrPackage.Pattern.TrimIfNotNull();
+                            mailPieceDTO.Inserts = requests.DocumentOrPackage.Inserts.TrimIfNotNull();
 
                             //Here we are inserting BusinessIdentifier for Client if not exist.
                             ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.CheckBusinessIdNameAlreadyExist(client.Id, mailPieceDTO.BusinessFriendlyIdName);
@@ -721,13 +728,7 @@ namespace AM.Console
                                 commonSvc.InsertBusinessIdentifierName(client.Id, mailPieceDTO.BusinessFriendlyIdName.TrimIfNotNull());
                             }
 
-                            mailPieceDTO.BusinessFriendlyIdValue = requests.BusinessFriendlyIdValue.TrimIfNotNull();
-                            mailPieceDTO.DocumentOrPackageType = requests.DocumentOrPackageType == null ? mailBatch.DocumentOrPackageType : requests.DocumentOrPackageType;
-                            mailPieceDTO.UniqueId = requests.Id == null || requests.Id == Guid.Empty ? Guid.NewGuid() : requests.Id;
 
-                            mailPieceDTO.FileName = requests.DocumentOrPackage.Name.TrimIfNotNull();
-                            mailPieceDTO.FilePattern = requests.DocumentOrPackage.Pattern.TrimIfNotNull();
-                            mailPieceDTO.Inserts = requests.DocumentOrPackage.Inserts.TrimIfNotNull();
                             if (!string.IsNullOrEmpty(mailPieceDTO.FilePattern))
                             {
                                 var file = Directory.EnumerateFiles(mbi.AMRequestPath, "*" + mailPieceDTO.FilePattern + "*.pdf").SingleOrDefault();
@@ -926,6 +927,20 @@ namespace AM.Console
                             var msg = "Unable to process package info node for mail batch {0}".Fill(mbi.BatchName);
 
                             log.Error(msg, ex);
+
+                            if (requests.CustomInfo != null)
+                            {
+                                mailPieceCustomInfo = new List<MailPieceCustomInfo>();
+
+                                foreach (var cstmInfo in requests.CustomInfo)
+                                {
+                                    customInfo = new MailPieceCustomInfo() { MailPieceId = 0, Key = cstmInfo.Key.TrimIfNotNull(), DataType = cstmInfo.DataType, Value = cstmInfo.Value.TrimIfNotNull() };
+
+                                    mailPieceCustomInfo.Add(customInfo);
+                                }
+                                mailPieceDTO.MailPieceCustomInfo = mailPieceCustomInfo;
+                            }
+
                             mailPieceDTO.ErrorCode = OutComeCodes.Unknown_Error;
                             mailPieceDTO.ErrorDesc = "Error occured while processing package with error {0}".Fill(ex.Message);
                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
@@ -950,6 +965,12 @@ namespace AM.Console
                                 mailPieceDTO.ErrorDesc = msg;
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                 mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
+                            }
+
+                            if (ex.Number == -2)
+                            {
+                                //If Timeout exception occured while processing batch then we are re-processing whole batch completly and breaking out from foreach loop.
+                                break;
                             }
                         }
                     }

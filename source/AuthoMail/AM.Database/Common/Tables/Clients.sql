@@ -13,7 +13,7 @@
     [Address]               NVARCHAR (255) NULL,
     [Contact1Name]          VARCHAR (255)  NULL,
     [Contact1Phone]         VARCHAR (255)  NULL,
-    [Contact1Email]         VARCHAR (255)  NULL,
+    [Contact1Email]         VARCHAR (1024)  NULL,
     [Contact2Name]          VARCHAR (255)  NULL,
     [Contact2Phone]         VARCHAR (255)  NULL,
     [Contact2Email]         VARCHAR (255)  NULL,
