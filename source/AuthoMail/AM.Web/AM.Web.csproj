@@ -629,6 +629,9 @@
     <Content Include="Views\Common\SingleLoanEntry.cshtml" />
     <Content Include="Views\Report\DuplicateReport.cshtml" />
     <Content Include="Views\Common\ReshipPackage.cshtml" />
+    <Content Include="Template\LargeFontCoupon.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
