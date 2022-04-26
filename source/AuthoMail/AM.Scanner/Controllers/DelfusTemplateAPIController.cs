@@ -161,6 +161,10 @@ namespace AM.Scanner.Controllers
                 {
                     Directory.CreateDirectory(path);
                 }
+                if (request.Headers["FileName"].Trim().Contains("_16PT"))
+                {
+                    path = Path.Combine(path, "16PT");
+                }
                 request.Files[0].SaveAs(Path.Combine(path, request.Headers["FileName"].Trim()));
                 return Ok("File save successfully.");
             }
