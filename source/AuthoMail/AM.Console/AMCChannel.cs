@@ -497,13 +497,14 @@ namespace AM.Console
             sftSite.Connect();
 
             sftSite.UploadFile(invalidBatchPath, remoteFilePath);
+            
+            MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + "_Complete.go"));
+            
             if (sftSite.IsFileAvailable(Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip")))
             {
                 log.Info($"{mbi.BatchName} is available with last modified time {sftSite.LastModifiedTimeOfFile(Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip"))}");
                 MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip"));
             }
-
-            MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + "_Complete.go"));
 
             if (sftSite.IsConnected)
                 sftSite.Disconnect();
