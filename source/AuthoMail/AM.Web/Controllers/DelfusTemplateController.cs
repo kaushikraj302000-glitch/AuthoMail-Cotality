@@ -68,7 +68,7 @@ namespace AM.Web.Controllers
                 {
                     error = "Selected file type is not supported.";
                 }
-                if (Path.GetFileNameWithoutExtension(template.FileName).Length != 10)
+                if (Path.GetFileNameWithoutExtension(template.FileName).Length != 10 && !template.FileName.Contains("_16PT"))
                 {
                     string newline = error.Length > 0 ? " " : "";
                     error += $"{newline}Invalid template name. (template name should have 10 characters)";

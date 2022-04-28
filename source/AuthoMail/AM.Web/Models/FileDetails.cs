@@ -11,5 +11,6 @@ namespace AM.Web.Models
         public long FileSize { get; set; }
         public bool Status { get; set; }
         public DateTime ModifiedOn { get; set; }
+        public bool IsLargeTemplateExist { get; set; }
     }
 }

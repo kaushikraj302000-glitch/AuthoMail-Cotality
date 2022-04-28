@@ -31,8 +31,13 @@
             {
                 headerName: 'Action', field: 'FileName', sortable: false, cellRenderer: function (params) {
                     if (params.data.Status == true) {
+
+                        var fileNameWithOutExt = params.data.FileName.substring(0, params.data.FileName.lastIndexOf('.'));
+                        var fileExt = params.data.FileName.substring(params.data.FileName.lastIndexOf('.'));
                         var buttons = '<button title="Download Template" type="button" class="btn btn-success btn-sm downloadtemplate" data-id="' + params.data.FileName + '"><i class="fa fa-download"></i></button>';
-                        buttons += ' <button type="button" title="Download Large Font Template" class="btn btn-primary btn-sm largefonttemplate" data-id="' + params.data.FileName + "_16PT" + '"><i class="fa fa-arrow-circle-down"></i></button>';
+                        if (params.data.IsLargeTemplateExist) {
+                            buttons += ' <button type="button" title="Download Large Font Template" class="btn btn-primary btn-sm largefonttemplate" data-id="' + fileNameWithOutExt + "_16PT" + fileExt + '"><i class="fa fa-arrow-circle-down"></i></button>';
+                        }
                         buttons += ' <button type="button" title="View Template History" class="btn btn-info btn-sm historytemplate" data-id="' + params.data.FileName + '"><i class="fa fa-history"></i></button>';
                         buttons += ' <button type="button" title="Delete Template" class="btn btn-danger btn-sm removetemplate" data-id="' + params.data.FileName + '"><i class="fa fa-trash"></i></button>';
                         var eDiv = document.createElement('span');
@@ -46,9 +51,11 @@
                             DownloadTemplate($(this));
                         });
                         var largefonttemplate = eDiv.querySelector('.largefonttemplate');
-                        largefonttemplate.addEventListener('click', function () {
-                            DownloadTemplate($(this));
-                        });
+                        if (largefonttemplate !== null) {
+                            largefonttemplate.addEventListener('click', function () {
+                                DownloadTemplate($(this));
+                            });
+                        }
                         var removetemplate = eDiv.querySelector('.removetemplate');
                         removetemplate.addEventListener('click', function () {
                             RemoveTemplate($(this), gridOptions);

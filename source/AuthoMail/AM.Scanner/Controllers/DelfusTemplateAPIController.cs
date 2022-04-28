@@ -30,18 +30,17 @@ namespace AM.Scanner.Controllers
                 //Create HTTP Response.
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
 
-                string originalFileName = fileName.Replace("_16PT", "");
+
 
                 string filePath = string.Empty;
                 //Set the File Path.
                 if (fileName.Contains("_16PT"))
                 {
-                    originalFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_16PT.{Path.GetExtension(originalFileName)}";
-                    filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "16PT", originalFileName);
+                    filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "16PT", fileName);
                 }
                 else
                 {
-                    filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), originalFileName);
+                    filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), fileName);
                 }
 
                 //Check whether File exists.
@@ -49,7 +48,7 @@ namespace AM.Scanner.Controllers
                 {
                     //Throw 404 (Not Found) exception if File not found.
                     response.StatusCode = HttpStatusCode.NotFound;
-                    response.ReasonPhrase = string.Format("File not found: {0} .", originalFileName);
+                    response.ReasonPhrase = string.Format("File not found: {0} .", fileName);
                     return response;
                 }
 
@@ -64,10 +63,10 @@ namespace AM.Scanner.Controllers
 
                 //Set the Content Disposition Header Value and FileName.
                 response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment");
-                response.Content.Headers.ContentDisposition.FileName = originalFileName;
+                response.Content.Headers.ContentDisposition.FileName = fileName;
 
                 //Set the File Content Type.
-                response.Content.Headers.ContentType = new MediaTypeHeaderValue(MimeMapping.GetMimeMapping(originalFileName));
+                response.Content.Headers.ContentType = new MediaTypeHeaderValue(MimeMapping.GetMimeMapping(fileName));
                 return response;
             }
             catch (Exception e)
@@ -87,7 +86,8 @@ namespace AM.Scanner.Controllers
                 {
                     return StatusCode(HttpStatusCode.Unauthorized);
                 }
-                DirectoryInfo d = new DirectoryInfo(Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString()));//Assuming Test is your Folder
+                DirectoryInfo d = new DirectoryInfo(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString());//Assuming Test is your Folder
+                DirectoryInfo largeFontDir = new DirectoryInfo(Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "16PT"));//Assuming Test is your Folder
                 List<FileDetails> fileDetails = new List<FileDetails>();
                 string[] fileType = { ".doc", ".docx" };
                 FileInfo[] fileInfos = d.GetFiles("*.*").Where(f => fileType.Contains(Path.GetExtension(f.FullName))).ToArray();
@@ -98,7 +98,8 @@ namespace AM.Scanner.Controllers
                         FileName = fileInfo.Name,
                         FileSize = fileInfo.Length > 0 ? fileInfo.Length / 1024 : 0,
                         Status = true,
-                        ModifiedOn = fileInfo.LastWriteTimeUtc
+                        ModifiedOn = fileInfo.LastWriteTimeUtc,
+                        IsLargeTemplateExist = largeFontDir.GetFiles($"{Path.GetFileNameWithoutExtension(fileInfo.Name)}_16PT.*").Any()
                     });
                 }
                 return Ok(fileDetails); //Getting Text files
