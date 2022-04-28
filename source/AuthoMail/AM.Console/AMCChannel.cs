@@ -417,14 +417,40 @@ namespace AM.Console
 
         private void MoveBatchToBackupDir(SFTUtil sftSite, string ftpFilePath)
         {
-            string ftpBackUpFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(ftpFilePath));
-
-            if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
+            int cnt = 0;
+            Exception exception = null;
+            while (cnt < 5)
             {
-                sftSite.MoveFile(ftpFilePath, ftpBackUpFilePath);
+                try
+                {
+                    log.Debug($"AM is trying to remove File {Path.GetFileName(ftpFilePath)} from SFTP.");
+                    string ftpBackUpFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(ftpFilePath));
+
+                    if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
+                    {
+                        sftSite.MoveFile(ftpFilePath, ftpBackUpFilePath);
+                    }
+                    else
+                        sftSite.DeleteFile(ftpFilePath);
+
+                    log.Debug($"AM has completed to remove File {Path.GetFileName(ftpFilePath)} from SFTP.");
+                    exception = null;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    var msg = $"Error occured while moving or removing file {Path.GetFileName(ftpFilePath)} from SFTP. System is trying for {cnt} time.";
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
+                    cnt++;
+                    exception = ex;
+                }
             }
-            else
-                sftSite.DeleteFile(ftpFilePath);
+
+            if (exception != null)
+            {
+                throw exception;
+            }
         }
 
         private List<string> GetTriggerFilePaths(SFTUtil sftSite)
@@ -494,14 +520,18 @@ namespace AM.Console
             sftSite.Connect();
 
             sftSite.UploadFile(invalidBatchPath, remoteFilePath);
+
+            log.Debug($"Checking for SFTP File {mbi.BatchName}.zip");
             if (sftSite.IsFileAvailable(Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip")))
             {
                 log.Info($"{mbi.BatchName} is available with last modified time {sftSite.LastModifiedTimeOfFile(Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip"))}");
+                log.Debug($"Removing Process Started for SFTP File {mbi.BatchName}.zip");
                 MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip"));
+                log.Debug($"Removing Process Completed for SFTP File {mbi.BatchName}.zip");
             }
-
+            log.Debug($"Removing Process Started for SFTP File {mbi.BatchName}_Complete.go");
             MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + "_Complete.go"));
-
+            log.Debug($"Removing Process Started for SFTP File {mbi.BatchName}_Complete.go");
             if (sftSite.IsConnected)
                 sftSite.Disconnect();
 
