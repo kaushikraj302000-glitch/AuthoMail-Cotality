@@ -418,6 +418,7 @@ namespace AM.Console
         private void MoveBatchToBackupDir(SFTUtil sftSite, string ftpFilePath)
         {
             int cnt = 0;
+            Exception exception = null;
             while (cnt < 5)
             {
                 try
@@ -433,13 +434,22 @@ namespace AM.Console
                         sftSite.DeleteFile(ftpFilePath);
 
                     log.Debug($"AM has completed to remove File {Path.GetFileName(ftpFilePath)} from SFTP.");
+                    exception = null;
                     break;
                 }
                 catch (Exception ex)
                 {
-                    log.Error($"Error occured while moving or removing file {Path.GetFileName(ftpFilePath)} from SFTP. System is trying for {cnt} time.", ex);
+                    var msg = $"Error occured while moving or removing file {Path.GetFileName(ftpFilePath)} from SFTP. System is trying for {cnt} time.";
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
                     cnt++;
+                    exception = ex;
                 }
+            }
+
+            if (exception != null)
+            {
+                throw exception;
             }
         }
 
