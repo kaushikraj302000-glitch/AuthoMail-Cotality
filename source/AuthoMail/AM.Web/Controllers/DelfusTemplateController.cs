@@ -26,6 +26,8 @@ namespace AM.Web.Controllers
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public DelfusTemplateController(IDelfusTemplateService delfusTemplateSvc)
         {
+            Aspose.Words.License license = new Aspose.Words.License();
+            license.SetLicense("Aspose.Words.lic");
             this.delfusTemplateSvc = delfusTemplateSvc;
         }
         // GET: Template
