@@ -46,7 +46,7 @@ namespace AM.Web.Models
                     var usersList = JsonConvert.DeserializeObject<AxisUsers>(response);
                     if (usersList != null && usersList.users.Count() > 0)
                     {
-                        if (usersList.users.Any(x => x.username == $"{username}@corelogic.com"))
+                        if (usersList.users.Any(x => x.username.ToLower() == $"{username.ToLower()}@corelogic.com"))
                             return new KeyValuePair<bool, string>(true, "Valid user");
                     }
                     return new KeyValuePair<bool, string>(false, "Not valid user");
@@ -57,7 +57,6 @@ namespace AM.Web.Models
                     return new KeyValuePair<bool, string>(false, error.ToString());
                 }
             }
-
         }
         private static async Task<string> GenerateToken()
         {
