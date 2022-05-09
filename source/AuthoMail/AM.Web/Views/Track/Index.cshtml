@@ -39,7 +39,7 @@
                         $(document).ready(function () {
                             var trackingNo = '@Model.TrackingDetailViewModel.TrackingNo';
                             setTimeout(function () {
-                                window.location.href = 'http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + trackingNo;
+                                window.location.href = 'https://www.fedex.com/fedextrack/?trknbr=' + trackingNo;
 
                             }, 2000);
                         });
