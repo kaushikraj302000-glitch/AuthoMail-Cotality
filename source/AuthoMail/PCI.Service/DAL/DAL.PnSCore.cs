@@ -347,6 +347,11 @@ namespace PCI.Service
             return db.ExecuteDataSet("usp_GetMRDFResponseDummyDataByPrintTrailBatchId", printTrailBatchId).Tables[0];
         }
 
+        public static int ScanDummyDataByPrintTrailBatchIdForDallas(int printTrailBatchId)//To Get All Values define "ALL", Records without pdf level errors use "INTERNAL"
+        {
+            return db.ExecuteNonQuery("usp_ScanDummyDataByPrintTrailBatchIdForDallas", printTrailBatchId);
+        }
+
         public static DataTable GetMRDFRequestDataByPrintTrailBatchId(int printTrailBatchId, string mailPieceStatus = "ALL")//To Get All Values define "ALL", Records without pdf level errors use "INTERNAL"
         {
             var ds = db.ExecuteDataSet("usp_GetMRDFRequestDataByPrintTrailBatchId", printTrailBatchId, mailPieceStatus);//Here we will create view instaed of SP

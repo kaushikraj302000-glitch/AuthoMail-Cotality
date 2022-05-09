@@ -881,6 +881,9 @@ namespace PCI.Service
                                 File.WriteAllText(xmlOutFilePath, printResponse.ToXml());
                             }
                             break;
+                        case "CL_DALLAS":
+                            DAL.ScanDummyDataByPrintTrailBatchIdForDallas(printTrailBatchId);
+                            break;
                         default:
                             var mrdfOutFilePath = Path.Combine(bundlingRootPath, printTrailBatchDetail.PrintBatchName + ".OUT");
                             var mrdfResContent = new StringBuilder();
@@ -921,7 +924,6 @@ namespace PCI.Service
                                 File.WriteAllLines(mrdfOutFilePath, mrdfs.ToArray());
                             }
                             break;
-
                     }
                 }
                 #endregion
