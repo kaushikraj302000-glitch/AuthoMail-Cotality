@@ -92,6 +92,7 @@ namespace AM.Reporting
             }
         }
 
+        public static string USAAMTDReportPath { get; private set; }
         public static string USAAMTDEmailTo { get; private set; }
         public static string USAAMTDEmailCc { get; private set; }
 
@@ -159,6 +160,7 @@ namespace AM.Reporting
             GOSStatusMappingFile = ConfigurationManager.AppSettings["GOSStatusMappingFile"].Trim();
 
 
+            USAAMTDReportPath = ConfigurationManager.AppSettings["USAAMTDReportPath"].Trim();
             USAAMTDEmailTo = ConfigurationManager.AppSettings["USAAMTDEmailTo"].Trim();
             USAAMTDEmailCc = ConfigurationManager.AppSettings["USAAMTDEmailCc"].Trim();
 
