@@ -243,6 +243,7 @@
     <Build Include="dbo\User Defined Types\udt_TrackingDump.sql" />
     <Build Include="dbo\Stored Procedures\usp_UpdateTrackingInfo.sql" />
     <Build Include="AM\Tables\TrackingDump.sql" />
+    <Build Include="dbo\Stored Procedures\usp_ScanDummyDataByPrintTrailBatchIdForDallas.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AM.Database.refactorlog" />
