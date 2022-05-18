@@ -165,42 +165,38 @@ namespace AM.Console
                 return;
             }
 
-            var rootElement = batchXML.DocumentElement;
-            var mbCustomInfoNode = rootElement.SelectSingleNode("x:CustomInfo", nsManager);
-            var mbReturnInfoNode = rootElement.SelectSingleNode("x:ReturnInfo", nsManager);
+            List<MailPiece> printAndShipNodes = new List<MailPiece>();
+            List<MailPiece> eDeliveryNodes = new List<MailPiece>();
 
-            List<XmlNode> printAndShipNodes = new List<XmlNode>();
-            List<XmlNode> eDeliveryNodes = new List<XmlNode>();
-            foreach (XmlNode node in mailPieceNodes)
-            {
-                #region EDelivery Batch Separated
-                var eDeliveryNode = node.SelectSingleNode("x:eDelivery", nsManager);
+            var mailBatchData = XmlUtil.Deserialize<MailBatch>(File.ReadAllText(xmlFilePath));
 
-                if (eDeliveryNode != null)
-                {
-                    eDeliveryNodes.Add(node);
-                }
-                else
-                {
-                    printAndShipNodes.Add(node);
-                }
-                #endregion
-            }
+            var batchMetaData = mailBatchData.CustomInfo;
+            var batchReturnInfo = mailBatchData.ReturnInfo;
 
-            string uniqueId;
-            string clientBatchId = batchXML.DocumentElement.Attributes["ClientBatchId"] == null ? (batchXML.DocumentElement.Attributes["Id"] == null ? Guid.NewGuid().ToString() : batchXML.DocumentElement.Attributes["Id"].Value) : batchXML.DocumentElement.Attributes["ClientBatchId"].Value;
-            string clientCode = rootElement.Attributes["ClientCode"] == null ? "InvalidClientCode" : rootElement.Attributes["ClientCode"].Value;
-            string priority = rootElement.Attributes["Priority"] == null ? Priority.Medium.ToString() : rootElement.Attributes["Priority"].Value;
-            string documentOrPackageType = rootElement.Attributes["DocumentOrPackageType"] == null ? "" : rootElement.Attributes["DocumentOrPackageType"].Value;
             string batchPath;
             string xmlPath;
             string errorMsg = string.Empty;
+
+            eDeliveryNodes = mailBatchData.MailPieces.Where(x => x.eDelivery != null).ToList();
+            printAndShipNodes = mailBatchData.MailPieces.Where(x => x.eDelivery == null).ToList();
+
+
             if (eDeliveryNodes.Count > 0)
             {
-                foreach (XmlNode eDNode in eDeliveryNodes)
+                //System generates individual batch for each mailpiece for e-delivery
+                foreach (MailPiece eDNode in eDeliveryNodes)
                 {
-                    uniqueId = Guid.NewGuid().ToString(); // Here system will generate new uniqueid at batch level
-                    batchPath = SeparateEDeliveryXMLsAndPDFs(mbCustomInfoNode, mbReturnInfoNode, eDNode, nsManager, channelDownloadPath, extractedZipDirPath, clientCode, clientBatchId, uniqueId, batchName, priority, documentOrPackageType);
+                    MailBatch newMailBatch = new MailBatch();
+                    newMailBatch.ClientBatchId = mailBatchData.ClientBatchId;
+                    newMailBatch.ClientCode = mailBatchData.ClientCode;
+                    newMailBatch.CustomInfo = batchMetaData;
+                    newMailBatch.DocumentOrPackageType = mailBatchData.DocumentOrPackageType;
+                    newMailBatch.ReturnInfo = batchReturnInfo;
+                    newMailBatch.Id = Guid.NewGuid(); // Here we are generating new guid for every batch
+
+                    newMailBatch.MailPieces.Add(eDNode);
+
+                    batchPath = SeparateEDeliveryXMLsAndPDFs(newMailBatch, eDNode.DocumentOrPackage, channelDownloadPath, extractedZipDirPath, batchName);
                     xmlPath = Path.Combine(batchPath, batchName + ".xml");
                     ProcessXML(xmlPath, batchName, receivedOnDateTime, batchPath);
                 }
@@ -208,8 +204,17 @@ namespace AM.Console
 
             if (printAndShipNodes.Count > 0)
             {
-                uniqueId = batchXML.DocumentElement.Attributes["Id"] == null ? Guid.NewGuid().ToString() : batchXML.DocumentElement.Attributes["Id"].Value; // Here system will use same uniqueid which is received in current batch at batch level
-                batchPath = SeparatePrintNShipXMLsAndPDFs(mbCustomInfoNode, mbReturnInfoNode, printAndShipNodes, nsManager, channelDownloadPath, extractedZipDirPath, clientCode, clientBatchId, uniqueId, batchName, priority, documentOrPackageType);
+                MailBatch newMailBatch = new MailBatch();
+                newMailBatch.ClientBatchId = mailBatchData.ClientBatchId;
+                newMailBatch.ClientCode = mailBatchData.ClientCode;
+                newMailBatch.CustomInfo = batchMetaData;
+                newMailBatch.DocumentOrPackageType = mailBatchData.DocumentOrPackageType;
+                newMailBatch.ReturnInfo = batchReturnInfo;
+                newMailBatch.Id = mailBatchData.Id == null ? Guid.NewGuid() : mailBatchData.Id; // Here system will use same uniqueid which is received in current batch at batch level
+
+                newMailBatch.MailPieces = printAndShipNodes;
+
+                batchPath = SeparatePrintNShipXMLsAndPDFs(newMailBatch, channelDownloadPath, extractedZipDirPath, batchName);
                 xmlPath = Path.Combine(batchPath, batchName + ".xml");
                 errorMsg = ProcessXML(xmlPath, batchName, receivedOnDateTime, batchPath);
             }
@@ -260,26 +265,25 @@ namespace AM.Console
                 return "";
             }
 
+            var mailBatchData = XmlUtil.Deserialize<MailBatch>(File.ReadAllText(xmlFilePath));
 
             Client client;
             MailBatchDTO mailBatch;
             List<MailBatchCustomInfo> mailBatchCustomInfoList = new List<MailBatchCustomInfo>();
             try
             {
-                var clientCode = batchXML.DocumentElement.Attributes["ClientCode"] == null ? "InvalidClientCode" : batchXML.DocumentElement.Attributes["ClientCode"].Value;
-
-                if (clientCode == "InvalidClientCode")
+                if (mailBatchData.ClientCode.IsNullOrWhiteSpace())
                 {
-                    var msg = "Client code is required in provided XML.".Fill(clientCode);
+                    var msg = $"Client code is required in provided XML.";
                     ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOnDateTime, msg), xmlFilePath);
                     return "";
                 }
 
-                client = clientSvc.GetClientByAppCode(clientCode).Result;
+                client = clientSvc.GetClientByAppCode(mailBatchData.ClientCode).Result;
 
                 if (client == null)
                 {
-                    var msg = "Client code {0} is not valid from provided XML.".Fill(clientCode);
+                    var msg = $"Client code {mailBatchData.ClientCode} is not valid from provided XML.";
                     ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOnDateTime, msg), xmlFilePath);
                     return "";
                 }
@@ -293,57 +297,52 @@ namespace AM.Console
                     PipelineStatus = BatchPipelineStatus.Received,
                     BatchStatus = BatchStatus.InProgress.ToString(),
                     //Parse AM mail batch request element
-                    UniqueId = batchXML.DocumentElement.Attributes["Id"] == null ? Guid.NewGuid() : Guid.Parse(batchXML.DocumentElement.Attributes["Id"].Value),
-                    Priority = batchXML.DocumentElement.Attributes["Priority"] == null ? Priority.Medium.ToString() : batchXML.DocumentElement.Attributes["Priority"].Value,
-                    DocumentOrPackageType = batchXML.DocumentElement.Attributes["DocumentOrPackageType"]?.Value,
-                    ClientBatchId = batchXML.DocumentElement.Attributes["ClientBatchId"] == null ? batchName : batchXML.DocumentElement.Attributes["ClientBatchId"].Value
+                    UniqueId = mailBatchData.Id,
+                    Priority = mailBatchData.Priority.ToString(),
+                    DocumentOrPackageType = mailBatchData.DocumentOrPackageType,
+                    ClientBatchId = mailBatchData.ClientBatchId
                 };
 
                 //AM Mail Batch Custom Info
-                MailBatchCustomInfo mailBatchCustomInfo;
-                var customeInfoElement = batchXML.DocumentElement.SelectSingleNode("./x:CustomInfo", nsManager);
+                var customeInfoElement = mailBatchData.CustomInfo;
                 if (customeInfoElement != null)
                 {
-                    foreach (XmlElement element in customeInfoElement.ChildNodes)
-                    {
-                        mailBatchCustomInfo = new MailBatchCustomInfo() { Key = element.SelectSingleNode("./x:Key/text()", nsManager) == null ? string.Empty : element.SelectSingleNode("./x:Key/text()", nsManager).Value, DataType = element.SelectSingleNode("./x:DataType/text()", nsManager) == null ? string.Empty : element.SelectSingleNode("./x:DataType/text()", nsManager).Value, Value = element.SelectSingleNode("./x:Value/text()", nsManager) == null ? string.Empty : element.SelectSingleNode("./x:Value/text()", nsManager).Value };
-                        mailBatchCustomInfoList.Add(mailBatchCustomInfo);
-                    }
+                    mailBatchCustomInfoList.AddRange(customeInfoElement.Select(x => new MailBatchCustomInfo() { Key = x.Key, DataType = x.DataType.ToString(), Value = x.Value }));
                 }
 
                 //AM Mail Batch Return Info
-                var returnInfoElement = batchXML.DocumentElement.SelectSingleNode("./x:ReturnInfo", nsManager);
+                var returnInfoElement = mailBatchData.ReturnInfo;
                 if (returnInfoElement != null)
                 {
-                    var returnRcptInfoElement = returnInfoElement.SelectSingleNode("./x:Recipient", nsManager);
+                    var returnRcptInfoElement = returnInfoElement.Recipient;
                     if (returnRcptInfoElement != null)
                     {
                         mailBatch.IsReturnInfoSpecified = true;
 
-                        mailBatch.RetRcptFirstName = returnRcptInfoElement.Attributes["FirstName"]?.Value;
-                        mailBatch.RetRcptLastName = returnRcptInfoElement.Attributes["LastName"]?.Value;
-                        mailBatch.RetRcptMiddleName = returnRcptInfoElement.Attributes["MiddleName"]?.Value;
-                        mailBatch.RetRcptOrganization = returnRcptInfoElement.Attributes["Organization"]?.Value;
-                        mailBatch.RetRcptPhone = returnRcptInfoElement.Attributes["Phone"]?.Value;
-                        mailBatch.RetRcptPrefix = returnRcptInfoElement.Attributes["Prefix"]?.Value;
-                        mailBatch.RetRcptSuffix = returnRcptInfoElement.Attributes["Suffix"]?.Value;
+                        mailBatch.RetRcptFirstName = returnRcptInfoElement.FirstName;
+                        mailBatch.RetRcptLastName = returnRcptInfoElement.LastName;
+                        mailBatch.RetRcptMiddleName = returnRcptInfoElement.MiddleName;
+                        mailBatch.RetRcptOrganization = returnRcptInfoElement.Organization;
+                        mailBatch.RetRcptPhone = returnRcptInfoElement.Phone;
+                        mailBatch.RetRcptPrefix = returnRcptInfoElement.Prefix;
+                        mailBatch.RetRcptSuffix = returnRcptInfoElement.Suffix;
                     }
 
-                    var returnAddressElement = returnInfoElement.SelectSingleNode("./x:Address", nsManager);
+                    var returnAddressElement = returnInfoElement.Address;
                     if (returnAddressElement != null)
                     {
                         mailBatch.IsReturnInfoSpecified = true;
 
-                        mailBatch.RetRcptAddrOptionalLine1AboveStreet = returnAddressElement.Attributes["OptionalLine1AboveStreet"]?.Value;
-                        mailBatch.RetRcptAddrOptionalLine2AboveStreet = returnAddressElement.Attributes["OptionalLine2AboveStreet"]?.Value;
-                        mailBatch.RetRcptAddressStreet = returnAddressElement.Attributes["Street"]?.Value;
-                        mailBatch.RetRcptAddressAptOrSuiteOrOther = returnAddressElement.Attributes["AptOrSuiteOrOther"]?.Value;
-                        mailBatch.RetRcptAddrOptionalLine1BelowStreet = returnAddressElement.Attributes["OptionalLine1BelowStreet"]?.Value;
-                        mailBatch.RetRcptAddrOptionalLine2BelowStreet = returnAddressElement.Attributes["OptionalLine2BelowStreet"]?.Value;
-                        mailBatch.RetRcptAddressCity = returnAddressElement.Attributes["City"]?.Value;
-                        mailBatch.RetRcptAddressState = returnAddressElement.Attributes["State"]?.Value;
-                        mailBatch.RetRcptAddressZIP = returnAddressElement.Attributes["Zip"]?.Value;
-                        mailBatch.RetRcptAddressCountry = returnAddressElement.Attributes["Country"]?.Value;
+                        mailBatch.RetRcptAddrOptionalLine1AboveStreet = returnAddressElement.OptionalLine1AboveStreet;
+                        mailBatch.RetRcptAddrOptionalLine2AboveStreet = returnAddressElement.OptionalLine2AboveStreet;
+                        mailBatch.RetRcptAddressStreet = returnAddressElement.Street;
+                        mailBatch.RetRcptAddressAptOrSuiteOrOther = returnAddressElement.AptOrSuiteOrOther;
+                        mailBatch.RetRcptAddrOptionalLine1BelowStreet = returnAddressElement.OptionalLine1BelowStreet;
+                        mailBatch.RetRcptAddrOptionalLine2BelowStreet = returnAddressElement.OptionalLine2BelowStreet;
+                        mailBatch.RetRcptAddressCity = returnAddressElement.City;
+                        mailBatch.RetRcptAddressState = returnAddressElement.State;
+                        mailBatch.RetRcptAddressZIP = returnAddressElement.Zip;
+                        mailBatch.RetRcptAddressCountry = returnAddressElement.Country;
                     }
                 }
                 else
@@ -405,30 +404,28 @@ namespace AM.Console
             return "";
         }
 
-        private string SeparateEDeliveryXMLsAndPDFs(XmlNode customeInfoElement, XmlNode returnInfoElement, XmlNode package, XmlNamespaceManager nsManager, string channelDownloadPath, string receivedBatchDirPath, string clientCode, string clientBatchId, string uniqueId, string batchName, string priority, string documentOrPackageType)
+        private string SeparateEDeliveryXMLsAndPDFs(MailBatch newMailBatch, DocumentOrPackage documentOrPackageElement, string channelDownloadPath, string receivedBatchDirPath, string batchName)
         {
             //Folder Structure will be like AMRoot/GENERAL/{ChannelCode}/{ClientCode}/{UniqueId}
-            string clientBatchDirectory = Path.Combine(channelDownloadPath, uniqueId);
+            string clientBatchDirectory = Path.Combine(channelDownloadPath, newMailBatch.Id.ToString());
 
             clientBatchDirectory.CleanDirectory();
 
             string amFilePath = Path.Combine(clientBatchDirectory, string.Format("{0}.xml", batchName));
 
-            string reqXML = "<?xml version=\"1.0\" encoding=\"utf-16\"?>" + Environment.NewLine + "<MailBatch xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://schemas.corelogic.com/ade/authomail/v1.18.0\" Id=\"{0}\" ClientCode=\"{1}\" ClientBatchId=\"{2}\" Priority=\"{3}\" DocumentOrPackageType=\"{4}\">" + Environment.NewLine + "{5}" + Environment.NewLine + "{6}" + Environment.NewLine + "<MailPieces>" + Environment.NewLine + "{7}" + Environment.NewLine + " </MailPieces>" + Environment.NewLine + "</MailBatch>";
-
-            var documentOrPackageElement = package.SelectSingleNode("x:DocumentOrPackage", nsManager);
             string fileName;
+
             if (documentOrPackageElement == null)
                 fileName = string.Empty;
-            else if (documentOrPackageElement.Attributes["Name"] == null)
+            else if (documentOrPackageElement.Name.IsNullOrWhiteSpace())
             {
-                if (documentOrPackageElement.Attributes["Pattern"] == null)
+                if (documentOrPackageElement.Pattern.IsNullOrWhiteSpace())
                 {
                     fileName = string.Empty;
                 }
                 else
                 {
-                    var dirFiles = Directory.EnumerateFiles(channelDownloadPath, "*" + documentOrPackageElement.Attributes["Pattern"].Value + "*.pdf");
+                    var dirFiles = Directory.EnumerateFiles(channelDownloadPath, "*" + documentOrPackageElement.Pattern + "*.pdf");
 
                     if (dirFiles.Count() > 0)
                     {
@@ -442,7 +439,7 @@ namespace AM.Console
             }
             else
             {
-                fileName = documentOrPackageElement.Attributes["Name"].Value;
+                fileName = documentOrPackageElement.Name;
             }
 
             if (!string.IsNullOrEmpty(fileName) && File.Exists(Path.Combine(receivedBatchDirPath, fileName)))
@@ -452,37 +449,35 @@ namespace AM.Console
                 File.Copy(sourceFile, destFile, true);
             }
 
-            File.WriteAllText(amFilePath, reqXML.Fill(uniqueId, HttpUtility.HtmlEncode(clientCode), clientBatchId, priority, HttpUtility.HtmlEncode(documentOrPackageType), customeInfoElement?.OuterXml, returnInfoElement?.OuterXml, package?.OuterXml));
+            File.WriteAllText(amFilePath, XmlUtil.Serialize(newMailBatch));
 
             return clientBatchDirectory;
         }
 
-        private string SeparatePrintNShipXMLsAndPDFs(XmlNode customeInfoElement, XmlNode returnInfoElement, List<XmlNode> packages, XmlNamespaceManager nsManager, string channelDownloadPath, string receivedBatchDirPath, string clientCode, string clientBatchId, string uniqueId, string batchName, string priority, string documentOrPackageType)
+        private string SeparatePrintNShipXMLsAndPDFs(MailBatch newMailBatch, string channelDownloadPath, string receivedBatchDirPath, string batchName)
         {
             //Folder Structure will be like AMRoot/GENERAL/{ChannelCode}/{UniqueId}
-            string clientBatchDirectory = Path.Combine(channelDownloadPath, "PNS_" + uniqueId);
+            string clientBatchDirectory = Path.Combine(channelDownloadPath, $"PNS_{newMailBatch.Id}");
 
             clientBatchDirectory.CleanDirectory();
 
             string amFilePath = Path.Combine(clientBatchDirectory, string.Format("{0}.xml", batchName));
-            var mpNodes = string.Join(Environment.NewLine, packages.Select(nodes => nodes.OuterXml));
-            string reqXML = "<?xml version=\"1.0\" encoding=\"utf-16\"?>" + Environment.NewLine + "<MailBatch xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://schemas.corelogic.com/ade/authomail/v1.18.0\" Id=\"{0}\" ClientCode=\"{1}\" ClientBatchId=\"{2}\" Priority=\"{3}\" DocumentOrPackageType=\"{4}\" >" + Environment.NewLine + "{5}" + Environment.NewLine + "{6}" + Environment.NewLine + "<MailPieces>" + Environment.NewLine + "{7}" + Environment.NewLine + " </MailPieces>" + Environment.NewLine + "</MailBatch>";
 
-            foreach (var package in packages)
+            foreach (var mailPiece in newMailBatch.MailPieces)
             {
-                var documentOrPackageElement = package.SelectSingleNode("x:DocumentOrPackage", nsManager);
+                var documentOrPackageElement = mailPiece.DocumentOrPackage;
                 string fileName;
                 if (documentOrPackageElement == null)
                     fileName = string.Empty;
-                else if (documentOrPackageElement.Attributes["Name"] == null)
+                else if (documentOrPackageElement.Name == null)
                 {
-                    if (documentOrPackageElement.Attributes["Pattern"] == null)
+                    if (documentOrPackageElement.Pattern == null)
                     {
                         fileName = string.Empty;
                     }
                     else
                     {
-                        var dirFiles = Directory.EnumerateFiles(channelDownloadPath, "*" + documentOrPackageElement.Attributes["Pattern"].Value + "*.pdf");
+                        var dirFiles = Directory.EnumerateFiles(channelDownloadPath, "*" + documentOrPackageElement.Pattern + "*.pdf");
 
                         if (dirFiles.Count() > 0)
                         {
@@ -496,7 +491,7 @@ namespace AM.Console
                 }
                 else
                 {
-                    fileName = documentOrPackageElement.Attributes["Name"].Value;
+                    fileName = documentOrPackageElement.Name;
                 }
 
                 if (!string.IsNullOrEmpty(fileName) && File.Exists(Path.Combine(receivedBatchDirPath, fileName)))
@@ -507,7 +502,7 @@ namespace AM.Console
                 }
             }
 
-            File.WriteAllText(amFilePath, reqXML.Fill(uniqueId, HttpUtility.HtmlEncode(clientCode), clientBatchId, priority, HttpUtility.HtmlEncode(documentOrPackageType), customeInfoElement?.OuterXml, returnInfoElement?.OuterXml, mpNodes));
+            File.WriteAllText(amFilePath, XmlUtil.Serialize(newMailBatch));
 
             return clientBatchDirectory;
         }

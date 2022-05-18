@@ -6,15 +6,19 @@ using System.Threading.Tasks;
 
 namespace AM.Entities
 {
-    public class CapOneData
+    public class FloodData
     {
         public string FloodCertNumber { get; set; }
+        public string AccountNumber { get; set; }
         public string BorrowerFirstName { get; set; }
         public string BorrowerLastName { get; set; }
         public string BorrowerStreetAddress { get; set; }
+        public string BorrowerStreetAddress2 { get; set; }
         public string BorrowerCity { get; set; }
         public string BorrowerState { get; set; }
         public string BorrowerZip { get; set; }
+        public string BorrowerCountry { get; set; }
+        public string BorrowerEmailId { get; set; }
         public string DocumentDate { get; set; }
         public string PropertyStreetAddress { get; set; }
         public string PropertyCity { get; set; }
@@ -27,6 +31,7 @@ namespace AM.Entities
         public string ClientId { get; set; }
         public string ClientCode { get; set; }
         public string RequestorName { get; set; }
+        public string SendEDelivery { get; set; }
     }
 
     public class CustomTemplate
