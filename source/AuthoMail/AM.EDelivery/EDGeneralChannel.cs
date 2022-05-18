@@ -39,7 +39,7 @@ namespace AM.EDelivery
                 try
                 {
                     MailPieceInfo mpi = new MailPieceInfo(edmp.ClientCode, Config.Common_AuthoMailRootFolder, edmp.MailBatchId, edmp.BatchName);
-                    edmp.SigningRoomName = "{0}-{1}-{2}-{3}".Fill(edmp.ClientCode, Path.GetFileNameWithoutExtension(edmp.FileName), edmp.Id, Common.Now.ToString("yyyyMMddhhmmss"));
+                    edmp.SigningRoomName = $"{edmp.Id}-{edmp.ClientCode}-{Path.GetFileNameWithoutExtension(edmp.FileName)}-{Common.Now.ToString("yyyyMMddhhmmss")}";
                     DateTime expiryDate = edmp.ExpiryDate.Value;
                     edmp.ExpiryDate = expiryDate;
 
@@ -381,6 +381,9 @@ namespace AM.EDelivery
                         {
                             edmp.ErrorCode = OutComeCodes.ConsentDeclined;
                             edmp.ErrorDesc = "Consent is declined by participant.";
+
+                            eDeliverySvc.UpdateEDMailPieceDetails(edmp);
+
                             #region Check ErrorOut or IsFallBackRequested Package
                             eDeliverySvc.ErrorOutOrFallBackEDeliveryPackage(edmp);
                             #endregion
