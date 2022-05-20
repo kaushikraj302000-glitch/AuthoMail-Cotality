@@ -586,7 +586,13 @@ namespace PCI.Service
 
                         string mergedPdfFileName = $"{ptBatchDetail.Id}-{mpGroup.Key.DallasBatchName}-{mpGroup.Key.AppCode}-{mpByConfig.Key.ShippingCarrier}-{mpByConfig.Key.ShippingServiceType}-{mpByConfig.Key.EnvelopeName}{insertsNames}.pdf";
 
-                        mpFilePathsData.Add(Path.Combine(batchRequestPath, mergedPdfFileName));
+                        string mergedPdfFilePath = Path.Combine(batchRequestPath, mergedPdfFileName);
+                        if (mpFilePathsData.Count == 1)
+                        {
+                            File.Move(mpFilePathsData.SingleOrDefault(), mergedPdfFilePath);
+                        }
+                        else
+                            mpFilePathsData.Add(mergedPdfFilePath);
 
                         PdfUtil.MergePDFs(mpFilePathsData.ToArray());
 
