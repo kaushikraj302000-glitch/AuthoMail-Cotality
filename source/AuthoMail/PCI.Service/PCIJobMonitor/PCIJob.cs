@@ -589,12 +589,19 @@ namespace PCI.Service
                         string mergedPdfFilePath = Path.Combine(batchRequestPath, mergedPdfFileName);
                         if (mpFilePathsData.Count == 1)
                         {
-                            File.Move(mpFilePathsData.SingleOrDefault(), mergedPdfFilePath);
+                            File.Copy(mpFilePathsData.SingleOrDefault(), mergedPdfFilePath, true);
                         }
                         else
+                        {
                             mpFilePathsData.Add(mergedPdfFilePath);
 
-                        PdfUtil.MergePDFs(mpFilePathsData.ToArray());
+                            if (File.Exists(mergedPdfFilePath))
+                            {
+                                File.Delete(mergedPdfFilePath);
+                            }
+
+                            PdfUtil.MergePDFs(mpFilePathsData.ToArray());
+                        }
 
                         string pdfDestPath = Path.Combine(batchUploadPath, mergedPdfFileName);
 
