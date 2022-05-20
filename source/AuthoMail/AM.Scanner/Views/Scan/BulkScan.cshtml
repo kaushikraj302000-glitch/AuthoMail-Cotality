@@ -467,7 +467,7 @@
                                             $("#message").append("<div class='alert alert-warning' style=' font-family:Copperplate Gothic;'>" + data[i].Message + "</div>");
                                             $("#RescannedCode").prepend("<div style='margin:2px;' class='form-group'><button class='lblAMC lbl-warning' disabled >" + data[i].TrackingNo  + "</button></div>");
                                         }
-                                        else (data[i].Code == "Invalid") {
+                                        else {
                                             $("#message").empty();
                                             $("#message").show();
                                             if (message == null || message == "") {

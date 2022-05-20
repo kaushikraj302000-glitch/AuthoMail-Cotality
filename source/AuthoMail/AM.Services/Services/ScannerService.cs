@@ -52,7 +52,6 @@ namespace AM.Services
         }
         public List<RegisterScanDetails> RegisterBulkScan(string barcode, string clientCode, string username, string machineName, string batchName)
         {
-            barcode = barcode.Replace(clientCode, "");
             try
             {
                 var estToday = DateTime.UtcNow.UtcToEst().Date;

@@ -103,7 +103,7 @@ BEGIN
 			END
 		COMMIT
 
-		SELECT @code AS Code,TrackingNo,NULL AS [Message], BatchName AS [JobName] FROM #MPData
+		SELECT @code AS Code,ISNULL(TrackingNo,'NoTracking-'+CAST(MailPieceId AS VARCHAR(128))) AS TrackingNo,NULL AS [Message], BatchName AS [JobName] FROM #MPData
 	END TRY
 	BEGIN CATCH
 		IF @@TRANCOUNT > 0
