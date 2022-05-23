@@ -58,7 +58,7 @@ namespace AM.Entities
         public Guid Id { get; set; }
         public bool ShouldSerializeId()
         {
-            return Id != null;
+            return Id != null && Id != Guid.Empty;
         }
         [XmlIgnore]
         public string ClientCode { get; set; }

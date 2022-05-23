@@ -210,7 +210,7 @@ namespace AM.Console
                 newMailBatch.CustomInfo = batchMetaData;
                 newMailBatch.DocumentOrPackageType = mailBatchData.DocumentOrPackageType;
                 newMailBatch.ReturnInfo = batchReturnInfo;
-                newMailBatch.Id = mailBatchData.Id == null ? Guid.NewGuid() : mailBatchData.Id; // Here system will use same uniqueid which is received in current batch at batch level
+                newMailBatch.Id = mailBatchData.Id == null || mailBatchData.Id == Guid.Empty ? Guid.NewGuid() : mailBatchData.Id; // Here system will use same uniqueid which is received in current batch at batch level
 
                 newMailBatch.MailPieces = printAndShipNodes;
 
