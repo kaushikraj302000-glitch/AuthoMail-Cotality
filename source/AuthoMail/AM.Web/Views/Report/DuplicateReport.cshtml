@@ -161,7 +161,10 @@
                 'container': 'body'
             });
             var table = $('#sample_2');
-            var filename = "DuplicateReport_" + moment($("#date").val()).format("MMDDYYYY") + "_" + $("#ClientName").text();
+            var selectedData = $("#date").val().split('-');
+            var startDate = moment(selectedData[0].trim()).format("MM/DD/YYYY");
+            var endDate = moment(selectedData[1].trim()).format("MM/DD/YYYY");
+            var filename = "DuplicateReport_" + moment(startDate).format("MMDDYYYY") + "_To_" + moment(endDate).format("MMDDYYYY")+ "_" + $("#ClientName").text();
             var title = "Duplicate Report";
             var oTable = table.dataTable({
 
