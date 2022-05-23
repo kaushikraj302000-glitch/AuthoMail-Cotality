@@ -544,21 +544,21 @@ namespace AM.Core
                     BaseFont baseFont = BaseFont.CreateFont(BaseFont.HELVETICA_BOLD, BaseFont.WINANSI, BaseFont.EMBEDDED);
                     PDFData.BeginText();
                     PDFData.SetColorFill(BaseColor.WHITE);
-                    PDFData.SetFontAndSize(baseFont, 10);
+                    PDFData.SetFontAndSize(baseFont, 6);
                     if (pageNumberList.Length > 0)
                     {
                         if (pageNumberList.Contains(iCount.ToString()))
                         {
-                            PDFData.ShowTextAligned(PdfContentByte.ALIGN_CENTER, Config.Core_ChecksKey, pageSize.Width - 200, pageSize.Height - 50, 0);
+                            PDFData.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, Config.Core_ChecksKey, pageSize.Width - 5, pageSize.Height - 7, 0);
                         }
                         else
                         {
-                            PDFData.ShowTextAligned(PdfContentByte.ALIGN_CENTER, Config.Core_NonChecksKey, pageSize.Width - 200, pageSize.Height - 50, 0);
+                            PDFData.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, Config.Core_NonChecksKey, pageSize.Width - 5, pageSize.Height - 7, 0);
                         }
                     }
                     else
                     {
-                        PDFData.ShowTextAligned(PdfContentByte.ALIGN_CENTER, Config.Core_NonChecksKey, pageSize.Width - 200, pageSize.Height - 50, 0);
+                        PDFData.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, Config.Core_NonChecksKey, pageSize.Width - 5, pageSize.Height - 7, 0);
                     }
                     PDFData.EndText();
                 }
