@@ -20,7 +20,7 @@ namespace AM.Services
         int UpdateAMBatchStatus(string mpId);
         int UpdateUSPSApiCancelErrorDesc(string mpId);
         string GetPnSBatchPipelineStatusByPrintBatchId(int printBatchId);
-        List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, string channel, int clientId);
+        List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, string channel, int clientId, string batchName);
         List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId);
         bool GeneratePullBackForm(List<PullBackRequestForm> pullBackData);
@@ -88,7 +88,7 @@ namespace AM.Services
         }
 
         //public List<MailPieces> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId)
-        public List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, string channel, int clientId)
+        public List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, string channel, int clientId, string batchName)
         {
             string query = @"select m.BusinessFriendlyIdValue as BusinessIdValue,m.UniqueId,m.FileName,(m.RcptFirstName+ ' ' +m.RcptLastName) as Name,
                             m.RcptAddressStreet as Address,m.TotalPages,m.TotalBlankPages,m.IsPullBackRequested,m.ShippingStatus as Status,m.DueDate,m.TrackingNo,m.ErrorCode,m.ErrorDesc,IsEDeliveryRequested,
@@ -116,6 +116,13 @@ namespace AM.Services
                 query = string.Format("{0} and m.businessFriendlyIdValue=@businessFriendlyIdValue", query);
                 parameter.Add("@businessFriendlyIdValue", businessFriendlyIdValue);
             }
+
+            if (!batchName.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} and b.BatchName=@batchName", query);
+                parameter.Add("@batchName", batchName);
+            }
+
             if (docType.HasValue)
             {
                 query = string.Format("{0} and d.Id = @docTypeId", query);

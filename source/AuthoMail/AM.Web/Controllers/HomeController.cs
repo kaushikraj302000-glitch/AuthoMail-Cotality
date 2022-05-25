@@ -56,7 +56,7 @@ namespace AM.Web.Controllers
                 }
                 else if (model.Count == 1)
                 {
-                    var data = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate, endDate, null, User.Identity.GetClientId().Value);
+                    var data = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate, endDate, null, User.Identity.GetClientId().Value, null);
                     //var data = Mapper.Map<List<MailPieceViewModel>>(pullbackRequestData);
                     return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
                 }
