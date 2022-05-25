@@ -990,7 +990,7 @@ namespace AM.Core
                                     if (File.Exists(outputFilePath))
                                         File.Delete(outputFilePath);
 
-                                    if (docType.PrintFormat == "Duplex")
+                                    if (docType.PrintFormat == "Duplex" || docType.PrintFormat == "Duplex_Color")
                                     {
                                         PdfUtil.MergePDFs(coverLetterPdfPaths.First(), blankPdfPath, outputFilePath);
 
@@ -1021,7 +1021,7 @@ namespace AM.Core
                                     mailPiece.TotalPages = response.TotalPages;
                                 }
 
-                                mailPiece.TotalSheets = docType.PrintFormat == "Duplex" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;
+                                mailPiece.TotalSheets = docType.PrintFormat == "Duplex" || docType.PrintFormat == "Duplex_Color" ? Convert.ToInt32(Math.Ceiling(mailPiece.TotalPages / 2f)) : mailPiece.TotalPages;
 
                                 mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                             }
