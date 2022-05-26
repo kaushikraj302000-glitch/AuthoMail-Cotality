@@ -153,14 +153,13 @@
                                 </select>
                             </div>
                         </div>
-                        @if (User.IsInRole(AM.Entities.AMRoles.Admin))
+                        @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA) || User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                         {
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="ClientId">Clients</label>
                                     @Html.DropDownList("ClientId", ViewBag.ClientId as IEnumerable<SelectListItem>, htmlAttributes: new { @class = "selectpicker", @multiple = "multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
                                 </div>
-
                             </div>
                         }
                         else
@@ -180,13 +179,13 @@
                             </div>
                         </div>
                         @*<div class="col-md-1" style=" margin-left: -2%;">
-                            <div class="form-group ">
-                                <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                                <button type="button" id="resetFilter" title="Reset" class="btn btn-transparent-blue">
-                                    <i class="fa fa-undo"></i>
-                                </button>
-                            </div>
-                        </div>*@
+                                <div class="form-group ">
+                                    <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                    <button type="button" id="resetFilter" title="Reset" class="btn btn-transparent-blue">
+                                        <i class="fa fa-undo"></i>
+                                    </button>
+                                </div>
+                            </div>*@
                     </div>
                 </form>
 
@@ -196,15 +195,15 @@
 
 </div>
 @*<div class="panel panel-default">
-    <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
-    <div class="panel-heading" id="searchHeader">
-        <div class="panel-title">
-            Report Wizard : <span class="normaltext" id="headerdate"></span>
+        <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
+        <div class="panel-heading" id="searchHeader">
+            <div class="panel-title">
+                Report Wizard : <span class="normaltext" id="headerdate"></span>
 
+            </div>
         </div>
-    </div>
-    <div class="panel-body" id="searchMailPieceList"></div>
-</div>*@
+        <div class="panel-body" id="searchMailPieceList"></div>
+    </div>*@
 <!--Search table html template code -->
 <div id="SearchTableContent" style="display:none">
     <table class="table table-responsive" style="overflow-x:scroll">
@@ -231,7 +230,7 @@
                 <th>Print Location</th>
                 <th>Pages Shipped</th>
                 @*<th class="ErrorCode">Error Code</th>
-        <th class="ErrorText">Error Text</th>*@
+                    <th class="ErrorText">Error Text</th>*@
             </tr>
         </thead>
         <tbody id="SearchbodyContent"></tbody>
@@ -262,7 +261,7 @@
                 <td><span>{PrintLocation}</span></td>
                 <td><span>{PagesShipped}</span></td>
                 @*<td>{ErrorCode}</td>
-        <td>{ErrorDesc}</td>*@
+                    <td>{ErrorDesc}</td>*@
             </tr>
         </tbody>
     </table>
@@ -952,12 +951,12 @@
                 startDate = "";
                 endDate = "";
             }
-           
-           
-           
+
+
+
             var shippingMethod = $('#ShippingMethod').val() == null ? [] : $('#ShippingMethod').val();
             var clientId = $("#ClientId").val();
-            
+
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_DownloadReportWizard",
@@ -991,7 +990,7 @@
                             });
                         }
                     } else {
-                        
+
                             window.clui.globalAlert({
                                 message: response.ErrorMessage,
                                 alertType: 'red',

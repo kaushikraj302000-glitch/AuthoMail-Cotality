@@ -216,7 +216,7 @@ namespace AM.Web.Controllers
         {
             ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
             ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeName");
-            if (User.IsInRole(AMRoles.Admin))
+            if (User.IsInRole(AMRoles.Admin) || User.IsInRole(AMRoles.BA) || User.IsInRole(AMRoles.BAOffShore))
             {
                 var list = new List<SelectListItem>();
                 var clientGroup = homeSvc.GetAllActiveClient().GroupBy(s => s.GroupAlias);
