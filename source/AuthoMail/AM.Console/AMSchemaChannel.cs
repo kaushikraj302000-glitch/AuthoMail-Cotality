@@ -305,7 +305,7 @@ namespace AM.Console
 
                 //AM Mail Batch Custom Info
                 var customeInfoElement = mailBatchData.CustomInfo;
-                if (customeInfoElement != null)
+                if (customeInfoElement != null && customeInfoElement.Count > 0)
                 {
                     mailBatchCustomInfoList.AddRange(customeInfoElement.Select(x => new MailBatchCustomInfo() { Key = x.Key, DataType = x.DataType.ToString(), Value = x.Value }));
                 }
@@ -872,7 +872,7 @@ namespace AM.Console
                                 }
                             }
 
-                            if (requests.CustomInfo != null)
+                            if (requests.CustomInfo != null && requests.CustomInfo.Count > 0)
                             {
                                 foreach (var cstmInfo in requests.CustomInfo)
                                 {
