@@ -133,7 +133,7 @@ namespace AM.Web.Controllers
         {
             try
             {
-                var filePath = Path.Combine(Config.PnS_PCIRootFolder, HttpUtility.UrlEncode(appCode), id.ToString(), "PCIRequest", fileName);
+                var filePath = Path.Combine(Config.PnS_PCIRootFolder, HttpUtility.UrlEncode(appCode), id.ToString(), "PCIRequest", HttpUtility.UrlEncode(fileName));
                 HttpClient client = new HttpClient();
                 client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
                 HttpResponseMessage response = new HttpResponseMessage();
