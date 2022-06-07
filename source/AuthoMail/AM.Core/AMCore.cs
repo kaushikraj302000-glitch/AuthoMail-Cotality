@@ -199,7 +199,8 @@ namespace AM.Core
                                     { "Free3OF9Barcode", "*" + mailPiece.Id.ToString() + "*" },//Barcode for non-IMBarcode cover letter
                                     { "UniqueId", "*" + mailPieceId.ToString() + "*" },//Humanreadable code which is used for barcode
                                     { "MailPieceZip", mailPiece.RcptAddressZIP },
-                                    { "LoanNbr", mailPiece.BusinessFriendlyIdValue }
+                                    { "LoanNbr", mailPiece.BusinessFriendlyIdValue },
+                                    { "AddressType", mailPiece.RcptAddressTypes }
                                 };
                                 #endregion
 
@@ -379,7 +380,6 @@ namespace AM.Core
                                             response = doc.GenerateUSPSIMBCoverLetter(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
                                         }
 
-
                                         if (response.HasError)
                                         {
                                             mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
@@ -398,7 +398,6 @@ namespace AM.Core
                                         mailPiece.ShippingCost = response.PostageCost;
                                         #endregion
                                     }
-
                                     // Shipping Service Type is First Class or  client is print ready then we don't need to do anything.
                                 }
                                 else if (docType.ShippingCarrier == Carrier.FedEx.ToString())

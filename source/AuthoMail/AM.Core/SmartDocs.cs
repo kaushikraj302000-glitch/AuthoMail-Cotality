@@ -45,21 +45,29 @@ namespace AM.Core
 
             #region Generate Cover Letter
 
-            USPSIMClient client = new USPSIMClient();
-            IMBarcodeInfo IMBarcode = client.GenerateIMBarcode(appCode, mailPieceData["MailPieceId"], mailPieceData["MailPieceZip"]);
-
-            if (IMBarcode.Status == true)
+            if (!mailPieceData["AddressType"].Contains("FOREIGN"))
             {
-                mailPieceData.Add("Barcode", IMBarcode.BarcodeString);
-                response.TrackingCode = IMBarcode.TrackingCode;
-                mailPieceData.Add("FrontBarcode", "*" + IMBarcode.TrackingCode + "*");
+                USPSIMClient client = new USPSIMClient();
+                IMBarcodeInfo IMBarcode = client.GenerateIMBarcode(appCode, mailPieceData["MailPieceId"], mailPieceData["MailPieceZip"]);
+
+                if (IMBarcode.Status == true)
+                {
+                    mailPieceData.Add("Barcode", IMBarcode.BarcodeString);
+                    response.TrackingCode = IMBarcode.TrackingCode;
+                    mailPieceData.Add("FrontBarcode", "*" + IMBarcode.TrackingCode + "*");
+                }
+                else
+                {
+                    response.HasError = true;
+                    response.ExceptionDetail = "Error occured while generating IMBarcode :" + IMBarcode.ErrorMessage;
+                    return response;
+                }
             }
             else
             {
-                response.HasError = true;
-                response.ExceptionDetail = "Error occured while generating IMBarcode :" + IMBarcode.ErrorMessage;
-                return response;
+                mailPieceData.Add("FrontBarcode", "*" + mailPieceData["MailPieceId"] + "*");
             }
+
             try
             {
                 PdfUtil.PdfFormFiller(coverTemplatePDFPath, labelFilePath, mailPieceData);
