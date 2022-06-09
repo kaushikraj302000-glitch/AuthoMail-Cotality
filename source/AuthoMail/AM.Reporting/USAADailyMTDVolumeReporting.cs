@@ -28,20 +28,23 @@ namespace AM.Reporting
                 {
                     var output = reportSvc.USAAMTDVolumeReport(startDate, EndDate);
 
-                    string zipFilePath = Path.Combine(AppConfig.USAAMTDReportPath, $"{Config.Common_EnvironmentInitial}FAGOS.ZYONT.N0010351.USAAPNSOUTPUT.D{currentDateTime.ToString("yyyyMMdd")}.T{currentDateTime.ToString("HHmmss")}.zip");
+                    string csvFilePath = Path.Combine(AppConfig.USAAMTDReportPath, $"{Config.Common_EnvironmentInitial}FAGOS.ZYONT.N0010351.USAAPNSOUTPUT.D{currentDateTime.ToString("yyyyMMdd")}.T{currentDateTime.ToString("HHmmss")}.CSV");
+
                     log.Debug("USAA MTD Report File Write Process Started.");
-                    using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.Create))
-                    {
-                        using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
-                        {
-                            ZipArchiveEntry xmlEntry = archive.CreateEntry($"{Config.Common_EnvironmentInitial}FAGOS.ZYONT.N0010351.USAAPNSOUTPUT.D{currentDateTime.ToString("yyyyMMdd")}.T{currentDateTime.ToString("HHmmss")}.csv");
-                            using (BinaryWriter writer = new BinaryWriter(xmlEntry.Open()))
-                            {
-                                writer.Write(output.ToArray());
-                            }
-                        }
-                    }
+                    File.WriteAllBytes(csvFilePath, output.ToArray());
                     log.Debug("USAA MTD Report File Write Process Completed.");
+
+                    //using (FileStream zipToOpen = new FileStream(zipFilePath, FileMode.Create))
+                    //{
+                    //    using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
+                    //    {
+                    //        ZipArchiveEntry xmlEntry = archive.CreateEntry($"{Config.Common_EnvironmentInitial}FAGOS.ZYONT.N0010351.USAAPNSOUTPUT.D{currentDateTime.ToString("yyyyMMdd")}.T{currentDateTime.ToString("HHmmss")}.csv");
+                    //        using (BinaryWriter writer = new BinaryWriter(xmlEntry.Open()))
+                    //        {
+                    //            writer.Write(output.ToArray());
+                    //        }
+                    //    }
+                    //}
                 }
             }
             catch (Exception ex)
