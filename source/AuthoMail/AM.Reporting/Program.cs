@@ -42,6 +42,9 @@ namespace AM.Reporting
                 case "DALLASRecon":
                     DALLASReconReport.GenerateDALLASReconReport();
                     break;
+                case "AlaskaDailyOperation":
+                    AlaskaReports.GenerateDailyOperationReport();
+                    break;
                 case "AMPostageRecon":
                     DALLASReconReport.GenerateAMPostageReconReport();
                     break;

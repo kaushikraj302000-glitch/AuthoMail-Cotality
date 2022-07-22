@@ -71,6 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AlaskaReports.cs" />
     <Compile Include="AMCChannel.cs" />
     <Compile Include="AppConfig.cs" />
     <Compile Include="DallasNotification.cs" />
