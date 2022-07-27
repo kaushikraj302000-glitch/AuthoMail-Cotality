@@ -20,3 +20,4 @@ inner join Common.SFTChannels ch on b.SFTChannelId=ch.Id
 inner join Common.PnSConfigDetail cd on m.PnSConfigDetailId=cd.Id
 where m.ClientId = (select Id from Common.Clients where Name='USAA') and m.ShippingStatus='Shipped'
 and b.ReceivedOn between @startDate and @endDate
+ORDER BY m.Id
