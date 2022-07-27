@@ -63,6 +63,10 @@ namespace AM.Reporting
         public static string CapOneErrorEMailCc { get; private set; }
         public static string CapOneErrorReportPath { get; private set; }
 
+        public static string AlaskaDailyEMailTo { get; private set; }
+        public static string AlaskaDailyEMailCc { get; private set; }
+        public static string AlaskaDailyReportPath { get; private set; }
+
         public static Dictionary<string, string> GOSDailyEmailListByAppCode
         {
             get
@@ -183,6 +187,10 @@ namespace AM.Reporting
             CapOneErrorEMailTo = ConfigurationManager.AppSettings["CapOneErrorEMailTo"].Trim();
             CapOneErrorEMailCc = ConfigurationManager.AppSettings["CapOneErrorEMailCc"].Trim();
             CapOneErrorReportPath = ConfigurationManager.AppSettings["CapOneErrorReportPath"].Trim();
+
+            AlaskaDailyEMailTo = ConfigurationManager.AppSettings["AlaskaDailyEMailTo"].Trim();
+            AlaskaDailyEMailCc = ConfigurationManager.AppSettings["AlaskaDailyEMailCc"].Trim();
+            AlaskaDailyReportPath = ConfigurationManager.AppSettings["AlaskaDailyReportPath"].Trim();
         }
     }
 }

@@ -16,7 +16,7 @@ CREATE PROCEDURE [dbo].[uspweb_DailyDetailOperationsReport]
 AS
 BEGIN
 with mailpiece as (
-Select m.*,e.EnvelopeName,ptb.PrintBatchName as PrintFileName from AM.MailPieces m
+Select m.*,PCD.ShippingCarrier,PCD.ShippingServiceType,e.EnvelopeName,ptb.PrintBatchName as PrintFileName from AM.MailPieces m
 LEFT OUTER JOIN Common.PnSConfigDetail PCD ON m.PnSConfigDetailId = pcd.Id
 LEFT OUTER JOIN Common.Envelopes e ON pcd.EnvelopeId=e.Id
 LEFT OUTER JOIN PnS.MRDFRequest req ON m.UniqueId=req.UniqueId

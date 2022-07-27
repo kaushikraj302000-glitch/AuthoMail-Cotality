@@ -191,6 +191,8 @@ namespace AM.Services
         public string DeliveryStatus { get; set; }
         public string EnvelopeName { get; set; }
         public string PrintFileName { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
     }
     public class MailBatches
     {
