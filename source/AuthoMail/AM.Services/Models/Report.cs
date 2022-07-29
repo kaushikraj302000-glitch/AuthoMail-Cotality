@@ -73,6 +73,8 @@ namespace AM.Services
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
         public bool IsBRE { get; set; }
+        public string EnvelopeName { get; set; }
+        public string Inserts { get; set; }
     }
 
     public class GOSMailPieceData

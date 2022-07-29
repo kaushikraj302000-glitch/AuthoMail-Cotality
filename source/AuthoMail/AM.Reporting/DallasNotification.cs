@@ -69,11 +69,11 @@ namespace AM.Reporting
 
                     if (dallasMailPieces != null)
                     {
-                        var batchSummary = dallasMailPieces.GroupBy(b => new { b.AppCode, b.ShippingCarrier, b.ShippingServiceType, b.IsBRE });
+                        var batchSummary = dallasMailPieces.GroupBy(b => new { b.AppCode, b.ShippingCarrier, b.ShippingServiceType, b.IsBRE, b.Inserts, b.EnvelopeName });
                         List<Notification> notificationList = new List<Notification>();
                         foreach (var g in batchSummary)
                         {
-                            notificationList.Add(new Notification() { ClientCode = g.Key.AppCode, ShippingCarrier = g.Key.ShippingCarrier, ShippingServiceType = g.Key.ShippingServiceType, IsBRE = g.Key.IsBRE ? "Yes" : "No", MailPieceCount = g.Count(), TotalPagesCount = g.Sum(b => b.TotalPages), SeqNo = notificationSequence.SingleOrDefault(c => c.AppCode == g.Key.AppCode) == null ? 999 : notificationSequence.SingleOrDefault(c => c.AppCode == g.Key.AppCode).SeqNo });
+                            notificationList.Add(new Notification() { ClientCode = g.Key.AppCode, ShippingCarrier = g.Key.ShippingCarrier, ShippingServiceType = g.Key.ShippingServiceType, IsBRE = g.Key.IsBRE ? "Yes" : "No", Inserts = g.Key.EnvelopeName, EnvelopeName = g.Key.EnvelopeName, MailPieceCount = g.Count(), TotalPagesCount = g.Sum(b => b.TotalPages), SeqNo = notificationSequence.SingleOrDefault(c => c.AppCode == g.Key.AppCode) == null ? 999 : notificationSequence.SingleOrDefault(c => c.AppCode == g.Key.AppCode).SeqNo });
                         }
 
                         SendEmailNotification(notificationList.OrderBy(cd => cd.SeqNo).ToList(), Common.EstToday, batch.Key);
@@ -125,23 +125,23 @@ namespace AM.Reporting
 
                             foreach (var client in clientList)
                             {
-                                fullContent.AppendLine(@"<tr class='information'><td colspan='5'><span> {0} / {1} / {2}</td></tr>".Fill(client, currentEstDate.ToString("MMddyyyy"), sweepName));
-                                fullContent.AppendLine(@"<tr class='title'><td>Shipping Method</td><td>Shipping Service</td><td>BRE</td><td>Total Packages</td><td>Total Pages</td></tr>");
+                                fullContent.AppendLine($@"<tr class='information'><td colspan='7'><span> {client} / {currentEstDate.ToString("MMddyyyy")} / {sweepName}</td></tr>");
+                                fullContent.AppendLine(@"<tr class='title'><td>Shipping Method</td><td>Shipping Service</td><td>BRE</td><td>Inserts</td><td>Envelope Name</td><td>Total Packages</td><td>Total Pages</td></tr>");
 
                                 var clientwiseCounts = notificationList.Where(f => f.ClientCode == client).ToList();
                                 foreach (var filterd in clientwiseCounts)
                                 {
-                                    fullContent.AppendLine(@"<tr class='details'><td>{0}</td><td>{1}</td><td>{2}</td><td>{3}</td><td>{4}</td></tr>".Fill(filterd.ShippingCarrier, filterd.ShippingServiceType, filterd.IsBRE, filterd.MailPieceCount, filterd.TotalPagesCount));
+                                    fullContent.AppendLine($@"<tr class='details'><td>{filterd.ShippingCarrier}</td><td>{filterd.ShippingServiceType}</td><td>{filterd.IsBRE}</td><td>{filterd.Inserts}</td><td>{filterd.EnvelopeName}</td><td>{filterd.MailPieceCount}</td><td>{filterd.TotalPagesCount}</td></tr>");
                                 }
 
-                                fullContent.AppendLine(@"<tr class='finalCount'><td colspan='3'>Total Counts</td><td>{0}</td><td>{1}</td></tr>".Fill(clientwiseCounts.Sum(c => c.MailPieceCount), clientwiseCounts.Sum(c => c.TotalPagesCount)));
+                                fullContent.AppendLine($@"<tr class='finalCount'><td colspan='5'>Total Counts</td><td>{clientwiseCounts.Sum(c => c.MailPieceCount)}</td><td>{ clientwiseCounts.Sum(c => c.TotalPagesCount)}</td></tr>");
                             }
 
                             sb = sb.Replace("<%REPLACE%>", fullContent.ToString());
                         }
                         else
                         {
-                            sb = sb.Replace("<%REPLACE%>", @"<tr class='information'><td colspan='5'>{0} sweep does not contain any package to print and ship</td></tr>".Fill(sweepName));
+                            sb = sb.Replace("<%REPLACE%>", $@"<tr class='information'><td colspan='5'>{sweepName} sweep does not contain any package to print and ship</td></tr>");
                         }
                         msg.Body = sb.ToString();
                         smtpClient.Send(msg);
@@ -164,5 +164,7 @@ namespace AM.Reporting
         public int MailPieceCount { get; set; }
         public int TotalPagesCount { get; set; }
         public int SeqNo { get; set; }
+        public string Inserts { get; set; }
+        public string EnvelopeName { get; set; }
     }
 }
