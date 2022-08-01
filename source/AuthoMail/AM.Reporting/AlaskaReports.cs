@@ -20,24 +20,31 @@ namespace AM.Reporting
             using (IReportService reportSvc = new ReportService())
             {
                 var currentDate = Common.EstToday;
-                var reportData = reportSvc.GetDailyDetailOperationsByDateOrBatch(102, currentDate, null, null);
-
-                if (reportData.Count > 0)
+                try
                 {
-                    var columnName = String.Join(",", "Batch Name", "Unique Id", "Channel", "Loan Number", "Document Type", "First Name", "Last Name", "Street", "City", "State", "Zip", "Received On (Est)", "Due Date (Est)", "Shipped On (Est)", "File Name", "Carrier", "Service Type", "Tracking Number", "Total Pages", "Total Blank Pages", "Print File Name", "Print Location");
+                    var reportData = reportSvc.GetDailyDetailOperationsByDateOrBatch(102, currentDate, null, null);
 
-                    StringBuilder reconReport = new StringBuilder(columnName);
-
-                    reconReport.AppendLine();
-                    foreach (var mp in reportData)
+                    if (reportData.Count > 0)
                     {
-                        var line = String.Join(",", mp.MailBatches.BatchName.ToCsvString(), mp.UniqueId, mp.MailBatches.SFTChannels.Title, mp.BusinessFriendlyIdValue, mp.DocumentOrPackageType, mp.RcptFirstName, mp.RcptLastName, mp.RcptAddressStreet.ToCsvString(), mp.RcptAddressCity.ToCsvString(), mp.RcptAddressState.ToCsvString(), mp.RcptAddressZIP.ToCsvString(), mp.MailBatches.ReceivedOn.Value.UtcToEst().ToString("MM-dd-yyyy hh:mm:ss"), mp.DueDate.HasValue ? mp.DueDate.Value.UtcToEst().ToString("MM-dd-yyyy hh:mm:ss") : "", mp.ShippedOn.HasValue ? mp.ShippedOn.Value.UtcToEst().ToString("MM-dd-yyyy hh:mm:ss") : "", mp.FileName, mp.ShippingCarrier, mp.ShippingServiceType, mp.TrackingNo.ToCsvString(), mp.TotalPages, mp.TotalBlankPages, mp.PrintFileName, mp.PrintLocation);
-                        reconReport.AppendLine(line);
-                    }
-                    string reportFilePath = Path.Combine(AppConfig.AlaskaDailyReportPath, "AlaskaDailyOperationReport_" + Common.Now.UtcToEst().ToString("MMddyyyy") + ".csv");
-                    File.WriteAllText(reportFilePath, reconReport.ToString());
+                        var columnName = String.Join(",", "Batch Name", "Unique Id", "Channel", "Loan Number", "Document Type", "First Name", "Last Name", "Street", "City", "State", "Zip", "Received On (Est)", "Due Date (Est)", "Shipped On (Est)", "File Name", "Carrier", "Service Type", "Tracking Number", "Total Pages", "Total Blank Pages", "Print File Name", "Print Location");
 
-                    SendReportToCLTeam(reportFilePath, currentDate);
+                        StringBuilder reconReport = new StringBuilder(columnName);
+
+                        reconReport.AppendLine();
+                        foreach (var mp in reportData)
+                        {
+                            var line = String.Join(",", mp.MailBatches.BatchName.ToCsvString(), mp.UniqueId, mp.MailBatches.SFTChannels.Title, mp.BusinessFriendlyIdValue, mp.DocumentOrPackageType, mp.RcptFirstName, mp.RcptLastName, mp.RcptAddressStreet.ToCsvString(), mp.RcptAddressCity.ToCsvString(), mp.RcptAddressState.ToCsvString(), mp.RcptAddressZIP.ToCsvString(), mp.MailBatches.ReceivedOn.Value.UtcToEst().ToString("MM-dd-yyyy hh:mm:ss"), mp.DueDate.HasValue ? mp.DueDate.Value.UtcToEst().ToString("MM-dd-yyyy hh:mm:ss") : "", mp.ShippedOn.HasValue ? mp.ShippedOn.Value.UtcToEst().ToString("MM-dd-yyyy hh:mm:ss") : "", mp.FileName, mp.ShippingCarrier, mp.ShippingServiceType, mp.TrackingNo.ToCsvString(), mp.TotalPages, mp.TotalBlankPages, mp.PrintFileName, mp.PrintLocation);
+                            reconReport.AppendLine(line);
+                        }
+                        string reportFilePath = Path.Combine(AppConfig.AlaskaDailyReportPath, "AlaskaDailyOperationReport_" + Common.Now.UtcToEst().ToString("MMddyyyy") + ".csv");
+                        File.WriteAllText(reportFilePath, reconReport.ToString());
+
+                        SendReportToCLTeam(reportFilePath, currentDate);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Error occured while generating Alaska Report For Dt : {currentDate}", ex);
                 }
             }
             log.Debug($"Alaska Daily Operation report Execution Completed at {Common.Now.UtcToEst()} Est");
