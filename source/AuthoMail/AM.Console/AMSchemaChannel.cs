@@ -1451,6 +1451,25 @@ namespace AM.Console
 
                         File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
                         break;
+                    case "FAM":
+                        //NOTE : Below zip file naming convention is EDG Naming convention.
+                        zipFileName = "{0}FAGOS.ZYONT.N0010412.FAMPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                        zipFilePath = Path.Combine(mbi.AMResponsePath, zipFileName);
+
+                        ftpUploadPath = Path.Combine(deliverable.UploadPath, zipFileName);
+
+                        using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                        {
+                            newFile.CreateEntryFromFile(errorReportPath, errorReportFileName);
+                        }
+                        if (mbi.Client.IsResponseRequired)
+                        {
+                            sftSite.UploadFile(zipFilePath, ftpUploadPath);
+                        }
+                        Thread.Sleep(1000);//This line is added to avoid any duplication of file name.
+
+                        File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
+                        break;
                     default:
                         ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);
 
