@@ -18,7 +18,7 @@ namespace AM.Services
 {
     public interface IReportService : IDisposable
     {
-        List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
+        List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel, string shippingStatus);
         List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, string channel);
         List<MailPieces> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, int? docType, string filterBy);
@@ -56,7 +56,7 @@ namespace AM.Services
     }
     public class ReportService : ServiceBase, IReportService
     {
-        public List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
+        public List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel, string shippingStatus)
         {
             string query = "[dbo].[uspweb_DailyDetailOperationsReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
             var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
@@ -72,7 +72,7 @@ namespace AM.Services
                 new
                 {
                     clientId = clientId,
-                    shippingstatus = ShippingStatus.Shipped.ToString(),
+                    shippingstatus = shippingStatus,
                     batchId = batchId,
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
                     startDate = date.HasValue ? (date.Value.ToStartDateTime()).EstToUtc() : date,

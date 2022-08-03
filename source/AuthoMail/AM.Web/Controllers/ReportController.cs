@@ -172,7 +172,7 @@ namespace AM.Web.Controllers
             try
             {
                 var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-                var data = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
+                var data = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel, ShippingStatus.Shipped.ToString());
                 var reportViewModel = GetBatchNameAndTime(data);
                 var model = Mapper.Map<List<DailyDetailReportViewModel>>(data);
                 return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);

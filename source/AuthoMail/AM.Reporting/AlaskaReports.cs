@@ -22,7 +22,7 @@ namespace AM.Reporting
                 var currentDate = Common.EstToday;
                 try
                 {
-                    var reportData = reportSvc.GetDailyDetailOperationsByDateOrBatch(102, currentDate, null, null);
+                    var reportData = reportSvc.GetDailyDetailOperationsByDateOrBatch(102, currentDate, null, null, null);
 
                     if (reportData.Count > 0)
                     {
