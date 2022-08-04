@@ -78,6 +78,7 @@
     <Compile Include="DALLASReconReport.cs" />
     <Compile Include="CarrierTrackingInfo.cs" />
     <Compile Include="DelfusReporting.cs" />
+    <Compile Include="ErrorReports.cs" />
     <Compile Include="FedExPickUP.cs" />
     <Compile Include="FloodReports.cs" />
     <Compile Include="GOSReports.cs" />
@@ -139,6 +140,7 @@
   <ItemGroup>
     <Folder Include="AlaskaReconReport\" />
     <Folder Include="DALLASReconReport\" />
+    <Folder Include="FARReconReport\" />
     <Folder Include="FloodReconReport\" />
     <Folder Include="GOSReconReport\" />
     <Folder Include="PCIReconReport\" />

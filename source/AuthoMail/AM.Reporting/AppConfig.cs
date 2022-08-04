@@ -69,6 +69,10 @@ namespace AM.Reporting
         public static string AlaskaDailyEMailCc { get; private set; }
         public static string AlaskaDailyReportPath { get; private set; }
 
+        public static string FARErrorEMailTo { get; private set; }
+        public static string FARErrorEMailCc { get; private set; }
+        public static string FARErrorReportPath { get; private set; }
+
         public static Dictionary<string, string> GOSDailyEmailListByAppCode
         {
             get
@@ -195,6 +199,10 @@ namespace AM.Reporting
                 AlaskaDailyEMailTo = ConfigurationManager.AppSettings["AlaskaDailyEMailTo"].Trim();
                 AlaskaDailyEMailCc = ConfigurationManager.AppSettings["AlaskaDailyEMailCc"].Trim();
                 AlaskaDailyReportPath = ConfigurationManager.AppSettings["AlaskaDailyReportPath"].Trim();
+
+                FARErrorEMailTo = ConfigurationManager.AppSettings["FARErrorEMailTo"].Trim();
+                FARErrorEMailCc = ConfigurationManager.AppSettings["FARErrorEMailCc"].Trim();
+                FARErrorReportPath = ConfigurationManager.AppSettings["FARErrorReportPath"].Trim();
             }
             catch (Exception ex)
             {

@@ -86,6 +86,9 @@ namespace AM.Reporting
                             break;
                     }
                     break;
+                case "FAR":
+                    ErrorReports.GenerateFARErrorReport();
+                    break;
                 case "USAAMTD":
                     USAADailyMTDVolumeReporting.GenerateMTDReport();
                     break;
@@ -100,7 +103,7 @@ namespace AM.Reporting
                             break;
                         default:
                             break;
-                    }                   
+                    }
                     break;
                 case "DelfusReport":
                     switch (args[1])
