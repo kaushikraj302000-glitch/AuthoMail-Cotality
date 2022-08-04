@@ -23,9 +23,10 @@ namespace AM.Reporting
                 List<DallasBatch> dallasBatches;
                 List<DallasNotificationMap> notificationSequence;
                 //We have Batch timings in EST time Zone.
+                var currentDate = Common.EstToday;
                 using (ICommonService commonSvc = new CommonService())
                 {
-                    dallasBatches = commonSvc.GetDallasBatches(Common.EstToday);
+                    dallasBatches = commonSvc.GetDallasBatches(currentDate);
                     notificationSequence = commonSvc.GetDallasNotificationMaps();
                 }
 
@@ -37,7 +38,7 @@ namespace AM.Reporting
 
                 foreach (var g in query)
                 {
-                    // Here we are checking time limit for sending dallas notification for 30 Minutes
+                    // Here we are checking time limit for sending dallas notification for 30 Minutes and using only BatchName in further data processing. It does not utilieses AppCode further.
                     var batch = g.OrderBy(b => b.EndDate).FirstOrDefault(b => currentEstDateTime >= b.EndDate && currentEstDateTime <= b.EndDate.AddMinutes(30));
 
                     if (batch != null)
@@ -64,7 +65,7 @@ namespace AM.Reporting
                     List<DallasMailPieceData> dallasMailPieces;
                     using (IMailPieceService mailPieceSvc = new MailPieceService())
                     {
-                        dallasMailPieces = mailPieceSvc.GetDallasMailPiecesByTimingsAndClient(batch.Key).Where(mp => mp.MailPieceStatus != ShippingStatus.PulledBack.ToString() || mp.ShippingStatus != ShippingStatus.PulledBack.ToString()).OrderByDescending(cl => cl.AppCode).ToList();
+                        dallasMailPieces = mailPieceSvc.GetDallasMailPiecesByTimingsAndClient(batch.Key, currentDate).Where(mp => mp.MailPieceStatus != ShippingStatus.PulledBack.ToString() || mp.ShippingStatus != ShippingStatus.PulledBack.ToString()).OrderByDescending(cl => cl.AppCode).ToList();
                     }
 
                     if (dallasMailPieces != null)
@@ -73,7 +74,7 @@ namespace AM.Reporting
                         List<Notification> notificationList = new List<Notification>();
                         foreach (var g in batchSummary)
                         {
-                            notificationList.Add(new Notification() { ClientCode = g.Key.AppCode, ShippingCarrier = g.Key.ShippingCarrier, ShippingServiceType = g.Key.ShippingServiceType, IsBRE = g.Key.IsBRE ? "Yes" : "No", Inserts = g.Key.EnvelopeName, EnvelopeName = g.Key.EnvelopeName, MailPieceCount = g.Count(), TotalPagesCount = g.Sum(b => b.TotalPages), SeqNo = notificationSequence.SingleOrDefault(c => c.AppCode == g.Key.AppCode) == null ? 999 : notificationSequence.SingleOrDefault(c => c.AppCode == g.Key.AppCode).SeqNo });
+                            notificationList.Add(new Notification() { ClientCode = g.Key.AppCode, ShippingCarrier = g.Key.ShippingCarrier, ShippingServiceType = g.Key.ShippingServiceType, IsBRE = g.Key.IsBRE ? "Yes" : "No", Inserts = g.Key.Inserts, EnvelopeName = g.Key.EnvelopeName, MailPieceCount = g.Count(), TotalPagesCount = g.Sum(b => b.TotalPages), SeqNo = notificationSequence.SingleOrDefault(c => c.AppCode == g.Key.AppCode) == null ? 999 : notificationSequence.SingleOrDefault(c => c.AppCode == g.Key.AppCode).SeqNo });
                         }
 
                         SendEmailNotification(notificationList.OrderBy(cd => cd.SeqNo).ToList(), Common.EstToday, batch.Key);

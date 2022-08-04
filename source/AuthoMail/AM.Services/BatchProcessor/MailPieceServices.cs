@@ -21,7 +21,7 @@ namespace AM.Services
         int UpdateMailPiecePickedUpDetailsFromTrackingNo(FedExPickedPackagesDetail pickedUpDetail);
         int UpdateMailPieceShipmentStatusFromTrackingNo(string shipmentStatus, string trackingNo, DateTime jobRunTime, string deliveryStatus, DateTime? deliveryDate, bool isReturnTrackingInfo);
         MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo);
-        List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string sweepName);
+        List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string sweepName, DateTime currentDate);
         BatchSummary GetBatchSummaryDetailByUniqueId(Guid uniqueId);
         MailPieceDTO GetMailPieceDataByUniqueIdAndMBId(Guid uniqueId, int mailBatchId);
         Task<int> InsertBatchMailPieceDetails(MailPiece mailPiece, int clientId, int mailBatchId, string errorCode, string errorDesc);
@@ -187,11 +187,11 @@ namespace AM.Services
             return db.ExecuteScalar<MailPieceDTO>(query, trackingNo);
         }
 
-        public List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string batchName)
+        public List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string batchName, DateTime currentDate)
         {
             string query = @"SELECT * FROM [dbo].[ufn_GetDallasBatchDetails](@EstDate) WHERE BatchName=@BatchName";
 
-            return db.Query<DallasMailPieceData>(query, new { BatchName = batchName, EstDate = Common.EstToday }).ToList();
+            return db.Query<DallasMailPieceData>(query, new { BatchName = batchName, EstDate = currentDate }).ToList();
         }
 
         public BatchSummary GetBatchSummaryDetailByUniqueId(Guid uniqueId)
