@@ -600,7 +600,7 @@
                 success: function (response) {
                     var chartData = [];
                     //var ticksArr = [];
-                    chartData.push(['Date', 'InProgress', 'Failed', 'PulledBack', 'ShippedAll', 'ShippedPartial', 'Dates']);
+                    chartData.push(['Date', 'InProgress', 'Failed', 'PulledBack', 'ShippedAll','eDelivered', 'ShippedPartial', 'Dates']);
                     var cnt = 0;
                     var startDate = response[response.length - 1].Date;
                     var endDate = response[0].Date;
@@ -645,7 +645,7 @@
                         return;
                     }
                     var chartData = [];
-                    chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'Shipped', 'BatchId']);
+                    chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'eDelivered', 'Shipped', 'BatchId']);
                     var cnt = 0;
                     for (var i = 1; i <= response.length; i++) {
 
