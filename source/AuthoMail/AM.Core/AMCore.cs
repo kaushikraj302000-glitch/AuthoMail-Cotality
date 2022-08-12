@@ -1205,6 +1205,35 @@ namespace AM.Core
                             File.Move(localErrorReportPath, Path.ChangeExtension(localErrorReportPath, ".Uploaded"));
                     }
                     break;
+                case "FAM":
+                    using (IGeneralService generalSvc = new GeneralService())
+                    {
+                        //NOTE : Below zip file naming convention is EDG Naming convention.
+                        string zipFileName = "{0}FAGOS.ZYONT.N0010412.FAMPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                        string zipFilePath = Path.Combine(mbi.AMResponsePath, zipFileName);
+                        string errorReportFileName = "{0}-{1}-{2}.xml".Fill(mbi.Client.AppCode, mbi.MailBatch.Id, commonSvc.GetReportingSequence());
+                        string localErrorReportPath = Path.Combine(mbi.AMResponsePath, errorReportFileName);
+
+                        string ftpUploadPath = Path.Combine(deliverable.UploadPath, zipFileName);
+                        string responseReport = generalSvc.GeneralXMLReport(erroredMPs, mbi.MailBatch, mbi.Client.AppCode);
+                        if (!string.IsNullOrWhiteSpace(responseReport))
+                        {
+                            File.WriteAllText(localErrorReportPath, responseReport);
+                        }
+
+                        using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                        {
+                            newFile.CreateEntryFromFile(localErrorReportPath, errorReportFileName);
+                        }
+                        sftSite.UploadFile(zipFilePath, ftpUploadPath);
+                        Thread.Sleep(1000);//This line is added to avoid any duplication of file name.
+
+                        File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
+
+                        if (File.Exists(localErrorReportPath))
+                            File.Move(localErrorReportPath, Path.ChangeExtension(localErrorReportPath, ".Uploaded"));
+                    }
+                    break;
                 default:
                     using (IGeneralService generalSvc = new GeneralService())
                     {
