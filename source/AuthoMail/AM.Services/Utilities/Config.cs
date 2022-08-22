@@ -70,6 +70,7 @@ namespace AM.Services
         public static string Monitor_Exception_Email_To { get; private set; }
         public static string Monitor_Exception_Email_Cc { get; private set; }
         public static string Monitor_CustomTemplateFolder { get; private set; }
+        public static List<PackagesHoldInfo> Monitor_PackagesHoldInfo { get; private set; }
 
         //Core
         public static string Core_PnS_SFT_RootDir { get; private set; }
@@ -310,6 +311,7 @@ namespace AM.Services
                 Common_FederalHolidays = commonSvc.GetFederalHolidayList();
                 clientGroupMap = commonSvc.GetClientHolidayGroup();
                 groupHolidays = commonSvc.GetHolidayList();
+                Monitor_PackagesHoldInfo = commonSvc.GetPackagesHoldInfo();
             }
         }
 

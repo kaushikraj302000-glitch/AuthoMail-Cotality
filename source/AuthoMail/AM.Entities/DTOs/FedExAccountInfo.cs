@@ -29,6 +29,16 @@ namespace AM.Entities
         public int HolidayGroupId { get; set; }
     }
 
+    public class PackagesHoldInfo
+    {
+        public int Id { get; set; }
+        public int ClientId { get; set; }
+        public string ClientCode { get; set; }
+        public string DocumentOrPackageType { get; set; }
+        public DateTime HoldOn { get; set; }
+        public DateTime ProcessOn { get; set; }
+    }
+
     public class FedExPickedPackagesDetail
     {
         public DateTime PickedTimeStamp { get; set; }

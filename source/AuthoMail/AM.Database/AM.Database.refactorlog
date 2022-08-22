@@ -210,4 +210,18 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="IsHardAddrValidationRequired" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="d8c02ff8-faa3-4371-99b2-4e21d746d90c" ChangeDateTime="08/22/2022 06:58:34">
+    <Property Name="ElementName" Value="[AM].[PackagesHoldInfo].[ReceivedOn]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[AM].[PackagesHoldInfo]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="HoldOn" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="ad1e2950-058f-4154-90b9-1e10cc981531" ChangeDateTime="08/22/2022 06:58:44">
+    <Property Name="ElementName" Value="[AM].[PackagesHoldInfo].[DownloadedOn]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[AM].[PackagesHoldInfo]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="ProcessOn" />
+  </Operation>
 </Operations>

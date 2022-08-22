@@ -51,6 +51,7 @@ namespace AM.Services
         Task<int> UpdateBatchPipeLineStatusByMailPieceId(Guid mailPieceId, string pipeLineStatus, DateTime timestamp);
         string GetEnvelopeCodeByEnvelopeId(int envelopeId);
         int GetDallasBatchCounts(int? mpId = 0);
+        List<PackagesHoldInfo> GetPackagesHoldInfo();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -538,6 +539,13 @@ namespace AM.Services
 								AND ISNULL(P.Id,0)<>ISNULL(@MailPieceId,0)";
 
             return db.ExecuteScalar<int>(query, new { StartDate = Common.EstToday.ToStartDateTime().EstToUtc(), EndDate = Common.EstToday.ToEndDateTime().EstToUtc(), MailPieceId = mpId });
+        }
+
+        public List<PackagesHoldInfo> GetPackagesHoldInfo()
+        {
+            string query = "SELECT * FROM [AM].[PackagesHoldInfo] WHERE HoldOn >= @HoldOnTime";
+
+            return db.Query<PackagesHoldInfo>(query, new { HoldOnTime = Common.Now.Date.UtcToEst() }).ToList();
         }
     }
 }

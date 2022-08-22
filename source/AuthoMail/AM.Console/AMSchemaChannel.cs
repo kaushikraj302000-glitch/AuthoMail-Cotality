@@ -202,22 +202,55 @@ namespace AM.Console
                 }
             }
 
+            #region Hold On Packages
+            var appCode = mailBatchData.ClientCode;
+
+            var packagesHoldInfo = Config.Monitor_PackagesHoldInfo.SingleOrDefault(x => x.ClientCode == appCode && x.HoldOn == receivedOnDateTime);
+
             if (printAndShipNodes.Count > 0)
             {
-                MailBatch newMailBatch = new MailBatch();
-                newMailBatch.ClientBatchId = mailBatchData.ClientBatchId;
-                newMailBatch.ClientCode = mailBatchData.ClientCode;
-                newMailBatch.CustomInfo = batchMetaData;
-                newMailBatch.DocumentOrPackageType = mailBatchData.DocumentOrPackageType;
-                newMailBatch.ReturnInfo = batchReturnInfo;
-                newMailBatch.Id = mailBatchData.Id == null || mailBatchData.Id == Guid.Empty ? Guid.NewGuid() : mailBatchData.Id; // Here system will use same uniqueid which is received in current batch at batch level
+                if (packagesHoldInfo != null)
+                {
+                    if (packagesHoldInfo.DocumentOrPackageType.IsNullOrWhiteSpace())
+                    {
+                        if (printAndShipNodes.Count > 0)
+                        {
+                            MailBatch newMailBatch = new MailBatch();
+                            newMailBatch.Id = mailBatchData.Id == null || mailBatchData.Id == Guid.Empty ? Guid.NewGuid() : mailBatchData.Id; // Here system will use same uniqueid which is received in current batch at batch level
 
-                newMailBatch.MailPieces = printAndShipNodes;
+                            errorMsg = SplitBatches(mailBatchData, newMailBatch, batchMetaData, batchReturnInfo, printAndShipNodes, channelDownloadPath, extractedZipDirPath, batchName, receivedOnDateTime);
+                        }
+                    }
+                    else
+                    {
+                        var mailPiecesByHoldDocumentType = printAndShipNodes.Where(x => x.DocumentOrPackageType == packagesHoldInfo.DocumentOrPackageType).ToList();
+                        if (mailPiecesByHoldDocumentType.Count() > 0)
+                        {
+                            MailBatch newMailBatch = new MailBatch();
+                            newMailBatch.Id = Guid.NewGuid(); // Here system will use same uniqueid which is received in current batch at batch level
 
-                batchPath = SeparatePrintNShipXMLsAndPDFs(newMailBatch, channelDownloadPath, extractedZipDirPath, batchName);
-                xmlPath = Path.Combine(batchPath, batchName + ".xml");
-                errorMsg = ProcessXML(xmlPath, batchName, receivedOnDateTime, batchPath);
+                            errorMsg = SplitBatches(mailBatchData, newMailBatch, batchMetaData, batchReturnInfo, mailPiecesByHoldDocumentType, channelDownloadPath, extractedZipDirPath, batchName, receivedOnDateTime);
+                        }
+
+                        var mailPiecesByRestOfDocumentTypes = printAndShipNodes.Where(x => x.DocumentOrPackageType != packagesHoldInfo.DocumentOrPackageType).ToList();
+                        if (mailPiecesByRestOfDocumentTypes.Count() > 0)
+                        {
+                            MailBatch newMailBatch = new MailBatch();
+                            newMailBatch.Id = mailBatchData.Id == null || mailBatchData.Id == Guid.Empty ? Guid.NewGuid() : mailBatchData.Id; // Here system will use same uniqueid which is received in current batch at batch level
+
+                            errorMsg = SplitBatches(mailBatchData, newMailBatch, batchMetaData, batchReturnInfo, mailPiecesByRestOfDocumentTypes, channelDownloadPath, extractedZipDirPath, batchName, receivedOnDateTime);
+                        }
+                    }
+                }
+                else
+                {
+                    MailBatch newMailBatch = new MailBatch();
+                    newMailBatch.Id = mailBatchData.Id == null || mailBatchData.Id == Guid.Empty ? Guid.NewGuid() : mailBatchData.Id; // Here system will use same uniqueid which is received in current batch at batch level
+
+                    errorMsg = SplitBatches(mailBatchData, newMailBatch, batchMetaData, batchReturnInfo, printAndShipNodes, channelDownloadPath, extractedZipDirPath, batchName, receivedOnDateTime);
+                }
             }
+            #endregion
 
             if (errorMsg.IsNullOrWhiteSpace())
             {
@@ -236,6 +269,21 @@ namespace AM.Console
 
             //After complete process clean AMC folder
             channelDownloadPath.CleanDirectory();
+        }
+
+        private string SplitBatches(MailBatch mailBatchData, MailBatch newMailBatch, List<Metadata> batchMetaData, AM.Entities.ReturnInfo batchReturnInfo, List<MailPiece> printAndShipNodes, string channelDownloadPath, string extractedZipDirPath, string batchName, DateTime receivedOnDateTime)
+        {
+            newMailBatch.ClientBatchId = mailBatchData.ClientBatchId;
+            newMailBatch.ClientCode = mailBatchData.ClientCode;
+            newMailBatch.CustomInfo = batchMetaData;
+            newMailBatch.DocumentOrPackageType = mailBatchData.DocumentOrPackageType;
+            newMailBatch.ReturnInfo = batchReturnInfo;
+
+            newMailBatch.MailPieces = printAndShipNodes;
+
+            string batchPath = SeparatePrintNShipXMLsAndPDFs(newMailBatch, channelDownloadPath, extractedZipDirPath, batchName);
+            string xmlPath = Path.Combine(batchPath, batchName + ".xml");
+            return ProcessXML(xmlPath, batchName, receivedOnDateTime, batchPath);
         }
 
         private string ProcessXML(string xmlFilePath, string batchName, DateTime receivedOnDateTime, string batchPath)
