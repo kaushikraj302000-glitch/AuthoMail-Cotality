@@ -48,6 +48,7 @@ namespace AM.Entities
         public string APIResponseURL { get; set; }
         public int APIMaxResponseCount { get; set; }
         public string APITokenHeaders { get; set; }
+        public string ServerIP { get; set; }
         public Dictionary<string, string> GetHeaders()
         {
             return APITokenHeaders

@@ -47,6 +47,11 @@ namespace AM.Console
         {
             log.Debug("Enumerate Batches job queue for " + SFTChannel.Code + " is started.");
 
+            if (SFTChannel.ServerIP.IsNullOrWhiteSpace() || Config.Common_ServerIP != SFTChannel.ServerIP)
+            {
+                log.Debug("System cannot process API Generic channel on this server.");
+                return false;
+            }
 
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();

@@ -11,6 +11,7 @@ using AM.Lib;
 using System.ComponentModel;
 using AM.Entities;
 using System.Text.RegularExpressions;
+using System.Net;
 
 namespace AM.Services
 {
@@ -41,6 +42,7 @@ namespace AM.Services
         public static string Common_AMTrash { get; set; }
         public static string Common_PnSTrash { get; set; }
         public static string Common_BlankPage { get; private set; }
+        public static string Common_ServerIP { get; private set; }
         public static int Common_DallasVolumeCap { get; private set; }
         public static string Core_ChecksKey { get; set; }
         public static string Core_NonChecksKey { get; set; }
@@ -313,6 +315,9 @@ namespace AM.Services
                 groupHolidays = commonSvc.GetHolidayList();
                 Monitor_PackagesHoldInfo = commonSvc.GetPackagesHoldInfo();
             }
+
+            IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+            Common_ServerIP = ipHostInfo.AddressList[1].ToString();
         }
 
         private static void InitializeProperties<T>()

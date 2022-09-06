@@ -48,6 +48,12 @@ namespace AM.Console
         {
             log.Debug("Enumerate Batches job queue for " + SFTChannel.Code + " is started.");
 
+            if (SFTChannel.ServerIP.IsNullOrWhiteSpace() || Config.Common_ServerIP != SFTChannel.ServerIP)
+            {
+                log.Debug("System cannot process AM Generic channel on this server.");
+                return;
+            }
+
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();
 
@@ -1564,7 +1570,7 @@ namespace AM.Console
             else
             {
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now).Wait();
-                
+
                 if (Config.Monitor_PackagesHoldInfo.Any(x => x.ClientId == mbi.MailBatch.ClientId && x.HoldOn == mbi.MailBatch.ReceivedOn.Value.UtcToEst().Date))
                 {
                     var packageHoldInfo = Config.Monitor_PackagesHoldInfo.SingleOrDefault(x => x.ClientId == mbi.MailBatch.ClientId && x.HoldOn == mbi.MailBatch.ReceivedOn.Value.UtcToEst().Date);

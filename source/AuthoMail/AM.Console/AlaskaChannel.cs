@@ -47,6 +47,12 @@ namespace AM.Console
         {
             log.Debug("Enumerate Batches job queue for Alaska is started.");
 
+            if (SFTChannel.ServerIP.IsNullOrWhiteSpace() || Config.Common_ServerIP != SFTChannel.ServerIP)
+            {
+                log.Debug("System cannot process Alaska channel on this server.");
+                return;
+            }
+
             Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.NoBatch);
 
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);

@@ -49,6 +49,12 @@ namespace AM.Console
             //Download File logic and separate according to clientcode in csv
             log.Debug("Enumerate Batches job queue for " + SFTChannel.Code + " is started.");
 
+            if (SFTChannel.ServerIP.IsNullOrWhiteSpace() || Config.Common_ServerIP != SFTChannel.ServerIP)
+            {
+                log.Debug("System cannot process TD channel on this server.");
+                return;
+            }
+
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();
 

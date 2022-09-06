@@ -46,6 +46,12 @@ namespace AM.Console
         {
             log.Debug("Enumerate Batches job queue for HSBC is started.");
 
+            if (SFTChannel.ServerIP.IsNullOrWhiteSpace() || Config.Common_ServerIP != SFTChannel.ServerIP)
+            {
+                log.Debug("System cannot process HSBC channel on this server.");
+                return;
+            }
+
             List<string> xmlFileNames = new List<string>();
 
             Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.NoBatch);
