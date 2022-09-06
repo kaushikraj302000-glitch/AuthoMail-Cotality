@@ -660,9 +660,29 @@ namespace AM.Console
                     {
                         DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
 
+                        //NOTE : Here we are considering that by default receivedon will be original one but if any package that is for Hold then we are considering its effective receivedon date based on ProcessOn
+                        DateTime receivedOn = mailBatch.ReceivedOn.Value; ;
+
+                        if (Config.Monitor_PackagesHoldInfo.Any(x => x.ClientId == mailPiece.ClientId && x.HoldOn == receivedOn.UtcToEst().Date))
+                        {
+                            var packageHoldInfo = Config.Monitor_PackagesHoldInfo.SingleOrDefault(x => x.ClientId == mailPiece.ClientId && x.HoldOn == receivedOn.UtcToEst().Date);
+                            if (packageHoldInfo.DocumentOrPackageType.IsNullOrWhiteSpace())
+                            {
+                                receivedOn = packageHoldInfo.ProcessOn.EstToUtc();
+                            }
+                            else if (packageHoldInfo.DocumentOrPackageType == mailPiece.DocumentOrPackageType)
+                            {
+                                receivedOn = packageHoldInfo.ProcessOn.EstToUtc();
+                            }
+                            else
+                            {
+                                receivedOn = mailBatch.ReceivedOn.Value;
+                            }
+                        }
+
                         //Here first we will calculate effective received on date and based on that we will calculate due date,Print location, print trail id,etc. for that
                         //Here storing effective receivedon in EST format
-                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docType, mailBatch.ReceivedOn.Value);
+                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docType, receivedOn);
                         //Calculate Due Date for Mail Pieces doc type wise
                         mailPiece.DueDate = commonSvc.GetDueDate(client.Id, docType, mailPiece.EffectiveReceivedOnEst.Value);
                         //Set print location where mail piece will go for print and ship
@@ -671,7 +691,7 @@ namespace AM.Console
                         mailPiece.ShipperId = printVendorDetails.ShipperId;
                         mailPiece.PrintLocation = commonSvc.GetShipperInformation(printVendorDetails.ShipperId).PrintLocation;
                         //This field will be used for monitoring data    
-                        mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
+                        mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, receivedOn, sweepTimings);
                         mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
                     }
 

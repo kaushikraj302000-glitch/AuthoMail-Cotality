@@ -64,7 +64,7 @@ namespace AM.Services
                 query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, ValidatedOn = @timestamp WHERE Id = @batchId";
             }
             else
-                query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {0}On = @timestamp WHERE Id = @batchId".Fill(pipeLineStatus);
+                query = $"UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {pipeLineStatus}On = @timestamp WHERE Id = @batchId";
 
             return await db.ExecuteAsync(query, new { pipeLineStatus = pipeLineStatus, timestamp = timestamp, batchId = batchId });
         }
@@ -543,9 +543,9 @@ namespace AM.Services
 
         public List<PackagesHoldInfo> GetPackagesHoldInfo()
         {
-            string query = "SELECT * FROM [AM].[PackagesHoldInfo] WHERE HoldOn >= @HoldOnTime";
+            string query = "SELECT C.AppCode AS ClientCode,H.* FROM [AM].[PackagesHoldInfo] H INNER JOIN Common.Clients C ON H.ClientId = C.Id";
 
-            return db.Query<PackagesHoldInfo>(query, new { HoldOnTime = Common.Now.Date.UtcToEst() }).ToList();
+            return db.Query<PackagesHoldInfo>(query).ToList();
         }
     }
 }

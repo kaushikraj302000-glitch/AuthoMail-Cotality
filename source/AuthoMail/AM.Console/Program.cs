@@ -75,6 +75,31 @@ namespace AM.Console
                         System.Console.WriteLine("Update UpdateSFTChannels Completed");
                         return;
                     }
+                    else if (args[0] == "ProcessHeldPackages")
+                    {
+                        System.Console.WriteLine("Update Batch Status To Acknowledged From Hold Status Start");
+
+                        using (ICommonService commonSvc = new CommonService())
+                        {
+                            var holdPackageInfos = commonSvc.GetPackagesHoldInfo();
+
+                            if (holdPackageInfos.Count > 0)
+                            {
+                                var currentHoldPackagesInfo = holdPackageInfos.Where(x => x.ProcessOn == Common.EstToday);
+
+                                foreach (var holdInfo in currentHoldPackagesInfo)
+                                {
+                                    using (IMailBatchService mailBatchSvc = new MailBatchService())
+                                    {
+                                        mailBatchSvc.UpdateHoldBatchesInfo(holdInfo.ClientId, holdInfo.HoldOn);
+                                    }
+                                }
+                            }
+                        }
+
+                        System.Console.WriteLine("Update Batch Status To Acknowledged From Hold Status Completed");
+                        return;
+                    }
                     else if (args[0] == "CustomReports")
                     {
                         using (IReportService reportSvc = new ReportService())

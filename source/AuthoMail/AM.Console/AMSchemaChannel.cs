@@ -205,7 +205,7 @@ namespace AM.Console
             #region Hold On Packages
             var appCode = mailBatchData.ClientCode;
 
-            var packagesHoldInfo = Config.Monitor_PackagesHoldInfo.SingleOrDefault(x => x.ClientCode == appCode && x.HoldOn == receivedOnDateTime);
+            var packagesHoldInfo = Config.Monitor_PackagesHoldInfo.SingleOrDefault(x => x.ClientCode == appCode && x.HoldOn == receivedOnDateTime.UtcToEst().Date);
 
             if (printAndShipNodes.Count > 0)
             {
@@ -227,7 +227,7 @@ namespace AM.Console
                         if (mailPiecesByHoldDocumentType.Count() > 0)
                         {
                             MailBatch newMailBatch = new MailBatch();
-                            newMailBatch.Id = Guid.NewGuid(); // Here system will use same uniqueid which is received in current batch at batch level
+                            newMailBatch.Id = Guid.NewGuid(); // Here system will use new uniqueid which is received in current batch at batch level
 
                             errorMsg = SplitBatches(mailBatchData, newMailBatch, batchMetaData, batchReturnInfo, mailPiecesByHoldDocumentType, channelDownloadPath, extractedZipDirPath, batchName, receivedOnDateTime);
                         }
@@ -1137,8 +1137,28 @@ namespace AM.Console
 
             if (mailPieceDTO.IsFallBackRequested || !mailPieceDTO.IsEDeliveryRequested)
             {
+                //NOTE : Here we are considering that by default receivedon will be original one but if any package that is for Hold then we are considering its effective receivedon date based on ProcessOn
+                DateTime receivedOn = mbi.MailBatch.ReceivedOn.Value; ;
+
+                if (Config.Monitor_PackagesHoldInfo.Any(x => x.ClientId == mailPieceDTO.ClientId && x.HoldOn == mbi.MailBatch.ReceivedOn.Value.UtcToEst().Date))
+                {
+                    var packageHoldInfo = Config.Monitor_PackagesHoldInfo.SingleOrDefault(x => x.ClientId == mailPieceDTO.ClientId && x.HoldOn == mbi.MailBatch.ReceivedOn.Value.UtcToEst().Date);
+                    if (packageHoldInfo.DocumentOrPackageType.IsNullOrWhiteSpace())
+                    {
+                        receivedOn = packageHoldInfo.ProcessOn.EstToUtc();
+                    }
+                    else if (packageHoldInfo.DocumentOrPackageType == mailPieceDTO.DocumentOrPackageType)
+                    {
+                        receivedOn = packageHoldInfo.ProcessOn.EstToUtc();
+                    }
+                    else
+                    {
+                        receivedOn = mbi.MailBatch.ReceivedOn.Value;
+                    }
+                }
+
                 //Document Or Package Type validation
-                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst());
+                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, receivedOn.UtcToEst());
 
                 if (docType != null)
                 {
@@ -1531,10 +1551,28 @@ namespace AM.Console
                 if (sftSite.IsConnected)
                     sftSite.Disconnect();
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now).Wait();
+
+                if (Config.Monitor_PackagesHoldInfo.Any(x => x.ClientId == mbi.MailBatch.ClientId && x.HoldOn == mbi.MailBatch.ReceivedOn.Value.UtcToEst().Date))
+                {
+                    var packageHoldInfo = Config.Monitor_PackagesHoldInfo.SingleOrDefault(x => x.ClientId == mbi.MailBatch.ClientId && x.HoldOn == mbi.MailBatch.ReceivedOn.Value.UtcToEst().Date);
+                    if (packageHoldInfo.DocumentOrPackageType.IsNullOrWhiteSpace() || mailPieces.All(x => x.DocumentOrPackageType == packageHoldInfo.DocumentOrPackageType))
+                    {
+                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Held, Common.Now.Date).Wait();
+                    }
+                }
             }
             else
             {
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Acknowledged, Common.Now).Wait();
+                
+                if (Config.Monitor_PackagesHoldInfo.Any(x => x.ClientId == mbi.MailBatch.ClientId && x.HoldOn == mbi.MailBatch.ReceivedOn.Value.UtcToEst().Date))
+                {
+                    var packageHoldInfo = Config.Monitor_PackagesHoldInfo.SingleOrDefault(x => x.ClientId == mbi.MailBatch.ClientId && x.HoldOn == mbi.MailBatch.ReceivedOn.Value.UtcToEst().Date);
+                    if (packageHoldInfo.DocumentOrPackageType.IsNullOrWhiteSpace() || mailPieces.All(x => x.DocumentOrPackageType == packageHoldInfo.DocumentOrPackageType))
+                    {
+                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Held, Common.Now.Date).Wait();
+                    }
+                }
             }
 
             return errorReportPath;

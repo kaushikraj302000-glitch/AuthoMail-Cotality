@@ -43,6 +43,7 @@ namespace AM.Entities
         public const string ReportedBack = "ReportedBack";
         public const string Suspended = "Suspended";
         public const string Cancelled = "Cancelled";
+        public const string Held = "Held";
     }
 
     public static class EDPipelineStatus

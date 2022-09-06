@@ -34,6 +34,7 @@ namespace AM.Services
         int InsertLastProcessTimeForUATBatches(DateTime lastProcessedDateTime);
         MailPieceDTO GetMailPiecesDataFromMailBatchIdAndMailPieceId(int mailBatchId, int mailPieceId);
         MailPieceDTO ProcessReshipData(MailPieceDTO mailPiece);
+        int UpdateHoldBatchesInfo(int clientId, DateTime heldOn);
     }
     public class MailBatchService : ServiceBase, IMailBatchService //It implements Interfaces 
     {
@@ -386,6 +387,13 @@ namespace AM.Services
                 newMailPiece.MailBatch = newBatch;
                 return newMailPiece;
             }
+        }
+
+        public int UpdateHoldBatchesInfo(int clientId, DateTime heldOn)
+        {
+            string query = $"UPDATE AM.MailBatches SET PipelineStatus='{BatchPipelineStatus.Acknowledged}' WHERE ClientId=@ClientId AND PipelineStatus='{BatchPipelineStatus.Held}' AND CAST (HeldOn AS DATE) = @HeldOn";
+
+            return db.Execute(query, new { ClientId = clientId, HeldOn = heldOn });
         }
     }
 }
