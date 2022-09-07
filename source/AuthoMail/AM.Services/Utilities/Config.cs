@@ -317,7 +317,7 @@ namespace AM.Services
             }
 
             IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-            Common_ServerIP = ipHostInfo.AddressList[1].ToString();
+            Common_ServerIP = ipHostInfo.AddressList[0].ToString();
         }
 
         private static void InitializeProperties<T>()

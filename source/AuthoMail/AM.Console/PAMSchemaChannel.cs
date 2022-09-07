@@ -1619,7 +1619,7 @@ namespace AM.Console
                     var packageHoldInfo = Config.Monitor_PackagesHoldInfo.SingleOrDefault(x => x.ClientId == mbi.MailBatch.ClientId && x.HoldOn == mbi.MailBatch.ReceivedOn.Value.UtcToEst().Date);
                     if (packageHoldInfo.DocumentOrPackageType.IsNullOrWhiteSpace() || mailPieces.All(x => x.DocumentOrPackageType == packageHoldInfo.DocumentOrPackageType))
                     {
-                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Held, Common.Now.Date).Wait();
+                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Held, packageHoldInfo.HoldOn).Wait();
                     }
                 }
             }
@@ -1632,7 +1632,7 @@ namespace AM.Console
                     var packageHoldInfo = Config.Monitor_PackagesHoldInfo.SingleOrDefault(x => x.ClientId == mbi.MailBatch.ClientId && x.HoldOn == mbi.MailBatch.ReceivedOn.Value.UtcToEst().Date);
                     if (packageHoldInfo.DocumentOrPackageType.IsNullOrWhiteSpace() || mailPieces.All(x => x.DocumentOrPackageType == packageHoldInfo.DocumentOrPackageType))
                     {
-                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Held, Common.Now.Date).Wait();
+                        commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Held, packageHoldInfo.HoldOn).Wait();
                     }
                 }
             }
