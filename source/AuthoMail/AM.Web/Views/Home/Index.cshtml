@@ -600,7 +600,7 @@
                 success: function (response) {
                     var chartData = [];
                     //var ticksArr = [];
-                    chartData.push(['Date', 'InProgress', 'Failed', 'PulledBack', 'ShippedAll','eDelivered', 'ShippedPartial', 'Dates']);
+                    chartData.push(['Date', 'InProgress', 'Failed', 'PulledBack', 'ShippedAll', 'ShippedPartial', 'eDelivered', 'Dates']);
                     var cnt = 0;
                     var startDate = response[response.length - 1].Date;
                     var endDate = response[0].Date;
@@ -614,9 +614,10 @@
                         var pulledBackCount = parseInt(response[cnt].PulledBack == 0 ? null : response[cnt].PulledBack);
                         var shippedAllCount = parseInt(response[cnt].ShippedAll == 0 ? null : response[cnt].ShippedAll);
                         var shippedPartialCount = parseInt(response[cnt].ShippedPartial == 0 ? null : response[cnt].ShippedPartial);
+                        var eDeliveredCount = parseInt(response[cnt].eDelivered == 0 ? null : response[cnt].eDelivered);
 
-                        chartData.push([response[cnt].Weekday, inProgressCount, failedCount, pulledBackCount, shippedAllCount, shippedPartialCount, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
-                        sumArr.push(response[cnt].InProgress + response[cnt].Failed + response[cnt].PulledBack + response[cnt].ShippedAll + response[cnt].ShippedPartial);
+                        chartData.push([response[cnt].Weekday, inProgressCount, failedCount, pulledBackCount, shippedAllCount, shippedPartialCount, eDeliveredCount, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
+                        sumArr.push(response[cnt].InProgress + response[cnt].Failed + response[cnt].PulledBack + response[cnt].ShippedAll + response[cnt].ShippedPartial + response[cnt].eDelivered);
 
                         cnt++;
                     }
@@ -792,19 +793,20 @@
             var hTitle = "Mailpieces";
             var vTitle = "Batch Names";
             if (div == "weeklyChart") {
-                view.setColumns([0, 1, 2, 3, 4, 5]);
+                view.setColumns([0, 1, 2, 3, 4, 5, 6]);
                 series = {
                     0: { color: '#069' },
                     1: { color: '#e03c31' },
                     2: { color: '#e7ab08' },
                     3: { color: '#539536' },
-                    4: { color: '#f63' }
+                    4: { color: '#f63' },
+                    5: { color: '#0cc9de' }
                 };
                 hTitle = "Batches";
                 vTitle = "";//"Week Days";
             }
             else {
-                view.setColumns([0, 1, 2, 3, 4,5]);
+                view.setColumns([0, 1, 2, 3, 4]);
                 //colors = ['#069', '#e03c31', '#e7ab08', '#539536'];
                 series = {
                     0: { color: '#069' },
@@ -884,7 +886,7 @@
                             }
                         }
                         if (div == "weeklyChart") {
-                            var dates = data.getValue(selectedItem.row, 6);
+                            var dates = data.getValue(selectedItem.row, 7);
                             GetChartDataByStatusAndDate(status, moment(dates).format("MM/DD/YYYY"));
                         }
                     }
