@@ -30,7 +30,7 @@
                     <div class="input-group">
 
                         <select id="BusinessFriendlyIdName" name="BusinessFriendlyIdName" class="selectpicker" data-live-search="true" data-live-search-placeholder="Search Business ID">
-                            <option value="">Select BusinessId</option>
+                            @*<option value="">Select BusinessId</option>*@
                             @foreach (var item in ViewBag.BusinessId)
                             {
                                 <option value="@item.ToString()">@item.ToString()</option>
