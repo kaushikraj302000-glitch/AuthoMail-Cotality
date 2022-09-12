@@ -62,12 +62,11 @@ namespace AM.Services
             string query = @";WITH CTE1 AS(
                             SELECT ROW_NUMBER() OVER(ORDER BY YEAR(CAST(EffectiveReceivedOnEst AS DATE)) DESC) AS RowNumber, BusinessFriendlyIdName, YEAR(CAST(EffectiveReceivedOnEst AS DATE)) AS YearOfName
                             FROM AM.MailPieces WITH(NOLOCK)
-                            WHERE ClientId = 133 AND BusinessFriendlyIdName IS NOT NULL AND EffectiveReceivedOnEst IS NOT NULL AND YEAR(CAST(EffectiveReceivedOnEst AS DATE)) = YEAR(GETDATE())
+                            WHERE ClientId = @clientId AND BusinessFriendlyIdName IS NOT NULL AND EffectiveReceivedOnEst IS NOT NULL AND YEAR(CAST(EffectiveReceivedOnEst AS DATE)) = YEAR(GETDATE())
                             GROUP BY BusinessFriendlyIdName, YEAR(CAST(EffectiveReceivedOnEst AS DATE))
-                            --ORDER BY YEAR(CAST(EffectiveReceivedOnEst AS DATE)) DESC
                             ), CTE2 AS
                             (
-                            SELECT * FROM AM.ClientBusinessIdentifiers WITH(NOLOCK) WHERE ClientId = 133 AND(BusinessIdName IS NOT NULL OR LTRIM(RTRIM(BusinessIdName)) <> '')
+                            SELECT * FROM AM.ClientBusinessIdentifiers WITH(NOLOCK) WHERE ClientId =  @clientId AND (BusinessIdName IS NOT NULL OR LTRIM(RTRIM(BusinessIdName)) <> '')
                             )
                             SELECT C2.BusinessIdName,ISNULL(C1.RowNumber, 0) AS LatestOccurance FROM CTE1 C1
                              RIGHT OUTER JOIN CTE2 C2 ON C1.BusinessFriendlyIdName = C2.BusinessIdName
