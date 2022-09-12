@@ -20,6 +20,7 @@ namespace AM.Services
         List<ErrorNotifications> GetErrorNotificationList(int? LastId);
         List<MailPiece> GetErrorMailPieces(DateTime startDate, DateTime endDate, int? clientId);
         Task<IEnumerable<ClientIdName>> GetAllActiveAppCodeForClientRole(string userId);
+        List<string> GetBusinessFriendlyIdNameByClientIdAndLatestOccurance(int clientId);
     }
     public class HomeService : ServiceBase, IHomeService //It implements Interfaces 
     {
@@ -52,6 +53,25 @@ namespace AM.Services
         public List<string> GetBusinessFriendlyIdNameByclientId(int clientId)
         {
             string query = HomeServiceQuery.GetBusinessFriendlyIdNameByclientId;
+            var data = db.Query<string>(query, new { clientId = clientId }).ToList();
+            return data;
+        }
+
+        public List<string> GetBusinessFriendlyIdNameByClientIdAndLatestOccurance(int clientId)
+        {
+            string query = @";WITH CTE1 AS(
+                            SELECT ROW_NUMBER() OVER(ORDER BY YEAR(CAST(EffectiveReceivedOnEst AS DATE)) DESC) AS RowNumber, BusinessFriendlyIdName, YEAR(CAST(EffectiveReceivedOnEst AS DATE)) AS YearOfName
+                            FROM AM.MailPieces WITH(NOLOCK)
+                            WHERE ClientId = 133 AND BusinessFriendlyIdName IS NOT NULL AND EffectiveReceivedOnEst IS NOT NULL AND YEAR(CAST(EffectiveReceivedOnEst AS DATE)) = YEAR(GETDATE())
+                            GROUP BY BusinessFriendlyIdName, YEAR(CAST(EffectiveReceivedOnEst AS DATE))
+                            --ORDER BY YEAR(CAST(EffectiveReceivedOnEst AS DATE)) DESC
+                            ), CTE2 AS
+                            (
+                            SELECT * FROM AM.ClientBusinessIdentifiers WITH(NOLOCK) WHERE ClientId = 133 AND(BusinessIdName IS NOT NULL OR LTRIM(RTRIM(BusinessIdName)) <> '')
+                            )
+                            SELECT C2.BusinessIdName,ISNULL(C1.RowNumber, 0) AS LatestOccurance FROM CTE1 C1
+                             RIGHT OUTER JOIN CTE2 C2 ON C1.BusinessFriendlyIdName = C2.BusinessIdName
+                            ORDER BY C1.RowNumber DESC";
             var data = db.Query<string>(query, new { clientId = clientId }).ToList();
             return data;
         }

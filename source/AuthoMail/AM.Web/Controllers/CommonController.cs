@@ -210,7 +210,7 @@ namespace AM.Web.Controllers
         public ActionResult SingleLoanEntry(string msg)
         {
             ViewBag.msg = msg;
-            ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
+            ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByClientIdAndLatestOccurance(User.Identity.GetClientId().Value);
             ViewBag.docTypes = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "DocTypeName", "DocTypeName");
             return View();
         }
