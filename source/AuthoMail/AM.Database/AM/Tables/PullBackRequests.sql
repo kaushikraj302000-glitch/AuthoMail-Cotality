@@ -7,6 +7,7 @@
     [Status]            VARCHAR (255)    NOT NULL,
     [RequestedOn]       DATETIME         NOT NULL,
     [RequestedBy]       NVARCHAR (128)   NOT NULL,
+    [PBReasons] NVARCHAR(2048) NULL, 
     CONSTRAINT [PK_AM.PullBackRequests] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_AM.PullBackRequests_MailBatches] FOREIGN KEY ([MailBatchId]) REFERENCES [AM].[MailBatches] ([Id]),
     CONSTRAINT [FK_AM.PullBackRequests_MailPieces] FOREIGN KEY ([MailPieceId]) REFERENCES [AM].[MailPieces] ([Id]),

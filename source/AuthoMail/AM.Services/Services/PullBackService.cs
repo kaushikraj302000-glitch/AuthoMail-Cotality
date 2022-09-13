@@ -16,7 +16,7 @@ namespace AM.Services
         List<PullBackViewModel> GetMailPieceData(List<string> mpIds);
         List<PullBackRequestForm> GetPullBackData(List<string> mpIds);
         int UpdatePullBackRequestedOn(string mpId, string userId, string status);
-        int InsertPullBackRequestData(string mpId, int clientId, string status, string userId);
+        int InsertPullBackRequestData(string mpId, int clientId, string status, string userId, string pbReasons);
         int UpdateAMBatchStatus(string mpId);
         int UpdateUSPSApiCancelErrorDesc(string mpId);
         string GetPnSBatchPipelineStatusByPrintBatchId(int printBatchId);
@@ -72,9 +72,9 @@ namespace AM.Services
             return data;
         }
 
-        public int InsertPullBackRequestData(string mpId, int clientId, string status, string userId)
+        public int InsertPullBackRequestData(string mpId, int clientId, string status, string userId, string pbReason)
         {
-            return db.Execute("[dbo].[usp_InsertPullBackRequestsData]", new { @MailPieceUniqueId = mpId, @ClientId = clientId, @Status = status, @RequestedOn = DateTime.UtcNow, @RequestedBy = string.IsNullOrEmpty(userId) ? DBNull.Value.ToString() : userId }, commandType: CommandType.StoredProcedure);
+            return db.Execute("[dbo].[usp_InsertPullBackRequestsData]", new { @MailPieceUniqueId = mpId, @ClientId = clientId, @Status = status, @RequestedOn = DateTime.UtcNow, @RequestedBy = string.IsNullOrEmpty(userId) ? DBNull.Value.ToString() : userId, @PBReasons = pbReason }, commandType: CommandType.StoredProcedure);
         }
 
         public int UpdateAMBatchStatus(string mpId)

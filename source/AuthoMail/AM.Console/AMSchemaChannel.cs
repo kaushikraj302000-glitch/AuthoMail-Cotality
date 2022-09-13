@@ -674,7 +674,7 @@ namespace AM.Console
                 log.Error("No trigger files found hence no batches are available to download.");
             }
 
-            if ((SFTChannel.Code.Contains("PENFED") || SFTChannel.Code.Contains("BECU")) && availableTriggerFilePaths.Count > 0)
+            if ((SFTChannel.Code.Contains("PENFED") || SFTChannel.Code.Contains("BECU") || SFTChannel.Code.Contains("FAM")) && availableTriggerFilePaths.Count > 0)
             {
                 if (SFTChannel.Host.Contains("FAGOSFTP"))
                 {
