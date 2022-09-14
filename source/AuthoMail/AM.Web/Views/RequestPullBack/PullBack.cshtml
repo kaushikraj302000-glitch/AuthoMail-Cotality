@@ -557,7 +557,7 @@
                 $.ajax({
                     type: "POST",
                     url: baseUrl + "api/pullback/pullbackold",
-                    data: JSON.stringify({ mailPieceIds: mailpieceIds, pbReason:pbReason }),
+                    data:JSON.stringify( { "MailPieceIds": mailpieceIds, "PBReason":pbReason }),
                     contentType: "application/json; charset=utf-8",
                     dataType: "JSON",
                     success: function (response) {

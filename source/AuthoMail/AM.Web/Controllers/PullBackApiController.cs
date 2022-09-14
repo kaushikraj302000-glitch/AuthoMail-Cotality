@@ -39,8 +39,11 @@ namespace AM.Web.Controllers
 
         [Route("RequestPullBack")]
         [HttpPost]
-        public async Task<List<PullBackResponse>> GeneratePullBackRequest([FromBody] List<string> mailPieceIds, [FromBody] string pullBackReason)
+        public async Task<List<PullBackResponse>> GeneratePullBackRequest([FromBody] PullBackRequestInfo pullBackInfo)
         {
+            var pullBackReason = pullBackInfo.PBReason;
+            var mailPieceIds = pullBackInfo.MailPieceIds;
+
             if (mailPieceIds == null || mailPieceIds.Count == 0) throw new HttpResponseException(HttpStatusCode.BadRequest);
 
             try
@@ -251,9 +254,10 @@ namespace AM.Web.Controllers
 
         [Route("pullback/pullbackold")]
         [HttpPost]
-        public async Task<object> GeneratePullBackRequestOld([FromBody] List<string> mailPieceIds, [FromBody] string pbReason)
+        public async Task<object> GeneratePullBackRequestOld([FromBody] PullBackRequestInfo pullBackInfo)
         {
-            var pullBackReason = pbReason;
+            var pullBackReason = pullBackInfo.PBReason;
+            var mailPieceIds = pullBackInfo.MailPieceIds;
             if (mailPieceIds == null || mailPieceIds.Count == 0)
             {
                 return JsonResponseFactory.ErrorResponse(Config.Web_Msg_API_PB_Empty);
@@ -462,6 +466,13 @@ namespace AM.Web.Controllers
         //    return "API_Value of P is:" + p.p;
         //}
     }
+
+    public class PullBackRequestInfo
+    {
+        public List<string> MailPieceIds { get; set; }
+        public string PBReason { get; set; }
+    }
+
     [Authorize(Roles = AMRoles.APIUSPSeVS + "," + AMRoles.API), RoutePrefix("api/pullback")]
     public class TestController : ApiController
     {

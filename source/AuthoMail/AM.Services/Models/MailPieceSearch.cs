@@ -460,6 +460,7 @@ namespace AM.Services
         public string Status { get; set; }
         public DateTime RequestedOn { get; set; }
         public string RequestedBy { get; set; }
+        public string PBReasons { get; set; }
         public MailPieces MailPieces { get; set; }
         public Users Users { get; set; }
     }
