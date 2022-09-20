@@ -814,6 +814,12 @@ namespace PCI.Service
 
         private static string GetPageSizeInString(float width, float height)
         {
+            var heightDec = Math.Ceiling(Convert.ToDecimal(height.ToString("#.##")));
+            var widthDec = Math.Ceiling(Convert.ToDecimal(width.ToString("#.##")));
+
+            width = (float)widthDec;
+            height = (float)heightDec;
+
             if ((width == 612f && height == 792f) || (width == 792f && height == 612f))
                 return "LETTER";
             else if ((width == 612f && height == 1008f) || (width == 1008f && height == 612f))
