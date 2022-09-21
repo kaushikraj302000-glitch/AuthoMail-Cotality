@@ -693,6 +693,7 @@ namespace AM.Console
                         //This field will be used for monitoring data    
                         mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, receivedOn, sweepTimings);
                         mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                        mailPiece.UsedEnvelopeId = docType.EnvelopeId;
                     }
 
                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);

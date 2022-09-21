@@ -14,16 +14,16 @@ BEGIN
 	,P.ErrorDesc, PTB.PrintBatchName,PTB.SubmittedOn,P.IsEDeliveryRequested, S.Code AS Channel, P.PrintLocation 
 	,PCD.ShippingCarrier + ' / ' +PCD.ShippingServiceType AS [ShippingMethod], P.TrackingNo, P.TotalSheets
 	,P.TotalBlankPages, c.AppCode, E.EnvelopeName ,P.Inserts , P.DeliveryStatus, P.DeliveryDate,P.BlankPageNumbers
-	FROM AM.MailBatches B
-	INNER JOIN AM.MailPieces P ON P.MailBatchId=B.Id
-	INNER JOIN Common.SFTChannels S ON B.SFTChannelId=S.Id
-	INNER JOIN Common.Clients C ON P.ClientId=C.Id
-	LEFT OUTER JOIN AM.DocTypes D ON D.Id=P.DocTypeId
-	LEFT OUTER JOIN Common.PnSConfigDetail PCD ON P.PnSConfigDetailId=PCD.Id
-	LEFT OUTER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id
-	LEFT OUTER JOIN PnS.MRDFRequest REQ ON P.UniqueId=REQ.UniqueId
-	LEFT OUTER JOIN PnS.BatchSummary BS ON REQ.JobId=BS.PrintBatch
-	LEFT OUTER JOIN PnS.PrintTrailBatches PTB ON REQ.PrintTrailBatchId = PTB.Id
+	FROM AM.MailBatches B WITH (NOLOCK)
+	INNER JOIN AM.MailPieces P WITH (NOLOCK) ON P.MailBatchId=B.Id
+	INNER JOIN Common.SFTChannels S WITH (NOLOCK) ON B.SFTChannelId=S.Id
+	INNER JOIN Common.Clients C WITH (NOLOCK) ON P.ClientId=C.Id
+	LEFT OUTER JOIN AM.DocTypes D WITH (NOLOCK) ON D.Id=P.DocTypeId
+	LEFT OUTER JOIN Common.PnSConfigDetail PCD WITH (NOLOCK) ON P.PnSConfigDetailId=PCD.Id
+	LEFT OUTER JOIN Common.Envelopes E WITH (NOLOCK) ON P.UsedEnvelopeId=E.Id
+	LEFT OUTER JOIN PnS.MRDFRequest REQ WITH (NOLOCK) ON P.UniqueId=REQ.UniqueId
+	LEFT OUTER JOIN PnS.BatchSummary BS WITH (NOLOCK) ON REQ.JobId=BS.PrintBatch
+	LEFT OUTER JOIN PnS.PrintTrailBatches PTB WITH (NOLOCK) ON REQ.PrintTrailBatchId = PTB.Id
 	WHERE P.EffectiveReceivedOnEst BETWEEN @startDate AND @endDate
 	AND B.ClientId=@clientId
 	AND ISNULL(S.Code, '') = ISNULL(@channel, ISNULL(S.Code, ''))
@@ -33,7 +33,7 @@ BEGIN
 	FROM 
 	(
 		SELECT MPP.[MailPieceId],MPP.[PageSize],MPP.[PageCount]
-		FROM [Common].[MailPiecePageInfo] MPP
+		FROM [Common].[MailPiecePageInfo] MPP WITH (NOLOCK) 
 		INNER JOIN CTE1 ON MPP.MailPieceId=CTE1.MailPieceId
 	) AS S
 	PIVOT
@@ -47,7 +47,7 @@ BEGIN
 	FROM 
 	(
 		SELECT MPP.[MailPieceId],MPP.[PageSize],MPP.[PageNumbers]
-		FROM [Common].[MailPiecePageInfo] MPP
+		FROM [Common].[MailPiecePageInfo] MPP WITH (NOLOCK) 
 		INNER JOIN CTE1 ON MPP.MailPieceId=CTE1.MailPieceId
 	) AS S
 	PIVOT

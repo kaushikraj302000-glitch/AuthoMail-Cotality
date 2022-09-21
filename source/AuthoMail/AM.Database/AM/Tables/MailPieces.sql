@@ -100,6 +100,7 @@
     [ReturnTrackingNo] VARCHAR(255) NULL, 
     [ReturnDeliveryStatus] VARCHAR(255) NULL, 
     [ReturnDeliveryDate] DATETIME NULL, 
+    [UsedEnvelopeId] INT NULL, 
     CONSTRAINT [PK_MailPieces] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
     CONSTRAINT [FK_MailPiece_DocTypes] FOREIGN KEY ([DocTypeId]) REFERENCES [AM].[DocTypes] ([Id]),
     CONSTRAINT [FK_MailPieces_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
