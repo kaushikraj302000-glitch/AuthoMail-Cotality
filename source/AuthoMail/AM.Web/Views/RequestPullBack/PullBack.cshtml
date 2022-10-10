@@ -239,13 +239,14 @@
                 <div class="form-group" id="pullbackReasonId">
                     <label for="pullbackReason">Select PullBack Reason</label>
                     <select id="pullbackReason" class="selectpicker" data_live_search="true" data_live_search_placeholder="Select Pullback Reason" style="width:100% !important;">
-                        <option selected>Document Inaccurate</option>
-                        <option>Document Invalid</option>
-                        <option>Duplicate Delivery</option>
-                        <option>Invalid Address</option>
-                        <option>Invalid Recipient</option>
-                        <option>Sent in Error</option>
-                        <option>Other Reason</option>
+                        <option value="-1">Select PullBack Reason</option>
+                        <option value="1">Document Inaccurate</option>
+                        <option value="2">Document Invalid</option>
+                        <option value="3">Duplicate Delivery</option>
+                        <option value="4">Invalid Address</option>
+                        <option value="5">Invalid Recipient</option>
+                        <option value="6">Sent in Error</option>
+                        <option value="7">Other Reason</option>
                     </select>
                     <br />
                     <textarea id="txtPBOtherReason" class="textAreaForPB" style="display:none;"></textarea>
@@ -256,7 +257,7 @@
                 <h2 id="myModalLabel"> @AM.Services.Config.Web_Msg_PullBackConfirmation</h2>
                 <br />
                 <button type="button" class="btn btn-default" id="yesPullback"><i class="fa fa-check"></i> Yes</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-close"></i> No</button>
+                <button type="button" class="btn btn-primary" id="noPullback"><i class="fa fa-close"></i> No</button>
             </div>
         </div>
     </div>
@@ -281,13 +282,21 @@
                 $("#receivedOn").focus();
             });
 
+            $("#noPullback").click(function () {
+                $("#confirmModal").modal("hide");
+                $("#pullbackReason").val("-1").change();
+            });
+
+
             $('#pullbackReason').change(function () {
                 var selectedText = $('#pullbackReason :selected').text();
                 if (selectedText === "Other Reason") {
                     $('#txtPBOtherReason').css('display', 'inline-block');
                 }
                 else {
+                    $('#txtPBOtherReason').val('');
                     $('#txtPBOtherReason').css('display', 'none');
+                    $("#warningPB").css('display', 'none');
                 }
             });
         });
@@ -525,7 +534,11 @@
         $("#yesPullback").unbind("click").click(function (e) {
 
             var pbReason = $('#pullbackReason :selected').text();
-            if (pbReason === "Other Reason" && $('#txtPBOtherReason').val() === '') {
+            if (pbReason === "Select PullBack Reason") {
+                $("#warningPB").text('* Please select pullback reason.');
+                $("#warningPB").css('display', 'inline');
+            }
+            else if (pbReason === "Other Reason" && $('#txtPBOtherReason').val() === '') {
                 $("#warningPB").text('* Please enter other pullback reason in text area.');
                 $("#warningPB").css('display', 'inline');
             }
@@ -632,8 +645,13 @@
                         el.html("<div class='alert alert-red'><span>" + msg + "</span></div>");
                         $("#myModal").modal("show");
                     }
-
                 });
+
+
+                $("#pullbackReason").val("-1").change();
+                $('#txtPBOtherReason').val('');
+                $('#txtPBOtherReason').css('display', 'none');
+                $("#warningPB").css('display', 'none');
             }
         });
     </script>
