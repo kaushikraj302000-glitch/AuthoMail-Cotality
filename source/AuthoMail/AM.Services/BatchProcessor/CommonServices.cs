@@ -470,6 +470,7 @@ namespace AM.Services
             mailPiece.StdSubmissionTime = GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, receivedOn, GetSweepTimings());
             mailPiece.MaxSubmissionTime = GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
             mailPiece.EnvelopeName = GetEnvelopeName(mailPiece.PnSConfigDetailId.Value);
+            mailPiece.UsedEnvelopeId = docType.EnvelopeId;
         }
 
         private string GetEnvelopeName(int pnsConfigDetailId)

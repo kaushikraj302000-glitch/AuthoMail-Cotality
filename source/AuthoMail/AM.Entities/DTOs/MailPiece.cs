@@ -114,6 +114,7 @@ namespace AM.Entities
         public Client Client { get; set; }
         public MailBatchDTO MailBatch { get; set; }
         public DocType DocType { get; set; }
+        public int UsedEnvelopeId { get; set; }
     }
 
     public class MailPieceCustomInfo

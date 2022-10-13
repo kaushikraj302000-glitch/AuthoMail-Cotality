@@ -18,7 +18,7 @@ BEGIN
 with mailpiece as (
 Select m.*,PCD.ShippingCarrier,PCD.ShippingServiceType,e.EnvelopeName,ptb.PrintBatchName as PrintFileName from AM.MailPieces m
 LEFT OUTER JOIN Common.PnSConfigDetail PCD ON m.PnSConfigDetailId = pcd.Id
-LEFT OUTER JOIN Common.Envelopes e ON pcd.EnvelopeId=e.Id
+LEFT OUTER JOIN Common.Envelopes e ON m.UsedEnvelopeId=e.Id
 LEFT OUTER JOIN PnS.MRDFRequest req ON m.UniqueId=req.UniqueId
 LEFT OUTER JOIN PnS.PrintTrailBatches ptb on req.PrintTrailBatchId=ptb.Id
 )
