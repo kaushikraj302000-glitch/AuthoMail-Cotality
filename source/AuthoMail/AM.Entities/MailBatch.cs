@@ -179,7 +179,7 @@ namespace AM.Entities
 
         public bool ShouldSerializeInserts()
         {
-            return this.IncludePatternBaseString;
+            return Inserts != null;
         }
 
         [JsonIgnore]
