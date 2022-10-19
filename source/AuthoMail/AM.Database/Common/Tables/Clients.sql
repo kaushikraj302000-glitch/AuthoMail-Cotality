@@ -34,6 +34,7 @@
     [GroupAlias] VARCHAR(255) NULL, 
     [IsResponseRequired] BIT NULL, 
     [IsHardAddrValidationRequired] BIT NULL, 
+    [IsRejectDupRecord] BIT NULL DEFAULT 0, 
     CONSTRAINT [PK_Clients] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_Clients_BusinessUnit] FOREIGN KEY ([BusinessUnit]) REFERENCES [Common].[BusinessUnit] ([Id]),
     CONSTRAINT [FK_CreatedBy_Clients_User] FOREIGN KEY ([CreatedBy]) REFERENCES [Profile].[Users] ([Id]),

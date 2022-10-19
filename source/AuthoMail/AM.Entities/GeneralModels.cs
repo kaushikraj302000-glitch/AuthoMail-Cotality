@@ -97,6 +97,7 @@ namespace AM.Entities
         public const string Recipient_Details_Missing_Or_Invalid = "Recipient_Details_Missing_Or_Invalid";
         public const string Unknown_Error = "Unknown_Error";
         public const string Invalid_PackageType = "Invalid_PackageType";
+        public const string DuplicatePackage = "DuplicatePackage";
         public const string Invalid_ShippingDetail = "Invalid_ShippingDetail";
         public const string Invalid_DuplicateKey = "Invalid_DuplicateKey";
         public const string Issue_In_EDelivery = "Issue_In_EDelivery";

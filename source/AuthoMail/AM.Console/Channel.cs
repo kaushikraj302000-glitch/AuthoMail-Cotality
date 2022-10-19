@@ -635,8 +635,13 @@ namespace AM.Console
             using (IMailPieceService mailPieceSvc = new MailPieceService())
             {
                 sweepTimings = commonSvc.GetSweepTimings();
+
+                List<MailPieceDTO> duplicateMailPieces = new List<MailPieceDTO>();
                 foreach (var mailPiece in mailPieces)
                 {
+                    log.Debug($"Calculation is going for MailPieceId : {mailPiece.Id}");
+
+                    bool isDuplicate = false;
                     if (mailPiece.ShippingStatus == ShippingStatus.Error.ToString())
                     {
                         if (!mailPiece.DocTypeId.HasValue)
@@ -698,22 +703,33 @@ namespace AM.Console
 
                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
 
-                    CheckForDuplicateRecord(mailPieceSvc, mailPiece, mailBatch, client);
+                    isDuplicate = mailPieceSvc.IsDuplicateRecord(mailPiece);
+
+                    if (isDuplicate)
+                    {
+                        duplicateMailPieces.Add(mailPiece);
+                    }
+
+                    if (client.IsRejectDupRecord && isDuplicate)
+                    {
+                        mailPiece.TotalPages = 0;
+                        mailPiece.DueDate = null;
+                        mailPiece.PrintLocation = null;
+                        mailPiece.PrintTrailId = null;
+                        mailPiece.ErrorCode = OutComeCodes.DuplicatePackage;
+                        mailPiece.ErrorDesc = "AM is already having same package data. So AM is rejecting it as a duplicate record.";
+                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                    }
+                }
+
+                if (duplicateMailPieces.Count > 0)
+                {
+                    MailUtility.SendDuplicateRecordNotificationEmail(duplicateMailPieces, mailBatch.ReceivedOn.Value.UtcToEst(), mailBatch.BatchName, client.AppCode, client.Contact1Email, client.Contact2Email);
                 }
             }
 
-
             log.Debug("Calculation of Due Date and Print location Job is ended.");
-        }
-
-        private static void CheckForDuplicateRecord(IMailPieceService mailPieceSvc, MailPieceDTO mailPiece, MailBatchDTO mailBatch, Client client)
-        {
-            var isDuplicate = mailPieceSvc.IsDuplicateRecord(mailPiece);
-
-            if (isDuplicate)
-            {
-                MailUtility.SendDuplicateRecordNotificationEmail(mailPiece, mailBatch.ReceivedOn.Value.UtcToEst(), mailBatch.BatchName, client.AppCode, client.Contact1Email, client.Contact2Email);
-            }
         }
 
         #endregion

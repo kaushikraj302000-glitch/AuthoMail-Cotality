@@ -231,4 +231,11 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="UsedEnvelopeId" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="0bde899a-df63-49cf-bcc8-d98f1cffde90" ChangeDateTime="10/19/2022 06:10:05">
+    <Property Name="ElementName" Value="[Common].[Clients].[IsRejectDuplicateRecord]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[Common].[Clients]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="IsRejectDupRecord" />
+  </Operation>
 </Operations>
