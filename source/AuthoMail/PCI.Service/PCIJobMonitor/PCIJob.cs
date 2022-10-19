@@ -660,9 +660,9 @@ namespace PCI.Service
 
             var manifestOutputPath = Path.Combine(batchRequestPath, manifestPdfFileName);
 
-            var groupingData = mailPiecesDetails.GroupBy(x => new { x.AppCode, x.ShippingCarrier, x.ShippingServiceType, IsBRE = x.Inserts.IsNullOrWhiteSpace() ? false : true });
+            var groupingData = mailPiecesDetails.GroupBy(x => new { x.AppCode, x.EnvelopeName, x.ShippingCarrier, x.ShippingServiceType, x.Inserts });
 
-            var smartDocData = groupingData.Select(x => new { x.Key.AppCode, x.Key.ShippingCarrier, x.Key.ShippingServiceType, x.Key.IsBRE, TotalPackages = x.Count(), TotalPages = x.Sum(p => p.TotalPages) }).ToList();
+            var smartDocData = groupingData.Select(x => new { x.Key.AppCode, x.Key.EnvelopeName, x.Key.ShippingCarrier, x.Key.ShippingServiceType, x.Key.Inserts, TotalPackages = x.Count(), TotalPages = x.Sum(p => p.TotalPages) }).ToList();
 
             dynamic objData = new { Barcode = barcode, smartDocData };
 
