@@ -51,12 +51,21 @@ namespace AM.EDelivery
                         StartDate = Common.EstToday
                     };
 
+                    var documentAnnotation = new DocumentAnnotations() { AnnotationType = "Signature", Height = 80, Width = 150, XOffset = 80, YOffset = 190, Optional = false, PageNumber = 5 };
+                    var documentAnnotation2 = new DocumentAnnotations() { AnnotationType = "Signature", Height = 80, Width = 150, XOffset = 230, YOffset = 270, Optional = false, PageNumber = 5 };
+
+                    var documentSigners = new List<DocumentSigners>();
+
+                    documentSigners.Add(new DocumentSigners() { FirstName = edmp.RcptFirstName, LastName = edmp.RcptLastName, InvitationEmail = edmp.RcptEmailId, DocumentAnnotations = new List<DocumentAnnotations>() { documentAnnotation } });
+                    documentSigners.Add(new DocumentSigners() { FirstName = "Akshar", LastName = "Vala", InvitationEmail = "avala@corelogic.com", DocumentAnnotations = new List<DocumentAnnotations>() { documentAnnotation2 } });
+
                     request.Documents = new List<DocumentInfo>() {
                         new DocumentInfo()
                         {
                             DocumentData = Convert.ToBase64String(File.ReadAllBytes(Path.Combine(mpi.AMRequestPath, edmp.FileName))).ToString(),
                             DocumentName = Path.GetFileNameWithoutExtension(Path.Combine(mpi.AMRequestPath, edmp.FileName)),
-                            FileName = Path.GetFileName(Path.Combine(mpi.AMRequestPath, edmp.FileName))
+                            FileName = Path.GetFileName(Path.Combine(mpi.AMRequestPath, edmp.FileName)),
+                            DocumentSigners =  documentSigners
                         }
                     };
 
@@ -370,7 +379,7 @@ namespace AM.EDelivery
                 log.Debug("EDelivery Declined job queue is completed.");
                 return;
             }
-
+                
             foreach (EDMailPiece edmp in declinedMPs)
             {
                 try
