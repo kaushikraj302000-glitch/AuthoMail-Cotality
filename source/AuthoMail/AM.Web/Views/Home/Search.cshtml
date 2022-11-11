@@ -764,8 +764,6 @@
                 }
 
             });
-            //$("#ViewInfo").find(".modal-body").text(mailPieceId);
-
         }
         function shortName(str) {
             //console.log(str);
@@ -797,28 +795,20 @@
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.PulledBackOnFormatted = this.PulledBackOn == null ? "--" : moment(this.PulledBackOn).format("MM/DD/YY HH:mm:ss");
                 this.ShipmentStatusUpdatedOnFormatted = this.ShipmentStatusUpdatedOn == null ? "--" : moment(this.ShipmentStatusUpdatedOn).format("MM/DD/YY HH:mm:ss");
-                //this.RcptName = this.RcptFirstName + " " + this.RcptMiddleName + " " + this.RcptLastName;
                 this.RcptName = this.RcptName == null || this.RcptName == "" ? "--" : this.RcptName.trim();
-                //this.RcptAddress = this.RcptAddrOptionalLine1AboveStreet + " " + this.RcptAddrOptionalLine2AboveStreet + " " + this.RcptAddressStreet + " " + this.RcptAddressAptOrSuiteOrOther + " " + this.RcptAddrOptionalLine1BelowStreet + " " + this.RcptAddrOptionalLine2BelowStreet + " " + this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
                 var cityStateZip = this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
                 this.RcptAddress = this.RcptAddress == null || this.RcptAddress.trim() =="" ? "--" : this.RcptAddress.trim() + (cityStateZip != "" ? ", " + cityStateZip : "");
-                //this.CoRcptName = this.CoRcptPrefix + " " + this.CoRcptFirstName + " " + this.CoRcptMiddleName + " " + this.CoRcptLastName + " " + this.CoRcptSuffix;
-                //this.CoRcptName = this.CoRcptName.replace(/null/g, "").trim();
-                //this.CoRcptName = this.CoRcptName == "" ? "--" : this.CoRcptName;
-                //this.ReturnRcptName = this.RetRcptPrefix + " " + this.RetRcptFirstName + " " + this.RetRcptMiddleName + " " + this.RetRcptLastName + " " + this.RetRcptSuffix
+
                 var returnCityStateZip = this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
                 this.RetRcptName = this.RetRcptName == null || this.RetRcptName.trim() == "" ? "--" : this.RetRcptName.replace(/null/g, "").trim();
-                //this.ReturnRcptAddress = this.RetRcptAddrOptionalLine1AboveStreet + " " + this.RetRcptAddrOptionalLine2AboveStreet + " " + this.RetRcptAddressStreet + " " + this.RetRcptAddressAptOrSuiteOrOther + " " + this.RetRcptAddrOptionalLine1BelowStreet + " " + this.RetRcptAddrOptionalLine2BelowStreet + " " + this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
                 this.RetRcptAddress = this.RetRcptAddress == null || this.RetRcptAddress.trim() =="" ? "--" : this.RetRcptAddress.replace(/null/g, "").trim() + (returnCityStateZip != "" ? ", " + returnCityStateZip : "");
                 switch (this.ShippingStatus) {
 
                     case "PulledBack":
                         status = '<span class="label medium label-yellow">' + this.ShippingStatus + '</span>';
-
                         break;
                     case "Error":
                         status = '<span class="label medium label-red">' + this.ShippingStatus + '</span>';
-                        //status = '<span class="label medium label-red" data-toggle="popover" data-original-title="Error Code: ' + this.ErrorCode + '" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left">' + this.Status + '</span>';
                         break;
                     case "Shipped":
                         status = '<span class="label medium label-success">' + this.ShippingStatus + '</span>';
@@ -831,32 +821,20 @@
                         break;
                 }
                 this.ShippingStatus = status;
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
                 var trackingNo = "";
-                if (this.TrackingNo == null || this.TrackingNo == "") {
-
+                if ((this.TrackingNo == null || this.TrackingNo == "") && this.IsEDeliveryRequested !== null) {
+                    trackingNo = '<a id="' + this.MailBatchId + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track?id=' + this.MailBatchId + '&IsEdelivery=true" target="_blank"><i class="fa faspinner"></i> ' + this.MailBatchId + '</a>';
+                }
+                else if (this.TrackingNo == null || this.TrackingNo == "") {
                     trackingNo = "--";
                 }
                 else {
                     trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-
-                    //if (this.DocTypes.ShippingServiceType == "USPS") {
-                    //if (this.ShippingMethod == "USPS") {
-                    //    if (this.TrackingNo.indexOf("00310901599685") == -1) {
-                    //        trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="https://m.usps.com/m/TrackConfirmAction_detail?tLabels=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-                    //    } else {
-                    //        trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
-                    //    }
-                    //    //trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.DocTypes.ShippingServiceType + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
-                    //}
-                    //else {
-                    //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-                    //}
                 }
                 this.TrackingNoFormatted = trackingNo;
                 var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
                 this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
-                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
-
             });
             //console.log(Model);
             return Model;
@@ -864,7 +842,6 @@
         function FormatObject(Model) {
             //console.log(Model);
             $(Model).each(function () {
-                //this.ReceivedOnFormatted = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.PickedUpOnFormatted = this.PickedUpOn == null ? "--" : moment(this.PickedUpOn).format("MM/DD/YY HH:mm:ss");
@@ -894,29 +871,16 @@
                 }
                 this.ShippingStatusFormatted = status;
                 var trackingNo = "";
-                //console.log(this.TrackingNo + ":trackingNo");
-                if (this.TrackingNo == null || this.TrackingNo == "") {
-
+                if ((this.TrackingNo == null || this.TrackingNo == "") && this.IsEDeliveryRequested !== null) {
+                    trackingNo = '<a id="' + this.MailBatchId + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track?id=' + this.MailBatchId + '&IsEdelivery=true" target="_blank"><i class="fa faspinner"></i> E-Delivery</a>';
+                }
+                else if (this.TrackingNo == null || this.TrackingNo == "") {
                     trackingNo = "--";
                 }
                 else {
-                    //trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/Track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
                     trackingNo = '<a id="' + this.TrackingNo + '" data-toggle="tooltip" data-container="body" data-placement="top" title="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" href="/track/' + this.TrackingNo + '" target="_blank"><i style="margin-top: 2px;" class="fa fa-map-marker fa-2x"></i> </a>';
-                    //if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "PRIORITY_EXPRESS") {
-
-                    //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="https://m.usps.com/m/TrackConfirmAction_detail?tLabels=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-                    //} else if (this.ShippingCarrier == "USPS" && this.ShippingMethod == "USPS") {
-                    //    trackingNo = '<button id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
-
-                    //}
-                    //else if (this.ShippingCarrier == "FedEx") {
-                    //    trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
-                    //} else {
-                    //    trackingNo = "--";
-                    //}
                 }
                 this.TrackingNoFormatted = trackingNo;
-                //this.TrackingNo == null ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
                 this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
                 this.FileFormatted = this.IsWithinRetentionPeriod && this.RequestedPdf != null ? '<a href="' + baseUrl + 'Common/DownloadPdf?fileName=' + encodeURIComponent(this.PDFFileName) + '&appCode=' + encodeURIComponent(this.AppCode) + '&id=' + this.JobId + '"  style="cursor: pointer;font-size:1.2em;margin-right:10%;" class="btn btn-transparent-red btn-sm" data-filename="' + this.RequestedPdf + '" ><i class=" fa fa-file-pdf-o"></i> </a>' : '--';
             });
@@ -953,20 +917,7 @@
                            "searchable": true
                        },
                 ],
-                buttons: [
-                  //{
-                  //    extend: 'csv',
-                  //    text: '<i class="fa fa-file-excel-o fa-2x"></i>',
-                  //    className: 'btn btn-primary',
-                  //    filename: filename,
-                  //    title: title,
-                  //    exportOptions: {
-                  //        columns: ["thead th:not(.TrackingNo)", ".TrackingNoHide", ".ErrorCode", ".ErrorText"],
-                  //    }
-
-                  //}
-
-                ],
+                buttons: [],
 
                 "scrollX": true,
 
@@ -988,7 +939,7 @@
 
         }
 
-        
+
 
         function FilterData() {
             $("#searchHeader").hide();

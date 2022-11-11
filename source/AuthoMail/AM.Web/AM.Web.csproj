@@ -632,6 +632,7 @@
     <Content Include="Template\LargeFontCoupon.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Views\Track\_GetEDeliveryTrackingInfo.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -20,6 +20,12 @@
                         </span>
                     </div>
                 }
+                else if (Model.EDeliveryStatusInfoModel != null)
+                {
+                    <div class="table-responsive">
+                        @Html.Partial("~/Views/Track/_GetEDeliveryTrackingInfo.cshtml", Model.EDeliveryStatusInfoModel)
+                    </div>
+                }
                 else if (Model.USPSTrackingInfo != null && Model.TrackingDetailViewModel.ShippingCarrier == "USPS" && Model.TrackingDetailViewModel.ShippingServiceType == "IMB")
                 {
                     <div class="table-responsive">
