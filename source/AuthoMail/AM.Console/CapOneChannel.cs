@@ -553,8 +553,8 @@ namespace AM.Console
 
             caponeValues.BorrowerStreetAddress2 = values[24].RemoveCSVStringFormat().Trim();
             caponeValues.BorrowerCountry = values[25].RemoveCSVStringFormat().Trim();
-            //caponeValues.SendEDelivery = values[26].RemoveCSVStringFormat().Trim();
-            //caponeValues.BorrowerEmailId = values[27].RemoveCSVStringFormat().Trim();
+            caponeValues.SendEDelivery = values[26].RemoveCSVStringFormat().Trim();
+            caponeValues.BorrowerEmailId = values[27].RemoveCSVStringFormat().Trim();
             return caponeValues;
         }
 

@@ -823,7 +823,7 @@
                 this.ShippingStatus = status;
                 this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
                 var trackingNo = "";
-                if ((this.TrackingNo == null || this.TrackingNo == "") && this.IsEDeliveryRequested !== null) {
+                if ((this.TrackingNo == null || this.TrackingNo == "") && this.IsEDeliveryRequested !== null && this.ShippingStatus !=="Error") {
                     trackingNo = '<a id="' + this.MailBatchId + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track?id=' + this.MailBatchId + '&IsEdelivery=true" target="_blank"><i class="fa faspinner"></i> ' + this.MailBatchId + '</a>';
                 }
                 else if (this.TrackingNo == null || this.TrackingNo == "") {
@@ -871,7 +871,7 @@
                 }
                 this.ShippingStatusFormatted = status;
                 var trackingNo = "";
-                if ((this.TrackingNo == null || this.TrackingNo == "") && this.IsEDeliveryRequested !== null) {
+                if ((this.TrackingNo == null || this.TrackingNo == "") && this.IsEDeliveryRequested !== null && this.ShippingStatus !== "Error") {
                     trackingNo = '<a id="' + this.MailBatchId + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track?id=' + this.MailBatchId + '&IsEdelivery=true" target="_blank"><i class="fa faspinner"></i> E-Delivery</a>';
                 }
                 else if (this.TrackingNo == null || this.TrackingNo == "") {

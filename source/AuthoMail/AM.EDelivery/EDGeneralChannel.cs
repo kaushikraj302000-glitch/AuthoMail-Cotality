@@ -99,7 +99,7 @@ namespace AM.EDelivery
                         log.Error(msg);
                         MailUtility.SendUnexpectedExceptionEmail(msg);
                         edmp.ErrorCode = OutComeCodes.Issue_In_EDelivery;
-                        edmp.ErrorDesc = "Error occured while creating signing room for Loan Number:{0}".Fill(edmp.LoanNumber);
+                        edmp.ErrorDesc = $"Error occured while creating signing room for Loan Number:{edmp.LoanNumber} with Error {response.Error}";
                         System.Threading.Thread.Sleep(Config.Core_FailureAttemptInterval);
                         hasError = true;
                         reTrycnt++;
