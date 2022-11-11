@@ -17,21 +17,38 @@ namespace AM.Web.Controllers
         {
             this.supportSvc = supportSvc;
         }
-        
-        public ActionResult Index(string id)
+
+        public ActionResult Index(string id, bool isEDelivery)
         {
             TrackingInfoViewModel model = new TrackingInfoViewModel();
-            model.TrackingDetailViewModel = supportSvc.GetTrackingDetailByTrackingNo(id);
-            if (model.TrackingDetailViewModel.ShippingCarrier == "USPS" && model.TrackingDetailViewModel.ShippingServiceType == "IMB")
+
+            if (isEDelivery)
             {
-                USPSIMClient uspsClient = new USPSIMClient();
-                model.USPSTrackingInfo = uspsClient.GetShipmentStatus(id);
+                TrackingDetailViewModel trackingModel = new TrackingDetailViewModel();
+                trackingModel.IsError = false;
+                model.TrackingDetailViewModel = trackingModel;
+                model.EDeliveryStatusInfoModel = supportSvc.GetEDeliveryHistoryByMailBatchId(int.Parse(id));
             }
+            else
+            {
+                model.TrackingDetailViewModel = supportSvc.GetTrackingDetailByTrackingNo(id);
+                if (model.TrackingDetailViewModel.ShippingCarrier == "USPS" && model.TrackingDetailViewModel.ShippingServiceType == "IMB")
+                {
+                    USPSIMClient uspsClient = new USPSIMClient();
+                    model.USPSTrackingInfo = uspsClient.GetShipmentStatus(id);
+                }
+            }
+
             return View(model);
         }
         public ActionResult _GetTrackingInfo()
         {
 
+            return PartialView();
+        }
+
+        public ActionResult _GetEDeliveryTrackingInfo()
+        {
             return PartialView();
         }
     }

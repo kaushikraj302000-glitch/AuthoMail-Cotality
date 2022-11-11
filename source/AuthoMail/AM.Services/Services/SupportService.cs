@@ -68,6 +68,7 @@ namespace AM.Services
         string GetEmailsFromClientDomain(string clientEmail);
         TrackingDetailViewModel GetTrackingDetailByTrackingNo(string trackingNo);
         List<PnSConfigDetail> GetPnSConfigDetailsByPnSConfigId(int pnsConfigId);
+        List<EDeliveryStatusInfoModel> GetEDeliveryHistoryByMailBatchId(int mailBatchId);
     }
     public class SupportService : ServiceBase, ISupportService
     {
@@ -984,6 +985,22 @@ where cd.Id=@Id";
                             LEFT OUTER JOIN Common.Envelopes E ON PCD.EnvelopeId = E.Id
                             LEFT OUTER JOIN Common.PrintVendors PV ON PT.PrintVendorId = PV.Id WHERE PnSConfigId=@PnSConfigId";
             return db.Query<PnSConfigDetail>(query, new { PnSConfigId = pnsConfigId }).ToList();
+        }
+
+        public List<EDeliveryStatusInfoModel> GetEDeliveryHistoryByMailBatchId(int mailBatchId)
+        {
+            string query = @"SELECT MailBatchId,StepName,StepTimeStamp
+                            FROM
+                            (
+                                SELECT MailBatchId, CAST(SigningRoomName AS varchar(256))SigningRoomName, CAST([ReceivedOn] AS varchar(256))[ReceivedOn],  CAST([DownloadedOn]AS varchar(256))[DownloadedOn],  CAST([ValidatedOn]AS varchar(256))[ValidatedOn], CAST([SigningRoomCreatedOn]AS varchar(256))[SigningRoomCreatedOn], CAST([InvitationSentOn]AS varchar(256))[InvitationSentOn], CAST([eDeliveredOn]AS varchar(256))[eDeliveredOn],  CAST([ConsentAcceptedOn]AS varchar(256))[ConsentAcceptedOn], CAST([ConsentDeclinedOn]AS varchar(256))[ConsentDeclinedOn],  CAST([DocReviewedOn]AS varchar(256))[DocReviewedOn], CAST([DocDownloadedOn]AS varchar(256))[DocDownloadedOn], CAST([ESignedOn] AS varchar(256))[ESignedOn], CAST(DownloadedIPAddress AS varchar(256))DownloadedIPAddress
+                                 FROM AM.EDeliveryMailPieces WHERE MailBatchId = @MailBatchId
+                            )P
+                            UNPIVOT
+                            (
+                            StepTimeStamp FOR StepName IN([ReceivedOn],  [DownloadedOn],  [ValidatedOn], [SigningRoomCreatedOn], [InvitationSentOn], [eDeliveredOn],  [ConsentAcceptedOn], [ConsentDeclinedOn],  [DocReviewedOn], [DocDownloadedOn],  [ESignedOn], DownloadedIPAddress, SigningRoomName)
+                            ) AS EDeliveryInfo";
+
+            return db.Query<EDeliveryStatusInfoModel>(query, new { MailBatchId = mailBatchId }).ToList();
         }
     }
 }
