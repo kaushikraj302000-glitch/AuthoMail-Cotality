@@ -16,6 +16,7 @@ namespace AM.Services.Services
         Task<IEnumerable<string>> GetDelfusMergeList();
         Task<IEnumerable<DelfusTemplate>> DelfusTemplateSummary();
         Task<IEnumerable<DelfusErrorReport>> GetTaxCommercialErrorData(DateTime startDate, DateTime endDate);
+        Task<IEnumerable<DelfusEdeliveryReport>> GetTaxCommercialEDeliveryData(DateTime startDate, DateTime endDate);
     }
     public class DelfusTemplateService : DelfusServiceBase, IDelfusTemplateService
     {
@@ -65,6 +66,13 @@ namespace AM.Services.Services
 INNER JOIN dls.Batches b
 ON l.BatchId = b.Id
 WHERE l.RecordStatus = 'Disqualified' AND b.DownloadedOn BETWEEN @startDate AND @endDate", new { startDate = startDate, endDate = endDate });
+        }
+
+        public async Task<IEnumerable<DelfusEdeliveryReport>> GetTaxCommercialEDeliveryData(DateTime startDate, DateTime endDate)
+        {
+            return await db.QueryAsync<DelfusEdeliveryReport>(@"SELECT B.BatchName,L.SubmittedDate,L.EDeliveryStatus,L.EDeliveryStatusDate,L.RD_DLVR_EMAIL_ADDR_TXT,L.RD_CUST_ID,RD_BRRW_FRST_NM,L.RD_BRRW_LAST_NM,L.RD_BRRW_ADDR1_TXT,L.RD_BRRW_CITY_NM,L.RD_BRRW_STATE_ABBR,L.RD_BRRW_ZIP_CD,L.RD_TMPLT_CD,L.PdfFileName,L.DocumentType,L.Disqualifyreason,L.RecordStatus FROM dls.LienData L
+INNER JOIN dls.Batches B ON L.BatchId=B.Id
+WHERE B.FileType='PdfOnly' AND DownloadedOn BETWEEN @startDate AND @endDate", new { startDate = startDate, endDate = endDate });
         }
     }
 }

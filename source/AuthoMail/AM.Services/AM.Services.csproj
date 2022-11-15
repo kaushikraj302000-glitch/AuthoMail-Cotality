@@ -124,6 +124,7 @@
     <Compile Include="Models\AlertPendingBatchesViewModel.cs" />
     <Compile Include="Models\BatchReportInfo.cs" />
     <Compile Include="Models\ChartModels.cs" />
+    <Compile Include="Models\DelfusEdeliveryReport.cs" />
     <Compile Include="Models\DelfusErrorReport.cs" />
     <Compile Include="Models\DelfusTemplate.cs" />
     <Compile Include="Models\eVSCancelRequest.cs" />
