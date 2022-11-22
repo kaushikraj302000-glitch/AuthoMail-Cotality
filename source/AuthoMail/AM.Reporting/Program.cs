@@ -92,6 +92,9 @@ namespace AM.Reporting
                 case "USAAMTD":
                     USAADailyMTDVolumeReporting.GenerateMTDReport();
                     break;
+                case "DocSolError":
+                    ErrorReports.GenerateDocSolErrorReport();
+                    break;
                 case "FLOODAUTO":
                     switch (args[1])
                     {
