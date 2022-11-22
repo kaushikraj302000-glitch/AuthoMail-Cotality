@@ -115,6 +115,8 @@ namespace AM.Reporting
         public static string TaxComEmailCc { get; private set; }
         public static string TaxComErrorReportEmailSubject { get; private set; }
         public static string TaxComErrorReportPath { get; private set; }
+        public static string TaxComEDeliveryReportEmailSubject { get; private set; }
+        public static string TaxComEDeliveryReportPath { get; private set; }
 
 
         public static string AMPostageReconEMailTo { get; private set; }
@@ -189,6 +191,9 @@ namespace AM.Reporting
 
                 TaxComErrorReportEmailSubject = ConfigurationManager.AppSettings["TaxComErrorReportEmailSubject"].Trim();
                 TaxComErrorReportPath = ConfigurationManager.AppSettings["TaxComErrorReportPath"].Trim();
+
+                TaxComEDeliveryReportEmailSubject = ConfigurationManager.AppSettings["TaxComEDeliveryReportEmailSubject"].Trim();
+                TaxComEDeliveryReportPath = ConfigurationManager.AppSettings["TaxComEDeliveryReportPath"].Trim();
 
 
                 AMPostageReconEMailTo = ConfigurationManager.AppSettings["AMPostageReconEMailTo"].Trim();

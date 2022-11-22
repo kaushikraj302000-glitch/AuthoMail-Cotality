@@ -76,6 +76,65 @@ namespace AM.Reporting
             SendReportToTaxCommercialTeam(reportFilePath, subject, body);
         }
 
+        internal static void GenerateTaxComEdeliveryReport(string reportType)
+        {
+            try
+            {
+                log.Debug($"TaxCommercial Edelivery {reportType} Report Execution Triggered at {0} Est".Fill(Common.Now.UtcToEst()));
+                List<DelfusEdeliveryReport> taxcomEdeliveryReportData;
+
+                using (IDelfusTemplateService delfusTemplateService = new DelfusTemplateService())
+                {
+                    DateTime utcNow = DateTime.UtcNow;
+                    //By Default consider report type Daily
+                    DateTime startDate = utcNow.UtcToEst().ToStartDateTime().EstToUtc();
+                    DateTime endDate = utcNow.UtcToEst().ToEndDateTime().EstToUtc();
+
+                    if (reportType == "Monthly")
+                    {
+                        startDate = new DateTime(Common.EstToday.Year, Common.EstToday.AddMonths(-1).Month, 26).ToStartDateTime().EstToUtc();
+                        endDate = new DateTime(Common.EstToday.Year, Common.EstToday.Month, 25).ToEndDateTime().EstToUtc();
+                    }
+
+                    taxcomEdeliveryReportData = delfusTemplateService.GetTaxCommercialEDeliveryData(startDate, endDate).Result.ToList();
+
+                    if (taxcomEdeliveryReportData.Count > 0)
+                    {
+                        GenerateEdeliveryReport(taxcomEdeliveryReportData, startDate, endDate, reportType);
+                    }
+                }
+                log.Debug($"TaxCommercial Edelivery {reportType} Report Execution Completed at {0} Est".Fill(Common.Now.UtcToEst()));
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error occured while generating TaxCommercial Edelivery Report", ex);
+            }
+        }
+
+        private static void GenerateEdeliveryReport(List<DelfusEdeliveryReport> taxcomEdeliveryReportData, DateTime startDate, DateTime endDate, string reportType)
+        {
+            string subject = "{0} : {1}".Fill(Config.Common_Environment, AppConfig.TaxComEDeliveryReportEmailSubject.Fill($"{ startDate.ToString("MMddyyyy")}_To_{ endDate.ToString("MMddyyyy")}"));
+
+            string body = $"TaxCommercial Edelivery {reportType} Report For : { startDate.ToString("MMddyyyy")}_To_{endDate.ToString("MMddyyyy")}";
+
+            var columnName = String.Join(",", "BatchName", "SubmittedDate", "Cust ID", "Template Code", "EDelivery Status", "EDeliveryStatus Date", "Email Address", "Recipient First Name", "Recipient Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "PdfFileName", "DocumentType", "RecordStatus", "Disqualifyreason");
+
+            StringBuilder reconReport = new StringBuilder(columnName);
+
+            reconReport.AppendLine();
+
+            foreach (var mp in taxcomEdeliveryReportData)
+            {
+                var line = String.Join(",", mp.BatchName, mp.SubmittedDate, mp.RD_CUST_ID, mp.RD_TMPLT_CD, mp.EDeliveryStatus, mp.EDeliveryStatusDate.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), mp.RD_DLVR_EMAIL_ADDR_TXT, mp.RD_BRRW_FRST_NM, mp.RD_BRRW_LAST_NM, mp.RD_BRRW_ADDR1_TXT, mp.RD_BRRW_CITY_NM, mp.RD_BRRW_STATE_ABBR, mp.RD_BRRW_ZIP_CD, mp.PdfFileName, mp.DocumentType, mp.RecordStatus, mp.Disqualifyreason);
+                reconReport.AppendLine(line);
+            }
+
+            string reportFilePath = Path.Combine(AppConfig.TaxComEDeliveryReportPath, $"TaxCommercialEdelivery{reportType}Report_{startDate.ToString("MMddyyyy")}_To_{ endDate.ToString("MMddyyyy")}.csv");
+            File.WriteAllText(reportFilePath, reconReport.ToString());
+
+            SendReportToTaxCommercialTeam(reportFilePath, subject, body);
+        }
+
         private static void SendReportToTaxCommercialTeam(string reportFilePath, string subject, string body)
         {
             try

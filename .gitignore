@@ -207,3 +207,5 @@ ModelManifest.xml
 /source/AuthoMail/AM.Reporting/GOSReconReport
 /source/AuthoMail/AM.Reporting/TaxComReport/ErrorReports/TaxCommercialErrorReport_10012021_To_10312021.csv
 /source/AuthoMail/AM.Reporting/FARReconReport
+/source/AuthoMail/AM.Reporting/TaxComReport/EDeliveryReports/TaxCommercialEdeliveryReport_11142022_To_11152022.csv
+/source/AuthoMail/AM.Reporting/TaxComReport/EDeliveryReports/TaxCommercialEdeliveryMonthlyReport_10262022_To_11262022.csv
