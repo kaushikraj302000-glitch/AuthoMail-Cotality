@@ -73,6 +73,10 @@ namespace AM.Reporting
         public static string FARErrorEMailCc { get; private set; }
         public static string FARErrorReportPath { get; private set; }
 
+        public static string DocSolErrorEMailTo { get; private set; }
+        public static string DocSolErrorEMailCc { get; private set; }
+        public static string DocSolErrorReportPath { get; private set; }
+
         public static Dictionary<string, string> GOSDailyEmailListByAppCode
         {
             get
@@ -203,6 +207,10 @@ namespace AM.Reporting
                 FARErrorEMailTo = ConfigurationManager.AppSettings["FARErrorEMailTo"].Trim();
                 FARErrorEMailCc = ConfigurationManager.AppSettings["FARErrorEMailCc"].Trim();
                 FARErrorReportPath = ConfigurationManager.AppSettings["FARErrorReportPath"].Trim();
+
+                DocSolErrorEMailTo = ConfigurationManager.AppSettings["DocSolErrorEMailTo"].Trim();
+                DocSolErrorEMailCc = ConfigurationManager.AppSettings["DocSolErrorEMailCc"].Trim();
+                DocSolErrorReportPath = ConfigurationManager.AppSettings["DocSolErrorReportPath"].Trim();
             }
             catch (Exception ex)
             {
