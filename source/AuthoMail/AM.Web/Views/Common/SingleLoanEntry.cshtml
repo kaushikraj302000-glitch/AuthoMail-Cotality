@@ -119,6 +119,24 @@
                         </div>
                     </div>
                 </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <label class="control-label col-md-2">ProductCode </label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="ProductCode" id="radioALM" value="ALM">
+                                <label class="form-check-label" for="radioALM">ALM</label>
+
+                                <input class="form-check-input" type="radio" name="ProductCode" id="radioNonALM" value="NonALM">
+                                <label class="form-check-label" for="radioNonALM">Non-ALM</label>
+                            </div>
+
+                        </div>
+                        <div class="panel-title">
+                            <label class="control-label col-md-2">Comment </label>
+                            <textarea class="form-control" name="Comment" rows="3" cols="10"></textarea>
+                        </div>
+                    </div>
             </div>
             @*<div class="form-group form-group-sm">
                     <label class="control-label col-md-2">Upload PDF</label>
@@ -186,7 +204,7 @@
                             $('#ReturnInfo_Address_City').val(data.RetRcptAddressCity);
                             $('#ReturnInfo_Address_State').val(data.RetRcptAddressState);
                             $('#ReturnInfo_Address_Zip').val(data.RetRcptAddressZIP);
-                        }                       
+                        }
                     },
                     error: function () {
                         //alert("error");

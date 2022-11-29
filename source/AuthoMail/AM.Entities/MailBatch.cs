@@ -66,6 +66,10 @@ namespace AM.Entities
         }
         [XmlIgnore]
         public string ClientCode { get; set; }
+        [XmlIgnore]
+        public string ProductCode { get; set; }
+        [XmlIgnore]
+        public string Comment { get; set; }
 
         [XmlAttribute, DisplayName("Business Friendly Id Name")]
         public string BusinessFriendlyIdName { get; set; }
