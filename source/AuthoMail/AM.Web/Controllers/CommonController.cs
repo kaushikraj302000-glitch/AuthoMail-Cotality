@@ -218,6 +218,7 @@ namespace AM.Web.Controllers
             ViewBag.msg = msg;
             ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByClientIdAndLatestOccurance(User.Identity.GetClientId().Value);
             ViewBag.docTypes = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "DocTypeName", "DocTypeName");
+            ViewBag.ClientCode = supSvc.FindByClientId(User.Identity.GetClientId().Value).AppCode;
             return View();
         }
 
@@ -263,7 +264,7 @@ namespace AM.Web.Controllers
 
                     mailPiece.ClientCode = supSvc.FindByClientId(User.Identity.GetClientId().Value).AppCode;
 
-                    if (mailPiece.ClientCode == "USAA")
+                    if (mailPiece.ClientCode == "LOANCARE")
                     {                        
                         CustomTemplate customTemplate = commonSvc.GetCustomTemplateByCommunityCode(mailPiece.ProductCode);
 
