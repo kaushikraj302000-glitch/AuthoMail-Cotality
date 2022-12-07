@@ -144,8 +144,8 @@ namespace AM.Reporting
                     using (MailMessage msg = new MailMessage())
                     {
                         msg.IsBodyHtml = false;
-                        msg.To.Add(AppConfig.TaxComEmailTo);
-                        msg.CC.Add(AppConfig.TaxComEmailCc);
+                        msg.To.Add(AppConfig.TaxComEDeliveryReportEmailTo);
+                        msg.CC.Add(AppConfig.TaxComEDeliveryReportEmailCc);
                         msg.Subject = subject;
                         msg.Priority = MailPriority.Normal;
                         msg.Body = body;
