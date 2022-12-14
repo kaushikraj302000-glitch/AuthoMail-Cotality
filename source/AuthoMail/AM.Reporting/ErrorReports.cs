@@ -106,9 +106,9 @@ namespace AM.Reporting
                 using (IClientService clientSvc = new ClientService())
                 using (IReportService reportSvc = new ReportService())
                 {
-                    var client = clientSvc.GetClientsByAlias("GOS");
+                    var client = clientSvc.GetClientByAppCode("DOCSOL").Result;
                     //NOTE : Please change UTC to EST code when Daylight saving is off in service call
-                    mpDetails = reportSvc.GetReportWizard(client.Select(x => x.Id).ToList(), null, null, startDate, endDate, null, null, null, null, null);
+                    mpDetails = reportSvc.GetReportWizard(new List<int>() { client.Id }, null, null, startDate, endDate, null, null, null, null, null);
                     var errorMps = mpDetails.Where(x => x.Status == ShippingStatus.Error.ToString()).ToList();
                     if (errorMps.Count == 0)
                     {
