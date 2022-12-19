@@ -717,13 +717,13 @@ namespace AM.Console
                         mailPiece.PrintLocation = null;
                         mailPiece.PrintTrailId = null;
                         mailPiece.ErrorCode = OutComeCodes.DuplicatePackage;
-                        mailPiece.ErrorDesc = "AM is already having same package data. So AM is rejecting it as a duplicate record.";
+                        mailPiece.ErrorDesc = "Rejected due to duplicate record identified";
                         mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
                         mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
                     }
                 }
 
-                if (duplicateMailPieces.Count > 0)
+                if (duplicateMailPieces.Count > 0 && !client.IsRejectDupRecord)
                 {
                     MailUtility.SendDuplicateRecordNotificationEmail(duplicateMailPieces, mailBatch.ReceivedOn.Value.UtcToEst(), mailBatch.BatchName, client.AppCode, client.Contact1Email, client.Contact2Email);
                 }

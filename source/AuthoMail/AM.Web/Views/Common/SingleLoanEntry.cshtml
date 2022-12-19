@@ -45,60 +45,6 @@
 
         <div class="for">
             @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-            @*<div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")" id="businessIddiv">
-                    @if (ViewBag.BusinessId.Count == 1)
-                    {
-                        <label for="BusinessFriendlyIdValue">@ViewBag.BusinessId[0]</label>
-                        <div class="input-group">
-                            <input class="form-control" name="BusinessFriendlyIdValue" value="@ViewBag.BusinessFriendlyIdValue" placeholder="@ViewBag.BusinessId[0]" id="BusinessFriendlyIdValue">
-                            <input type="hidden" value="@ViewBag.BusinessId[0]" name="BusinessFriendlyIdName" id="BusinessFriendlyIdName" />
-                        </div>
-                        <div class="text-red pull-left" style="display:none" id="BusinessFriendlyIdValueError">This field is required.</div>
-                    }
-                    else if (ViewBag.BusinessId.Count > 1)
-                    {
-                        <label for="BusinessFriendlyIdName">Select Business ID</label>
-                        <div class="input-group">
-
-                            <select id="BusinessFriendlyIdName" class="selectpicker" data-live-search="true" data-live-search-placeholder="Search Business ID">
-                                <option value="">Select BusinessId</option>
-                                @foreach (var item in ViewBag.BusinessId)
-                                {
-                                    <option value="@item.ToString()">@item.ToString()</option>
-                                }
-                            </select>
-                            <input class="form-control" name="BusinessFriendlyIdValue" placeholder="" id="BusinessFriendlyIdValue">
-
-                        </div>
-                    }
-                    else
-                    {
-                        <br />
-                        <div class='alert alert-yellow'><div>No business friendly id found!</div></div>
-                    }
-                </div>*@
-            @*<div class="col-md-4">
-                    <div class="form-group form-group-sm">
-                        @Html.LabelFor(model => model.BusinessFriendlyIdName, htmlAttributes: new { @class = "control-label" })
-                        @Html.EditorFor(model => model.BusinessFriendlyIdName, new { htmlAttributes = new { @class = "form-control" } })
-                        @Html.ValidationMessageFor(model => model.BusinessFriendlyIdName, "", new { @class = "text-danger" })
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group form-group-sm">
-                        @Html.LabelFor(model => model.BusinessFriendlyIdValue, htmlAttributes: new { @class = "control-label" })
-                        @Html.EditorFor(model => model.BusinessFriendlyIdValue, new { htmlAttributes = new { @class = "form-control" } })
-                        @Html.ValidationMessageFor(model => model.BusinessFriendlyIdValue, "", new { @class = "text-danger" })
-                    </div>
-                </div>*@
-            @*<div class="col-md-4">
-                    <div class="form-group form-group-sm">
-                        @Html.LabelFor(model => model.DocumentOrPackageType, htmlAttributes: new { @class = "control-label" })
-                        @Html.DropDownListFor(model => model.DocumentOrPackageType, ViewBag.docTypes as SelectList, "Select Doc Type", new { @class = "form-control", id = "ddlDocType",  onchange = "GetReturnAddressInfo()" })
-                        @Html.ValidationMessageFor(model => model.DocumentOrPackageType, "", new { @class = "text-danger" })
-                    </div>
-                </div>*@
-
 
             <div class="clearfix"></div>
             @Html.Partial("_RecipientInfo", Model)
@@ -119,21 +65,36 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            @*<div class="form-group form-group-sm">
-                    <label class="control-label col-md-2">Upload PDF</label>
-                    <div class="col-md-10">
-                        <input type="file" name="pdffile" class="" />
+                @if (ViewBag.ClientCode == "LOANCARE")
+                {
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <div class="panel-title">
+                                <label class="control-label col-md-2">ProductCode </label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="ProductCode" id="radioALM" value="ALM">
+                                    <label class="form-check-label" for="radioALM">ALM</label>
+
+                                    <input class="form-check-input" type="radio" name="ProductCode" id="radioNonALM" value="NonALM">
+                                    <label class="form-check-label" for="radioNonALM">Non-ALM</label>
+                                </div>
+
+                            </div>
+                            <div class="panel-title">
+                                <label class="control-label col-md-2">Comment </label>
+                                <textarea class="form-control" name="Comment" rows="3" cols="10"></textarea>
+                            </div>
+                        </div>
                     </div>
-                </div>*@
+                }
 
-
+            </div>
         </div>
-    </div>
-    <div class="panel-footer text-center">
-        <input type="submit" value="Save" class="btn btn-success" />
-        <input type="reset" value="Clear" class="btn btn-danger" />
-    </div>
+        <div class="panel-footer text-center">
+            <input type="submit" value="Save" class="btn btn-success" />
+            <input type="reset" value="Clear" class="btn btn-danger" />
+        </div>
 </form>
 
 @section Scripts{
@@ -186,7 +147,7 @@
                             $('#ReturnInfo_Address_City').val(data.RetRcptAddressCity);
                             $('#ReturnInfo_Address_State').val(data.RetRcptAddressState);
                             $('#ReturnInfo_Address_Zip').val(data.RetRcptAddressZIP);
-                        }                       
+                        }
                     },
                     error: function () {
                         //alert("error");

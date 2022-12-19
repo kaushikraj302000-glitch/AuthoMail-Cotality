@@ -1173,7 +1173,7 @@ bufferSize: 4096, useAsync: true)) { }
 
                     var isDuplicate = mailPieceSvc.IsDuplicateRecord(mailPiece);
 
-                    if (isDuplicate)
+                    if (isDuplicate && client.IsRejectDupRecord)
                     {
                         var errresult = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.NotAcceptable, ErrorDesc = "System already contains same package information so you cannot submit a duplicate request.", ReceivedOn = receivedTime };
 

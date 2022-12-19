@@ -92,6 +92,9 @@ namespace AM.Reporting
                 case "USAAMTD":
                     USAADailyMTDVolumeReporting.GenerateMTDReport();
                     break;
+                case "DocSolError":
+                    ErrorReports.GenerateDocSolErrorReport();
+                    break;
                 case "FLOODAUTO":
                     switch (args[1])
                     {
@@ -110,6 +113,9 @@ namespace AM.Reporting
                     {
                         case "ErrorReport":
                             DelfusReporting.GenerateErrorReport();
+                            break;
+                        case "EdeliveryReport"://3rd parameter will be "Daily" or "Monthly"
+                            DelfusReporting.GenerateTaxComEdeliveryReport(args[2]);
                             break;
                         default:
                             break;
