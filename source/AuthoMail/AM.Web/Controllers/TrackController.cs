@@ -18,7 +18,7 @@ namespace AM.Web.Controllers
             this.supportSvc = supportSvc;
         }
 
-        public ActionResult Index(string id, bool isEDelivery)
+        public ActionResult Index(string id = null, bool isEDelivery = false)
         {
             TrackingInfoViewModel model = new TrackingInfoViewModel();
 
