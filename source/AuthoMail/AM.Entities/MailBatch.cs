@@ -130,13 +130,16 @@ namespace AM.Entities
         [XmlAttribute(DataType = "date"), DisplayName("Expiry Date")]
         public DateTime ExpiryDate { get; set; }
 
-        public bool ShouldSerializeExpiryDate()
-        {
-            return ExpiryDate != null && ExpiryDate != DateTime.MinValue;
-        }
+        [XmlAttribute, DisplayName("Is e-Sign")]
+        public bool IsEsign { get; set; }
 
         [XmlAttribute, DisplayName("Is e-Delivery")]
         public bool PrintAndShipOnExpiry { get; set; }
+
+        public bool ShouldSerializeExpiryDate()
+        {
+            return ExpiryDate != null && ExpiryDate != DateTime.MinValue;
+        }        
     }
 
     [Serializable]

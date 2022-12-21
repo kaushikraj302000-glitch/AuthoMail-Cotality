@@ -54,6 +54,7 @@ namespace AM.Entities
         public const string SigningRoomCreated = "SigningRoomCreated";
         public const string InvitationSent = "InvitationSent";
         public const string eDelivered = "eDelivered";
+        public const string eSigned = "eSigned";
         public const string Expired = "Expired";
         public const string Declined = "Declined";
         public const string ReportedBack = "ReportedBack";
@@ -61,27 +62,13 @@ namespace AM.Entities
 
     public static class ActivityStatus
     {
-        public const string ESignConsentAccepted = "ESIGN Consent Accepted";
-        public const string ESignConsentDeclined = "ESIGN Consent Declined";
+        public const string ESignConsentAccepted = "ESign Consent Accepted";
+        public const string ESignConsentDeclined = "ESign Consent Declined";
         public const string DocumentReviewed = "Document Reviewed";
         public const string DocumentSigned = "Document Signed";
         public const string DocumentDownloaded = "Document Downloaded";
     }
 
-    public static class EDeliveryStatus
-    {
-        public const string Consented = "Consented";
-        public const string NotConsented = "NotConsented";
-        public const string DocReviewed = "DocReviewed";
-        public const string DocDownloaded = "DocDownloaded";
-        public const string ESigned = "ESigned";
-    }
-
-    public static class SigningRoomStatus
-    {
-        public const string InProgress = "InProgress";
-        public const string Expired = "Expired";
-    }
 
     public static class OutComeCodes
     {
