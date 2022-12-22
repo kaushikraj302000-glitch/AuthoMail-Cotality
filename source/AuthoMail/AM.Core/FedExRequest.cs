@@ -934,7 +934,7 @@ namespace AM.Core
         public class PackageSpecialServices
         {
             [JsonProperty("specialServiceTypes")]
-            public List<ShipmentSpecialServiceType> SpecialServiceTypes { get; set; }
+            public List<string> SpecialServiceTypes { get; set; }
 
             [JsonProperty("signatureOptionType")]
             public SignatureOptionType SignatureOptionType { get; set; }
