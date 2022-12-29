@@ -73,7 +73,7 @@ namespace AM.Reporting
             string reportFilePath = Path.Combine(AppConfig.TaxComErrorReportPath, $"TaxCommercialErrorReport_{startDate.ToString("MMddyyyy")}_To_{ endDate.ToString("MMddyyyy")}.csv");
             File.WriteAllText(reportFilePath, reconReport.ToString());
 
-            SendReportToTaxCommercialTeam(reportFilePath, subject, body);
+            SendReportToTaxCommercialTeam(reportFilePath, subject, body, AppConfig.TaxComEmailTo, AppConfig.TaxComEmailCc);
         }
 
         internal static void GenerateTaxComEdeliveryReport(string reportType)
@@ -132,10 +132,10 @@ namespace AM.Reporting
             string reportFilePath = Path.Combine(AppConfig.TaxComEDeliveryReportPath, $"TaxCommercialEdelivery{reportType}Report_{startDate.ToString("MMddyyyy")}_To_{ endDate.ToString("MMddyyyy")}.csv");
             File.WriteAllText(reportFilePath, reconReport.ToString());
 
-            SendReportToTaxCommercialTeam(reportFilePath, subject, body);
+            SendReportToTaxCommercialTeam(reportFilePath, subject, body, AppConfig.TaxComEDeliveryReportEmailTo, AppConfig.TaxComEDeliveryReportEmailCc);
         }
 
-        private static void SendReportToTaxCommercialTeam(string reportFilePath, string subject, string body)
+        private static void SendReportToTaxCommercialTeam(string reportFilePath, string subject, string body, string emailTo, string emailCc)
         {
             try
             {
@@ -144,8 +144,8 @@ namespace AM.Reporting
                     using (MailMessage msg = new MailMessage())
                     {
                         msg.IsBodyHtml = false;
-                        msg.To.Add(AppConfig.TaxComEDeliveryReportEmailTo);
-                        msg.CC.Add(AppConfig.TaxComEDeliveryReportEmailCc);
+                        msg.To.Add(emailTo);
+                        msg.CC.Add(emailCc);
                         msg.Subject = subject;
                         msg.Priority = MailPriority.Normal;
                         msg.Body = body;
