@@ -17,17 +17,18 @@ namespace AM.Services
         List<EDMailPiece> GetBatchesByPipelineStatusAndSFTChannelId(string batchPipelineStatus);
         int UpdateEDMailPiecePipelineStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp);
         int UpdateEDMailPieceActivityStatus(int mailPieceId, string pipeLineStatus, DateTime timestamp);
-        int UpdateEDMailPieceActivityStatus(int mailPieceId, DateTime? consentAcceptedOn, DateTime? consentDeclinedOn, DateTime? docReviewedOn, DateTime? docDownloadedOn, DateTime? expiryDate, string ipAddress);
+        int UpdateEDMailPieceActivityStatus(int mailPieceId, bool isESignRequested, DateTime? consentAcceptedOn, DateTime? consentDeclinedOn, DateTime? docReviewedOn, DateTime? docEsignedOn, DateTime? docDownloadedOn, DateTime? expiryDate, string ipAddress);
         int UpdateEDMailPieceDetails(EDMailPiece mailPiece);
         int ErrorOutOrFallBackEDeliveryPackage(EDMailPiece edmp);
-        int UpdateEDeliveredMPForReportingBack(int mailBatchId, DateTime reportPreppedTiming);
+        int UpdateEDeliveredMPForReportingBack(int mailBatchId, DateTime reportPreppedTiming, string batchStatus);
+        List<EsignDocConfig> GetEsignDocumentConfigurationByClientIdAndDocTypeId(int clientId, int docTypeId);
     }
     public class EDeliveryService : ServiceBase, IEDeliveryService
     {
         public List<EDMailPiece> GetBatchesByPipelineStatusAndSFTChannelId(string pipelineStatus)
         {
             //Sql Query
-            string query = "SELECT ED.Id, ED.UniqueId, ED.ClientId, ED.MailBatchId, MP.BusinessFriendlyIdValue AS LoanNumber, MP.FileName, MP.ExpiryDate, ED.PipelineStatus, MP.RcptFirstName, MP.RcptMiddleName,MP.RcptLastName, MP.RcptEmailId, MP.IsFallBackRequested, ED.TotalPages, ED.ErrorCode, ED.ErrorDesc, ED.SigningRoomId, ED.SigningRoomUniqueId, ED.SigningRoomName,ED.SRDocId,ED.SRDocGuId, ED.ReceivedOn, ED.IsReceived, ED.DownloadedOn, ED.IsDownloaded, ED.ValidatedOn, ED.IsValidated, ED.SigningRoomCreatedOn,ED.IsSigningRoomCreated, ED.InvitationSentOn, ED.IsInvitationSent, ED.eDeliveredOn, ED.IseDelivered, ED.ConsentAcceptedOn, ED.IsConsentAccepted,ED.ConsentDeclinedOn, ED.IsConsentDeclined, ED.DocReviewedOn, ED.IsDocReviewed, ED.DocDownloadedOn, ED.IsDocDownloaded, ED.ESignedOn, ED.IsESigned, C.AppCode AS ClientCode,B.SFTChannelId AS ChannelId,S.Code AS ChannelCode,B.BatchName,ED.DownloadedIPAddress FROM[AM].[EDeliveryMailPieces] ED INNER JOIN AM.MailBatches B ON ED.MailBatchId = B.Id INNER JOIN AM.MailPieces MP ON ED.UniqueId = MP.UniqueId AND ED.MailBatchId = MP.MailBatchId LEFT OUTER JOIN Common.Clients C ON ED.ClientId = C.Id LEFT OUTER JOIN Common.SFTChannels S ON B.SFTChannelId = S.Id WHERE ED.PipelineStatus = @PipelineStatus";
+            string query = "SELECT ED.Id, ED.UniqueId, ED.ClientId, ED.MailBatchId, MP.BusinessFriendlyIdValue AS LoanNumber, MP.FileName, MP.ExpiryDate, ED.PipelineStatus, MP.RcptFirstName, MP.RcptMiddleName,MP.RcptLastName, MP.RcptEmailId, MP.IsFallBackRequested, MP.IsESignRequested, ED.TotalPages, ED.ErrorCode, ED.ErrorDesc, ED.SigningRoomId, ED.SigningRoomUniqueId, ED.SigningRoomName,ED.SRDocId,ED.SRDocGuId, ED.ReceivedOn, ED.IsReceived, ED.DownloadedOn, ED.IsDownloaded, ED.ValidatedOn, ED.IsValidated, ED.SigningRoomCreatedOn,ED.IsSigningRoomCreated, ED.InvitationSentOn, ED.IsInvitationSent, ED.eDeliveredOn, ED.IseDelivered, ED.ConsentAcceptedOn, ED.IsConsentAccepted,ED.ConsentDeclinedOn, ED.IsConsentDeclined, ED.DocReviewedOn, ED.IsDocReviewed, ED.DocDownloadedOn, ED.IsDocDownloaded, ED.ESignedOn, ED.IsESigned, C.AppCode AS ClientCode,B.SFTChannelId AS ChannelId,S.Code AS ChannelCode,B.BatchName,ED.DownloadedIPAddress, MP.DocTypeId FROM [AM].[EDeliveryMailPieces] ED INNER JOIN AM.MailBatches B ON ED.MailBatchId = B.Id INNER JOIN AM.MailPieces MP ON ED.UniqueId = MP.UniqueId AND ED.MailBatchId = MP.MailBatchId LEFT OUTER JOIN Common.Clients C ON ED.ClientId = C.Id LEFT OUTER JOIN Common.SFTChannels S ON B.SFTChannelId = S.Id WHERE ED.PipelineStatus = @PipelineStatus";
 
             switch (pipelineStatus)
             {
@@ -67,9 +68,9 @@ namespace AM.Services
             return db.Execute(query, new { TimeStamp = timestamp, Id = mailPieceId });
         }
 
-        public int UpdateEDMailPieceActivityStatus(int mailPieceId, DateTime? consentAcceptedOn, DateTime? consentDeclinedOn, DateTime? docReviewedOn, DateTime? docDownloadedOn, DateTime? expiryDate, string ipAddress)
+        public int UpdateEDMailPieceActivityStatus(int mailPieceId, bool isESignRequested, DateTime? consentAcceptedOn, DateTime? consentDeclinedOn, DateTime? docReviewedOn, DateTime? docEsignedOn, DateTime? docDownloadedOn, DateTime? expiryDate, string ipAddress)
         {
-            return db.Execute("[dbo].[usp_UpdateEDMailPieceActivityStatus]", new { @Id = mailPieceId, @ConsentAcceptedOn = consentAcceptedOn, @ConsentDeclinedOn = consentDeclinedOn, @DocReviewedOn = docReviewedOn, @DocDownloadedOn = docDownloadedOn, @ExpiryDate = expiryDate, @IpAddress = ipAddress }, commandType: CommandType.StoredProcedure);
+            return db.Execute("[dbo].[usp_UpdateEDMailPieceActivityStatus]", new { @Id = mailPieceId, @IsESignRequested = isESignRequested, @ConsentAcceptedOn = consentAcceptedOn, @ConsentDeclinedOn = consentDeclinedOn, @DocReviewedOn = docReviewedOn, @DocEsignedOn = docEsignedOn, @DocDownloadedOn = docDownloadedOn, @ExpiryDate = expiryDate, @IpAddress = ipAddress }, commandType: CommandType.StoredProcedure);
         }
 
         public int UpdateEDMailPieceDetails(EDMailPiece mailPiece)
@@ -192,13 +193,19 @@ namespace AM.Services
             }
         }
 
-        public int UpdateEDeliveredMPForReportingBack(int mailBatchId, DateTime reportPreppedTiming)
+        public int UpdateEDeliveredMPForReportingBack(int mailBatchId, DateTime reportPreppedTiming, string batchStatus)
         {
             using (ICommonService commonSvc = new CommonService())
             {
-                commonSvc.UpdateBatchStatus(mailBatchId, BatchStatus.ShippedAll.ToString()).Wait();
+                commonSvc.UpdateBatchStatus(mailBatchId, batchStatus).Wait();
                 return commonSvc.UpdateBatchPipeLineStatus(mailBatchId, BatchPipelineStatus.ReportPrepped, reportPreppedTiming).Result;
             }
+        }
+
+        public List<EsignDocConfig> GetEsignDocumentConfigurationByClientIdAndDocTypeId(int clientId, int docTypeId)
+        {
+            string query = "SELECT [ClientId], [DocTypeId], [SignHeight], [SignWidth], [SignXOffset], [SignYOffset], [Optional], [SignPageNumber] FROM [AM].[EsignDocConfig] WHERE ClientId = @ClientId AND DocTypeId = @DoctypeId";
+            return db.Query<EsignDocConfig>(query, new { ClientId = clientId, DocTypeId = docTypeId }).ToList();
         }
     }
 }

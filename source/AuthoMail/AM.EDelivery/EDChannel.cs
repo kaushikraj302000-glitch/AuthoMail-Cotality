@@ -50,6 +50,7 @@ namespace AM.EDelivery
                 this.CreateSigningRoom();
                 this.SendInvitations();
                 this.EDelivered();
+                this.ESigned();
                 this.Expired();
                 this.Declined();
             }
@@ -77,6 +78,10 @@ namespace AM.EDelivery
         /// Take all eDelivered records and generate reports
         /// </summary>
         protected abstract void EDelivered();
+        /// <summary>
+        /// Take all eSigned records and generate reports
+        /// </summary>
+        protected abstract void ESigned();
         /// <summary>
         /// Take all Expired records and generate reports
         /// </summary>
@@ -108,7 +113,7 @@ namespace AM.EDelivery
                     {
                         IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
 
-                        var activityLogs = eDeliveryAPISvc.GetSigningRoomActivityLog(mp.SigningRoomName).Result;
+                        var activityLogs = eDeliveryAPISvc.GetSigningRoomActivityLog(mp.SigningRoomName, mp.ClientId.Value).Result;
 
                         foreach (var actlog in activityLogs)
                         {
@@ -123,6 +128,9 @@ namespace AM.EDelivery
                                 case ActivityStatus.DocumentReviewed:
                                     mp.DocReviewedOn = actlog.UpdatedDate.PstToUtc();
                                     break;
+                                case ActivityStatus.DocumentSigned:
+                                    mp.ESignedOn = actlog.UpdatedDate.PstToUtc();                                    
+                                    break;
                                 case ActivityStatus.DocumentDownloaded:
                                     mp.DocDownloadedOn = actlog.UpdatedDate.PstToUtc();
                                     mp.DownloadedIPAddress = actlog.IPAddress;
@@ -134,7 +142,7 @@ namespace AM.EDelivery
                         using (TransactionScope scope = new TransactionScope())
                         {
 
-                            int i = eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, mp.ConsentAcceptedOn, mp.ConsentDeclinedOn, mp.DocReviewedOn, mp.DocDownloadedOn, mp.ExpiryDate, mp.DownloadedIPAddress);
+                            int i = eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, mp.IsESignRequested, mp.ConsentAcceptedOn, mp.ConsentDeclinedOn, mp.DocReviewedOn, mp.ESignedOn, mp.DocDownloadedOn, mp.ExpiryDate, mp.DownloadedIPAddress);
                             scope.Complete();
                         }
                     }

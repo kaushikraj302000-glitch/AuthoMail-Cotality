@@ -26,7 +26,9 @@ namespace AM.Entities
         Failed,
         ShippedPartial,
         ShippedAll,
-        PulledBack
+        PulledBack,
+        eDelivered,
+        eSigned
     }
 
     public static class BatchPipelineStatus
@@ -62,8 +64,9 @@ namespace AM.Entities
 
     public static class ActivityStatus
     {
-        public const string ESignConsentAccepted = "ESign Consent Accepted";
-        public const string ESignConsentDeclined = "ESign Consent Declined";
+        // Activity Status should match exactly with the DocMagic statuses
+        public const string ESignConsentAccepted = "ESIGN Consent Accepted";
+        public const string ESignConsentDeclined = "ESIGN Consent Declined";
         public const string DocumentReviewed = "Document Reviewed";
         public const string DocumentSigned = "Document Signed";
         public const string DocumentDownloaded = "Document Downloaded";
@@ -248,6 +251,7 @@ namespace AM.Entities
         Error,
         Shipped,
         eDelivered,
+        eSigned,
         Unknown,
         Acknowledgement,
         NotFound

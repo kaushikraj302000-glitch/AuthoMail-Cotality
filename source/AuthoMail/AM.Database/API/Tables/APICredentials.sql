@@ -2,7 +2,7 @@
 (
 	[Id]                 INT              IDENTITY (1000, 1) NOT NULL,
     [ClientId]           INT              NOT NULL,
-    [Secret]             VARCHAR (MAX)    NOT NULL,
+    [SecretKey]          VARCHAR (MAX)    NOT NULL,
     [UserName]           VARCHAR (255)    NOT NULL,
     [Password]           VARCHAR (MAX)    NOT NULL
 

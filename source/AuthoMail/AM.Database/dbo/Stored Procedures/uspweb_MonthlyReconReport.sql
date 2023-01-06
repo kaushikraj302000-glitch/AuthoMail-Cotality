@@ -11,7 +11,7 @@ BEGIN
 	SELECT B.BatchName,P.UniqueId, P.DocumentOrPackageType ,P.BusinessFriendlyIdValue, P.[FileName], P.[FilePattern]
 	,B.ReceivedOn,P.PrintedOn ,P.ShippedOn ,P.TotalPages ,P.RcptFirstName,P.RcptLastName ,P.RcptAddressStreet 
 	,P.RcptAddressCity,P.RcptAddressState ,P.RcptAddressZIP,P.Id AS [MailPieceId],P.ShippingCost,P.ShippingStatus
-	,P.ErrorDesc, PTB.PrintBatchName,PTB.SubmittedOn,P.IsEDeliveryRequested, S.Code AS Channel, P.PrintLocation 
+	,P.ErrorDesc, PTB.PrintBatchName,PTB.SubmittedOn,P.IsEDeliveryRequested, P.IsESignRequested, S.Code AS Channel, P.PrintLocation 
 	,PCD.ShippingCarrier + ' / ' +PCD.ShippingServiceType AS [ShippingMethod], P.TrackingNo, P.TotalSheets
 	,P.TotalBlankPages, c.AppCode, E.EnvelopeName ,P.Inserts , P.DeliveryStatus, P.DeliveryDate,P.BlankPageNumbers
 	FROM AM.MailBatches B WITH (NOLOCK)
@@ -60,7 +60,7 @@ SELECT A.AppCode, A.BatchName AS BatchName, A.UniqueId,A.BusinessFriendlyIdValue
 ,A.RcptFirstName AS [FirstName],A.RcptLastName AS [LastName],A.RcptAddressStreet AS [Address]
 ,A.RcptAddressCity AS [City],A.RcptAddressState AS [State],A.RcptAddressZIP AS [ZIP],A.Channel
 ,A.DocumentOrPackageType AS [DocType],A.ReceivedOn, A.ShippedOn, A.PrintLocation,A.ShippingStatus AS [Status]
-,A.TrackingNo, A.[FileName],A.TotalPages, A.TotalSheets, A.TotalBlankPages,A.IsEDeliveryRequested, A.[ShippingMethod]
+,A.TrackingNo, A.[FileName],A.TotalPages, A.TotalSheets, A.TotalBlankPages,A.IsEDeliveryRequested,A.IsESignRequested, A.[ShippingMethod]
 ,ISNULL(REPLACE(REPLACE(A.ErrorDesc, CHAR(13), ''), CHAR(10), ''),'') AS ErrorDesc
 ,A.Inserts,A.PrintBatchName, A.SubmittedOn, A.DeliveryStatus, A.DeliveryDate, A.ShippingCost, A.EnvelopeName
 ,ISNULL(CTE2.LETTER,0) AS [LetterPageCount],ISNULL(CTE2.LEGAL,0) AS [LegalPageCount]

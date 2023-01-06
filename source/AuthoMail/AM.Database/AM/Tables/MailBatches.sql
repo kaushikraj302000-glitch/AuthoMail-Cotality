@@ -52,8 +52,10 @@
     [RetRcptAddressZIP]                   VARCHAR (255)    NULL,
     [RetRcptAddressCountry]               VARCHAR (255)    NULL,
     [IsReshippedBatch] BIT NULL, 
-    [HeldOn] DATETIME NULL, 
     [IsHeld]                      AS               (case when [HeldOn] IS NULL then (0) else (1) end),
+    [HeldOn] DATETIME NULL, 
+    [IsSubmittedToEDelivery]               AS               (case when [SubmittedToEDeliveryOn] IS NULL then (0) else (1) end),
+    [SubmittedToEDeliveryOn]               DATETIME         NULL,
     CONSTRAINT [PK_Batch] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_MailBatches_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
     CONSTRAINT [FK_MailBatches_SFTChannel] FOREIGN KEY ([SFTChannelId]) REFERENCES [Common].[SFTChannels] ([Id])

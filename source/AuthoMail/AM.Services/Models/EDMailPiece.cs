@@ -55,6 +55,7 @@ namespace AM.Services
             }
         }
         public bool IsFallBackRequested { get; set; }
+        public bool IsESignRequested { get; set; }
         public int? SigningRoomId { get; set; }
         public Guid? SigningRoomUniqueId { get; set; }
         public string SigningRoomName { get; set; }
@@ -83,6 +84,7 @@ namespace AM.Services
         public DateTime? ESignedOn { get; set; }
         public bool IsESigned { get; set; }
         public string DownloadedIPAddress { get; set; }
+        public int DocTypeId { get; set; }
 
         public string GetChannelCode()
         {
@@ -114,5 +116,13 @@ namespace AM.Services
             PnSResponsePath = Path.Combine(BatchRepo, "PnSResponse");
             AMResponsePath = Path.Combine(BatchRepo, Util.AMResponseFolderName);
         }
+    }
+
+    public class APICredential
+    {
+        public int ClientId { get; set; }
+        public string SecretKey { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }        
     }
 }

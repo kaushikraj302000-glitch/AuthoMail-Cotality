@@ -133,7 +133,7 @@ namespace AM.Entities
         [XmlAttribute, DisplayName("Is e-Sign")]
         public bool IsEsign { get; set; }
 
-        [XmlAttribute, DisplayName("Is e-Delivery")]
+        [XmlAttribute, DisplayName("Is PrintAndShip On Expiry")]
         public bool PrintAndShipOnExpiry { get; set; }
 
         public bool ShouldSerializeExpiryDate()

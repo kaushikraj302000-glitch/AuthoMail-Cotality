@@ -102,7 +102,7 @@
     @Scripts.Render("~/bundles/datatables")
     <script type="text/javascript">
         $(document).ready(function () {
-            $('#eDelivery_PrintAndShipOnExpiry').change(function (e) {
+            $('#eDelivery_IsEDelivery').change(function (e) {
                 e.preventDefault();
                 if ($(this).is(':checked')) {
                     $('*[data-valmsg-for="RecipientInfo.Recipient.EmailAddress"]').html('Required')

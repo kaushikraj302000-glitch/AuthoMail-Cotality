@@ -12,6 +12,7 @@ namespace AM.Web.Models
         public string Channel { get; set; }
         public string DocType { get; set; }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
         public int BatchId { get; set; }
         public string ShippingMethod { get; set; }
         public string ShippingCarrier { get; set; }

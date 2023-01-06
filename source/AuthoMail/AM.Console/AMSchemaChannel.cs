@@ -200,6 +200,8 @@ namespace AM.Console
                     newMailBatch.ReturnInfo = batchReturnInfo;
                     newMailBatch.Id = Guid.NewGuid(); // Here we are generating new guid for every batch
 
+                    //Maintain original MailBatchId for E-Delivery request for the reference
+                    newMailBatch.CustomInfo.Add(new Metadata() { Key = "OriginalMailBatchId", Value = mailBatchData.Id != Guid.Empty && mailBatchData.Id != null ? mailBatchData.Id.ToString() : string.Empty });
                     newMailBatch.MailPieces.Add(eDNode);
 
                     batchPath = SeparateEDeliveryXMLsAndPDFs(newMailBatch, eDNode.DocumentOrPackage, channelDownloadPath, extractedZipDirPath, batchName);
@@ -837,11 +839,13 @@ namespace AM.Console
                             if (requests.eDelivery == null)
                             {
                                 mailPieceDTO.IsEDeliveryRequested = false;
+                                mailPieceDTO.IsESignRequested = false;
                                 mailPieceDTO.IsFallBackRequested = false;
                             }
                             else
                             {
                                 mailPieceDTO.IsEDeliveryRequested = true;
+                                mailPieceDTO.IsESignRequested = requests.eDelivery.IsEsign;
                                 mailPieceDTO.IsFallBackRequested = requests.eDelivery.PrintAndShipOnExpiry;
                                 if (requests.eDelivery.ExpiryDate == null || requests.eDelivery.ExpiryDate == DateTime.MinValue)
                                 {
@@ -1141,96 +1145,84 @@ namespace AM.Console
                 mailPieceDTO.TotalPages = 0;
             }
 
-            if (mailPieceDTO.IsFallBackRequested || !mailPieceDTO.IsEDeliveryRequested)
+            //NOTE : Here we are considering that by default receivedon will be original one but if any package that is for Hold then we are considering its effective receivedon date based on ProcessOn
+            DateTime receivedOn = mbi.MailBatch.ReceivedOn.Value; ;
+
+            if (Config.Monitor_PackagesHoldInfo.Any(x => x.ClientId == mailPieceDTO.ClientId && x.HoldOn == mbi.MailBatch.ReceivedOn.Value.UtcToEst().Date))
             {
-                //NOTE : Here we are considering that by default receivedon will be original one but if any package that is for Hold then we are considering its effective receivedon date based on ProcessOn
-                DateTime receivedOn = mbi.MailBatch.ReceivedOn.Value; ;
-
-                if (Config.Monitor_PackagesHoldInfo.Any(x => x.ClientId == mailPieceDTO.ClientId && x.HoldOn == mbi.MailBatch.ReceivedOn.Value.UtcToEst().Date))
+                var packageHoldInfo = Config.Monitor_PackagesHoldInfo.SingleOrDefault(x => x.ClientId == mailPieceDTO.ClientId && x.HoldOn == mbi.MailBatch.ReceivedOn.Value.UtcToEst().Date);
+                if (packageHoldInfo.DocumentOrPackageType.IsNullOrWhiteSpace())
                 {
-                    var packageHoldInfo = Config.Monitor_PackagesHoldInfo.SingleOrDefault(x => x.ClientId == mailPieceDTO.ClientId && x.HoldOn == mbi.MailBatch.ReceivedOn.Value.UtcToEst().Date);
-                    if (packageHoldInfo.DocumentOrPackageType.IsNullOrWhiteSpace())
-                    {
-                        receivedOn = packageHoldInfo.ProcessOn.EstToUtc();
-                    }
-                    else if (packageHoldInfo.DocumentOrPackageType == mailPieceDTO.DocumentOrPackageType)
-                    {
-                        receivedOn = packageHoldInfo.ProcessOn.EstToUtc();
-                    }
-                    else
-                    {
-                        receivedOn = mbi.MailBatch.ReceivedOn.Value;
-                    }
+                    receivedOn = packageHoldInfo.ProcessOn.EstToUtc();
                 }
-
-                //Document Or Package Type validation
-                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, receivedOn.UtcToEst());
-
-                if (docType != null)
+                else if (packageHoldInfo.DocumentOrPackageType == mailPieceDTO.DocumentOrPackageType)
                 {
-                    mailPieceDTO.DocTypeId = docType.Id;
-                    mailPieceDTO.PnSConfigDetailId = docType.PnSConfigDetailId;
-                    mailPieceDTO.PrintTrailId = docType.PrintTrailId;
-                }
-
-                if (docType == null)
-                {
-                    return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages) };
-                }
-                else if (pageCount != 0 && pageCount == blankPageNos.Count)
-                {
-                    mailPieceDTO.TotalBlankPages = blankPageNos.Count;
-                    mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);
-                    return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "All pages are blank in received pdf file." };
-                }
-                else if (!mailPieceDTO.IsReturnInfoSpecified && !mbi.MailBatch.IsReturnInfoSpecified && !docType.IsReturnInfoSpecified)
-                {
-                    return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return mailing address is not specified for this package." };
+                    receivedOn = packageHoldInfo.ProcessOn.EstToUtc();
                 }
                 else
                 {
-                    //if at mail piece level or at mail batch level, system didn't find return info then it will check for MailBatch level if exist system will use that in mail piece level 
-                    mailPieceDTO.TotalBlankPages = blankPageNos.Count;
-                    mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);
-                    if (!mailPieceDTO.IsReturnInfoSpecified && !mbi.MailBatch.IsReturnInfoSpecified && docType.IsReturnInfoSpecified)
-                    {
-                        mailPieceDTO.RetRcptFirstName = docType.RetRcptFirstName;
-                        mailPieceDTO.RetRcptLastName = docType.RetRcptLastName;
+                    receivedOn = mbi.MailBatch.ReceivedOn.Value;
+                }
+            }
 
-                        mailPieceDTO.RetRcptMiddleName = docType.RetRcptMiddleName;
-                        mailPieceDTO.RetRcptOrganization = docType.RetRcptOrganization;
-                        mailPieceDTO.RetRcptPrefix = docType.RetRcptPrefix;
-                        mailPieceDTO.RetRcptSuffix = docType.RetRcptSuffix;
-                        mailPieceDTO.RetRcptPhone = docType.RetRcptPhone;
+            //Document Or Package Type validation
+            var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, receivedOn.UtcToEst());
 
-                        mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = docType.RetRcptAddrOptionalLine1AboveStreet;
-                        mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = docType.RetRcptAddrOptionalLine2AboveStreet;
+            if (docType != null)
+            {
+                mailPieceDTO.DocTypeId = docType.Id;
+                mailPieceDTO.PnSConfigDetailId = docType.PnSConfigDetailId;
+                mailPieceDTO.PrintTrailId = docType.PrintTrailId;
+            }
 
-                        mailPieceDTO.RetRcptAddressStreet = docType.RetRcptAddressStreet;
-                        mailPieceDTO.RetRcptAddressAptOrSuiteOrOther = docType.RetRcptAddressAptOrSuiteOrOther;
+            if (docType == null)
+            {
+                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages) };
+            }
+            else if (pageCount != 0 && pageCount == blankPageNos.Count)
+            {
+                mailPieceDTO.TotalBlankPages = blankPageNos.Count;
+                mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);
+                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PDF_File, ErrorMessage = "All pages are blank in received pdf file." };
+            }
+            else if (!mailPieceDTO.IsReturnInfoSpecified && !mbi.MailBatch.IsReturnInfoSpecified && !docType.IsReturnInfoSpecified)
+            {
+                return new MailPieceValidationResult() { Code = OutComeCodes.Mailing_Address_Missing_Or_Invalid, ErrorMessage = "Return mailing address is not specified for this package." };
+            }
+            else
+            {
+                //if at mail piece level or at mail batch level, system didn't find return info then it will check for MailBatch level if exist system will use that in mail piece level 
+                mailPieceDTO.TotalBlankPages = blankPageNos.Count;
+                mailPieceDTO.BlankPageNumbers = string.Join(",", blankPageNos);
+                if (!mailPieceDTO.IsReturnInfoSpecified && !mbi.MailBatch.IsReturnInfoSpecified && docType.IsReturnInfoSpecified)
+                {
+                    mailPieceDTO.RetRcptFirstName = docType.RetRcptFirstName;
+                    mailPieceDTO.RetRcptLastName = docType.RetRcptLastName;
 
-                        mailPieceDTO.RetRcptAddrOptionalLine1BelowStreet = docType.RetRcptAddrOptionalLine1BelowStreet;
-                        mailPieceDTO.RetRcptAddrOptionalLine2BelowStreet = docType.RetRcptAddrOptionalLine2BelowStreet;
+                    mailPieceDTO.RetRcptMiddleName = docType.RetRcptMiddleName;
+                    mailPieceDTO.RetRcptOrganization = docType.RetRcptOrganization;
+                    mailPieceDTO.RetRcptPrefix = docType.RetRcptPrefix;
+                    mailPieceDTO.RetRcptSuffix = docType.RetRcptSuffix;
+                    mailPieceDTO.RetRcptPhone = docType.RetRcptPhone;
 
-                        mailPieceDTO.RetRcptAddressCity = docType.RetRcptAddressCity;
-                        mailPieceDTO.RetRcptAddressState = docType.RetRcptAddressState;
-                        mailPieceDTO.RetRcptAddressZIP = docType.RetRcptAddressZIP;
-                    }
+                    mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = docType.RetRcptAddrOptionalLine1AboveStreet;
+                    mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = docType.RetRcptAddrOptionalLine2AboveStreet;
+
+                    mailPieceDTO.RetRcptAddressStreet = docType.RetRcptAddressStreet;
+                    mailPieceDTO.RetRcptAddressAptOrSuiteOrOther = docType.RetRcptAddressAptOrSuiteOrOther;
+
+                    mailPieceDTO.RetRcptAddrOptionalLine1BelowStreet = docType.RetRcptAddrOptionalLine1BelowStreet;
+                    mailPieceDTO.RetRcptAddrOptionalLine2BelowStreet = docType.RetRcptAddrOptionalLine2BelowStreet;
+
+                    mailPieceDTO.RetRcptAddressCity = docType.RetRcptAddressCity;
+                    mailPieceDTO.RetRcptAddressState = docType.RetRcptAddressState;
+                    mailPieceDTO.RetRcptAddressZIP = docType.RetRcptAddressZIP;
                 }
             }
 
             if (mailPieceDTO.IsEDeliveryRequested && mailPieceDTO.ShippingStatus != ShippingStatus.Error.ToString())
             {
-                //NOTE : System will check for E-Delivery and set E-Delivery as a Document type even though requested for FallBack
-                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, "E-Delivery", pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst());
-
-                if (docType != null)
-                {
-                    mailPieceDTO.DocTypeId = docType.Id;
-                    mailPieceDTO.PnSConfigDetailId = docType.PnSConfigDetailId;
-                }
-
-                if (docType == null)
+                if (!mbi.Client.IsEDeliveryEnabled)
                 {
                     return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Client has not opted for E-Delivery service." };
                 }
@@ -1241,6 +1233,10 @@ namespace AM.Console
                 else if (mailPieceDTO.ExpiryDate == null && mailPieceDTO.IsEDeliveryRequested)//Here system will validate if EDelivery is requested then Expiry date is required, if not exist then error out
                 {
                     return new MailPieceValidationResult() { Code = OutComeCodes.Issue_In_EDelivery, ErrorMessage = "Client has not provided expiry date or expiry days while creating signing room.".Fill(mailPieceDTO.DocumentOrPackageType) };
+                }
+                else if (mailPieceDTO.ExpiryDate != null && mailPieceDTO.IsEDeliveryRequested && mailPieceDTO.ExpiryDate.Value < Common.EstToday)//Here system will validate if EDelivery is requested then Expiry date must be greater than or equal to current date otherwise failed.
+                {
+                    return new MailPieceValidationResult() { Code = OutComeCodes.Issue_In_EDelivery, ErrorMessage = "The expiration date must be greater than or equal to the current date." };
                 }
                 else
                 {
@@ -1352,20 +1348,12 @@ namespace AM.Console
 
                     if (mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "CommunityName").Value.IsNullOrWhiteSpace())
                         yield return new MailPieceValidationResult() { Code = OutComeCodes.Missing_CommunityName, ErrorMessage = "Community name is not specified in package." };
-
-                    //if (mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "CommunityCode").Value.IsNullOrWhiteSpace())
-                    //    yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_ShippingDetail, ErrorMessage = "Community code is not specified in package." };
                 }
             }
 
             yield break;
         }
         #endregion
-
-        //protected override void CalculateDueDateAndPrintLocation()
-        //{
-        //    Channel.CalculateDueDateAndPrintLocation(SFTChannel.Id);
-        //}
 
         protected override void AcknowledgeBatches()
         {
