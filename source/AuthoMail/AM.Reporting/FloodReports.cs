@@ -36,7 +36,7 @@ namespace AM.Reporting
                     if (mpDetails.Count > 0)
                     {
                         string reportFilePath = Path.Combine(AppConfig.FloodMonthlyReportPath, $"FloodBatchReceivedReport_{startDate.ToString("MMddyyyy")}_To_{endDate.ToString("MMddyyyy")}.csv");
-                        SendEmailNotificationToFlood(mpDetails, reportFilePath, $"Flood Mothly Report For {startDate.ToString("MMddyyyy")} To {endDate.ToString("MMddyyyy")}");
+                        SendEmailNotificationToFlood(mpDetails, reportFilePath, $"Flood Monthly Report For {startDate.ToString("MMddyyyy")} To {endDate.ToString("MMddyyyy")}");
                     }
                 }
                 log.Debug("Flood Monthly received batch report Execution completed at {0} Est".Fill(Common.Now.UtcToEst()));
