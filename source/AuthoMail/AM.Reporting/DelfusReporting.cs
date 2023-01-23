@@ -80,7 +80,7 @@ namespace AM.Reporting
         {
             try
             {
-                log.Debug($"TaxCommercial Edelivery {reportType} Report Execution Triggered at {0} Est".Fill(Common.Now.UtcToEst()));
+                log.Debug($"TaxCommercial Edelivery {reportType} Report Execution Triggered at {Common.Now.UtcToEst()} Est");
                 List<DelfusEdeliveryReport> taxcomEdeliveryReportData;
 
                 using (IDelfusTemplateService delfusTemplateService = new DelfusTemplateService())
@@ -103,7 +103,7 @@ namespace AM.Reporting
                         GenerateEdeliveryReport(taxcomEdeliveryReportData, startDate, endDate, reportType);
                     }
                 }
-                log.Debug($"TaxCommercial Edelivery {reportType} Report Execution Completed at {0} Est".Fill(Common.Now.UtcToEst()));
+                log.Debug($"TaxCommercial Edelivery {reportType} Report Execution Completed at {Common.Now.UtcToEst()} Est");
             }
             catch (Exception ex)
             {
