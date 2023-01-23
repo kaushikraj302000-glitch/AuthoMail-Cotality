@@ -37,6 +37,10 @@
         width: 90% !important;
     }
 
+    #selectbusinessId .bootstrap-select {
+        width: 50% !important;
+    }
+
     .textAreaForPB {
         display: inline-block;
         width: 90% !important;
@@ -91,7 +95,7 @@
                             else if (ViewBag.BusinessId.Count > 1)
                             {
                                 <label for="BusinessFriendlyIdName">Select Business ID</label>
-                                <div class="input-group">
+                                <div class="input-group" id="selectbusinessId">
                                     <select id="BusinessFriendlyIdName" class="selectpicker" data-live-search="true" data-live-search-placeholder="Search Business ID">
                                         <option value="">Select BusinessId</option>
                                         @foreach (var item in ViewBag.BusinessId)
@@ -116,7 +120,7 @@
                             <label for="BatchName">Batch Name</label>
                             <input class="form-control" name="BatchName" placeholder="Batch Name" id="BatchName">
                         </div>
-                        <div class="form-group col-md-2">
+                        <div class="form-group col-md-4">
                             <label for="Channel">Channel</label>
                             @Html.Action("_Channel", "Common")
                         </div>
