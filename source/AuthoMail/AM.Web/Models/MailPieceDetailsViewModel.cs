@@ -70,6 +70,7 @@ namespace AM.Web.Models
         public string RetRcptAddressCity { get; set; }
         public string RetRcptAddressState { get; set; }
         public string RetRcptAddressZIP { get; set; }
+        public string RcptEmailId { get; set; }
         public string PrintLocation { get; set; }
         public string PrintBatch { get; set; }
         public string PrintFileName { get; set; }

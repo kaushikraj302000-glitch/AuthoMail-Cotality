@@ -306,7 +306,14 @@
                 <td><span>{DocType}</span></td>
                 <td><span>{IsEDeliveryRequestedFormatted}</span></td>
                 <td><span>{Channel}</span></td>
-                <td>{ShippingCarrier} / {ShippingMethod}</td>
+                @if (ViewBag.ShippingCarrier == "E-Delivery")
+                {
+                    <td>{ShippingCarrier}</td>
+                }
+                else
+                {
+                    <td>{ShippingCarrier} / {ShippingMethod}</td>
+                }
                 <td>{ErrorCode}</td>
                 <td>{ErrorDesc}</td>
             </tr>
@@ -614,6 +621,12 @@
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Recipient Organization:&nbsp; </label>
                     <span class="form-control-static">{RcptOrganization}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">Recipient Email:&nbsp; </label>
+                    <span class="form-control-static">{RcptEmailId}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
