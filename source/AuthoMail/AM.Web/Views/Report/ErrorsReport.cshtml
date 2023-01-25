@@ -140,7 +140,7 @@
                     <td><span>{ZIP}</span></td>
                 }
                 <td><span>{ErrorDesc}</span></td>
-                <td><span>{ShippingCarrier} / {ShippingMethod}</span></td>
+                <td><span>{ShippingCarrierOrMethod}</span></td>
                 <td>{BatchId}</td>
             </tr>
         </tbody>
@@ -290,6 +290,14 @@
                             if (response.Object.model.length > 0) {
                                 var data = FormatObject(response.Object.model);
                                 $("#errorList").html("");
+                                $.each(data, function (index, value) {
+                                    if (value.ShippingCarrier == "E-Delivery") {
+                                        value.ShippingCarrierOrMethod = value.ShippingCarrier;
+                                    }
+                                    else {
+                                        value.ShippingCarrierOrMethod = value.ShippingCarrier + " / " + value.ShippingMethod;
+                                    }
+                                });
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#errorBody", "#errorbodyContent", "#errorTableContent", "#errorList");
                             }

@@ -155,7 +155,7 @@
                 <td><span>{MailedOnFormatted}</span></td>
                 <td><span>{ClientCode}</span></td>
                 <td><span>{TrackingNo}</span></td>
-                <td><span>{ShippingCarrier} / {ShippingMethod}</span></td>
+                <td><span>{ShippingCarrierOrMethod}</span></td>
                 @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                 {
                     <td><span>{FirstName}</span></td>
@@ -348,6 +348,14 @@
                                 var data = FormatObject(response.Object.model);
                                 $("#summaryList").html("");
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
+                                $.each(data, function (index, value) {
+                                    if (value.ShippingCarrier == "E-Delivery") {
+                                        value.ShippingCarrierOrMethod = value.ShippingCarrier;
+                                    }
+                                    else {
+                                        value.ShippingCarrierOrMethod = value.ShippingCarrier + " / " + value.ShippingMethod;
+                                    }
+                                });
                                 BindTemplate(data, "#summaryBody", "#summarybodyContent", "#summaryTableContent", "#summaryList");
                             }
                             else {

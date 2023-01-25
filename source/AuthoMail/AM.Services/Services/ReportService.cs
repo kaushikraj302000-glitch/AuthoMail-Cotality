@@ -857,7 +857,7 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
                     ,B.ReceivedOn, P.ShippedOn, P.PulledBackOn, P.PrintLocation
                     ,P.ShippingStatus AS [Status], P.TrackingNo, P.[FileName]
                     ,P.TotalPages, P.TotalSheets,ISNULL(MPP.LETTER,0) AS [LetterPageCount],ISNULL(MPP.LEGAL,0) AS [LegalPageCount], P.TotalBlankPages
-                    ,P.IsEDeliveryRequested, PCD.ShippingCarrier + ' / ' + PCD.ShippingServiceType AS [ShippingMethod]
+                    ,P.IsEDeliveryRequested, IIF(PCD.ShippingCarrier = 'E-Delivery', PCD.ShippingCarrier, PCD.ShippingCarrier + ' / ' +PCD.ShippingServiceType ) AS [ShippingMethod]
                     ,ISNULL(REPLACE(REPLACE(P.ErrorDesc, CHAR(13), ''), CHAR(10), ''),'') AS ErrorDesc
                     ,P.Inserts,PT.PrintBatchName, PT.SubmittedOn, P.DeliveryStatus, P.DeliveryDate, P.ShippingCost, E.EnvelopeName
                     FROM AM.MailPieces P
