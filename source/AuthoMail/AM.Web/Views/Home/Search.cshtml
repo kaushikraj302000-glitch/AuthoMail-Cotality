@@ -305,8 +305,8 @@
                 <td><span>{ShipmentStatus}</span></td>
                 <td><span>{DocType}</span></td>
                 <td><span>{IsEDeliveryRequestedFormatted}</span></td>
-                <td><span>{Channel}</span></td>
-                <td>{ShippingCarrier} / {ShippingMethod}</td>
+                <td><span>{Channel}</span></td>                
+                <td>{ShippingCarrierOrMethod}</td>                
                 <td>{ErrorCode}</td>
                 <td>{ErrorDesc}</td>
             </tr>
@@ -614,6 +614,12 @@
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Recipient Organization:&nbsp; </label>
                     <span class="form-control-static">{RcptOrganization}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">Recipient Email:&nbsp; </label>
+                    <span class="form-control-static">{RcptEmailId}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
@@ -1014,6 +1020,14 @@
                                 if (response.Object.model.Value.length > 0) {
                                     $("#searchMailPieceList").html("");
                                     var data = FormatObject(response.Object.model.Value);
+                                    $.each(data, function (index, value) {
+                                        if (value.ShippingCarrier == "E-Delivery") {
+                                            value.ShippingCarrierOrMethod = value.ShippingCarrier;
+                                        }
+                                        else {
+                                            value.ShippingCarrierOrMethod = value.ShippingCarrier+" / "+ value.ShippingMethod;
+                                        }
+                                    });
                                     BindTemplate(data, "#SearchBody", "#SearchbodyContent", "#SearchTableContent", "#searchMailPieceList");
                                     window.clui.tooltipInit();
                                     $("#downloadFilter").removeAttr("disabled");

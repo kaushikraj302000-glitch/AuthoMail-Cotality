@@ -158,7 +158,7 @@
                 <td><span>{DocType}</span></td>
                 <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{Channel}</span></td>
-                <td><span>{ShippingCarrier} / {ShippingMethod}</span></td>
+                <td><span>{ShippingCarrierOrMethod}</span></td>
                 <td style="display:none;"><span>{TrackingNoFormatted}</span></td>
                 <td><span>{TrackingNo}</span></td>
                 <td><span>{SLAStatus}</span></td>
@@ -315,6 +315,14 @@
                             if (response.Object.model.length > 0) {
                                 var data = FormatObject(response.Object.model);
                                 $("#SLABatchList").html("");
+                                $.each(data, function (index, value) {
+                                    if (value.ShippingCarrier == "E-Delivery") {
+                                        value.ShippingCarrierOrMethod = value.ShippingCarrier;
+                                    }
+                                    else {
+                                        value.ShippingCarrierOrMethod = value.ShippingCarrier + " / " + value.ShippingMethod;
+                                    }
+                                });
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#SLABody", "#SLAbodyContent", "#SLATableContent", "#SLABatchList");
                             }

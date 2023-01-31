@@ -12,7 +12,7 @@ BEGIN
 	,B.ReceivedOn,P.PrintedOn ,P.ShippedOn ,P.TotalPages ,P.RcptFirstName,P.RcptLastName ,P.RcptAddressStreet 
 	,P.RcptAddressCity,P.RcptAddressState ,P.RcptAddressZIP,P.Id AS [MailPieceId],P.ShippingCost,P.ShippingStatus
 	,P.ErrorDesc, PTB.PrintBatchName,PTB.SubmittedOn,P.IsEDeliveryRequested, P.IsESignRequested, S.Code AS Channel, P.PrintLocation 
-	,PCD.ShippingCarrier + ' / ' +PCD.ShippingServiceType AS [ShippingMethod], P.TrackingNo, P.TotalSheets
+	,IIF(PCD.ShippingCarrier = 'E-Delivery', PCD.ShippingCarrier, PCD.ShippingCarrier + ' / ' +PCD.ShippingServiceType ) AS [ShippingMethod], P.TrackingNo, P.TotalSheets
 	,P.TotalBlankPages, c.AppCode, E.EnvelopeName ,P.Inserts , P.DeliveryStatus, P.DeliveryDate,P.BlankPageNumbers
 	FROM AM.MailBatches B WITH (NOLOCK)
 	INNER JOIN AM.MailPieces P WITH (NOLOCK) ON P.MailBatchId=B.Id
