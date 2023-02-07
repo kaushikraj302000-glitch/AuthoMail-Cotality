@@ -12,13 +12,14 @@ using Dapper;
 
 namespace AM.Services
 {
-    public interface IEDeliveryAPIService: IDisposable
+    public interface IEDeliveryAPIService : IDisposable
     {
         Task<SigningRoomResponse> CreateSigningRoom(SigningRoomRequest signingRoomRequest, int clientId);
         Task<bool> SendInvitations(int signingRoomId, int clientId);
         Task<List<SigningRoomActivityLogResponse>> GetSigningRoomActivityLog(string signingRoomName, int clientId);
         Task<string> GetSigningRoomStatus(int signingRoomId, int clientId);
         Task<bool> DeleteSigningRoom(int signingRoomId, int clientId);
+        Task<string> DownloadEsignedDocument(int docId, int clientId);
     }
     public class EDeliveryAPIService : ServiceBase, IEDeliveryAPIService
     {
@@ -208,6 +209,30 @@ namespace AM.Services
             catch (Exception)
             {
                 return isSigningRoomDelete;
+            }
+        }
+
+        public async Task<string> DownloadEsignedDocument(int docId, int clientId)
+        {
+            try
+            {
+                var token = await GetToken(clientId);
+                using (var client = SetupClient(token))
+                {
+                    //make request
+                    HttpResponseMessage response = await client.GetAsync(string.Format(Config.E_API_DownloadEsignedDocURL, docId));
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    if (!response.IsSuccessStatusCode || response.StatusCode != HttpStatusCode.OK)
+                    {
+                        return responseString;
+                    }
+                    var jObject = JObject.Parse(responseString);
+                    return jObject.GetValue("Status").ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                return string.Format("Unexpected error occured while downloading esigned document : {0}", ex.ToString());
             }
         }
 

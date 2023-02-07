@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Transactions;
 using System.Xml;
@@ -157,6 +156,52 @@ namespace AM.EDelivery
             }
 
             log.Debug("EDelivery Check ActivityLogs job queue is started.");
+        }
+        #endregion
+
+
+        #region Download E-Signed Docs
+        public static void DownloadEsignDocs()
+        {
+            log.Debug("EDelivery DownloadEsignDocs job queue is started.");
+
+            using (IEDeliveryService eDeliverySvc = new EDeliveryService())
+            {
+                List<EDMailPiece> eSignedDocList = eDeliverySvc.GetESignedDocList();
+
+                if (eSignedDocList.Count == 0)
+                {
+                    log.Debug("EDelivery DownloadEsignDocs job queue is empty.");
+                    log.Debug("EDelivery DownloadEsignDocs job queue is completed.");
+                    return;
+                }
+
+                foreach (EDMailPiece mp in eSignedDocList)
+                {
+                    try
+                    {
+                        IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
+
+                        //Download Doc Logic
+                        var downloadedDoc = eDeliveryAPISvc.DownloadEsignedDocument(mp.SRDocId.Value, mp.ClientId.Value).Result;
+                        mp.IsESignedDocDownloaded = true;
+                        using (TransactionScope scope = new TransactionScope())
+                        {
+                            int i = eDeliverySvc.UpdateEDMailPieceDetails(mp);
+                            scope.Complete();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        var msg = "Error occured while downloading EsignDocs of Id {0} for client {1} with below error <br/>{2}".Fill(mp.Id, mp.ClientCode, ex);
+                        log.Error(msg);
+                        MailUtility.SendUnexpectedExceptionEmail(msg);
+                        continue;
+                    }
+                }
+            }
+
+            log.Debug("EDelivery DownloadEsignDocs job queue is started.");
         }
         #endregion
 

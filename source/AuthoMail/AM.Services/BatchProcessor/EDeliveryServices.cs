@@ -22,6 +22,7 @@ namespace AM.Services
         int ErrorOutOrFallBackEDeliveryPackage(EDMailPiece edmp);
         int UpdateEDeliveredMPForReportingBack(int mailBatchId, DateTime reportPreppedTiming, string batchStatus);
         List<EsignDocConfig> GetEsignDocumentConfigurationByClientIdAndDocTypeId(int clientId, int docTypeId);
+        List<EDMailPiece> GetESignedDocList();
     }
     public class EDeliveryService : ServiceBase, IEDeliveryService
     {
@@ -75,7 +76,7 @@ namespace AM.Services
 
         public int UpdateEDMailPieceDetails(EDMailPiece mailPiece)
         {
-            string query = @"UPDATE [AM].[EDeliveryMailPieces] SET  SRDocId=@SRDocId,SRDocGuId=@SRDocGuId, ErrorCode=@ErrorCode, ErrorDesc=@ErrorDesc, SigningRoomId=@SigningRoomId, SigningRoomUniqueId=@SigningRoomUniqueId, SigningRoomName=@SigningRoomName WHERE Id=@Id";
+            string query = @"UPDATE [AM].[EDeliveryMailPieces] SET  SRDocId=@SRDocId,SRDocGuId=@SRDocGuId, ErrorCode=@ErrorCode, ErrorDesc=@ErrorDesc, SigningRoomId=@SigningRoomId, SigningRoomUniqueId=@SigningRoomUniqueId, SigningRoomName=@SigningRoomName, IsESignedDocDownloaded = @IsESignedDocDownloaded WHERE Id=@Id";
 
             return db.Execute(query, mailPiece);
         }
@@ -206,6 +207,14 @@ namespace AM.Services
         {
             string query = "SELECT [ClientId], [DocTypeId], [SignHeight], [SignWidth], [SignXOffset], [SignYOffset], [Optional], [SignPageNumber] FROM [AM].[EsignDocConfig] WHERE ClientId = @ClientId AND DocTypeId = @DoctypeId";
             return db.Query<EsignDocConfig>(query, new { ClientId = clientId, DocTypeId = docTypeId }).ToList();
+        }
+
+        public List<EDMailPiece> GetESignedDocList()
+        {
+            //Sql Query
+            string query = "SELECT ED.Id, ED.UniqueId, ED.ClientId, ED.MailBatchId, MP.BusinessFriendlyIdValue AS LoanNumber, MP.FileName, MP.ExpiryDate, ED.PipelineStatus, MP.RcptFirstName, MP.RcptMiddleName,MP.RcptLastName, MP.RcptEmailId, MP.IsFallBackRequested, MP.IsESignRequested, ED.TotalPages, ED.ErrorCode, ED.ErrorDesc, ED.SigningRoomId, ED.SigningRoomUniqueId, ED.SigningRoomName,ED.SRDocId,ED.SRDocGuId, ED.ReceivedOn, ED.IsReceived, ED.DownloadedOn, ED.IsDownloaded, ED.ValidatedOn, ED.IsValidated, ED.SigningRoomCreatedOn,ED.IsSigningRoomCreated, ED.InvitationSentOn, ED.IsInvitationSent, ED.eDeliveredOn, ED.IseDelivered, ED.ConsentAcceptedOn, ED.IsConsentAccepted,ED.ConsentDeclinedOn, ED.IsConsentDeclined, ED.DocReviewedOn, ED.IsDocReviewed, ED.DocDownloadedOn, ED.IsDocDownloaded, ED.ESignedOn, ED.IsESigned, C.AppCode AS ClientCode,B.SFTChannelId AS ChannelId,S.Code AS ChannelCode,B.BatchName,ED.DownloadedIPAddress, MP.DocTypeId FROM [AM].[EDeliveryMailPieces] ED INNER JOIN AM.MailBatches B ON ED.MailBatchId = B.Id INNER JOIN AM.MailPieces MP ON ED.UniqueId = MP.UniqueId AND ED.MailBatchId = MP.MailBatchId LEFT OUTER JOIN Common.Clients C ON ED.ClientId = C.Id LEFT OUTER JOIN Common.SFTChannels S ON B.SFTChannelId = S.Id WHERE ED.PipelineStatus = @PipelineStatus AND ED.IsESignedDocDownloaded = 0";            
+
+            return db.Query<EDMailPiece>(query , new { PipelineStatus = EDPipelineStatus.eSigned}).ToList();
         }
     }
 }

@@ -85,6 +85,7 @@ namespace AM.Services
         public bool IsESigned { get; set; }
         public string DownloadedIPAddress { get; set; }
         public int DocTypeId { get; set; }
+        public bool IsESignedDocDownloaded { get; set; }
 
         public string GetChannelCode()
         {
