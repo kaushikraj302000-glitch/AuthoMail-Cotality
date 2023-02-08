@@ -128,7 +128,7 @@ namespace AM.EDelivery
                                     mp.DocReviewedOn = actlog.UpdatedDate.PstToUtc();
                                     break;
                                 case ActivityStatus.DocumentSigned:
-                                    mp.ESignedOn = actlog.UpdatedDate.PstToUtc();                                    
+                                    mp.ESignedOn = actlog.UpdatedDate.PstToUtc();
                                     break;
                                 case ActivityStatus.DocumentDownloaded:
                                     mp.DocDownloadedOn = actlog.UpdatedDate.PstToUtc();
@@ -183,13 +183,24 @@ namespace AM.EDelivery
                         IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
 
                         //Download Doc Logic
-                        var downloadedDoc = eDeliveryAPISvc.DownloadEsignedDocument(mp.SRDocId.Value, mp.ClientId.Value).Result;
-                        mp.IsESignedDocDownloaded = true;
-                        using (TransactionScope scope = new TransactionScope())
+                        var downloadedDocDetails = eDeliveryAPISvc.DownloadEsignedDocument(mp.SRDocId.Value, mp.ClientId.Value).Result;
+                        if (downloadedDocDetails.HasError)
                         {
-                            int i = eDeliverySvc.UpdateEDMailPieceDetails(mp);
-                            scope.Complete();
+                            var msg = $"Error occured while downloading EsignDocs of Id {mp.Id} for client {mp.ClientCode} with below error <br/>{downloadedDocDetails.ErrorDesc}";
+                            log.Error(msg);
+                            continue;
                         }
+
+                        //Save EsignedPdf
+                        string filePath = Path.Combine(Config.Common_AuthoMailRootFolder, mp.ClientCode, mp.MailBatchId.ToString(), "EVault", downloadedDocDetails.DocumentName);
+
+                        if (File.Exists(filePath))
+                            File.Delete(filePath);
+
+                        File.WriteAllBytes(filePath, Convert.FromBase64String(downloadedDocDetails.Document));
+
+                        mp.IsESignedDocDownloaded = true;
+                        eDeliverySvc.UpdateEDMailPieceDetails(mp);
                     }
                     catch (Exception ex)
                     {
