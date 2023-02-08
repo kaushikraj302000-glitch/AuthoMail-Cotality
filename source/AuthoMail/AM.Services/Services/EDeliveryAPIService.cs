@@ -212,7 +212,7 @@ namespace AM.Services
             }
         }
 
-        public async Task<string> DownloadEsignedDocument(int docId, int clientId)
+        public async Task<EsignDocDownload> DownloadEsignedDocument(int docId, int clientId)
         {
             try
             {
@@ -221,13 +221,9 @@ namespace AM.Services
                 {
                     //make request
                     HttpResponseMessage response = await client.GetAsync(string.Format(Config.E_API_DownloadEsignedDocURL, docId));
-                    var responseString = await response.Content.ReadAsStringAsync();
-                    if (!response.IsSuccessStatusCode || response.StatusCode != HttpStatusCode.OK)
-                    {
-                        return responseString;
-                    }
-                    var jObject = JObject.Parse(responseString);
-                    return jObject.GetValue("Status").ToString();
+                    var responseString = await response.Content.ReadAsStringAsync();                                    
+                    EsignDocDownload esignDocDownload = JsonConvert.DeserializeObject<EsignDocDownload>(responseString);
+                    return esignDocDownload;
                 }
             }
             catch (Exception ex)

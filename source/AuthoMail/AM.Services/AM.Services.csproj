@@ -128,6 +128,7 @@
     <Compile Include="Models\DelfusErrorReport.cs" />
     <Compile Include="Models\DelfusTemplate.cs" />
     <Compile Include="Models\EsignDocConfig.cs" />
+    <Compile Include="Models\EsignDocDownload.cs" />
     <Compile Include="Models\eVSCancelRequest.cs" />
     <Compile Include="Models\eVSRequest.cs" />
     <Compile Include="Models\eVSCancelResponse.cs" />
