@@ -19,7 +19,7 @@ namespace AM.Services
         Task<List<SigningRoomActivityLogResponse>> GetSigningRoomActivityLog(string signingRoomName, int clientId);
         Task<string> GetSigningRoomStatus(int signingRoomId, int clientId);
         Task<bool> DeleteSigningRoom(int signingRoomId, int clientId);
-        Task<string> DownloadEsignedDocument(int docId, int clientId);
+        Task<EsignDocDownload> DownloadEsignedDocument(int docId, int clientId);
     }
     public class EDeliveryAPIService : ServiceBase, IEDeliveryAPIService
     {
@@ -221,14 +221,14 @@ namespace AM.Services
                 {
                     //make request
                     HttpResponseMessage response = await client.GetAsync(string.Format(Config.E_API_DownloadEsignedDocURL, docId));
-                    var responseString = await response.Content.ReadAsStringAsync();                                    
+                    var responseString = await response.Content.ReadAsStringAsync();
                     EsignDocDownload esignDocDownload = JsonConvert.DeserializeObject<EsignDocDownload>(responseString);
                     return esignDocDownload;
                 }
             }
             catch (Exception ex)
             {
-                return string.Format("Unexpected error occured while downloading esigned document : {0}", ex.ToString());
+                return new EsignDocDownload() { HasError = true, ErrorDesc = ex.ToString() };
             }
         }
 

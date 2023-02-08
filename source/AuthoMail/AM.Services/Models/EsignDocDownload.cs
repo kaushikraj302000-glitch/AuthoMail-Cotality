@@ -10,6 +10,8 @@ namespace AM.Services
     {
         public int DocumentId { get; set; }
         public string Document { get; set; }
-        public string DocumentName { get; set; }       
+        public string DocumentName { get; set; }
+        public bool HasError { get; set; }
+        public string ErrorDesc { get; set; }
     }
 }
