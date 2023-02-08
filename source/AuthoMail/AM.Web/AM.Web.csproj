@@ -270,6 +270,7 @@
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\ChartApiController.cs" />
     <Compile Include="Controllers\CommonController.cs" />
+    <Compile Include="Controllers\EVaultController.cs" />
     <Compile Include="Controllers\MailRequestController.cs" />
     <Compile Include="Controllers\SupportController.cs" />
     <Compile Include="Controllers\DelfusTemplateController.cs" />
@@ -633,6 +634,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Views\Track\_GetEDeliveryTrackingInfo.cshtml" />
+    <Content Include="Views\EVault\EVaultPackages.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

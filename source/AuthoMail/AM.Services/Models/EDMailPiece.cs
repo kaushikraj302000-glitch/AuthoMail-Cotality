@@ -85,6 +85,8 @@ namespace AM.Services
         public bool IsESigned { get; set; }
         public string DownloadedIPAddress { get; set; }
         public int DocTypeId { get; set; }
+        public int RetentionPeriod { get; set; }
+        public bool IsWithinRetentionPeriod { get; set; }
         public bool IsESignedDocDownloaded { get; set; }
 
         public string GetChannelCode()
@@ -93,6 +95,16 @@ namespace AM.Services
                 return ChannelCode.Substring(0, ChannelCode.LastIndexOf("_"));
 
             return null;
+        }
+
+        public string RequestedPdf
+        {
+            get
+            {
+                if (this.FileName.IsNullOrWhiteSpace()) return null;
+
+                return $@"{Config.Common_AuthoMailRootFolder}/{this.ClientCode}/{this.MailBatchId}/EVault/{this.FileName}";
+            }
         }
     }
 

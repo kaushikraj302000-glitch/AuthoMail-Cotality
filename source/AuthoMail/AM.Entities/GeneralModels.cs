@@ -321,6 +321,7 @@ namespace AM.Entities
         public const string APIUSPSVerify = "API-USPS-Verify";
         public const string Delfus = "Delfus";
         public const string BAOffShore = "BA-OffShore";
+        public const string EVault = "E-Vault";
     }
     public static class AMUserStatus
     {
