@@ -121,6 +121,9 @@ namespace AM.Reporting
                             break;
                     }
                     break;
+                case "RaymondJamesError":
+                    ErrorReports.GenerateRaymondJamesErrorReport();
+                    break;
                 default:
                     break;
             }
