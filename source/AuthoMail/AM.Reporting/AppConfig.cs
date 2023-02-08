@@ -77,6 +77,11 @@ namespace AM.Reporting
         public static string DocSolErrorEMailCc { get; private set; }
         public static string DocSolErrorReportPath { get; private set; }
 
+        public static string RaymondJamesErrorEMailTo { get; private set; }
+        public static string RaymondJamesErrorEMailCc { get; private set; }
+        public static string RaymondJamesErrorReportPath { get; private set; }
+
+
         public static Dictionary<string, string> GOSDailyEmailListByAppCode
         {
             get
@@ -221,6 +226,10 @@ namespace AM.Reporting
                 DocSolErrorEMailTo = ConfigurationManager.AppSettings["DocSolErrorEMailTo"].Trim();
                 DocSolErrorEMailCc = ConfigurationManager.AppSettings["DocSolErrorEMailCc"].Trim();
                 DocSolErrorReportPath = ConfigurationManager.AppSettings["DocSolErrorReportPath"].Trim();
+
+                RaymondJamesErrorEMailTo = ConfigurationManager.AppSettings["RaymondJamesErrorEMailTo"].Trim();
+                RaymondJamesErrorEMailCc = ConfigurationManager.AppSettings["RaymondJamesErrorEMailCc"].Trim();
+                RaymondJamesErrorReportPath = ConfigurationManager.AppSettings["RaymondJamesErrorReportPath"].Trim();
             }
             catch (Exception ex)
             {
