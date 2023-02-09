@@ -192,12 +192,12 @@ namespace AM.EDelivery
                         }
 
                         //Save EsignedPdf
-                        string filePath = Path.Combine(Config.Common_AuthoMailRootFolder, mp.ClientCode, mp.MailBatchId.ToString(), "EVault", downloadedDocDetails.DocumentName);
+                        string evaultPath = Path.Combine(Config.Common_AuthoMailRootFolder, mp.ClientCode, mp.MailBatchId.ToString(), "EVault");
 
-                        if (File.Exists(filePath))
-                            File.Delete(filePath);
+                        if (!Directory.Exists(evaultPath))
+                            Directory.CreateDirectory(evaultPath);
 
-                        File.WriteAllBytes(filePath, Convert.FromBase64String(downloadedDocDetails.Document));
+                        File.WriteAllBytes(Path.Combine(evaultPath, downloadedDocDetails.DocumentName), Convert.FromBase64String(downloadedDocDetails.Document));
 
                         mp.IsESignedDocDownloaded = true;
                         eDeliverySvc.UpdateEDMailPieceDetails(mp);
