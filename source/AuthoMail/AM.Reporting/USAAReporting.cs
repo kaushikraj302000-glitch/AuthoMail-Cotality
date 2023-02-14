@@ -110,14 +110,14 @@ namespace AM.Reporting
             string body = "USAA Weekly Report From {0} To {1}".Fill(startDate.ToString("MM/dd/yyyy hh:mm:ss"), endDate.ToString("MM/dd/yyyy hh:mm:ss"));
 
 
-            var columnName = String.Join(",", "Loan Number", "Document Type", "First Name", "Last Name", "Ship Method", "Tracking number", "Receive Date", "Shipped On", "Status", "Total Pages", "Delivery Status");
+            var columnName = String.Join(",", "Loan Number", "Document Type", "First Name", "Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Ship Method", "Tracking number", "Receive Date", "Shipped On", "Status", "Total Pages", "Delivery Status");
 
             StringBuilder reconReport = new StringBuilder(columnName);
 
             reconReport.AppendLine();
             foreach (var mp in weeklyReportData)
             {
-                var line = String.Join(",", mp.LoanNumber.ToCsvString(), mp.DocType, mp.FirstName.ToCsvString(), mp.LastName.ToCsvString(), mp.ShippingMethod, mp.TrackingNo.ToCsvString(), mp.ReceivedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), mp.ShippedOn.HasValue ? mp.ShippedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss") : "", mp.Status, mp.TotalPages, mp.DeliveryStatus);
+                var line = String.Join(",", mp.LoanNumber.ToCsvString(), mp.DocType, mp.FirstName.ToCsvString(), mp.LastName.ToCsvString(), mp.Address.ToCsvString(), mp.City.ToCsvString(), mp.State, mp.ZIP, mp.ShippingMethod, mp.TrackingNo.ToCsvString(), mp.ReceivedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), mp.ShippedOn.HasValue ? mp.ShippedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss") : "", mp.Status, mp.TotalPages, mp.DeliveryStatus);
                 reconReport.AppendLine(line);
             }
             string reportFilePath = Path.Combine(AppConfig.USAAWeeklyReportPath, "USAAWeeklyReport_" + startDate.ToString("MMddyyyyhhmmss") + "_To_" + endDate.ToString("MMddyyyyhhmmss") + ".csv");
@@ -155,14 +155,14 @@ namespace AM.Reporting
             string body = "USAA Monthly Recon Report For : {0} To {1}".Fill(startDate.ToString("MM/dd/yyyy hh:mm:ss"), endDate.ToString("MM/dd/yyyy hh:mm:ss"));
 
 
-            var columnName = String.Join(",", "Loan Number", "Document Type", "First Name", "Last Name", "Ship Method", "Tracking number", "Receive Date", "Shipped On", "Status", "Total Pages");
+            var columnName = String.Join(",", "Loan Number", "Document Type", "First Name", "Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "Ship Method", "Tracking number", "Receive Date", "Shipped On", "Status", "Total Pages");
 
             StringBuilder reconReport = new StringBuilder(columnName);
 
             reconReport.AppendLine();
             foreach (var mp in monthlyReconReportData)
             {
-                var line = String.Join(",", mp.LoanNumber.ToCsvString(), mp.DocType, mp.FirstName.ToCsvString(), mp.LastName.ToCsvString(), mp.ShippingMethod, mp.TrackingNo.ToCsvString(), mp.ReceivedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), mp.ShippedOn.HasValue ? mp.ShippedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss") : "", mp.Status, mp.TotalPages);
+                var line = String.Join(",", mp.LoanNumber.ToCsvString(), mp.DocType, mp.FirstName.ToCsvString(), mp.LastName.ToCsvString(), mp.Address.ToCsvString(), mp.City.ToCsvString(), mp.State, mp.ZIP, mp.ShippingMethod, mp.TrackingNo.ToCsvString(), mp.ReceivedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), mp.ShippedOn.HasValue ? mp.ShippedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss") : "", mp.Status, mp.TotalPages);
                 reconReport.AppendLine(line);
             }
             string reportFilePath = Path.Combine(AppConfig.USAAMonthlyReconReportPath, "USAAMonthlyReconReport_" + startDate.ToString("MMddyyyyhhmmss") + "_To_" + endDate.ToString("MMddyyyyhhmmss") + ".csv");

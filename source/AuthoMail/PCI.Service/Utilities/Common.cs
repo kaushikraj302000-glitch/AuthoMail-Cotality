@@ -41,6 +41,11 @@ namespace PCI.Service
         public static string Email_ToDELNordis { get; private set; }
         public static string Email_CcDELNordis { get; private set; }
 
+        public static string SubmitCSSNordisBatchEmailSubject { get; private set; }
+        public static string SubmitCSSNordisBatchEmailTemplate { get; private set; }
+        public static string Email_ToCSSNordis { get; private set; }
+        public static string Email_CcCSSNordis { get; private set; }
+
         public static string SuspendBatchEmailSubject { get; private set; }
         public static string SuspendBatchEmailTemplate { get; private set; }
         public static string SuspendEmail_To { get; private set; }
@@ -129,6 +134,12 @@ namespace PCI.Service
                 SubmitDELNordisBatchEmailTemplate = submitDELNordisBatchEmailChannel.BodyTemplate;
                 Email_ToDELNordis = submitDELNordisBatchEmailChannel.To;
                 Email_CcDELNordis = submitDELNordisBatchEmailChannel.Cc;
+
+                var submitCSSNordisBatchEmailChannel = emailList.SingleOrDefault(title => title.Title == "PnS_CSSSubmitNordisBatchEmail");
+                SubmitCSSNordisBatchEmailSubject = submitCSSNordisBatchEmailChannel.Subject;
+                SubmitCSSNordisBatchEmailTemplate = submitCSSNordisBatchEmailChannel.BodyTemplate;
+                Email_ToCSSNordis = submitCSSNordisBatchEmailChannel.To;
+                Email_CcCSSNordis = submitCSSNordisBatchEmailChannel.Cc;
 
                 var submitPCIBatchEmailChannel = emailList.SingleOrDefault(title => title.Title == "PnS_SubmitPCIBatchEmail");
                 SubmitPCIBatchEmailSubject = submitPCIBatchEmailChannel.Subject;
