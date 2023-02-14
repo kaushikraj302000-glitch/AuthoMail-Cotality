@@ -65,6 +65,10 @@ namespace AM.Reporting
         public static string CapOneErrorEMailCc { get; private set; }
         public static string CapOneErrorReportPath { get; private set; }
 
+        public static string FloodErrorEMailTo { get; private set; }
+        public static string FloodErrorEMailCc { get; private set; }
+        public static string FloodErrorReportPath { get; private set; }
+
         public static string AlaskaDailyEMailTo { get; private set; }
         public static string AlaskaDailyEMailCc { get; private set; }
         public static string AlaskaDailyReportPath { get; private set; }

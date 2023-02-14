@@ -104,6 +104,9 @@ namespace AM.Reporting
                         case "CapOneErrorReport":
                             FloodReports.GenerateCapOneErrorReport();
                             break;
+                        case "FloodErrorReport":
+                            FloodReports.GenerateFloodErrorReport();
+                            break;
                         default:
                             break;
                     }
