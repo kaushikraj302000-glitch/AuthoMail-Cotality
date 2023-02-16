@@ -212,7 +212,7 @@ namespace AM.EDelivery
                 }
             }
 
-            log.Debug("EDelivery DownloadEsignDocs job queue is started.");
+            log.Debug("EDelivery DownloadEsignDocs job queue is completed.");
         }
         #endregion
 
