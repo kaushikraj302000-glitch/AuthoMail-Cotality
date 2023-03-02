@@ -139,6 +139,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="AlaskaReconReport\" />
+    <Folder Include="BECUReconReport\" />
     <Folder Include="DALLASReconReport\" />
     <Folder Include="DocSolReconReport\" />
     <Folder Include="FARReconReport\" />

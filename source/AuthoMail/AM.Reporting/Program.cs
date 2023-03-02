@@ -95,6 +95,9 @@ namespace AM.Reporting
                 case "DocSolError":
                     ErrorReports.GenerateDocSolErrorReport();
                     break;
+                case "BECUError":
+                    ErrorReports.GenerateBECUErrorReport();
+                    break;
                 case "FLOODAUTO":
                     switch (args[1])
                     {

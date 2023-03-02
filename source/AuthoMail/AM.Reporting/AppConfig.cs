@@ -81,6 +81,10 @@ namespace AM.Reporting
         public static string DocSolErrorEMailCc { get; private set; }
         public static string DocSolErrorReportPath { get; private set; }
 
+        public static string BECUErrorEMailTo { get; private set; }
+        public static string BECUErrorEMailCc { get; private set; }
+        public static string BECUErrorReportPath { get; private set; }
+
         public static string RaymondJamesErrorEMailTo { get; private set; }
         public static string RaymondJamesErrorEMailCc { get; private set; }
         public static string RaymondJamesErrorReportPath { get; private set; }
@@ -230,6 +234,10 @@ namespace AM.Reporting
                 DocSolErrorEMailTo = ConfigurationManager.AppSettings["DocSolErrorEMailTo"].Trim();
                 DocSolErrorEMailCc = ConfigurationManager.AppSettings["DocSolErrorEMailCc"].Trim();
                 DocSolErrorReportPath = ConfigurationManager.AppSettings["DocSolErrorReportPath"].Trim();
+
+                BECUErrorEMailTo = ConfigurationManager.AppSettings["BECUErrorEMailTo"].Trim();
+                BECUErrorEMailCc = ConfigurationManager.AppSettings["BECUErrorEMailCc"].Trim();
+                BECUErrorReportPath = ConfigurationManager.AppSettings["BECUErrorReportPath"].Trim();
 
                 RaymondJamesErrorEMailTo = ConfigurationManager.AppSettings["RaymondJamesErrorEMailTo"].Trim();
                 RaymondJamesErrorEMailCc = ConfigurationManager.AppSettings["RaymondJamesErrorEMailCc"].Trim();

@@ -172,7 +172,82 @@ namespace AM.Reporting
                 log.Error("Error occured while sending DocSol Report :", ex);
             }
         }
+        internal static void GenerateBECUErrorReport()
+        {
+            try
+            {
+                log.Debug($"BECU Client Error Report Execution Triggered at {Common.Now.UtcToEst()} Est");
+                List<ReportWizard> mpDetails;
+                DateTime currentTime = Common.EstToday;
+                DateTime endDate = currentTime.Date.ToEndDateTime();
+                DateTime startDate = currentTime.Date.ToStartDateTime();
+                using (IClientService clientSvc = new ClientService())
+                using (IReportService reportSvc = new ReportService())
+                {
+                    var client = clientSvc.GetClientByAppCode("BECU").Result;
+                    //NOTE : Please change UTC to EST code when Daylight saving is off in service call
+                    mpDetails = reportSvc.GetReportWizard(new List<int>() { client.Id }, null, null, startDate, endDate, null, null, null, null, null);
+                    var errorMps = mpDetails.Where(x => x.Status == ShippingStatus.Error.ToString()).ToList();
+                    if (errorMps.Count == 0)
+                    {
+                        log.Debug($"BECU client Error Report does not contain any records so exiting from the process at {Common.Now.UtcToEst()} Est");
+                        return;
+                    }
 
+                    string reportFilePath = Path.Combine(AppConfig.BECUErrorReportPath, $"BECUErrorReport_{startDate.ToString("MMddyyyy")}.csv");
+                    GenerateReportForBECU(errorMps, reportFilePath, $"{Config.Common_Environment} : BECU Error Report For {startDate.ToString("MM-dd-yyyy")}");
+                }
+                log.Debug("BECU Client Error Report Execution Completed at {0} Est".Fill(Common.Now.UtcToEst()));
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error occured while generating BECU Error Report", ex);
+            }
+        }
+        private static void GenerateReportForBECU(List<ReportWizard> mpDetails, string reportFilePath, string subject)
+        {
+            var columnName = String.Join(",", "Batch Id", "MailPiece Id", "Channel", "Document Type", "Loan Number", "File Name", "Error Code", "Error Desc", "Received On (Est)", "First Name", "Last Name", "Street", "City", "State", "ZIP", "Shipping Method");
+
+            StringBuilder reconReport = new StringBuilder(columnName);
+
+            reconReport.AppendLine();
+            foreach (var mp in mpDetails)
+            {
+                var line = String.Join(",", mp.BatchId.ToCsvString(), mp.MailPieceId, mp.Channel, mp.DocumentOrPackageType, mp.LoanNumber.ToCsvString(), mp.FileName, mp.ErrorCode, mp.ErrorDesc, mp.ReceivedOn.Value.UtcToEst(), mp.FirstName, mp.LastName, mp.RcptAddressStreet, mp.City, mp.State, mp.ZIP, mp.ShippingMethod);
+                reconReport.AppendLine(line);
+            }
+
+            File.WriteAllText(reportFilePath, reconReport.ToString());
+
+            SendReportToBECUTeam(reportFilePath, subject, "BECU Error Report");
+        }
+        private static void SendReportToBECUTeam(string reportFilePath, string subject, string body)
+        {
+            try
+            {
+                using (SmtpClient smtpClient = new SmtpClient())
+                {
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = false;
+                        msg.To.Add(AppConfig.BECUErrorEMailTo);
+                        msg.CC.Add(AppConfig.BECUErrorEMailCc);
+                        msg.Subject = subject;
+                        msg.Priority = MailPriority.Normal;
+                        msg.Body = body;
+
+                        if (File.Exists(reportFilePath))
+                            msg.Attachments.Add(new Attachment(reportFilePath));
+
+                        smtpClient.Send(msg);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error occured while sending BECU Report :", ex);
+            }
+        }
         internal static void GenerateRaymondJamesErrorReport()
         {
             try
