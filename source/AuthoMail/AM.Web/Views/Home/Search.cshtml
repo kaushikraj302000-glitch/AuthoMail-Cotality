@@ -255,7 +255,8 @@
                 @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                 {
                     <th>Borrower Name</th>
-                    <th>City</th>
+                    <th>Street</th>
+                    <th>City/State/Zip</th>
                 }
                 <th class="TrackingNoHide">Tracking Number</th>
                 <th class="TrackingNo">Tracking Number</th>
@@ -289,6 +290,7 @@
                 @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                 {
                     <td><span>{RcptNameFormatted}</span></td>
+                    <td><span>{RcptAddress}</span></td>
                     <td><span>{CityFormatted}</span></td>
                 }
                 <td><span>{TrackingNo}</span></td>

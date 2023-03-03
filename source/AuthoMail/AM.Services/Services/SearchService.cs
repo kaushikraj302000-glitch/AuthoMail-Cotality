@@ -38,7 +38,7 @@ namespace AM.Services
 	 LEFT OUTER JOIN PnS.PrintTrailBatches ptb on req.PrintTrailBatchId=ptb.Id
 	 WHERE m.ClientId=@clientId";
             string fields = @"m.Id AS MailPieceId,m.MailBatchId,m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
-	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
+	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressStreet as [RcptAddress], m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
 	 m.RcptAddressState as [State],m.PickedUpOn,m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.IsEDeliveryRequested,m.Inserts,m.ShipmentStatus,m.ShipmentStatusUpdatedOn,
 	 b.ReceivedOn,m.DocTypeId,
 	 d.DocTypeName as DocType,pcd.ShippingServiceType as ShippingMethod,pcd.ShippingCarrier,
