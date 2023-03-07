@@ -46,6 +46,7 @@ namespace AM.Services
         bool CheckForDuplicateMailPieceUniqueId(Guid mpUniqueId);
         List<DallasNotificationMap> GetDallasNotificationMaps();
         CustomTemplate GetCustomTemplateByDocTypeId(int docTypeId, string communityCode);
+        CustomTemplate GetCustomTemplateByCommunityCode(string communityCode);
         ShipperInformation GetShipperInformation(int shipperId);
         ShipperInformation GetShipperInformationByPrintLocation(string printLocation, int printTrailId);
         Task<int> UpdateBatchPipeLineStatusByMailPieceId(Guid mailPieceId, string pipeLineStatus, DateTime timestamp);
@@ -61,7 +62,7 @@ namespace AM.Services
             string query;
             if (pipeLineStatus == BatchPipelineStatus.SubmittedToEDelivery)//System will move pipelinestatus to SubmittedToEDelivery to exclude it from regular print and ship process.
             {
-                query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, ValidatedOn = @timestamp WHERE Id = @batchId";
+                query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, ValidatedOn = @timestamp, AcknowledgedOn = @timestamp, SubmittedToEDeliveryOn = @timestamp  WHERE Id = @batchId";
             }
             else
                 query = $"UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {pipeLineStatus}On = @timestamp WHERE Id = @batchId";
@@ -503,6 +504,13 @@ namespace AM.Services
             string query = "SELECT * FROM [AM].[CustomTemplates] WHERE DocTypeId= @DocTypeId and CommunityCode = @CommunityCode";
 
             return db.QuerySingleOrDefault<CustomTemplate>(query, new { DocTypeId = docTypeId, CommunityCode = communityCode });
+        }
+
+        public CustomTemplate GetCustomTemplateByCommunityCode(string communityCode)
+        {
+            string query = "SELECT * FROM [AM].[CustomTemplates] WHERE CommunityCode = @CommunityCode";
+
+            return db.QuerySingleOrDefault<CustomTemplate>(query, new { CommunityCode = communityCode });
         }
 
         public ShipperInformation GetShipperInformation(int shipperId)

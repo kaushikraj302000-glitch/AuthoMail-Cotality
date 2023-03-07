@@ -857,7 +857,7 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
                     ,B.ReceivedOn, P.ShippedOn, P.PulledBackOn, P.PrintLocation
                     ,P.ShippingStatus AS [Status], P.TrackingNo, P.[FileName]
                     ,P.TotalPages, P.TotalSheets,ISNULL(MPP.LETTER,0) AS [LetterPageCount],ISNULL(MPP.LEGAL,0) AS [LegalPageCount], P.TotalBlankPages
-                    ,P.IsEDeliveryRequested, PCD.ShippingCarrier + ' / ' + PCD.ShippingServiceType AS [ShippingMethod]
+                    ,P.IsEDeliveryRequested, IIF(PCD.ShippingCarrier = 'E-Delivery', PCD.ShippingCarrier, PCD.ShippingCarrier + ' / ' +PCD.ShippingServiceType ) AS [ShippingMethod]
                     ,ISNULL(REPLACE(REPLACE(P.ErrorDesc, CHAR(13), ''), CHAR(10), ''),'') AS ErrorDesc
                     ,P.Inserts,PT.PrintBatchName, PT.SubmittedOn, P.DeliveryStatus, P.DeliveryDate, P.ShippingCost, E.EnvelopeName
                     FROM AM.MailPieces P
@@ -997,7 +997,7 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
         public List<ReshipMailPieceViewModel> GetReshipRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, int clientId)
         {
             string query = @"select m.BusinessFriendlyIdValue as BusinessIdValue,m.UniqueId,m.FileName,(m.RcptFirstName+ ' ' +m.RcptLastName) as Name,
-                            m.RcptAddressStreet as Address,m.TotalPages,m.TotalBlankPages,m.IsPullBackRequested,m.ShippingStatus as Status,m.DueDate,m.TrackingNo,m.ErrorCode,m.ErrorDesc,IsEDeliveryRequested,
+                            m.RcptAddressStreet as Address,m.TotalPages,m.TotalBlankPages,m.IsPullBackRequested,m.ShippingStatus as Status,m.DueDate,m.TrackingNo,m.ErrorCode,m.ErrorDesc,IsEDeliveryRequested,IsESignRequested,
                             b.ReceivedOn,
                             d.DocTypeName as DocType,
                             c.AppCode,c.RetentionPeriod,c.Id AS ClientId, m.MailBatchId,m.Id AS MailPieceId

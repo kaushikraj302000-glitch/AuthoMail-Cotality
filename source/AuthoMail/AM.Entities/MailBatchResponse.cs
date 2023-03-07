@@ -145,6 +145,7 @@ namespace AM.Entities
         Shipped,
         Error,
         PulledBack,
-        eDelivered
+        eDelivered,
+        eSigned
     }
 }

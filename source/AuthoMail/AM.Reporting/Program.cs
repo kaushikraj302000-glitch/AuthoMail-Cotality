@@ -95,6 +95,9 @@ namespace AM.Reporting
                 case "DocSolError":
                     ErrorReports.GenerateDocSolErrorReport();
                     break;
+                case "BECUError":
+                    ErrorReports.GenerateBECUErrorReport();
+                    break;
                 case "FLOODAUTO":
                     switch (args[1])
                     {
@@ -103,6 +106,9 @@ namespace AM.Reporting
                             break;
                         case "CapOneErrorReport":
                             FloodReports.GenerateCapOneErrorReport();
+                            break;
+                        case "FloodErrorReport":
+                            FloodReports.GenerateFloodErrorReport();
                             break;
                         default:
                             break;
@@ -120,6 +126,9 @@ namespace AM.Reporting
                         default:
                             break;
                     }
+                    break;
+                case "RaymondJamesError":
+                    ErrorReports.GenerateRaymondJamesErrorReport();
                     break;
                 default:
                     break;

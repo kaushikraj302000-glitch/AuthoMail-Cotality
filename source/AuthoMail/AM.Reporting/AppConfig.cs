@@ -65,6 +65,10 @@ namespace AM.Reporting
         public static string CapOneErrorEMailCc { get; private set; }
         public static string CapOneErrorReportPath { get; private set; }
 
+        public static string FloodErrorEMailTo { get; private set; }
+        public static string FloodErrorEMailCc { get; private set; }
+        public static string FloodErrorReportPath { get; private set; }
+
         public static string AlaskaDailyEMailTo { get; private set; }
         public static string AlaskaDailyEMailCc { get; private set; }
         public static string AlaskaDailyReportPath { get; private set; }
@@ -76,6 +80,15 @@ namespace AM.Reporting
         public static string DocSolErrorEMailTo { get; private set; }
         public static string DocSolErrorEMailCc { get; private set; }
         public static string DocSolErrorReportPath { get; private set; }
+
+        public static string BECUErrorEMailTo { get; private set; }
+        public static string BECUErrorEMailCc { get; private set; }
+        public static string BECUErrorReportPath { get; private set; }
+
+        public static string RaymondJamesErrorEMailTo { get; private set; }
+        public static string RaymondJamesErrorEMailCc { get; private set; }
+        public static string RaymondJamesErrorReportPath { get; private set; }
+
 
         public static Dictionary<string, string> GOSDailyEmailListByAppCode
         {
@@ -115,6 +128,9 @@ namespace AM.Reporting
         public static string TaxComEmailCc { get; private set; }
         public static string TaxComErrorReportEmailSubject { get; private set; }
         public static string TaxComErrorReportPath { get; private set; }
+
+        public static string TaxComEDeliveryReportEmailTo { get; private set; }
+        public static string TaxComEDeliveryReportEmailCc { get; private set; }
         public static string TaxComEDeliveryReportEmailSubject { get; private set; }
         public static string TaxComEDeliveryReportPath { get; private set; }
 
@@ -192,6 +208,8 @@ namespace AM.Reporting
                 TaxComErrorReportEmailSubject = ConfigurationManager.AppSettings["TaxComErrorReportEmailSubject"].Trim();
                 TaxComErrorReportPath = ConfigurationManager.AppSettings["TaxComErrorReportPath"].Trim();
 
+                TaxComEDeliveryReportEmailTo = ConfigurationManager.AppSettings["TaxComEDeliveryReportEmailTo"].Trim();
+                TaxComEDeliveryReportEmailCc = ConfigurationManager.AppSettings["TaxComEDeliveryReportEmailCc"].Trim();
                 TaxComEDeliveryReportEmailSubject = ConfigurationManager.AppSettings["TaxComEDeliveryReportEmailSubject"].Trim();
                 TaxComEDeliveryReportPath = ConfigurationManager.AppSettings["TaxComEDeliveryReportPath"].Trim();
 
@@ -216,6 +234,14 @@ namespace AM.Reporting
                 DocSolErrorEMailTo = ConfigurationManager.AppSettings["DocSolErrorEMailTo"].Trim();
                 DocSolErrorEMailCc = ConfigurationManager.AppSettings["DocSolErrorEMailCc"].Trim();
                 DocSolErrorReportPath = ConfigurationManager.AppSettings["DocSolErrorReportPath"].Trim();
+
+                BECUErrorEMailTo = ConfigurationManager.AppSettings["BECUErrorEMailTo"].Trim();
+                BECUErrorEMailCc = ConfigurationManager.AppSettings["BECUErrorEMailCc"].Trim();
+                BECUErrorReportPath = ConfigurationManager.AppSettings["BECUErrorReportPath"].Trim();
+
+                RaymondJamesErrorEMailTo = ConfigurationManager.AppSettings["RaymondJamesErrorEMailTo"].Trim();
+                RaymondJamesErrorEMailCc = ConfigurationManager.AppSettings["RaymondJamesErrorEMailCc"].Trim();
+                RaymondJamesErrorReportPath = ConfigurationManager.AppSettings["RaymondJamesErrorReportPath"].Trim();
             }
             catch (Exception ex)
             {

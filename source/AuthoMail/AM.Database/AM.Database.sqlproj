@@ -245,6 +245,8 @@
     <Build Include="AM\Tables\TrackingDump.sql" />
     <Build Include="dbo\Stored Procedures\usp_ScanDummyDataByPrintTrailBatchIdForDallas.sql" />
     <Build Include="AM\Tables\PackagesHoldInfo.sql" />
+    <Build Include="AM\Tables\EsignDocConfig.sql" />
+    <Build Include="API\Tables\APICredentials.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AM.Database.refactorlog" />

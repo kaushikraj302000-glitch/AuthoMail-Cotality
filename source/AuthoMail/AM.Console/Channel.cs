@@ -387,7 +387,7 @@ namespace AM.Console
                     break;
                 case "TDBANK":
                     //NOTE : Below zip file naming convention is EDG Naming convention.
-                    zipFileName = "{0}FAGOS.ZYIAC.N0010393.TDOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                    zipFileName = "{0}FAGOS.ZYONT.N0010393.TDOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
                     zipFilePath = Path.Combine(localReportPath, zipFileName);
                     ftpUploadPath = Path.Combine(deliveryUploadPath, zipFileName);
                     resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();

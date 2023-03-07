@@ -55,6 +55,7 @@ namespace AM.Services
             }
         }
         public bool IsFallBackRequested { get; set; }
+        public bool IsESignRequested { get; set; }
         public int? SigningRoomId { get; set; }
         public Guid? SigningRoomUniqueId { get; set; }
         public string SigningRoomName { get; set; }
@@ -83,6 +84,10 @@ namespace AM.Services
         public DateTime? ESignedOn { get; set; }
         public bool IsESigned { get; set; }
         public string DownloadedIPAddress { get; set; }
+        public int DocTypeId { get; set; }
+        public int RetentionPeriod { get; set; }
+        public bool IsWithinRetentionPeriod { get; set; }
+        public bool IsESignedDocDownloaded { get; set; }
 
         public string GetChannelCode()
         {
@@ -90,6 +95,16 @@ namespace AM.Services
                 return ChannelCode.Substring(0, ChannelCode.LastIndexOf("_"));
 
             return null;
+        }
+
+        public string RequestedPdf
+        {
+            get
+            {
+                if (this.FileName.IsNullOrWhiteSpace()) return null;
+
+                return $@"{Config.Common_AuthoMailRootFolder}/{this.ClientCode}/{this.MailBatchId}/EVault/{this.FileName}";
+            }
         }
     }
 
@@ -114,5 +129,13 @@ namespace AM.Services
             PnSResponsePath = Path.Combine(BatchRepo, "PnSResponse");
             AMResponsePath = Path.Combine(BatchRepo, Util.AMResponseFolderName);
         }
+    }
+
+    public class APICredential
+    {
+        public int ClientId { get; set; }
+        public string SecretKey { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }        
     }
 }

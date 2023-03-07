@@ -62,9 +62,67 @@ namespace AM.Scanner.Controllers
             }
         }
 
+        [HttpGet]
+        [Route("DownloadEVaultPdf")]
+        public HttpResponseMessage DownloadEVaultPdf(string fileName)
+        {
+            try
+            {
+                if (UnauthorizedEVault(HttpContext.Current.Request))
+                {
+                    return Request.CreateResponse(HttpStatusCode.Unauthorized);
+                }
+                //Create HTTP Response.
+                HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
+
+                //Check whether File exists.
+                if (!File.Exists(fileName))
+                {
+                    //Throw 404 (Not Found) exception if File not found.
+                    response.StatusCode = HttpStatusCode.NotFound;
+                    response.ReasonPhrase = string.Format("File not found: {0} .", Path.GetFileName(fileName));
+                    return response;
+                }
+
+                //Read the File into a Byte Array.
+                byte[] bytes = File.ReadAllBytes(fileName);
+
+                //Set the Response Content.
+                response.Content = new ByteArrayContent(bytes);
+
+                //Set the Response Content Length.
+                response.Content.Headers.ContentLength = bytes.LongLength;
+
+                //Set the Content Disposition Header Value and FileName.
+                response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment");
+                response.Content.Headers.ContentDisposition.FileName = fileName;
+
+                //Set the File Content Type.
+                response.Content.Headers.ContentType = new MediaTypeHeaderValue(MimeMapping.GetMimeMapping(fileName));
+                return response;
+            }
+            catch (Exception e)
+            {
+                log.Error(e.ToString());
+                return Request.CreateResponse(HttpStatusCode.BadRequest, e.Message);
+            }
+        }
+
         public bool Unauthorized(HttpRequest request)
         {
             if (request.Headers["Id"].Trim() != "5b189031-eecc-42d7-8b6d-b531caf1036e")
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public bool UnauthorizedEVault(HttpRequest request)
+        {
+            if (request.Headers["Id"].Trim() != "dc4c269c-0eea-424a-8be9-0cc75eb527e9")
             {
                 return true;
             }

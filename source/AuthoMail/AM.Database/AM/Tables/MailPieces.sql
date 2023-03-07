@@ -85,6 +85,7 @@
     [RetRcptAddressCountry]               VARCHAR (255)    NULL,
     [PDFFileSize]                         BIGINT           NULL,
     [IsEDeliveryRequested]                BIT              NULL,
+    [IsESignRequested]                    BIT              NULL,
     [IsFallBackRequested]                 BIT              NULL,
     [RcptEmailId]                         VARCHAR (255)    NULL,
     [ExpiryDate]                          DATETIME         NULL,

@@ -48,16 +48,33 @@ namespace AM.EDelivery
                         SigningRoomName = edmp.SigningRoomName,
                         Description = "",
                         ExpirationDate = expiryDate.UtcToEst(),
-                        StartDate = Common.EstToday
+                        StartDate = Common.Now.Date.UtcToClientTimeZone("Pacific Standard Time")
                     };
 
-                    request.Documents = new List<DocumentInfo>() {
-                        new DocumentInfo()
+
+
+                    DocumentInfo documentInfo = new DocumentInfo();
+                    documentInfo.DocumentData = Convert.ToBase64String(File.ReadAllBytes(Path.Combine(mpi.AMRequestPath, edmp.FileName))).ToString();
+                    documentInfo.DocumentName = Path.GetFileNameWithoutExtension(Path.Combine(mpi.AMRequestPath, edmp.FileName));
+                    documentInfo.FileName = Path.GetFileName(Path.Combine(mpi.AMRequestPath, edmp.FileName));
+
+                    if (edmp.IsESignRequested)
+                    {
+                        var eSignPageList = eDeliverySvc.GetEsignDocumentConfigurationByClientIdAndDocTypeId(edmp.ClientId.Value, edmp.DocTypeId);
+                        var documentSigners = new List<DocumentSigners>();
+                        var docAnnotations = new List<DocumentAnnotations>();
+                        foreach (var item in eSignPageList)
                         {
-                            DocumentData = Convert.ToBase64String(File.ReadAllBytes(Path.Combine(mpi.AMRequestPath, edmp.FileName))).ToString(),
-                            DocumentName = Path.GetFileNameWithoutExtension(Path.Combine(mpi.AMRequestPath, edmp.FileName)),
-                            FileName = Path.GetFileName(Path.Combine(mpi.AMRequestPath, edmp.FileName))
+                            docAnnotations.Add(new DocumentAnnotations() { AnnotationType = "Signature", Height = item.SignHeight, Width = item.SignWidth, XOffset = item.SignXOffset, YOffset = item.SignYOffset, Optional = item.Optional, PageNumber = item.SignPageNumber });
                         }
+
+                        documentSigners.Add(new DocumentSigners() { FirstName = edmp.RcptFirstName, LastName = edmp.RcptLastName, InvitationEmail = edmp.RcptEmailId, DocumentAnnotations = docAnnotations });
+
+                        documentInfo.DocumentSigners = documentSigners;
+                    }
+
+                    request.Documents = new List<DocumentInfo>() {
+                        documentInfo
                     };
 
                     request.Participants = new List<Participant>() {
@@ -75,7 +92,7 @@ namespace AM.EDelivery
                     bool hasError = false;
                     while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                     {
-                        var response = eDeliveryAPISvc.CreateSigningRoom(request).Result;
+                        var response = eDeliveryAPISvc.CreateSigningRoom(request, edmp.ClientId.Value).Result;
                         if (!response.HasError)
                         {
                             edmp.SigningRoomId = response.SigningRoom.SigningRoomId;
@@ -147,7 +164,7 @@ namespace AM.EDelivery
                     bool hasError = false;
                     while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                     {
-                        bool isInvitationSent = eDeliveryAPISvc.SendInvitations(edmp.SigningRoomId.Value).Result;
+                        bool isInvitationSent = eDeliveryAPISvc.SendInvitations(edmp.SigningRoomId.Value, edmp.ClientId.Value).Result;
 
                         if (isInvitationSent)
                         {
@@ -224,7 +241,7 @@ namespace AM.EDelivery
 
                                 DateTime reportPrepTiming = Common.Now;
 
-                                eDeliverySvc.UpdateEDeliveredMPForReportingBack(edmp.MailBatchId, reportPrepTiming);
+                                eDeliverySvc.UpdateEDeliveredMPForReportingBack(edmp.MailBatchId, reportPrepTiming, BatchStatus.eDelivered.ToString());
                                 eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.ReportedBack, reportPrepTiming);
                                 scope.Complete();
                             }
@@ -247,6 +264,68 @@ namespace AM.EDelivery
             }
 
             log.Debug("EDelivery EDelivered job queue is completed.");
+        }
+
+        protected override void ESigned()
+        {
+            log.Debug("ESigned job queue is started.");
+
+            List<EDMailPiece> eSignedMPs = eDeliverySvc.GetBatchesByPipelineStatusAndSFTChannelId(EDPipelineStatus.eSigned);
+
+            if (eSignedMPs.Count == 0)
+            {
+                log.Debug("ESigned job queue is empty.");
+                log.Debug("ESigned job queue is completed.");
+                return;
+            }
+
+            foreach (EDMailPiece edmp in eSignedMPs)
+            {
+                try
+                {
+                    using (IMailPieceService mpSvc = new MailPieceService())
+                    using (IReportService reportSvc = new ReportService())
+                    {
+                        using (TransactionScope scope = new TransactionScope())
+                        {
+                            try
+                            {
+                                MailPieces mailPiece = reportSvc.GetMailPiecesDataFromMailBatchIdAndUniqueId(edmp.MailBatchId, edmp.UniqueId);
+                                mailPiece.PrintedOn = edmp.ESignedOn.Value;
+                                mailPiece.ShippedOn = edmp.ESignedOn.Value;
+                                mailPiece.TotalPages = edmp.TotalPages;
+                                mailPiece.TotalSheets = edmp.TotalPages;
+                                mailPiece.ShippingStatus = ShippingStatus.eSigned.ToString();
+
+                                mpSvc.UpdateBatchMailPieceShippingStatusDetails(mailPiece);
+                                MailPieceInfo mpi = new MailPieceInfo(edmp.ClientCode, Config.Common_AuthoMailRootFolder, edmp.MailBatchId, edmp.BatchName);
+                                GenerateDeliveryReport(edmp, mailPiece, mpi);
+
+                                DateTime reportPrepTiming = Common.Now;
+
+                                eDeliverySvc.UpdateEDeliveredMPForReportingBack(edmp.MailBatchId, reportPrepTiming, BatchStatus.eSigned.ToString());
+                                eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.ReportedBack, reportPrepTiming);
+                                scope.Complete();
+                            }
+                            catch (Exception ex)
+                            {
+                                var msg = "Error occured while generating ESigned report for EDMailPiece-Id {0} and BatchName='{1}.xml'".Fill(edmp.Id, edmp.BatchName);
+                                log.Error(msg, ex);
+                                MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var msg = "Error occured while preparing ESigned report for Id {0} for client {1} with below error <br/>{2}".Fill(edmp.Id, edmp.ClientCode, ex);
+                    log.Error(msg);
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                    continue;
+                }
+            }
+
+            log.Debug("ESigned job queue is completed.");
         }
 
         private void GenerateDeliveryReport(EDMailPiece eDeliveryMP, MailPieces mp, MailPieceInfo mpi)

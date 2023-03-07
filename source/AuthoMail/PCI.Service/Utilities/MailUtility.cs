@@ -32,6 +32,14 @@ namespace PCI.Service
                             msg.Subject = Common.ApplicationEnvironment + " : " + Common.SubmitDELNordisBatchEmailSubject.Fill(vendorCode, Path.GetFileName(fileName), Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy hh:mm tt") + " EST", mailPiecesCount, totalPages);
                             sb = new StringBuilder(File.ReadAllText(Common.SubmitDELNordisBatchEmailTemplate));
                         }
+                        else if (printVendorCode == "CSS_NORDIS")
+                        {
+                            msg.To.Add(Common.Email_ToCSSNordis);
+                            msg.CC.Add(Common.Email_CcCSSNordis);
+                            //Here subject string contains "Batch Submitted To {Location} : {FileName} at {Time} Total Files : {FileCount} Total Page Count : {PageCount}"
+                            msg.Subject = Common.ApplicationEnvironment + " : " + Common.SubmitCSSNordisBatchEmailSubject.Fill(vendorCode, Path.GetFileName(fileName), Common.UtcToEst(Common.GetCurrentTime()).ToString("MM/dd/yyyy hh:mm tt") + " EST", mailPiecesCount, totalPages);
+                            sb = new StringBuilder(File.ReadAllText(Common.SubmitCSSNordisBatchEmailTemplate));
+                        }
                         else
                         {
                             msg.To.Add(Common.Email_ToNordis);

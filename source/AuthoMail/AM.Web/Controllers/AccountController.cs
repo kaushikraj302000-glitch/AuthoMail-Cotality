@@ -111,7 +111,7 @@ namespace AM.Web.Controllers
 
                 model.UserName = model.UserName.Contains("@") ? model.UserName : model.UserName + "@corelogic.com";
                 var mailAddress = new MailAddress(model.UserName);
-                if (mailAddress.Host.Equals("us.hsbc.com", StringComparison.CurrentCultureIgnoreCase))
+                if (mailAddress.Host.Equals("us.hsbc.com", StringComparison.CurrentCultureIgnoreCase) || mailAddress.Host.Equals("hsbc.com.mx", StringComparison.CurrentCultureIgnoreCase))
                 {
                     string clientIP = GetIp();
                     IPNetwork ipnetwork;

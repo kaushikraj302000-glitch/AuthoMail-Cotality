@@ -24,7 +24,11 @@
     }
 
     .label.label-Edelivery {
-        background-color: #0cc9de;
+        background-color: #20c997;
+    }
+
+    .label.label-Esign {
+        background-color: #6f42c1;
     }
 
     .bootstrap-select {
@@ -604,7 +608,7 @@
                 success: function (response) {
                     var chartData = [];
                     //var ticksArr = [];
-                    chartData.push(['Date', 'InProgress', 'Failed', 'PulledBack', 'ShippedAll', 'ShippedPartial', 'eDelivered', 'Dates']);
+                    chartData.push(['Date', 'InProgress', 'Failed', 'PulledBack', 'ShippedAll', 'ShippedPartial', 'eDelivered', 'eSigned', 'Dates']);
                     var cnt = 0;
                     var startDate = response[response.length - 1].Date;
                     var endDate = response[0].Date;
@@ -619,9 +623,10 @@
                         var shippedAllCount = parseInt(response[cnt].ShippedAll == 0 ? null : response[cnt].ShippedAll);
                         var shippedPartialCount = parseInt(response[cnt].ShippedPartial == 0 ? null : response[cnt].ShippedPartial);
                         var eDeliveredCount = parseInt(response[cnt].eDelivered == 0 ? null : response[cnt].eDelivered);
+                        var eSignedCount = parseInt(response[cnt].eSigned == 0 ? null : response[cnt].eSigned);
 
-                        chartData.push([response[cnt].Weekday, inProgressCount, failedCount, pulledBackCount, shippedAllCount, shippedPartialCount, eDeliveredCount, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
-                        sumArr.push(response[cnt].InProgress + response[cnt].Failed + response[cnt].PulledBack + response[cnt].ShippedAll + response[cnt].ShippedPartial + response[cnt].eDelivered);
+                        chartData.push([response[cnt].Weekday, inProgressCount, failedCount, pulledBackCount, shippedAllCount, shippedPartialCount, eDeliveredCount, eSignedCount, moment(response[cnt].Date).format("MM/DD/YYYY hh:mm:ss a")]);
+                        sumArr.push(response[cnt].InProgress + response[cnt].Failed + response[cnt].PulledBack + response[cnt].ShippedAll + response[cnt].ShippedPartial + response[cnt].eDelivered + response[cnt].eSigned);
 
                         cnt++;
                     }
@@ -650,7 +655,7 @@
                         return;
                     }
                     var chartData = [];
-                    chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'eDelivered', 'Shipped', 'BatchId']);
+                    chartData.push(['BatchName', 'InProgress', 'Error', 'PulledBack', 'eDelivered', 'eSigned', 'Shipped', 'BatchId']);
                     var cnt = 0;
                     for (var i = 1; i <= response.length; i++) {
 
@@ -697,9 +702,10 @@
                         var pulledBackCountBatch = parseInt(response[cnt].PulledBack == 0 ? null : response[cnt].PulledBack);
                         var shippedCountBatch = parseInt(response[cnt].Shipped == 0 ? null : response[cnt].Shipped);
                         var eDeliveredCountBatch = parseInt(response[cnt].eDelivered == 0 ? null : response[cnt].eDelivered);
+                        var eSignedCountBatch = parseInt(response[cnt].eSigned == 0 ? null : response[cnt].eSigned);
 
-                        chartData.push([response[cnt].ClientBatchId, inProgressCountBatch, errorCountBatch, pulledBackCountBatch, shippedCountBatch,eDeliveredCountBatch, response[cnt].MailBatchId, moment(response[cnt].ReceivedOn).format("MM/DD/YYYY  HH:mm:ss")]);
-                        sumArr.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped + response[cnt].eDelivered);
+                        chartData.push([response[cnt].ClientBatchId, inProgressCountBatch, errorCountBatch, pulledBackCountBatch, shippedCountBatch, eDeliveredCountBatch, eSignedCountBatch, response[cnt].MailBatchId, moment(response[cnt].ReceivedOn).format("MM/DD/YYYY  HH:mm:ss")]);
+                        sumArr.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped + response[cnt].eDelivered + response[cnt].eSigned);
 
                         cnt++;
                     }
@@ -797,33 +803,35 @@
             var hTitle = "Mailpieces";
             var vTitle = "Batch Names";
             if (div == "weeklyChart") {
-                view.setColumns([0, 1, 2, 3, 4, 5, 6]);
+                view.setColumns([0, 1, 2, 3, 4, 5, 6, 7]);
                 series = {
                     0: { color: '#069' },
                     1: { color: '#e03c31' },
                     2: { color: '#e7ab08' },
                     3: { color: '#539536' },
                     4: { color: '#f63' },
-                    5: { color: '#0cc9de' }
+                    5: { color: '#20c997' },
+                    6: { color: '#6f42c1' }
                 };
                 hTitle = "Batches";
                 vTitle = "";//"Week Days";
             }
             else {
-                view.setColumns([0, 1, 2, 3, 4]);
+                view.setColumns([0, 1, 2, 3, 4, 5, 6]);
                 //colors = ['#069', '#e03c31', '#e7ab08', '#539536'];
                 series = {
                     0: { color: '#069' },
                     1: { color: '#e03c31' },
                     2: { color: '#e7ab08' },
                     3: { color: '#539536' },
-                    4: { color: '#0cc9de' }
+                    4: { color: '#20c997' },
+                    5: { color: '#6f42c1'}
                 };
             }
             var ticksArr = new Array();
             if (sumArr.length > 0) {
                 var maxSum = Math.max.apply(Math, sumArr);
-                if (maxSum < 5) {
+                if (maxSum < 6) {
                     ticksArr = new Array();
                     for (var i = 0; i <= maxSum; i++) {
                         ticksArr[i] = i;
@@ -890,7 +898,8 @@
                             }
                         }
                         if (div == "weeklyChart") {
-                            var dates = data.getValue(selectedItem.row, 7);
+                            var dates = data.getValue(selectedItem.row, 8);
+                            console.log(data);
                             GetChartDataByStatusAndDate(status, moment(dates).format("MM/DD/YYYY"));
                         }
                     }
@@ -1102,6 +1111,9 @@
                     case "eDelivered":
                         status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
                         break;
+                    case "eSigned":
+                        status = '<span class="label medium label-Esign">' + this.Status + '</span>';
+                        break;
                 }
                 // \''+this.TrackingNo+'\',\''+this.ShippingMethod+'\'
                 this.MailPieceReceivedOn = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
@@ -1113,7 +1125,7 @@
                 //this.RcptNameFormatted = this.RcptFirstName + " " + this.RcptLastName;
 
                 this.IsPullBackRequestedFormatted = requestedPullback;
-                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested && !this.IsESignRequested ? '<span class="label medium label-success">E-Delivery</span>' : this.IsEDeliveryRequested && this.IsESignRequested ? '<span class="label medium label-success">E-Sign</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
             //console.log(Model);
@@ -1150,6 +1162,9 @@
                     case "eDelivered":
                         status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
                         break;
+                    case "eSigned":
+                        status = '<span class="label medium label-Esign">' + this.Status + '</span>';
+                        break;
                 }
                 // \''+this.TrackingNo+'\',\''+this.ShippingMethod+'\'
                 //this.MailPieceReceivedOn = moment(this.MailBatches.ReceivedOn).format("MM/DD/YY HH:mm:ss");
@@ -1181,7 +1196,7 @@
 
                 }
                 this.BatchStatusFormatted = batchStatus;
-                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested && !this.IsESignRequested ? '<span class="label medium label-success">E-Delivery</span>' : this.IsEDeliveryRequested && this.IsESignRequested ? '<span class="label medium label-success">E-Sign</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
             //console.log(Model);
@@ -1217,7 +1232,7 @@
                         return;
                     }
                     var chartData = [];
-                    chartData.push(['DocTypeCode', 'InProgress', 'Error', 'PulledBack', 'Shipped','eDelivered']);
+                    chartData.push(['DocTypeCode', 'InProgress', 'Error', 'PulledBack', 'Shipped','eDelivered', 'eSigned']);
                     var cnt = 0;
                     //var ticksArr = [];
                     sumArrDS = new Array();
@@ -1228,9 +1243,10 @@
                         var pulledBackCountBatch = parseInt(response[cnt].PulledBack == 0 ? null : response[cnt].PulledBack);
                         var shippedCountBatch = parseInt(response[cnt].Shipped == 0 ? null : response[cnt].Shipped);
                         var eDeliveredCountBatch = parseInt(response[cnt].eDelivered == 0 ? null : response[cnt].eDelivered);
+                        var eSignedCountBatch = parseInt(response[cnt].eSigned == 0 ? null : response[cnt].eSigned);
 
-                        chartData.push([response[cnt].DocTypeCode, inProgressCountBatch, errorCountBatch, pulledBackCountBatch, shippedCountBatch, eDeliveredCountBatch]);
-                        sumArrDS.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped, response[cnt].eDelivered);
+                        chartData.push([response[cnt].DocTypeCode, inProgressCountBatch, errorCountBatch, pulledBackCountBatch, shippedCountBatch, eDeliveredCountBatch, eSignedCountBatch]);
+                        sumArrDS.push(response[cnt].InProgress + response[cnt].Error + response[cnt].PulledBack + response[cnt].Shipped, response[cnt].eDelivered, response[cnt].eSigned);
 
                         cnt++;
                     }
@@ -1248,19 +1264,20 @@
             var series;
             var hTitle = "Mailpieces";
             var vTitle = "Doc Types";
-            view.setColumns([0, 1, 2, 3, 4, 5]);
+            view.setColumns([0, 1, 2, 3, 4, 5, 6]);
             //colors = ['#069', '#e03c31', '#e7ab08', '#539536'];
             series = {
                 0: { color: '#069' },
                 1: { color: '#e03c31' },
                 2: { color: '#e7ab08' },
                 3: { color: '#539536' },
-                4: { color: '#0cc9de' }
+                4: { color: '#20c997' },
+                5: { color: '#6f42c1'}
             };
             var ticksArr = new Array();
             if (sumArr.length > 0) {
                 var maxSum = Math.max.apply(Math, sumArrDS);
-                if (maxSum < 5) {
+                if (maxSum < 6) {
                     ticksArr = new Array();
                     for (var i = 0; i <= maxSum; i++) {
                         ticksArr[i] = i;

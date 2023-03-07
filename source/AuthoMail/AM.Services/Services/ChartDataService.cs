@@ -50,7 +50,9 @@ namespace AM.Services
                     InProgress = g.Count(s => s.BatchStatus == BatchStatus.InProgress.ToString()),
                     ShippedAll = g.Count(s => s.BatchStatus == BatchStatus.ShippedAll.ToString()),
                     ShippedPartial = g.Count(s => s.BatchStatus == BatchStatus.ShippedPartial.ToString()),
-                    PulledBack = g.Count(s => s.BatchStatus == BatchStatus.PulledBack.ToString())
+                    PulledBack = g.Count(s => s.BatchStatus == BatchStatus.PulledBack.ToString()),
+                    eDelivered = g.Count(s => s.BatchStatus == BatchStatus.eDelivered.ToString()),
+                    eSigned = g.Count(s => s.BatchStatus == BatchStatus.eSigned.ToString())
                 }).ToList();
 
             //DateTime dt = DateTime.Today; dt > DateTime.Today.AddDays(-8); dt = dt.AddDays(-1)
@@ -66,7 +68,9 @@ namespace AM.Services
                         InProgress = 0,
                         ShippedAll = 0,
                         ShippedPartial = 0,
-                        PulledBack = 0
+                        PulledBack = 0,
+                        eDelivered = 0,
+                        eSigned = 0
                     });
                 }
             }
@@ -256,6 +260,7 @@ namespace AM.Services
 ,sum(case when m.shippingstatus = 'Error' then 1 else 0 end) as Error
 ,sum(case when m.shippingstatus = 'Pulledback' then 1 else 0 end) as Pulledback
 ,sum(case when m.shippingstatus = 'EDelivered' then 1 else 0 end) as EDelivered
+,sum(case when m.shippingstatus = 'ESigned' then 1 else 0 end) as ESigned
 from AM.MailPieces m
 inner join AM.MailBatches b on m.MailBatchId=b.Id
 inner join [AM].[DocTypes] d ON m.DocTypeId=d.Id 

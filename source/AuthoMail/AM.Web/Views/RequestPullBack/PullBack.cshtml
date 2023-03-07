@@ -26,11 +26,19 @@
     }
 
     .label.label-Edelivery {
-        background-color: #0cc9de;
+        background-color: #20c997;
+    }
+
+    .label.label-Esign {
+        background-color: #6f42c1;
     }
 
     .btn-group.bootstrap-select {
         width: 90% !important;
+    }
+
+    #selectbusinessId .bootstrap-select {
+        width: 50% !important;
     }
 
     .textAreaForPB {
@@ -87,7 +95,7 @@
                             else if (ViewBag.BusinessId.Count > 1)
                             {
                                 <label for="BusinessFriendlyIdName">Select Business ID</label>
-                                <div class="input-group">
+                                <div class="input-group" id="selectbusinessId">
                                     <select id="BusinessFriendlyIdName" class="selectpicker" data-live-search="true" data-live-search-placeholder="Search Business ID">
                                         <option value="">Select BusinessId</option>
                                         @foreach (var item in ViewBag.BusinessId)
@@ -112,7 +120,7 @@
                             <label for="BatchName">Batch Name</label>
                             <input class="form-control" name="BatchName" placeholder="Batch Name" id="BatchName">
                         </div>
-                        <div class="form-group col-md-2">
+                        <div class="form-group col-md-4">
                             <label for="Channel">Channel</label>
                             @Html.Action("_Channel", "Common")
                         </div>
@@ -469,6 +477,9 @@
                     case "eDelivered":
                         status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
                         break;
+                    case "eSigned":
+                        status = '<span class="label medium label-Esign">' + this.Status + '</span>';
+                        break;
                 }
                 this.ShippingStatusFormatted = status;
                 // \''+this.TrackingNo+'\',\''+this.ShippingMethod+'\'
@@ -476,7 +487,7 @@
                 //this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.ErrorDescPopover = this.ErrorDesc == null ? "--" : '<span id="popoverError" data-toggle="popover" data-original-title="Error" data-html="true" data-content="' + this.ErrorDesc + '" data-placement="left"><a>Error Details</a></span>';
                 this.TotalPages = this.Status == "Shipped" ? this.TotalPages : 0;
-                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested && !this.IsESignRequested ? '<span class="label medium label-success">E-Delivery</span>' : this.IsEDeliveryRequested && this.IsESignRequested ? '<span class="label medium label-success">E-Sign</span>' : '<span class="label medium label-blue">P&S</span>';
                 this.IsPullBackRequestedFormatted = requestedPullback;
 
                 var checkbox = '<span id="resPullBack_' + cnt + '" data-trigger="hover" data-html="true" data-toggle="popover" data-placement="right"></span>';
@@ -485,6 +496,7 @@
                     case "Error":
                     case "Shipped":
                     case "eDelivered":
+                    case "eSigned":
                         checkbox = checkbox + '<input type="checkbox" disabled id="checkbox-demo_' + cnt + '"  class="cl-check" /><label for="checkbox-demo_' + cnt + '"></label>';
                         break;
                     case "InProgress":

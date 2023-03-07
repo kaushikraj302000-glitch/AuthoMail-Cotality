@@ -16,6 +16,10 @@ using System.IO;
 using AM.Lib;
 using AM.Services.Services;
 using System.Globalization;
+using System.Dynamic;
+using Newtonsoft.Json;
+using System.Text;
+using System.Net;
 
 namespace AM.Web.Controllers
 {
@@ -30,10 +34,11 @@ namespace AM.Web.Controllers
         IPnSAPIService pnSAPISvc;
         IDocTypeService docTypeSvc;
         IMailPieceService mailpieceSvc;
+        ICommonService commonSvc;
         private AMSignInManager _signInManager;
         private AMUserManager _userManager;
         //private readonly IClientPermissionService clientPermissionSvc;
-        public CommonController(IReportService repoSvc, IHomeService homeSvc, ISupportService supSvc, IPnSAPIService pnsapiSvc, IDocTypeService docTypeSvc, IMailPieceService mailpieceSvc, AMSignInManager signInManager, AMUserManager userManager)
+        public CommonController(IReportService repoSvc, IHomeService homeSvc, ISupportService supSvc, IPnSAPIService pnsapiSvc, IDocTypeService docTypeSvc, IMailPieceService mailpieceSvc, ICommonService commonSvc, AMSignInManager signInManager, AMUserManager userManager)
         {
             this.repoSvc = repoSvc;
             this.homeSvc = homeSvc;
@@ -41,6 +46,7 @@ namespace AM.Web.Controllers
             this.pnSAPISvc = pnsapiSvc;
             this.docTypeSvc = docTypeSvc;
             this.mailpieceSvc = mailpieceSvc;
+            this.commonSvc = commonSvc;
             UserManager = userManager;
             SignInManager = signInManager;
             //this.clientPermissionSvc = clientPermissionSvc;
@@ -212,6 +218,7 @@ namespace AM.Web.Controllers
             ViewBag.msg = msg;
             ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByClientIdAndLatestOccurance(User.Identity.GetClientId().Value);
             ViewBag.docTypes = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "DocTypeName", "DocTypeName");
+            ViewBag.ClientCode = supSvc.FindByClientId(User.Identity.GetClientId().Value).AppCode;
             return View();
         }
 
@@ -254,6 +261,36 @@ namespace AM.Web.Controllers
                     if (!Directory.Exists(downloadPath))
                         Directory.CreateDirectory(downloadPath);
 
+
+                    mailPiece.ClientCode = supSvc.FindByClientId(User.Identity.GetClientId().Value).AppCode;
+
+                    if (mailPiece.ClientCode == "LOANCARE")
+                    {                        
+                        CustomTemplate customTemplate = commonSvc.GetCustomTemplateByCommunityCode(mailPiece.ProductCode);
+
+                        var templateFilePath = Server.MapPath($"/Template/{customTemplate.CustomTemplatePath}");
+                        var base64Template = Convert.ToBase64String(System.IO.File.ReadAllBytes(templateFilePath));
+                        dynamic objLoanCareReq = new ExpandoObject();
+                        objLoanCareReq.Data = new
+                        {
+                            Comment = mailPiece.Comment
+                        };
+
+                        objLoanCareReq.Settings = new
+                        {
+                            MailMergeOptions = "RemoveEmptyParagraphs",
+                            ReportEngineOptions = "RemoveEmptyParagraphs",
+                            OutputDocType = "pdf",
+                            Template = base64Template
+                        };
+
+                        objLoanCareReq.TransformData = null;
+
+                        string coverletterPdfPath = Path.Combine(downloadPath, $"{mailPiece.ProductCode}_{Common.Today.ToString("MMddyyhhmmss")}.pdf");
+                        await GenerateDoc(objLoanCareReq, coverletterPdfPath);
+                        downloadedFiles.Add(coverletterPdfPath);
+                    }
+
                     // sequence validation
                     if (pdffile.Count > 1)
                     {
@@ -281,7 +318,6 @@ namespace AM.Web.Controllers
                         downloadedFiles.Add(downloadfilePath);
                     }
 
-                    mailPiece.ClientCode = supSvc.FindByClientId(User.Identity.GetClientId().Value).AppCode;
 
                     var mailRequestController = new MailRequestController(pnSAPISvc, docTypeSvc, mailpieceSvc);
                     var result = await mailRequestController.CreateAPIMailRequestAsync(mailPiece, downloadedFiles);
@@ -307,6 +343,23 @@ namespace AM.Web.Controllers
             ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
             ViewBag.docTypes = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "DocTypeName", "DocTypeName");
             return View(mailPiece);
+        }
+
+        private async Task GenerateDoc(dynamic objLoanCareReq, string pdfFilePath)
+        {
+            using (var httpClient = new HttpClient())
+            using (var stringContent = new StringContent(JsonConvert.SerializeObject(objLoanCareReq), Encoding.UTF8, "application/json"))
+            {
+                HttpResponseMessage httpResponse = await httpClient.PostAsync(Config.Common_DocGen_API, stringContent);
+                var responseString = await httpResponse.Content.ReadAsStringAsync();
+                if (!httpResponse.IsSuccessStatusCode || httpResponse.StatusCode != HttpStatusCode.OK)
+                {
+                    return;
+                }
+                var docGenResponse = JsonConvert.DeserializeObject<DocGenResponse>(responseString);
+
+                System.IO.File.WriteAllBytes(pdfFilePath, docGenResponse.DocumentData);
+            }
         }
 
         #endregion SingleLoanEntry

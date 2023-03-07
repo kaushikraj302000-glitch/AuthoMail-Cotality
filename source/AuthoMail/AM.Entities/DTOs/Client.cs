@@ -24,6 +24,7 @@ namespace AM.Entities
         public bool IsResponseRequired { get; set; }
         public bool IsHardAddrValidationRequired { get; set; }
         public bool IsRejectDupRecord { get; set; }
+        public bool IsEDeliveryEnabled { get; set; }
     }
 
     public class ClientSFTChannel

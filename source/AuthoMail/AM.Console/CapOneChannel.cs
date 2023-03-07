@@ -263,7 +263,7 @@ namespace AM.Console
                             {
                                 eDelivery eDeliveryInfo = new eDelivery();
                                 eDeliveryInfo.PrintAndShipOnExpiry = true;
-
+                                eDeliveryInfo.IsEsign = true; //By default client wants to opt for ESign facility
                                 mp.eDelivery = eDeliveryInfo;
                             }
 
@@ -356,15 +356,7 @@ namespace AM.Console
                             borrowerAddress.City = loanInfo.BorrowerCity;
                             borrowerAddress.State = loanInfo.BorrowerState;
                             borrowerAddress.Zip = loanInfo.BorrowerZip;
-                            borrowerAddress.Country = loanInfo.BorrowerCountry;
-
-                            if (loanInfo.SendEDelivery == "Y")
-                            {
-                                eDelivery eDeliveryInfo = new eDelivery();
-                                eDeliveryInfo.PrintAndShipOnExpiry = true;
-
-                                mp.eDelivery = eDeliveryInfo;
-                            }
+                            borrowerAddress.Country = loanInfo.BorrowerCountry;                           
 
                             Entities.Recipient borrowerName = new Entities.Recipient();
                             borrowerName.FirstName = loanInfo.BorrowerFirstName;

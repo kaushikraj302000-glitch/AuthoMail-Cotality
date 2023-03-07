@@ -71,6 +71,10 @@
                                 {
                                     <li>@Html.ActionLink("Request Reship ", "ReshipPackage", "Common")</li>
                                 }
+                                @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.EVault))
+                                {
+                                    <li>@Html.ActionLink("E-Vault", "EVaultPackages", "EVault")</li>
+                                }
                                 <li>@Html.ActionLink("Single Package Entry", "SingleLoanEntry", "Common")</li>
                             </ul>
                         </li>
