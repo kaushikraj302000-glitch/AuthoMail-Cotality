@@ -8,24 +8,26 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper;
 
 namespace AM.Services
 {
-    public interface IEDeliveryAPIService
+    public interface IEDeliveryAPIService : IDisposable
     {
-        Task<SigningRoomResponse> CreateSigningRoom(SigningRoomRequest signingRoomRequest);
-        Task<bool> SendInvitations(int signingRoomId);
-        Task<List<SigningRoomActivityLogResponse>> GetSigningRoomActivityLog(string signingRoomName);
-        Task<string> GetSigningRoomStatus(int signingRoomId);
-        Task<bool> DeleteSigningRoom(int signingRoomId);
+        Task<SigningRoomResponse> CreateSigningRoom(SigningRoomRequest signingRoomRequest, int clientId);
+        Task<bool> SendInvitations(int signingRoomId, int clientId);
+        Task<List<SigningRoomActivityLogResponse>> GetSigningRoomActivityLog(string signingRoomName, int clientId);
+        Task<string> GetSigningRoomStatus(int signingRoomId, int clientId);
+        Task<bool> DeleteSigningRoom(int signingRoomId, int clientId);
+        Task<EsignDocDownload> DownloadEsignedDocument(int docId, int clientId);
     }
-    public class EDeliveryAPIService : IEDeliveryAPIService
+    public class EDeliveryAPIService : ServiceBase, IEDeliveryAPIService
     {
-        public async Task<SigningRoomResponse> CreateSigningRoom(SigningRoomRequest signingRoomRequest)
+        public async Task<SigningRoomResponse> CreateSigningRoom(SigningRoomRequest signingRoomRequest, int clientId)
         {
             try
             {
-                var token = await GetToken();
+                var token = await GetToken(clientId);
                 using (var client = SetupClient(token))
                 {
                     string json = JsonConvert.SerializeObject(signingRoomRequest);
@@ -53,12 +55,12 @@ namespace AM.Services
             }
         }
 
-        public async Task<bool> SendInvitations(int signingRoomId)
+        public async Task<bool> SendInvitations(int signingRoomId, int clientId)
         {
             bool isInvitationSent = false;
             try
             {
-                var token = await GetToken();
+                var token = await GetToken(clientId);
                 using (var client = SetupClient(token))
                 {
                     StringContent content = new StringContent("", Encoding.UTF8, "application/json");
@@ -76,11 +78,11 @@ namespace AM.Services
             }
         }
 
-        public async Task<List<SigningRoomActivityLogResponse>> GetSigningRoomActivityLog(string signingRoomName)
+        public async Task<List<SigningRoomActivityLogResponse>> GetSigningRoomActivityLog(string signingRoomName, int clientId)
         {
             try
             {
-                var token = await GetToken();
+                var token = await GetToken(clientId);
                 using (var client = SetupClient(token))
                 {
                     string json = @"{ 
@@ -116,11 +118,11 @@ namespace AM.Services
             }
         }
 
-        public async Task<string> GetSigningRoomStatus(int signingRoomId)
+        public async Task<string> GetSigningRoomStatus(int signingRoomId, int clientId)
         {
             try
             {
-                var token = await GetToken();
+                var token = await GetToken(clientId);
                 using (var client = SetupClient(token))
                 {
                     //make request
@@ -140,7 +142,7 @@ namespace AM.Services
             }
         }
 
-        private static HttpClient SetupClient(string token)
+        private HttpClient SetupClient(string token)
         {
             var client = new HttpClient();
             client.BaseAddress = new Uri(Config.E_API_BaseURL); //"http://10.215.48.138:8080/"
@@ -150,10 +152,11 @@ namespace AM.Services
             return client;
         }
 
-        public async static Task<string> GetToken()
+        public async Task<string> GetToken(int clientId)
         {
             try
             {
+                var cred = await GetAPICredential(clientId);
                 using (var client = new HttpClient())
                 {
                     ServicePointManager.Expect100Continue = true;
@@ -168,9 +171,9 @@ namespace AM.Services
                     var formContent = new FormUrlEncodedContent(new[]
                 {
                     new KeyValuePair<string, string>("grant_type", "password"),
-                    new KeyValuePair<string, string>("client_id", Config.E_API_ClientId), // "3A57E75F-E25A-4077-9B59-C3766489562C"
-                    new KeyValuePair<string, string>("username", Config.E_API_UserName), //"AksharClientAdmin"
-                    new KeyValuePair<string, string>("password", Config.E_API_Password) //"Intellimods123#"
+                    new KeyValuePair<string, string>("client_id", cred.SecretKey), // "3A57E75F-E25A-4077-9B59-C3766489562C"
+                    new KeyValuePair<string, string>("username", cred.UserName), //"AksharClientAdmin"
+                    new KeyValuePair<string, string>("password", cred.Password) //"Intellimods123#"
                 });
 
                     //send request
@@ -188,12 +191,12 @@ namespace AM.Services
             }
         }
 
-        public async Task<bool> DeleteSigningRoom(int signingRoomId)
+        public async Task<bool> DeleteSigningRoom(int signingRoomId, int clientId)
         {
             bool isSigningRoomDelete = false;
             try
             {
-                var token = await GetToken();
+                var token = await GetToken(clientId);
                 using (var client = SetupClient(token))
                 {
                     //make request
@@ -207,6 +210,31 @@ namespace AM.Services
             {
                 return isSigningRoomDelete;
             }
+        }
+
+        public async Task<EsignDocDownload> DownloadEsignedDocument(int docId, int clientId)
+        {
+            try
+            {
+                var token = await GetToken(clientId);
+                using (var client = SetupClient(token))
+                {
+                    //make request
+                    HttpResponseMessage response = await client.GetAsync(string.Format(Config.E_API_DownloadEsignedDocURL, docId));
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    EsignDocDownload esignDocDownload = JsonConvert.DeserializeObject<EsignDocDownload>(responseString);
+                    return esignDocDownload;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new EsignDocDownload() { HasError = true, ErrorDesc = ex.ToString() };
+            }
+        }
+
+        internal async Task<APICredential> GetAPICredential(int clientId)
+        {
+            return await db.QuerySingleOrDefaultAsync<APICredential>("SELECT * FROM API.Credentials WHERE ClientId = @ClientId", new { ClientId = clientId });
         }
     }
 }

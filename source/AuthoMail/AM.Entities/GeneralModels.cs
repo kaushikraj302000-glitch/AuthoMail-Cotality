@@ -26,7 +26,9 @@ namespace AM.Entities
         Failed,
         ShippedPartial,
         ShippedAll,
-        PulledBack
+        PulledBack,
+        eDelivered,
+        eSigned
     }
 
     public static class BatchPipelineStatus
@@ -54,6 +56,7 @@ namespace AM.Entities
         public const string SigningRoomCreated = "SigningRoomCreated";
         public const string InvitationSent = "InvitationSent";
         public const string eDelivered = "eDelivered";
+        public const string eSigned = "eSigned";
         public const string Expired = "Expired";
         public const string Declined = "Declined";
         public const string ReportedBack = "ReportedBack";
@@ -61,6 +64,7 @@ namespace AM.Entities
 
     public static class ActivityStatus
     {
+        // Activity Status should match exactly with the DocMagic statuses
         public const string ESignConsentAccepted = "ESIGN Consent Accepted";
         public const string ESignConsentDeclined = "ESIGN Consent Declined";
         public const string DocumentReviewed = "Document Reviewed";
@@ -68,20 +72,6 @@ namespace AM.Entities
         public const string DocumentDownloaded = "Document Downloaded";
     }
 
-    public static class EDeliveryStatus
-    {
-        public const string Consented = "Consented";
-        public const string NotConsented = "NotConsented";
-        public const string DocReviewed = "DocReviewed";
-        public const string DocDownloaded = "DocDownloaded";
-        public const string ESigned = "ESigned";
-    }
-
-    public static class SigningRoomStatus
-    {
-        public const string InProgress = "InProgress";
-        public const string Expired = "Expired";
-    }
 
     public static class OutComeCodes
     {
@@ -261,6 +251,7 @@ namespace AM.Entities
         Error,
         Shipped,
         eDelivered,
+        eSigned,
         Unknown,
         Acknowledgement,
         NotFound
@@ -330,6 +321,7 @@ namespace AM.Entities
         public const string APIUSPSVerify = "API-USPS-Verify";
         public const string Delfus = "Delfus";
         public const string BAOffShore = "BA-OffShore";
+        public const string EVault = "E-Vault";
     }
     public static class AMUserStatus
     {

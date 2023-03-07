@@ -10,6 +10,7 @@ namespace AM.Services
     public class PullBackViewModel
     {
         public Guid MailPieceUniqueId { get; set; }
+        public int ClientId { get; set; }
         public int? PrintTrailBatchId { get; set; }
         public int PrintBatch { get; set; }
         public string TrackingNo { get; set; }
@@ -62,6 +63,7 @@ namespace AM.Services
         public string TrackingNo { get; set; }
         public string DocType { get; set; }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
         public string DisplayDocType
         {
             get
@@ -91,6 +93,7 @@ namespace AM.Services
         public string TrackingNo { get; set; }
         public string DocType { get; set; }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
         public string DisplayDocType
         {
             get

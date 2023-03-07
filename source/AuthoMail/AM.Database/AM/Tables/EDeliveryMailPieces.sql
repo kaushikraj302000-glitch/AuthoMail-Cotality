@@ -37,6 +37,7 @@
     [TotalPages]           INT              NULL,
     [ReportedBackOn]       DATETIME         NULL,
     [IsReportedBack]       AS               (case when [ReportedBackOn] IS NULL then (0) else (1) end),
+    [IsESignedDocDownloaded] BIT NULL, 
     CONSTRAINT [PK_EDeliveryMailPieces] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70)
 );
 

@@ -33,6 +33,7 @@ namespace AM.Services
         public string RcptSuffix { get; set; }
         public string RcptPhone { get; set; }
         public string RcptOrganization { get; set; }
+        public string RcptEmailId { get; set; }
 
         public string RcptName
         {
@@ -158,6 +159,7 @@ namespace AM.Services
         public DateTime? StdSubmissionTime { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
         public string MissedSLAReason { get; set; }
         public MailBatches MailBatches { get; set; }
         public Clients Clients { get; set; }
@@ -535,6 +537,7 @@ namespace AM.Services
         public string TrackingNo { get; set; }
         public string DocType { get; set; }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
         public DateTime? DueDate { get; set; }
         public string Channel { get; set; }
         public string ShippingMethod { get; set; }
@@ -594,6 +597,7 @@ namespace AM.Services
         public int LegalPageCount { get; set; }
         public int TotalBlankPages { get; set; }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
         public string ShippingMethod { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }

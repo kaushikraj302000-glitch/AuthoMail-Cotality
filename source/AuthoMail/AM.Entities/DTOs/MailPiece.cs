@@ -98,6 +98,7 @@ namespace AM.Entities
         public int? PrintTrailId { get; set; }
         public Int64? PDFFileSize { get; set; }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
         public bool IsFallBackRequested { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public bool IsPrintReady { get; set; }

@@ -53,6 +53,7 @@
 			<xs:enumeration value="Error"/>
 			<xs:enumeration value="PulledBack" />
 			<xs:enumeration value="eDelivered" />
+      <xs:enumeration value="eSigned" />
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="Money">

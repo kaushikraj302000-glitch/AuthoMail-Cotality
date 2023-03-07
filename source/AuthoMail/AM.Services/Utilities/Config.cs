@@ -238,6 +238,7 @@ namespace AM.Services
         public static string E_API_SigningRoomActivityLogSearchURL { get; set; }
         public static string E_API_SigningRoomSummaryURL { get; set; }
         public static string E_API_DeleteSigningRoomURL { get; set; }
+        public static string E_API_DownloadEsignedDocURL { get; set; }
 
         #endregion
 
