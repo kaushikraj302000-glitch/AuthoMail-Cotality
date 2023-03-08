@@ -166,7 +166,7 @@ namespace AM.Core
                                 {
                                     //This is compulsary
                                     toAddress = $"{mailPiece.RcptPrefix} {mailPiece.RcptFirstName} {mailPiece.RcptLastName} {mailPiece.RcptSuffix}\n";
-                                    toAddress = toAddress.Trim();
+                                    //toAddress = toAddress.Trim();
                                     if (!string.IsNullOrEmpty(mailPiece.RcptOrganization))
                                         toAddress += mailPiece.RcptOrganization + "\n";
                                     if (!string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine1AboveStreet))
