@@ -165,8 +165,8 @@ namespace AM.Core
                                 if (mailPiece.IsRcptInfoSpecified)
                                 {
                                     //This is compulsary
-                                    toAddress = mailPiece.RcptFirstName + " " + mailPiece.RcptLastName + "\n";
-
+                                    toAddress = $"{mailPiece.RcptPrefix} {mailPiece.RcptFirstName} {mailPiece.RcptLastName} {mailPiece.RcptSuffix}\n";
+                                    //toAddress = toAddress.Trim();
                                     if (!string.IsNullOrEmpty(mailPiece.RcptOrganization))
                                         toAddress += mailPiece.RcptOrganization + "\n";
                                     if (!string.IsNullOrEmpty(mailPiece.RcptAddrOptionalLine1AboveStreet))
