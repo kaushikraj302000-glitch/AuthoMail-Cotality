@@ -1088,7 +1088,7 @@ namespace AM.Console
 
             if (!commonSvc.IsBusinessDay(expiryDate, Config.Common_FederalHolidays, false, false))
             {
-                expiryDate = commonSvc.GetNextWorkingDay(receivedOnEst.UtcToEst(), Config.Common_FederalHolidays, false, false);
+                expiryDate = commonSvc.GetNextWorkingDay(expiryDate, Config.Common_FederalHolidays, false, false);
             }
 
             return expiryDate;
