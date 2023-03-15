@@ -8,9 +8,10 @@ using static AM.Core.FedExEnum;
 
 namespace AM.Core
 {
-    class FedExRequest
+    class FedExRequestResponse
     {
-        public class Root
+        #region FedExRequest
+        public class FedExRequest
         {
             [JsonProperty("mergeLabelDocOption")]
             public MergeLabelDocOption MergeLabelDocOption { get; set; }
@@ -1183,10 +1184,10 @@ namespace AM.Core
             public PickupType PickupType { get; set; }
 
             [JsonProperty("serviceType")]
-            public ServiceType ServiceType { get; set; }
+            public string ServiceType { get; set; }
 
             [JsonProperty("packagingType")]
-            public PackagingType PackagingType { get; set; }
+            public string PackagingType { get; set; }
 
             [JsonProperty("totalWeight")]
             public double TotalWeight { get; set; }
@@ -1351,7 +1352,7 @@ namespace AM.Core
         public class ShipmentSpecialServices
         {
             [JsonProperty("specialServiceTypes")]
-            public List<ShipmentSpecialServiceType> SpecialServiceTypes { get; set; }
+            public List<string> SpecialServiceTypes { get; set; }
 
             [JsonProperty("etdDetail")]
             public EtdDetail EtdDetail { get; set; }
@@ -1648,6 +1649,1065 @@ namespace AM.Core
             public List<DocTabZoneSpecification> DocTabZoneSpecifications { get; set; }
         }
 
+        #endregion FedExRequest
 
+        #region FedExResponse
+
+        public class FedExResponse
+        {
+            [JsonProperty("transactionId")]
+            public Guid TransactionId { get; set; }
+            [JsonProperty("customerTransactionId")]
+            public string CustomerTransactionId { get; set; }
+            [JsonProperty("output")]
+            public Output Output { get; set; }
+            [JsonProperty("errors")]
+            public List<Error> Errors { get; set; }
+        }
+
+        public class Error
+        {
+            [JsonProperty("code")]
+            public string Code { get; set; }
+
+            [JsonProperty("message")]
+            public string Message { get; set; }
+        }
+
+        public class Output
+        {
+            [JsonProperty("transactionShipments")]
+            public TransactionShipment[] TransactionShipments { get; set; }
+
+            [JsonProperty("alerts")]
+            public Alert[] Alerts { get; set; }
+
+            [JsonProperty("jobId")]
+            public string JobId { get; set; }
+        }
+
+        public class Alert
+        {
+            [JsonProperty("code")]
+            public string Code { get; set; }
+
+            [JsonProperty("alertType")]
+            public string AlertType { get; set; }
+
+            [JsonProperty("message")]
+            public string Message { get; set; }
+        }
+
+        public class TransactionShipment
+        {
+            [JsonProperty("serviceType")]
+            public string ServiceType { get; set; }
+
+            [JsonProperty("shipDatestamp")]
+            public DateTimeOffset ShipDatestamp { get; set; }
+
+            [JsonProperty("serviceCategory")]
+            public string ServiceCategory { get; set; }
+
+            [JsonProperty("shipmentDocuments")]
+            public Document[] ShipmentDocuments { get; set; }
+
+            [JsonProperty("pieceResponses")]
+            public PieceResponse[] PieceResponses { get; set; }
+
+            [JsonProperty("serviceName")]
+            public string ServiceName { get; set; }
+
+            [JsonProperty("alerts")]
+            public Alert[] Alerts { get; set; }
+
+            [JsonProperty("completedShipmentDetail")]
+            public CompletedShipmentDetail CompletedShipmentDetail { get; set; }
+
+            [JsonProperty("shipmentAdvisoryDetails")]
+            public ShipmentAdvisoryDetails ShipmentAdvisoryDetails { get; set; }
+
+            [JsonProperty("masterTrackingNumber")]
+            public string MasterTrackingNumber { get; set; }
+        }
+
+        public class CompletedShipmentDetail
+        {
+            [JsonProperty("completedPackageDetails")]
+            public CompletedPackageDetail[] CompletedPackageDetails { get; set; }
+
+            [JsonProperty("operationalDetail")]
+            public CompletedShipmentDetailOperationalDetail OperationalDetail { get; set; }
+
+            [JsonProperty("carrierCode")]
+            public string CarrierCode { get; set; }
+
+            [JsonProperty("completedHoldAtLocationDetail")]
+            public CompletedHoldAtLocationDetail CompletedHoldAtLocationDetail { get; set; }
+
+            [JsonProperty("completedEtdDetail")]
+            public CompletedEtdDetail CompletedEtdDetail { get; set; }
+
+            [JsonProperty("packagingDescription")]
+            public string PackagingDescription { get; set; }
+
+            [JsonProperty("masterTrackingId")]
+            public TrackingId MasterTrackingId { get; set; }
+
+            [JsonProperty("serviceDescription")]
+            public ServiceDescription ServiceDescription { get; set; }
+
+            [JsonProperty("usDomestic")]
+            public bool UsDomestic { get; set; }
+
+            [JsonProperty("hazardousShipmentDetail")]
+            public HazardousShipmentDetail HazardousShipmentDetail { get; set; }
+
+            [JsonProperty("shipmentRating")]
+            public ShipmentRating ShipmentRating { get; set; }
+
+            [JsonProperty("documentRequirements")]
+            public DocumentRequirements DocumentRequirements { get; set; }
+
+            [JsonProperty("exportComplianceStatement")]
+            public string ExportComplianceStatement { get; set; }
+
+            [JsonProperty("accessDetail")]
+            public AccessDetail AccessDetail { get; set; }
+        }
+
+        public class AccessDetail
+        {
+            [JsonProperty("accessorDetails")]
+            public AccessorDetail[] AccessorDetails { get; set; }
+        }
+
+        public class AccessorDetail
+        {
+            [JsonProperty("password")]
+            public string Password { get; set; }
+
+            [JsonProperty("role")]
+            public string Role { get; set; }
+
+            [JsonProperty("emailLabelUrl")]
+            public string EmailLabelUrl { get; set; }
+
+            [JsonProperty("userId")]
+            public string UserId { get; set; }
+        }
+
+        public class CompletedEtdDetail
+        {
+            [JsonProperty("folderId")]
+            public string FolderId { get; set; }
+
+            [JsonProperty("type")]
+            public string Type { get; set; }
+
+            [JsonProperty("uploadDocumentReferenceDetails")]
+            public UploadDocumentReferenceDetail[] UploadDocumentReferenceDetails { get; set; }
+        }
+
+        public class UploadDocumentReferenceDetail
+        {
+            [JsonProperty("documentType")]
+            public string DocumentType { get; set; }
+
+            [JsonProperty("documentReference")]
+            public string DocumentReference { get; set; }
+
+            [JsonProperty("description")]
+            public string Description { get; set; }
+
+            [JsonProperty("documentId")]
+            public string DocumentId { get; set; }
+        }
+
+        public class CompletedHoldAtLocationDetail
+        {
+            [JsonProperty("holdingLocationType")]
+            public string HoldingLocationType { get; set; }
+
+            [JsonProperty("holdingLocation")]
+            public HoldingLocation HoldingLocation { get; set; }
+        }
+
+        public class HoldingLocation
+        {
+            [JsonProperty("address")]
+            public Address Address { get; set; }
+
+            [JsonProperty("contact")]
+            public Contact Contact { get; set; }
+        }
+
+        public class CompletedPackageDetail
+        {
+            [JsonProperty("sequenceNumber")]
+            public int SequenceNumber { get; set; }
+
+            [JsonProperty("operationalDetail")]
+            public CompletedPackageDetailOperationalDetail OperationalDetail { get; set; }
+
+            [JsonProperty("signatureOption")]
+            public string SignatureOption { get; set; }
+
+            [JsonProperty("trackingIds")]
+            public TrackingId[] TrackingIds { get; set; }
+
+            [JsonProperty("groupNumber")]
+            public int GroupNumber { get; set; }
+
+            [JsonProperty("oversizeClass")]
+            public string OversizeClass { get; set; }
+
+            [JsonProperty("packageRating")]
+            public PackageRating PackageRating { get; set; }
+
+            [JsonProperty("dryIceWeight")]
+            public Weight DryIceWeight { get; set; }
+
+            [JsonProperty("hazardousPackageDetail")]
+            public HazardousPackageDetail HazardousPackageDetail { get; set; }
+        }
+
+        public class HazardousPackageDetail
+        {
+            [JsonProperty("regulation")]
+            public string Regulation { get; set; }
+
+            [JsonProperty("accessibility")]
+            public string Accessibility { get; set; }
+
+            [JsonProperty("labelType")]
+            public string LabelType { get; set; }
+
+            [JsonProperty("containers")]
+            public Container[] Containers { get; set; }
+
+            [JsonProperty("cargoAircraftOnly")]
+            public bool CargoAircraftOnly { get; set; }
+
+            [JsonProperty("referenceId")]
+            public string ReferenceId { get; set; }
+
+            [JsonProperty("radioactiveTransportIndex")]
+            public double RadioactiveTransportIndex { get; set; }
+        }
+
+        public class Container
+        {
+            [JsonProperty("qvalue")]
+            public double Qvalue { get; set; }
+
+            [JsonProperty("hazardousCommodities")]
+            public HazardousCommodity[] HazardousCommodities { get; set; }
+        }
+
+        public class HazardousCommodity
+        {
+            [JsonProperty("quantity")]
+            public Quantity Quantity { get; set; }
+
+            [JsonProperty("options")]
+            public HazardousCommodityOptions Options { get; set; }
+
+            [JsonProperty("description")]
+            public HazardousCommodityDescription Description { get; set; }
+
+            [JsonProperty("netExplosiveDetail")]
+            public NetExplosiveDetail NetExplosiveDetail { get; set; }
+
+            [JsonProperty("massPoints")]
+            public double MassPoints { get; set; }
+        }
+
+        public class HazardousCommodityDescription
+        {
+            [JsonProperty("sequenceNumber")]
+            public int SequenceNumber { get; set; }
+
+            [JsonProperty("packingInstructions")]
+            public string PackingInstructions { get; set; }
+
+            [JsonProperty("subsidiaryClasses")]
+            public string[] SubsidiaryClasses { get; set; }
+
+            [JsonProperty("labelText")]
+            public string LabelText { get; set; }
+
+            [JsonProperty("tunnelRestrictionCode")]
+            public string TunnelRestrictionCode { get; set; }
+
+            [JsonProperty("specialProvisions")]
+            public string SpecialProvisions { get; set; }
+
+            [JsonProperty("properShippingNameAndDescription")]
+            public string ProperShippingNameAndDescription { get; set; }
+
+            [JsonProperty("technicalName")]
+            public string TechnicalName { get; set; }
+
+            [JsonProperty("symbols")]
+            public string Symbols { get; set; }
+
+            [JsonProperty("authorization")]
+            public string Authorization { get; set; }
+
+            [JsonProperty("attributes")]
+            public string[] Attributes { get; set; }
+
+            [JsonProperty("id")]
+            public string Id { get; set; }
+
+            [JsonProperty("packingGroup")]
+            public string PackingGroup { get; set; }
+
+            [JsonProperty("properShippingName")]
+            public string ProperShippingName { get; set; }
+
+            [JsonProperty("hazardClass")]
+            public string HazardClass { get; set; }
+        }
+
+        public class NetExplosiveDetail
+        {
+            [JsonProperty("amount")]
+            public double Amount { get; set; }
+
+            [JsonProperty("units")]
+            public string Units { get; set; }
+
+            [JsonProperty("type")]
+            public string Type { get; set; }
+        }
+
+        public class HazardousCommodityOptions
+        {
+            [JsonProperty("quantity")]
+            public Quantity Quantity { get; set; }
+
+            [JsonProperty("innerReceptacles")]
+            public InnerReceptacle[] InnerReceptacles { get; set; }
+
+            [JsonProperty("options")]
+            public OptionsOptions Options { get; set; }
+
+            [JsonProperty("description")]
+            public OptionsDescription Description { get; set; }
+        }
+
+        public class OptionsDescription
+        {
+            [JsonProperty("sequenceNumber")]
+            public int SequenceNumber { get; set; }
+
+            [JsonProperty("processingOptions")]
+            public string[] ProcessingOptions { get; set; }
+
+            [JsonProperty("subsidiaryClasses")]
+            public string[] SubsidiaryClasses { get; set; }
+
+            [JsonProperty("labelText")]
+            public string LabelText { get; set; }
+
+            [JsonProperty("technicalName")]
+            public string TechnicalName { get; set; }
+
+            [JsonProperty("packingDetails")]
+            public PackingDetails PackingDetails { get; set; }
+
+            [JsonProperty("authorization")]
+            public string Authorization { get; set; }
+
+            [JsonProperty("reportableQuantity")]
+            public bool ReportableQuantity { get; set; }
+
+            [JsonProperty("percentage")]
+            public double Percentage { get; set; }
+
+            [JsonProperty("id")]
+            public string Id { get; set; }
+
+            [JsonProperty("packingGroup")]
+            public string PackingGroup { get; set; }
+
+            [JsonProperty("properShippingName")]
+            public string ProperShippingName { get; set; }
+
+            [JsonProperty("hazardClass")]
+            public string HazardClass { get; set; }
+        }
+
+        public class PackingDetails
+        {
+            [JsonProperty("packingInstructions")]
+            public string PackingInstructions { get; set; }
+
+            [JsonProperty("cargoAircraftOnly")]
+            public bool CargoAircraftOnly { get; set; }
+        }
+
+        public class InnerReceptacle
+        {
+            [JsonProperty("quantity")]
+            public Quantity Quantity { get; set; }
+        }
+
+        public class Quantity
+        {
+            [JsonProperty("quantityType")]
+            public string QuantityType { get; set; }
+
+            [JsonProperty("amount")]
+            public double Amount { get; set; }
+
+            [JsonProperty("units")]
+            public string Units { get; set; }
+        }
+
+        public class OptionsOptions
+        {
+            [JsonProperty("labelTextOption")]
+            public string LabelTextOption { get; set; }
+
+            [JsonProperty("customerSuppliedLabelText")]
+            public string CustomerSuppliedLabelText { get; set; }
+        }
+
+        public class CompletedPackageDetailOperationalDetail
+        {
+            [JsonProperty("astraHandlingText")]
+            public string AstraHandlingText { get; set; }
+
+            [JsonProperty("barcodes")]
+            public Barcodes Barcodes { get; set; }
+
+            [JsonProperty("operationalInstructions")]
+            public OperationalInstruction[] OperationalInstructions { get; set; }
+        }
+
+        public class Barcodes
+        {
+            [JsonProperty("binaryBarcodes")]
+            public Barcode[] BinaryBarcodes { get; set; }
+
+            [JsonProperty("stringBarcodes")]
+            public Barcode[] StringBarcodes { get; set; }
+        }
+
+        public class Barcode
+        {
+            [JsonProperty("type")]
+            public string Type { get; set; }
+
+            [JsonProperty("value")]
+            public string Value { get; set; }
+        }
+
+        public class OperationalInstruction
+        {
+            [JsonProperty("number")]
+            public int Number { get; set; }
+
+            [JsonProperty("content")]
+            public string Content { get; set; }
+        }
+
+        public class PackageRating
+        {
+            [JsonProperty("effectiveNetDiscount")]
+            public double EffectiveNetDiscount { get; set; }
+
+            [JsonProperty("actualRateType")]
+            public string ActualRateType { get; set; }
+
+            [JsonProperty("packageRateDetails")]
+            public PackageRateDetail[] PackageRateDetails { get; set; }
+        }
+
+        public class PackageRateDetail
+        {
+            [JsonProperty("ratedWeightMethod")]
+            public string RatedWeightMethod { get; set; }
+
+            [JsonProperty("totalFreightDiscounts")]
+            public double TotalFreightDiscounts { get; set; }
+
+            [JsonProperty("totalTaxes")]
+            public double TotalTaxes { get; set; }
+
+            [JsonProperty("minimumChargeType")]
+            public string MinimumChargeType { get; set; }
+
+            [JsonProperty("baseCharge")]
+            public double BaseCharge { get; set; }
+
+            [JsonProperty("totalRebates")]
+            public double TotalRebates { get; set; }
+
+            [JsonProperty("rateType")]
+            public string RateType { get; set; }
+
+            [JsonProperty("billingWeight")]
+            public Weight BillingWeight { get; set; }
+
+            [JsonProperty("netFreight")]
+            public double NetFreight { get; set; }
+
+            [JsonProperty("surcharges")]
+            public Surcharge[] Surcharges { get; set; }
+
+            [JsonProperty("totalSurcharges")]
+            public double TotalSurcharges { get; set; }
+
+            [JsonProperty("netFedExCharge")]
+            public double NetFedExCharge { get; set; }
+
+            [JsonProperty("netCharge")]
+            public double NetCharge { get; set; }
+
+            [JsonProperty("currency")]
+            public string Currency { get; set; }
+        }
+
+        public class Surcharge
+        {
+            [JsonProperty("amount")]
+            public string Amount { get; set; }
+
+            [JsonProperty("surchargeType", NullValueHandling = NullValueHandling.Ignore)]
+            public string SurchargeType { get; set; }
+
+            [JsonProperty("level")]
+            public string Level { get; set; }
+
+            [JsonProperty("description")]
+            public string Description { get; set; }
+
+            [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)]
+            public string Type { get; set; }
+        }
+
+        public class TrackingId
+        {
+            [JsonProperty("formId")]
+            public string FormId { get; set; }
+
+            [JsonProperty("trackingIdType")]
+            public string TrackingIdType { get; set; }
+
+            [JsonProperty("uspsApplicationId")]
+            public int UspsApplicationId { get; set; }
+
+            [JsonProperty("trackingNumber")]
+            public string TrackingNumber { get; set; }
+        }
+
+        public class DocumentRequirements
+        {
+            [JsonProperty("requiredDocuments")]
+            public string[] RequiredDocuments { get; set; }
+
+            [JsonProperty("prohibitedDocuments")]
+            public string[] ProhibitedDocuments { get; set; }
+
+            [JsonProperty("generationDetails")]
+            public GenerationDetail[] GenerationDetails { get; set; }
+        }
+
+        public class GenerationDetail
+        {
+            [JsonProperty("type")]
+            public string Type { get; set; }
+
+            [JsonProperty("minimumCopiesRequired")]
+            public int MinimumCopiesRequired { get; set; }
+
+            [JsonProperty("letterhead")]
+            public string Letterhead { get; set; }
+
+            [JsonProperty("electronicSignature")]
+            public string ElectronicSignature { get; set; }
+        }
+
+        public class HazardousShipmentDetail
+        {
+            [JsonProperty("hazardousSummaryDetail")]
+            public HazardousSummaryDetail HazardousSummaryDetail { get; set; }
+
+            [JsonProperty("adrLicense")]
+            public AdrLicense AdrLicense { get; set; }
+
+            [JsonProperty("dryIceDetail")]
+            public DryIceDetail DryIceDetail { get; set; }
+        }
+
+        public class AdrLicense
+        {
+            [JsonProperty("licenseOrPermitDetail")]
+            public LicenseOrPermitDetail LicenseOrPermitDetail { get; set; }
+        }
+
+        public class LicenseOrPermitDetail
+        {
+            [JsonProperty("number")]
+            public string Number { get; set; }
+
+            [JsonProperty("effectiveDate")]
+            public DateTimeOffset EffectiveDate { get; set; }
+
+            [JsonProperty("expirationDate")]
+            public DateTimeOffset ExpirationDate { get; set; }
+        }
+
+        public class DryIceDetail
+        {
+            [JsonProperty("totalWeight")]
+            public Weight TotalWeight { get; set; }
+
+            [JsonProperty("packageCount")]
+            public int PackageCount { get; set; }
+
+            [JsonProperty("processingOptions")]
+            public ProcessingOptions ProcessingOptions { get; set; }
+        }
+
+
+        public class HazardousSummaryDetail
+        {
+            [JsonProperty("smallQuantityExceptionPackageCount")]
+            public int SmallQuantityExceptionPackageCount { get; set; }
+        }
+
+        public class CompletedShipmentDetailOperationalDetail
+        {
+            [JsonProperty("originServiceArea")]
+            public string OriginServiceArea { get; set; }
+
+            [JsonProperty("serviceCode")]
+            public string ServiceCode { get; set; }
+
+            [JsonProperty("airportId")]
+            public string AirportId { get; set; }
+
+            [JsonProperty("postalCode")]
+            public string PostalCode { get; set; }
+
+            [JsonProperty("scac")]
+            public string Scac { get; set; }
+
+            [JsonProperty("deliveryDay")]
+            public string DeliveryDay { get; set; }
+
+            [JsonProperty("originLocationId")]
+            public string OriginLocationId { get; set; }
+
+            [JsonProperty("countryCode")]
+            public string CountryCode { get; set; }
+
+            [JsonProperty("astraDescription")]
+            public string AstraDescription { get; set; }
+
+            [JsonProperty("originLocationNumber")]
+            public int OriginLocationNumber { get; set; }
+
+            [JsonProperty("deliveryDate")]
+            public DateTimeOffset DeliveryDate { get; set; }
+
+            [JsonProperty("deliveryEligibilities")]
+            public string[] DeliveryEligibilities { get; set; }
+
+            [JsonProperty("ineligibleForMoneyBackGuarantee")]
+            public bool IneligibleForMoneyBackGuarantee { get; set; }
+
+            [JsonProperty("maximumTransitTime")]
+            public string MaximumTransitTime { get; set; }
+
+            [JsonProperty("destinationLocationStateOrProvinceCode")]
+            public string DestinationLocationStateOrProvinceCode { get; set; }
+
+            [JsonProperty("astraPlannedServiceLevel")]
+            public string AstraPlannedServiceLevel { get; set; }
+
+            [JsonProperty("destinationLocationId")]
+            public string DestinationLocationId { get; set; }
+
+            [JsonProperty("transitTime")]
+            public string TransitTime { get; set; }
+
+            [JsonProperty("stateOrProvinceCode")]
+            public string StateOrProvinceCode { get; set; }
+
+            [JsonProperty("destinationLocationNumber")]
+            public int DestinationLocationNumber { get; set; }
+
+            [JsonProperty("packagingCode")]
+            public string PackagingCode { get; set; }
+
+            [JsonProperty("commitDate")]
+            public DateTimeOffset CommitDate { get; set; }
+
+            [JsonProperty("publishedDeliveryTime")]
+            public string PublishedDeliveryTime { get; set; }
+
+            [JsonProperty("ursaSuffixCode")]
+            public string UrsaSuffixCode { get; set; }
+
+            [JsonProperty("ursaPrefixCode")]
+            public string UrsaPrefixCode { get; set; }
+
+            [JsonProperty("destinationServiceArea")]
+            public string DestinationServiceArea { get; set; }
+
+            [JsonProperty("commitDay")]
+            public string CommitDay { get; set; }
+
+            [JsonProperty("customTransitTime")]
+            public string CustomTransitTime { get; set; }
+        }
+
+        public class ServiceDescription
+        {
+            [JsonProperty("serviceType")]
+            public string ServiceType { get; set; }
+
+            [JsonProperty("code")]
+            public string Code { get; set; }
+
+            [JsonProperty("names")]
+            public Name[] Names { get; set; }
+
+            [JsonProperty("operatingOrgCodes")]
+            public string[] OperatingOrgCodes { get; set; }
+
+            [JsonProperty("astraDescription")]
+            public string AstraDescription { get; set; }
+
+            [JsonProperty("description")]
+            public string Description { get; set; }
+
+            [JsonProperty("serviceId")]
+            public string ServiceId { get; set; }
+
+            [JsonProperty("serviceCategory")]
+            public string ServiceCategory { get; set; }
+        }
+
+        public class Name
+        {
+            [JsonProperty("type")]
+            public string Type { get; set; }
+
+            [JsonProperty("encoding")]
+            public string Encoding { get; set; }
+
+            [JsonProperty("value")]
+            public string Value { get; set; }
+        }
+
+        public class ShipmentRating
+        {
+            [JsonProperty("actualRateType")]
+            public string ActualRateType { get; set; }
+
+            [JsonProperty("shipmentRateDetails")]
+            public ShipmentRateDetail[] ShipmentRateDetails { get; set; }
+        }
+
+        public class ShipmentRateDetail
+        {
+            [JsonProperty("rateZone")]
+            public string RateZone { get; set; }
+
+            [JsonProperty("ratedWeightMethod")]
+            public string RatedWeightMethod { get; set; }
+
+            [JsonProperty("totalDutiesTaxesAndFees", NullValueHandling = NullValueHandling.Ignore)]
+            public double? TotalDutiesTaxesAndFees { get; set; }
+
+            [JsonProperty("pricingCode")]
+            public string PricingCode { get; set; }
+
+            [JsonProperty("totalFreightDiscounts")]
+            public double TotalFreightDiscounts { get; set; }
+
+            [JsonProperty("totalTaxes")]
+            public double TotalTaxes { get; set; }
+
+            [JsonProperty("totalDutiesAndTaxes")]
+            public double TotalDutiesAndTaxes { get; set; }
+
+            [JsonProperty("totalAncillaryFeesAndTaxes", NullValueHandling = NullValueHandling.Ignore)]
+            public double? TotalAncillaryFeesAndTaxes { get; set; }
+
+            [JsonProperty("taxes")]
+            public Surcharge[] Taxes { get; set; }
+
+            [JsonProperty("totalRebates")]
+            public double TotalRebates { get; set; }
+
+            [JsonProperty("fuelSurchargePercent")]
+            public double FuelSurchargePercent { get; set; }
+
+            [JsonProperty("currencyExchangeRate")]
+            public CurrencyExchangeRate CurrencyExchangeRate { get; set; }
+
+            [JsonProperty("totalNetFreight")]
+            public double TotalNetFreight { get; set; }
+
+            [JsonProperty("totalNetFedExCharge")]
+            public double TotalNetFedExCharge { get; set; }
+
+            [JsonProperty("shipmentLegRateDetails", NullValueHandling = NullValueHandling.Ignore)]
+            public ShipmentRateDetail[] ShipmentLegRateDetails { get; set; }
+
+            [JsonProperty("dimDivisor")]
+            public int DimDivisor { get; set; }
+
+            [JsonProperty("rateType")]
+            public string RateType { get; set; }
+
+            [JsonProperty("surcharges")]
+            public Surcharge[] Surcharges { get; set; }
+
+            [JsonProperty("totalSurcharges")]
+            public double TotalSurcharges { get; set; }
+
+            [JsonProperty("totalBillingWeight")]
+            public Weight TotalBillingWeight { get; set; }
+
+            [JsonProperty("freightDiscounts")]
+            public FreightDiscount[] FreightDiscounts { get; set; }
+
+            [JsonProperty("rateScale")]
+            public string RateScale { get; set; }
+
+            [JsonProperty("totalNetCharge")]
+            public double TotalNetCharge { get; set; }
+
+            [JsonProperty("totalBaseCharge")]
+            public double TotalBaseCharge { get; set; }
+
+            [JsonProperty("totalNetChargeWithDutiesAndTaxes")]
+            public double TotalNetChargeWithDutiesAndTaxes { get; set; }
+
+            [JsonProperty("currency")]
+            public string Currency { get; set; }
+
+            [JsonProperty("totalDimWeight", NullValueHandling = NullValueHandling.Ignore)]
+            public Weight TotalDimWeight { get; set; }
+
+            [JsonProperty("legDestinationLocationId", NullValueHandling = NullValueHandling.Ignore)]
+            public string LegDestinationLocationId { get; set; }
+
+            [JsonProperty("dimDivisorType", NullValueHandling = NullValueHandling.Ignore)]
+            public string DimDivisorType { get; set; }
+
+            [JsonProperty("minimumChargeType", NullValueHandling = NullValueHandling.Ignore)]
+            public string MinimumChargeType { get; set; }
+        }
+
+        public class CurrencyExchangeRate
+        {
+            [JsonProperty("rate")]
+            public double Rate { get; set; }
+
+            [JsonProperty("fromCurrency")]
+            public string FromCurrency { get; set; }
+
+            [JsonProperty("intoCurrency")]
+            public string IntoCurrency { get; set; }
+        }
+
+        public class FreightDiscount
+        {
+            [JsonProperty("amount")]
+            public double Amount { get; set; }
+
+            [JsonProperty("rateDiscountType")]
+            public string RateDiscountType { get; set; }
+
+            [JsonProperty("percent")]
+            public double Percent { get; set; }
+
+            [JsonProperty("description")]
+            public string Description { get; set; }
+        }
+
+        public class PieceResponse
+        {
+            [JsonProperty("netChargeAmount")]
+            public double NetChargeAmount { get; set; }
+
+            [JsonProperty("transactionDetails")]
+            public TransactionDetail[] TransactionDetails { get; set; }
+
+            [JsonProperty("packageDocuments")]
+            public Document[] PackageDocuments { get; set; }
+
+            [JsonProperty("acceptanceTrackingNumber")]
+            public string AcceptanceTrackingNumber { get; set; }
+
+            [JsonProperty("serviceCategory")]
+            public string ServiceCategory { get; set; }
+
+            [JsonProperty("listCustomerTotalCharge")]
+            public string ListCustomerTotalCharge { get; set; }
+
+            [JsonProperty("deliveryTimestamp")]
+            public DateTimeOffset DeliveryTimestamp { get; set; }
+
+            [JsonProperty("trackingIdType")]
+            public string TrackingIdType { get; set; }
+
+            [JsonProperty("additionalChargesDiscount")]
+            public double AdditionalChargesDiscount { get; set; }
+
+            [JsonProperty("netListRateAmount")]
+            public double NetListRateAmount { get; set; }
+
+            [JsonProperty("baseRateAmount")]
+            public double BaseRateAmount { get; set; }
+
+            [JsonProperty("packageSequenceNumber")]
+            public int PackageSequenceNumber { get; set; }
+
+            [JsonProperty("netDiscountAmount")]
+            public double NetDiscountAmount { get; set; }
+
+            [JsonProperty("codcollectionAmount")]
+            public double CodcollectionAmount { get; set; }
+
+            [JsonProperty("masterTrackingNumber")]
+            public string MasterTrackingNumber { get; set; }
+
+            [JsonProperty("acceptanceType")]
+            public string AcceptanceType { get; set; }
+
+            [JsonProperty("trackingNumber")]
+            public string TrackingNumber { get; set; }
+
+            [JsonProperty("successful")]
+            public bool Successful { get; set; }
+
+            [JsonProperty("customerReferences")]
+            public CustomerReference[] CustomerReferences { get; set; }
+        }
+
+
+        public class Document
+        {
+            [JsonProperty("contentKey")]
+            public string ContentKey { get; set; }
+
+            [JsonProperty("copiesToPrint")]
+            public int CopiesToPrint { get; set; }
+
+            [JsonProperty("contentType")]
+            public string ContentType { get; set; }
+
+            [JsonProperty("trackingNumber")]
+            public string TrackingNumber { get; set; }
+
+            [JsonProperty("docType")]
+            public string DocType { get; set; }
+
+            [JsonProperty("alerts")]
+            public Alert[] Alerts { get; set; }
+
+            [JsonProperty("encodedLabel")]
+            public string EncodedLabel { get; set; }
+
+            [JsonProperty("url")]
+            public Uri Url { get; set; }
+        }
+
+        public class TransactionDetail
+        {
+            [JsonProperty("transactionDetails")]
+            public string TransactionDetails { get; set; }
+
+            [JsonProperty("transactionId")]
+            public string TransactionId { get; set; }
+        }
+
+        public class ShipmentAdvisoryDetails
+        {
+            [JsonProperty("regulatoryAdvisory")]
+            public RegulatoryAdvisory RegulatoryAdvisory { get; set; }
+        }
+
+        public class RegulatoryAdvisory
+        {
+            [JsonProperty("prohibitions")]
+            public Prohibition[] Prohibitions { get; set; }
+        }
+
+        public class Prohibition
+        {
+            [JsonProperty("derivedHarmonizedCode")]
+            public string DerivedHarmonizedCode { get; set; }
+
+            [JsonProperty("advisory")]
+            public Advisory Advisory { get; set; }
+
+            [JsonProperty("commodityIndex")]
+            public int CommodityIndex { get; set; }
+
+            [JsonProperty("source")]
+            public string Source { get; set; }
+
+            [JsonProperty("categories")]
+            public string[] Categories { get; set; }
+
+            [JsonProperty("type")]
+            public string Type { get; set; }
+
+            [JsonProperty("waiver")]
+            public Waiver Waiver { get; set; }
+
+            [JsonProperty("status")]
+            public string Status { get; set; }
+        }
+
+        public class Advisory
+        {
+            [JsonProperty("code")]
+            public string Code { get; set; }
+
+            [JsonProperty("text")]
+            public string Text { get; set; }
+
+            [JsonProperty("parameters")]
+            public Parameter[] Parameters { get; set; }
+
+            [JsonProperty("localizedText")]
+            public string LocalizedText { get; set; }
+        }
+
+        public class Parameter
+        {
+            [JsonProperty("id")]
+            public string Id { get; set; }
+
+            [JsonProperty("value")]
+            public string Value { get; set; }
+        }
+
+        public class Waiver
+        {
+            [JsonProperty("advisories")]
+            public Advisory[] Advisories { get; set; }
+
+            [JsonProperty("description")]
+            public string Description { get; set; }
+
+            [JsonProperty("id")]
+            public string Id { get; set; }
+        }
+
+        #endregion FedExResponse
     }
 }

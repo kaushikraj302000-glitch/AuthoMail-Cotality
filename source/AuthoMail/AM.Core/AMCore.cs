@@ -20,11 +20,11 @@ namespace AM.Core
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private static Random random = new Random();
-        private static readonly List<string> fallBackCodes = new List<string>() { "3051", "3049", "3052" };
-        private static readonly List<string> fallBackDescriptions = new List<string>() { "Recipient Postal Code not found", "Recipient Postal-State Mismatch", "DPO that does not allow the requested mail service", "does not allow the requested mail service", "service not supported" };
+        private static readonly List<string> fallBackCodes = new List<string>() { "3051", "3049", "3052", "REQUESTEDSHIPMENT.SERVICETYPE.NOTSUPPORTED", "SHIPMENT.SPECIALSERVICETYPE.NOT.ALLOWED", "SATURDAYDELIVERY.SELECTEDSERVICE.UNAVAILABLE" };
+        private static readonly List<string> fallBackDescriptions = new List<string>() { "Recipient Postal Code not found", "Recipient Postal-State Mismatch", "DPO that does not allow the requested mail service", "does not allow the requested mail service", "service not supported", "is not allowed with the service selected", "Saturday Delivery is not allowed" };
         private static readonly List<string> returnfallBackDescriptions = new List<string>() { "Shipper Postal Code not found" };
-        private static readonly List<string> fedExExceptionCodes = new List<string>() { "3022", "1000", "2998", "Unknown_Error" };
-        private static readonly List<string> fedExExceptionDescriptions = new List<string>() { "General Failure" };
+        private static readonly List<string> fedExExceptionCodes = new List<string>() { "3022", "1000", "2998", "Unknown_Error", "SERVICE.UNAVAILABLE.ERROR" };
+        private static readonly List<string> fedExExceptionDescriptions = new List<string>() { "General Failure", "The service is currently unavailable", "request channel timed out" };
         private static readonly List<string> uspsExceptionCodes = new List<string>() { "80040B18", "Unknown_Error" };
         private static readonly List<string> uspsExceptionDescriptions = new List<string>() { "error has occurred with the service", "connected party did not properly respond", "existing connection was forcibly closed", "contact the system administrator", "an unexpected system error has occurred", "underlying connection was closed" };
         private static readonly List<string> uspsKnownExceptionDescriptions = new List<string>() { "zip code you have entered is invalid", "may not exceed 50 characters", "must be specified when sending", "may not exceed 100 characters", "may not exceed 28 characters", "invalid value" };
@@ -406,16 +406,16 @@ namespace AM.Core
 
                                     ShipperInformation shipperInfo = commonSvc.GetShipperInformationByPrintLocation(mailPiece.PrintLocation, mailPiece.PrintTrailId.Value);
 
-                                    CreateFedExLabel createFedExLabel = new CreateFedExLabel();
-
+                                    //CreateFedExLabel createFedExLabel = new CreateFedExLabel();
+                                    CreateFedExAPILabel createFedExAPILabel = new CreateFedExAPILabel();
                                     //Here maintain original doc type for retry in unexpected errors
                                     var originDocType = docType;
 
                                     #region FedEx Logic
                                     while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                     {
-                                        response = createFedExLabel.Create(mailPiece, fedExAccInfo, originDocType, mbi, shipperInfo);
-
+                                        //response = createFedExLabel.Create(mailPiece, fedExAccInfo, originDocType, mbi, shipperInfo);
+                                        response = createFedExAPILabel.Create(mailPiece, fedExAccInfo, originDocType, mbi, shipperInfo).Result;
                                         if (!response.HasError)
                                         {
                                             coverLetterPdfPaths.Add(response.CoverLetterPath);
@@ -571,7 +571,8 @@ namespace AM.Core
                                     }
 
                                     //If FedEx is down then we are going to support for USPS Priority and Priority express
-                                    if (response.HasError && (response.ExceptionCode.Contains("General Failure") || response.ExceptionDetail.Contains("General Failure") || response.ExceptionDetail.Contains("unavailable") || response.ExceptionDetail.Contains("Fault") || response.ExceptionDetail.Contains("request channel timed out")))
+
+                                    if (response.HasError && (fedExExceptionCodes.Any(code => code == response.ExceptionCode) || fedExExceptionDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower()))))
                                     {
                                         var msg = $"FedEx is down for supporting shipping to provided address for MailPieceId : {mailPiece.Id} with Error :{response.ExceptionDetail}. So AM is doing fallback to other shipping carrier.";
 
