@@ -38,14 +38,14 @@ namespace AM.Core
 
             try
             {
-                var token = await GetToken();
+                var token = await GetToken(fedExAccInfo);
 
                 using (var client = SetupClient(token, mailPiece.Id.ToString()))
                 {
                     string json = JsonConvert.SerializeObject(fedExRequest);
                     StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                    HttpResponseMessage httpResponseMessage = await client.PostAsync("/ship/v1/shipments", content);
+                    HttpResponseMessage httpResponseMessage = await client.PostAsync(Config.Common_FedExShippingLabelUrl, content);
                     var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
                     var fedExResponse = JsonConvert.DeserializeObject<FedExResponse>(responseString);
                     // check if the call was successful
@@ -63,7 +63,7 @@ namespace AM.Core
 
                             json = JsonConvert.SerializeObject(fedExRequest);
                             content = new StringContent(json, Encoding.UTF8, "application/json");
-                            httpResponseMessage = await client.PostAsync("/ship/v1/shipments", content);
+                            httpResponseMessage = await client.PostAsync(Config.Common_FedExShippingLabelUrl, content);
                             if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
                             {
                                 GenerateShipmentLabel(fedExResponse, mbi, ref response);
@@ -383,7 +383,7 @@ namespace AM.Core
             request.RequestedShipment.ShipmentSpecialServices.SpecialServiceTypes = specialServiceList;
         }
 
-        public async static Task<string> GetToken()
+        public async static Task<string> GetToken(FedExAccountInfo fedExAccInfo)
         {
             try
             {
@@ -393,7 +393,6 @@ namespace AM.Core
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
                     //setup client
-                    client.BaseAddress = new Uri("https://apis-sandbox.fedex.com");
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
@@ -401,12 +400,12 @@ namespace AM.Core
                     var formContent = new FormUrlEncodedContent(new[]
                 {
                     new KeyValuePair<string, string>("grant_type", "client_credentials"),
-                    new KeyValuePair<string, string>("client_id", "l7cc552be3d86046a88c579892066c9d70"),
-                    new KeyValuePair<string, string>("client_secret", "1b9ea8e51c244b45bc49549c4191d1ed")
+                    new KeyValuePair<string, string>("client_id", fedExAccInfo.WebAuthenticationKey),
+                    new KeyValuePair<string, string>("client_secret", fedExAccInfo.WebAuthenticationPassword)
                 });
 
                     //send request
-                    HttpResponseMessage responseMessage = await client.PostAsync("/oauth/token", formContent);
+                    HttpResponseMessage responseMessage = await client.PostAsync(Config.Common_FedExTokenUrl, formContent);
 
                     //get access token from response body
                     var responseJson = await responseMessage.Content.ReadAsStringAsync();
@@ -424,7 +423,6 @@ namespace AM.Core
         {
             var clientHandler = new HttpClientHandler() { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
             var client = new HttpClient(clientHandler);
-            client.BaseAddress = new Uri("https://apis-sandbox.fedex.com");
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
