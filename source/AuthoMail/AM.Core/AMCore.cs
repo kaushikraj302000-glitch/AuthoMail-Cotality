@@ -21,6 +21,7 @@ namespace AM.Core
 
         private static Random random = new Random();
         private static readonly List<string> fallBackCodes = new List<string>() { "3051", "3049", "3052", "REQUESTEDSHIPMENT.SERVICETYPE.NOTSUPPORTED", "SHIPMENT.SPECIALSERVICETYPE.NOT.ALLOWED", "SATURDAYDELIVERY.SELECTEDSERVICE.UNAVAILABLE" };
+        private static readonly List<string> fedexKnownExceptionCodes = new List<string>() { "CITY.TOO.SHORT", "STREETLINE1.TOO.SHORT", "RECIPIENTS.ADDRESSSTATEORPROVINCECODE.MISMATCH", "COUNTRY.POSTALCODEORZIP.INVALID", "SPECIALSERVICE.NOT.SUPPORTED.DESTINATION", "STREETLINES.TOO.LONG", "SHIPMENTSERVICES.ZIPCODE.NOTAVAILABLE", "TOTALCUSTOMSVALUE.REQUIRED" };
         private static readonly List<string> fallBackDescriptions = new List<string>() { "Recipient Postal Code not found", "Recipient Postal-State Mismatch", "DPO that does not allow the requested mail service", "does not allow the requested mail service", "service not supported", "is not allowed with the service selected", "Saturday Delivery is not allowed" };
         private static readonly List<string> returnfallBackDescriptions = new List<string>() { "Shipper Postal Code not found" };
         private static readonly List<string> fedExExceptionCodes = new List<string>() { "3022", "1000", "2998", "Unknown_Error", "SERVICE.UNAVAILABLE.ERROR" };
@@ -421,6 +422,13 @@ namespace AM.Core
                                             coverLetterPdfPaths.Add(response.CoverLetterPath);
                                             mailPiece.TrackingNo = response.TrackingCode;
                                             mailPiece.ShippingCost = response.PostageCost;
+                                            break;
+                                        }
+                                        else if (response.HasError && fedexKnownExceptionCodes.Any(code => response.ExceptionCode.ToLower().Contains(code.ToLower())))
+                                        {
+
+                                            //Known error so break from while loop and error out record
+                                            log.Error($"{response.HasError} , {response.ExceptionCode} , {response.ExceptionDetail}");
                                             break;
                                         }
                                         else if (response.HasError && (fallBackCodes.Any(code => code == response.ExceptionCode) || fallBackDescriptions.Any(desc => response.ExceptionDetail.ToLower().Contains(desc.ToLower()))))

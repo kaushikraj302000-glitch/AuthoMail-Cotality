@@ -1640,7 +1640,7 @@ namespace AM.Core
             public string Units { get; set; }
 
             [JsonProperty("value")]
-            public int Value { get; set; }
+            public double Value { get; set; }
         }
 
         public class Zone001

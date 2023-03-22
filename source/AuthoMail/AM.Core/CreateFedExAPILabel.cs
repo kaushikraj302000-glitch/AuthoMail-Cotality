@@ -452,6 +452,7 @@ namespace AM.Core
                     doc.Open();
                     var logo1 = Image.GetInstance(Convert.FromBase64String(pieceResponse.PackageDocuments[0].EncodedLabel));
                     logo1.Alignment = Element.ALIGN_CENTER;
+                    logo1.RotationDegrees = 270;
                     logo1.ScaleToFit(430, 600);
                     // logo1.SetDpi(600, 600);
                     logo1.Border = 0;
