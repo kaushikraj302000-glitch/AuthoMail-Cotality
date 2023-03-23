@@ -112,7 +112,7 @@ namespace AM.Services
                     mpSvc.UpdateBatchMailPieceDetails(mailPieceDTO);
 
                     var newValidatedOnDateTime = Common.Now;
-                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, newValidatedOnDateTime).Wait();
+                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Acknowledged, newValidatedOnDateTime).Wait();
                     eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.ReportedBack, newValidatedOnDateTime);
                     return 1;
                 }
