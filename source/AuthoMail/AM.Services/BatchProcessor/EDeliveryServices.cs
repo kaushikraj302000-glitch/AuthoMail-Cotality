@@ -107,6 +107,8 @@ namespace AM.Services
                     mailPieceDTO.DocTypeId = mpDocType.Id;
                     mailPieceDTO.PnSConfigDetailId = mpDocType.PnSConfigDetailId;
                     mailPieceDTO.PrintTrailId = mpDocType.PrintTrailId;
+                    mailPieceDTO.IsEDeliveryRequested = false;                    
+                    mailPieceDTO.IsESignRequested = false;
                     GetExactDocumentType(mpDocType, mailPieceDTO);
                     commonSvc.GetUpdatedDueDateAndPrintLocation(newReceivedOnDateTime, mailPieceDTO, mpDocType, client);
                     mpSvc.UpdateBatchMailPieceDetails(mailPieceDTO);
