@@ -223,6 +223,10 @@ namespace AM.Reporting
                 CapOneErrorEMailCc = ConfigurationManager.AppSettings["CapOneErrorEMailCc"].Trim();
                 CapOneErrorReportPath = ConfigurationManager.AppSettings["CapOneErrorReportPath"].Trim();
 
+                FloodErrorEMailTo = ConfigurationManager.AppSettings["FloodErrorEMailTo"].Trim();
+                FloodErrorEMailCc = ConfigurationManager.AppSettings["FloodErrorEMailCc"].Trim();
+                FloodErrorReportPath = ConfigurationManager.AppSettings["FloodErrorReportPath"].Trim();
+
                 AlaskaDailyEMailTo = ConfigurationManager.AppSettings["AlaskaDailyEMailTo"].Trim();
                 AlaskaDailyEMailCc = ConfigurationManager.AppSettings["AlaskaDailyEMailCc"].Trim();
                 AlaskaDailyReportPath = ConfigurationManager.AppSettings["AlaskaDailyReportPath"].Trim();
