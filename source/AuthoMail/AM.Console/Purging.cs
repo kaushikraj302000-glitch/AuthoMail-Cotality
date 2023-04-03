@@ -206,5 +206,42 @@ namespace AM.Console
                 }
             }
         }
+
+        public static void PurgeArchiveFiles(string days)
+        {
+            using (IClientService clientService = new ClientService())
+            {
+                var sftChannels = clientService.GetUncSFTChannelDetails();
+                DateTime startDate = Common.Today;
+                int purgingDays = int.Parse(days);
+                foreach (var sftChannel in sftChannels)
+                {
+                    DirectoryInfo archiveDirPath = new DirectoryInfo(Path.Combine(sftChannel.Host + sftChannel.ArchiveDir));
+
+                    try
+                    {
+                        do
+                        {
+                            startDate = startDate.AddDays(-1);
+                            purgingDays -= IsBusinessDay(startDate, Config.Common_FederalHolidays, false, false) ? 1 : 0;
+                        } while (0 != purgingDays);
+
+                        var files = archiveDirPath.EnumerateFiles().Where(d => d.LastWriteTime < startDate).ToList();
+                        foreach (var file in files)
+                        {
+                            if (File.Exists(file.FullName))
+                                File.Delete(file.FullName);
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        var msg = "Error occured while PURGING Archive files for sftchannel {0}: {1} ".Fill(sftChannel.Code, ex.ToString());
+                        log.Error(msg, ex);
+                        MailUtility.SendUnexpectedExceptionEmail(msg);
+                    }
+                }
+            }
+        }
     }
 }
