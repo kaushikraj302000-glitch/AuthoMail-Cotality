@@ -172,6 +172,10 @@ namespace AM.Console
                     {
                         Purging.PurgeDBRecords();
                     }
+                    else if (args[0] == "PurgeArchiveFiles")
+                    {
+                        Purging.PurgeArchiveFiles(args[1]);
+                    }
                     else
                     {
                         using (var channel = ChannelFactory.Create(args))

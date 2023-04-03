@@ -22,6 +22,7 @@ namespace AM.Services
         List<ClientAMCCustIdMap> GetAMCClientIdMaps();
         Task<int?> GetAMCClientIdByCustId(string custId);
         List<Client> GetClientsByAlias(string alias);
+        List<SFTChannel> GetUncSFTChannelDetails();
     }
     public class ClientService : ServiceBase, IClientService //It implements Interfaces 
     {
@@ -94,6 +95,14 @@ namespace AM.Services
         {
             string query = "SELECT * FROM [Common].[Clients] WHERE IsAMActive=1 and GroupAlias = @alias";
             return db.Query<Client>(query, new { Alias = alias }).ToList();
+        }
+
+        public List<SFTChannel> GetUncSFTChannelDetails()
+        {
+            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction, APITokenURL, APIResponseURL, APIMaxResponseCount, APITokenHeaders, ServerIP FROM [Common].[SFTChannels] WHERE Protocol = 'unc' AND PostDownloadAction ='Archive'";
+
+            var data = db.Query<SFTChannel>(query).ToList();
+            return data;
         }
     }
 }
