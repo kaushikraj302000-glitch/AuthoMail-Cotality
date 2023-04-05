@@ -121,9 +121,9 @@ namespace AM.Reporting
         {
             string subject = "{0} : {1}".Fill(Config.Common_Environment, AppConfig.TaxComEDeliveryReportEmailSubject.Fill($"{ startDate.ToString("MMddyyyy")}_To_{ endDate.ToString("MMddyyyy")}"));
 
-            string body = $"TaxCommercial Edelivery {reportType} Report For : { startDate.ToString("MMddyyyy")}_To_{endDate.ToString("MMddyyyy")}";
+            string body = $"TaxCommercial {reportType} Report For : { startDate.ToString("MMddyyyy")}_To_{endDate.ToString("MMddyyyy")}";
 
-            var columnName = String.Join(",", "AppCode", "BatchName", "UniqueId", "LoanId", "FirstName", "LastName", "Address", "City", "State", "ZIP", "Email Address", "Channel", "DocType", "ReceivedOn", "ShippedOn", "PulledBackOn", "PrintLocation", "Status", "TrackingNo", "FileName", "TotalPages", "TotalSheets", "LetterPageCount", "LegalPageCount", "TotalBlankPages", "IsEDeliveryRequested", "ShippingMethod", "ShippingCarrier", "ShippingServiceType", "EnvelopeName", "ErrorDesc", "Inserts", "PrintBatchName", "SubmittedOn", "DeliveryDate", "DeliveryStatus", "ShippingCost", "BlankPageNumbers", "LetterPagesImpression", "LegalPagesImpression");
+            var columnName = String.Join(",", "AppCode", "BatchName", "UniqueId", "LoanId", "FirstName", "LastName", "Address", "City", "State", "ZIP", "Email Address", "Channel", "DocType", "ReceivedOn", "ShippedOn", "EDeliveredOn", "PulledBackOn", "PrintLocation", "Status", "TrackingNo", "FileName", "TotalPages", "TotalSheets", "LetterPageCount", "LegalPageCount", "TotalBlankPages", "IsEDeliveryRequested", "ShippingMethod", "ShippingCarrier", "ShippingServiceType", "EnvelopeName", "ErrorDesc", "Inserts", "PrintBatchName", "SubmittedOn", "DeliveryDate", "DeliveryStatus", "ShippingCost", "BlankPageNumbers", "LetterPagesImpression", "LegalPagesImpression");
 
             //var columnName = String.Join(",", "BatchName", "SubmittedDate", "Cust ID", "Template Code", "EDelivery Status", "EDeliveryStatus Date", "Email Address", "Recipient First Name", "Recipient Last Name", "Recipient Street Address", "Recipient City", "Recipient State", "Recipient Zip", "PdfFileName", "DocumentType", "RecordStatus", "Disqualifyreason");
 
@@ -133,17 +133,17 @@ namespace AM.Reporting
 
             foreach (var mp in monthlyReconReportViewModels)
             {
-                var line = String.Join(",", "TAXCOM", mp.BatchName, mp.UniqueId, mp.LoanNumber, mp.FirstName.ToCsvString(), mp.LastName.ToCsvString(), mp.Address.ToCsvString(), mp.City, mp.State, mp.ZIP, "", mp.Channel, mp.DocType, mp.ReceivedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), mp.ShippedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), mp.PulledBackOn, mp.PrintLocation, mp.Status, mp.TrackingNo, mp.FileName, mp.TotalPages, mp.TotalSheets, mp.LetterPageCount, mp.LegalPageCount, mp.TotalBlankPages, "False", mp.ShippingMethod, mp.ShippingCarrier, mp.ShippingServiceType, mp.EnvelopeName, mp.ErrorDesc, mp.Inserts, mp.PrintBatchName, mp.SubmittedOn, mp.DeliveryDate, mp.DeliveryStatus, mp.ShippingCost, mp.BlankPageNumbers, mp.LetterPagesImpression, mp.LegalPagesImpression);
+                var line = String.Join(",", "TAXCOM", mp.BatchName, mp.UniqueId, mp.LoanNumber, mp.FirstName.ToCsvString(), mp.LastName.ToCsvString(), mp.Address.ToCsvString(), mp.City, mp.State, mp.ZIP, "", mp.Channel, mp.DocType, mp.ReceivedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), mp.ShippedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), "", mp.PulledBackOn, mp.PrintLocation, mp.Status, mp.TrackingNo, mp.FileName, mp.TotalPages, mp.TotalSheets, mp.LetterPageCount, mp.LegalPageCount, mp.TotalBlankPages, "False", mp.ShippingMethod, mp.ShippingCarrier, mp.ShippingServiceType, mp.EnvelopeName, mp.ErrorDesc, mp.Inserts, mp.PrintBatchName, mp.SubmittedOn, mp.DeliveryDate, mp.DeliveryStatus, mp.ShippingCost, mp.BlankPageNumbers, mp.LetterPagesImpression, mp.LegalPagesImpression);
                 reconReport.AppendLine(line);
             }
 
             foreach (var mp in taxcomEdeliveryReportData)
             {
-                var line = String.Join(",", "TAXCOM", mp.BatchName, "", mp.LoanId, mp.RD_BRRW_FRST_NM.ToCsvString(), mp.RD_BRRW_LAST_NM.ToCsvString(), mp.RD_BRRW_ADDR1_TXT.ToCsvString(), mp.RD_BRRW_CITY_NM, mp.RD_BRRW_STATE_ABBR, mp.RD_BRRW_ZIP_CD, mp.RD_DLVR_EMAIL_ADDR_TXT, "", mp.DocumentType, mp.DownloadedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), mp.EDeliveryStatusDate.HasValue ? mp.EDeliveryStatusDate.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss") : null, "", "", mp.EDeliveryStatus, "", mp.PdfFileName, "0", "0", "0", "0", "0", mp.IsEDeliveryRecord, "EDelivery", "", "", "", mp.Disqualifyreason, "", "", mp.SubmittedDate, "", "", "", "", "", "");
+                var line = String.Join(",", "TAXCOM", mp.BatchName, "", mp.LoanId, mp.RD_BRRW_FRST_NM.ToCsvString(), mp.RD_BRRW_LAST_NM.ToCsvString(), mp.RD_BRRW_ADDR1_TXT.ToCsvString(), mp.RD_BRRW_CITY_NM, mp.RD_BRRW_STATE_ABBR, mp.RD_BRRW_ZIP_CD, mp.RD_DLVR_EMAIL_ADDR_TXT, "", mp.DocumentType, mp.DownloadedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), "", mp.EDeliveryStatus == "DELIVERED" && mp.EDeliveryStatusDate.HasValue ? mp.EDeliveryStatusDate.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss") : null, "", "", !mp.Disqualifyreason.IsNullOrEmpty() || mp.EDeliveryStatus == "BOUNCED" ? "Error" : mp.EDeliveryStatus, "", mp.PdfFileName, "0", "0", "0", "0", "0", mp.IsEDeliveryRecord, "EDelivery", "", "", "", mp.EDeliveryStatus == "BOUNCED" ? "BOUNCED" : mp.Disqualifyreason, "", "", mp.SubmittedDate, "", "", "", "", "", "");
                 reconReport.AppendLine(line);
             }
 
-            string reportFilePath = Path.Combine(AppConfig.TaxComEDeliveryReportPath, $"TaxCommercialEdelivery{reportType}Report_{startDate.ToString("MMddyyyy")}_To_{ endDate.ToString("MMddyyyy")}.csv");
+            string reportFilePath = Path.Combine(AppConfig.TaxComEDeliveryReportPath, $"TaxCommercial{reportType}Report_{startDate.ToString("MMddyyyy")}_To_{ endDate.ToString("MMddyyyy")}.csv");
             File.WriteAllText(reportFilePath, reconReport.ToString());
 
             SendReportToTaxCommercialTeam(reportFilePath, subject, body, AppConfig.TaxComEDeliveryReportEmailTo, AppConfig.TaxComEDeliveryReportEmailCc);
