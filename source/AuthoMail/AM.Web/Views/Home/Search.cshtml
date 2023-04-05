@@ -648,6 +648,12 @@
             </div>
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">E-Sign Tracking:&nbsp; </label>
+                    <span class="form-control-static">{ESignTrackingFormatted}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Return Recipient Name:&nbsp; </label>
                     <span class="form-control-static">{RetRcptName}</span>
                 </div>
@@ -841,19 +847,26 @@
 
 
                 var trackingNo = "";
-                if ((this.TrackingNo == null || this.TrackingNo == "") && this.IsEDeliveryRequested == true && this.IsESignRequested == false && this.ShippingStatus != "Error") {
-                    trackingNo = '<a id="' + this.MailBatchId + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track?id=' + this.MailBatchId + '&IsEdelivery=true" target="_blank"><i class="fa faspinner"></i> ' + this.MailBatchId + '</a>';
-                }
-                else if ((this.TrackingNo == null || this.TrackingNo == "") && this.IsEDeliveryRequested == true && this.IsESignRequested == true && this.ShippingStatus != "Error") {
-                    trackingNo = '<a id="' + this.MailBatchId + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track?id=' + this.MailBatchId + '&IsEdelivery=true" target="_blank"><i class="fa faspinner"></i> ' + this.MailBatchId + '</a>';
-                }
-                else if (this.TrackingNo == null || this.TrackingNo == "") {
+                if (this.TrackingNo == null || this.TrackingNo == "") {
                     trackingNo = "--";
                 }
                 else {
                     trackingNo = '<a id="' + this.TrackingNo + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track/' + this.TrackingNo + '" target="_blank"><i class="fa faspinner"></i> ' + this.TrackingNo + '</a>';
                 }
                 this.TrackingNoFormatted = trackingNo;
+
+                var eSignTracking = "";
+                if (this.IsEDeliveryRequested == true && this.IsESignRequested == true && this.ShippingStatus != "Error") {
+                    eSignTracking = '<a id="' + this.MailBatchId + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track?id=' + this.MailBatchId + '&IsEdelivery=true" target="_blank"><i class="fa faspinner"></i> ' + this.MailBatchId + '</a>';
+                }
+                else if (this.IsEDeliveryRequested == true && this.IsESignRequested == false && this.ShippingStatus != "Error") {
+                    eSignTracking = '<a id="' + this.MailBatchId + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track?id=' + this.MailBatchId + '&IsEdelivery=true" target="_blank"><i class="fa faspinner"></i> ' + this.MailBatchId + '</a>';
+                }
+                else {
+                    eSignTracking = "--";
+                }
+                this.ESignTrackingFormatted = eSignTracking;
+
                 var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
                 this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
             });
