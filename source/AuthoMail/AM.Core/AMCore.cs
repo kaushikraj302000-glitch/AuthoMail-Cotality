@@ -415,8 +415,10 @@ namespace AM.Core
                                     #region FedEx Logic
                                     while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                     {
+                                        //response = createFedExLabel.Create(mailPiece, fedExAccInfo, client, originDocType, mbi, shipperInfo);
+
                                         //response = createFedExLabel.Create(mailPiece, fedExAccInfo, originDocType, mbi, shipperInfo);
-                                        response = createFedExAPILabel.Create(mailPiece, fedExAccInfo, originDocType, mbi, shipperInfo).Result;
+                                        response = createFedExAPILabel.Create(mailPiece, fedExAccInfo, client, originDocType, mbi, shipperInfo).Result;
                                         if (!response.HasError)
                                         {
                                             coverLetterPdfPaths.Add(response.CoverLetterPath);
@@ -875,7 +877,7 @@ namespace AM.Core
 
                                             CreateFedExLabel createFedExLabel = new CreateFedExLabel();
 
-                                            returnResponse = createFedExLabel.Create(mailPiece, fedExAccInfo, docType, mbi, shipperInfo, true);
+                                            returnResponse = createFedExLabel.Create(mailPiece, fedExAccInfo, client, docType, mbi, shipperInfo, true);
 
                                             if (!returnResponse.HasError)
                                             {

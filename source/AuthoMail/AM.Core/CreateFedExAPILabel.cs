@@ -26,7 +26,7 @@ namespace AM.Core
 
         public string GeneratedFedExLabelPath { get; private set; }
 
-        public async Task<SmartDocResponse> Create(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, MailBatchInfo mbi, ShipperInformation shipperInfo, bool isReturnLabel = false)
+        public async Task<SmartDocResponse> Create(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, Client client, DocType docType, MailBatchInfo mbi, ShipperInformation shipperInfo, bool isReturnLabel = false)
         {
             SmartDocResponse response = new SmartDocResponse();
             //Here we are assigning No_Error because if we have any general failure or end point exception then we are trying again.
@@ -34,18 +34,18 @@ namespace AM.Core
             mailPiece.ErrorDesc = null;
             mailPiece.ShippingStatus = ShippingStatus.InProgress.ToString();
 
-            FedExRequest fedExRequest = CreateShipmentRequest(mailPiece, fedExAccInfo, docType, shipperInfo, isReturnLabel);
+            FedExRequest fedExRequest = CreateShipmentRequest(mailPiece, fedExAccInfo, client, docType, shipperInfo, isReturnLabel);
 
             try
             {
                 var token = await GetToken(fedExAccInfo);
 
-                using (var client = SetupClient(token, mailPiece.Id.ToString()))
+                using (var httpClient = SetupClient(token, mailPiece.Id.ToString()))
                 {
                     string json = JsonConvert.SerializeObject(fedExRequest);
                     StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                    HttpResponseMessage httpResponseMessage = await client.PostAsync(Config.Common_FedExShippingLabelUrl, content);
+                    HttpResponseMessage httpResponseMessage = await httpClient.PostAsync(Config.Common_FedExShippingLabelUrl, content);
                     var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
                     var fedExResponse = JsonConvert.DeserializeObject<FedExResponse>(responseString);
                     // check if the call was successful
@@ -63,7 +63,7 @@ namespace AM.Core
 
                             json = JsonConvert.SerializeObject(fedExRequest);
                             content = new StringContent(json, Encoding.UTF8, "application/json");
-                            httpResponseMessage = await client.PostAsync(Config.Common_FedExShippingLabelUrl, content);
+                            httpResponseMessage = await httpClient.PostAsync(Config.Common_FedExShippingLabelUrl, content);
                             if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
                             {
                                 GenerateShipmentLabel(fedExResponse, mbi, ref response);
@@ -119,7 +119,7 @@ namespace AM.Core
             return response;
         }
 
-        private FedExRequest CreateShipmentRequest(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, ShipperInformation shipperInfo, bool isReturnLabel)
+        private FedExRequest CreateShipmentRequest(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, Client client, DocType docType, ShipperInformation shipperInfo, bool isReturnLabel)
         {
             // Build the ShipmentRequest
             FedExRequest shipRequest = new FedExRequest();
@@ -127,7 +127,7 @@ namespace AM.Core
             shipRequest.LabelResponseOptions = LabelResponseOptions.LABEL;
             shipRequest.AccountNumber = new AccountNumber { Value = fedExAccInfo.AccountNumber };
             SetShipmentDetails(shipRequest, mailPiece, fedExAccInfo, docType, shipperInfo, isReturnLabel);
-            SetPackageLineItems(shipRequest, mailPiece);
+            SetPackageLineItems(shipRequest, mailPiece, client);
 
             if (!string.IsNullOrEmpty(docType.ShippingSpecialService))
             {
@@ -327,9 +327,9 @@ namespace AM.Core
             }
         }
 
-        private void SetPackageLineItems(FedExRequest request, MailPieceDTO mailPiece)
+        private void SetPackageLineItems(FedExRequest request, MailPieceDTO mailPiece, Client client)
         {
-            string refNotes = $"{mailPiece.Client.AppCode}_{mailPiece.Id}_{Path.GetFileNameWithoutExtension(mailPiece.FileName)}";
+            string refNotes = $"{client.AppCode}_{mailPiece.Id}_{Path.GetFileNameWithoutExtension(mailPiece.FileName)}";
             request.RequestedShipment.RequestedPackageLineItems = new List<RequestedPackageLineItem>()
             {
                 new RequestedPackageLineItem
@@ -387,14 +387,14 @@ namespace AM.Core
         {
             try
             {
-                using (var client = new HttpClient())
+                using (var httpClient = new HttpClient())
                 {
                     ServicePointManager.Expect100Continue = true;
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
                     //setup client
-                    client.DefaultRequestHeaders.Accept.Clear();
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    httpClient.DefaultRequestHeaders.Accept.Clear();
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
                     //setup login data
                     var formContent = new FormUrlEncodedContent(new[]
@@ -405,7 +405,7 @@ namespace AM.Core
                 });
 
                     //send request
-                    HttpResponseMessage responseMessage = await client.PostAsync(Config.Common_FedExTokenUrl, formContent);
+                    HttpResponseMessage responseMessage = await httpClient.PostAsync(Config.Common_FedExTokenUrl, formContent);
 
                     //get access token from response body
                     var responseJson = await responseMessage.Content.ReadAsStringAsync();
@@ -422,12 +422,12 @@ namespace AM.Core
         private static HttpClient SetupClient(string token, string custID)
         {
             var clientHandler = new HttpClientHandler() { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
-            var client = new HttpClient(clientHandler);
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-            client.DefaultRequestHeaders.Add("x-customer-transaction-id", custID);
-            return client;
+            var httpClient = new HttpClient(clientHandler);
+            httpClient.DefaultRequestHeaders.Accept.Clear();
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+            httpClient.DefaultRequestHeaders.Add("x-customer-transaction-id", custID);
+            return httpClient;
         }
 
         // FedEx shipping service will return the label in landscape orientation and with different margins etc.; so we will create PDF having content in center area from the image returned by FedEx shipping service.
