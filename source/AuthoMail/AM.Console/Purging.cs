@@ -212,18 +212,22 @@ namespace AM.Console
             using (IClientService clientService = new ClientService())
             {
                 var sftChannels = clientService.GetUncSFTChannelDetails();
-                DateTime startDate = Common.Today;
-                int purgingDays = int.Parse(days);
+                
                 foreach (var sftChannel in sftChannels)
                 {
+                    DateTime startDate = Common.Today;
+                    log.Debug($"UTC StartDate: {startDate}");
                     DirectoryInfo archiveDirPath = new DirectoryInfo(Path.Combine(sftChannel.Host + sftChannel.ArchiveDir));
-
+                    log.Debug($"Purging start for SftChannel {sftChannel.Code} on Path: {archiveDirPath}");
+                    
+                    int purgingDays = int.Parse(days);
                     try
                     {
                         do
-                        {
+                        {                            
                             startDate = startDate.AddDays(-1);
                             purgingDays -= IsBusinessDay(startDate, Config.Common_FederalHolidays, false, false) ? 1 : 0;
+                            log.Debug($"PurgingDays: {purgingDays}");
                         } while (0 != purgingDays);
 
                         var files = archiveDirPath.EnumerateFiles().Where(d => d.LastWriteTime < startDate).ToList();
@@ -232,6 +236,7 @@ namespace AM.Console
                             if (File.Exists(file.FullName))
                                 File.Delete(file.FullName);
                         }
+                        log.Debug($"Purging end for SftChannel {sftChannel.Code} on Path: {archiveDirPath}");
 
                     }
                     catch (Exception ex)
