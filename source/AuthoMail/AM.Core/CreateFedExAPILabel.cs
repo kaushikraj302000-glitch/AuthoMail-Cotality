@@ -329,7 +329,7 @@ namespace AM.Core
 
         private void SetPackageLineItems(FedExRequest request, MailPieceDTO mailPiece)
         {
-            string refNotes = $"{mailPiece.Id}_{Path.GetFileNameWithoutExtension(mailPiece.FileName)}";
+            string refNotes = $"{mailPiece.Client.AppCode}_{mailPiece.Id}_{Path.GetFileNameWithoutExtension(mailPiece.FileName)}";
             request.RequestedShipment.RequestedPackageLineItems = new List<RequestedPackageLineItem>()
             {
                 new RequestedPackageLineItem
