@@ -856,14 +856,12 @@
                 this.TrackingNoFormatted = trackingNo;
 
                 var eSignTracking = "";
-                if (this.IsEDeliveryRequested == true && this.IsESignRequested == true && this.ShippingStatus != "Error") {
-                    eSignTracking = '<a id="' + this.MailBatchId + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track?id=' + this.MailBatchId + '&IsEdelivery=true" target="_blank"><i class="fa faspinner"></i> ' + this.MailBatchId + '</a>';
-                }
-                else if (this.IsEDeliveryRequested == true && this.IsESignRequested == false && this.ShippingStatus != "Error") {
-                    eSignTracking = '<a id="' + this.MailBatchId + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track?id=' + this.MailBatchId + '&IsEdelivery=true" target="_blank"><i class="fa faspinner"></i> ' + this.MailBatchId + '</a>';
+                if (this.ExpiryDate == null || this.ExpiryDate == "") {
+                    eSignTracking = "--";
+                    
                 }
                 else {
-                    eSignTracking = "--";
+                    eSignTracking = '<a id="' + this.MailBatchId + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track?id=' + this.MailBatchId + '&IsEdelivery=true" target="_blank"><i class="fa faspinner"></i> ' + this.MailBatchId + '</a>';
                 }
                 this.ESignTrackingFormatted = eSignTracking;
 

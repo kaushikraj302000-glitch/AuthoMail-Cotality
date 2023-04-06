@@ -160,6 +160,7 @@ namespace AM.Services
         public DateTime? MaxSubmissionTime { get; set; }
         public bool IsEDeliveryRequested { get; set; }
         public bool IsESignRequested { get; set; }
+        public DateTime? ExpiryDate { get; set; }
         public string MissedSLAReason { get; set; }
         public MailBatches MailBatches { get; set; }
         public Clients Clients { get; set; }
