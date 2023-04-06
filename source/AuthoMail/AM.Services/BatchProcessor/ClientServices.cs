@@ -99,7 +99,7 @@ namespace AM.Services
 
         public List<SFTChannel> GetUncSFTChannelDetails()
         {
-            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction, APITokenURL, APIResponseURL, APIMaxResponseCount, APITokenHeaders, ServerIP FROM [Common].[SFTChannels] WHERE Protocol = 'unc' AND PostDownloadAction ='Archive'";
+            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction, APITokenURL, APIResponseURL, APIMaxResponseCount, APITokenHeaders, ServerIP FROM [Common].[SFTChannels] WHERE Protocol = 'unc' AND PostDownloadAction ='Archive' AND CODE IN ('PENFED_Prod', 'GOS_Prod', 'FLOODINTEGRATION_Prod', 'BECU_Prod', 'DELFUS_Prod', 'API_ELLIEMAE_Prod', 'WEBREQUEST_Prod', 'API_AMC_Prod', 'DOCSOL_Prod', 'FAM_Prod', 'ORACLEINVOICES_Prod')";
 
             var data = db.Query<SFTChannel>(query).ToList();
             return data;
