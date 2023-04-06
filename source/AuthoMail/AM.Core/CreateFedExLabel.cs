@@ -313,7 +313,7 @@ namespace AM.Core
 
         private void SetPackageLineItems(ProcessShipmentRequest request, MailPieceDTO mailPiece)
         {
-            string refNotes = "{0}_{1}".Fill(mailPiece.Id, Path.GetFileNameWithoutExtension(mailPiece.FileName));
+            string refNotes = "{0}_{1}_{2}".Fill(mailPiece.Client.AppCode, mailPiece.Id, Path.GetFileNameWithoutExtension(mailPiece.FileName));
             request.RequestedShipment.RequestedPackageLineItems = new RequestedPackageLineItem[1];
             request.RequestedShipment.RequestedPackageLineItems[0] = new RequestedPackageLineItem();
             request.RequestedShipment.RequestedPackageLineItems[0].SequenceNumber = "1";
