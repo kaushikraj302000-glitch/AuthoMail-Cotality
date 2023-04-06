@@ -23,7 +23,7 @@ namespace AM.Core
 
         public string GeneratedFedExLabelPath { get; private set; }
 
-        public SmartDocResponse Create(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, MailBatchInfo mbi, ShipperInformation shipperInfo, bool isReturnLabel = false)
+        public SmartDocResponse Create(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, Client client, DocType docType, MailBatchInfo mbi, ShipperInformation shipperInfo, bool isReturnLabel = false)
         {
             SmartDocResponse response = new SmartDocResponse();
             //Here we are assigning No_Error because if we have any general failure or end point exception then we are trying again.
@@ -31,7 +31,7 @@ namespace AM.Core
             mailPiece.ErrorDesc = null;
             mailPiece.ShippingStatus = ShippingStatus.InProgress.ToString();
 
-            ProcessShipmentRequest request = CreateShipmentRequest(mailPiece, fedExAccInfo, docType, shipperInfo, isReturnLabel);
+            ProcessShipmentRequest request = CreateShipmentRequest(mailPiece, fedExAccInfo, client, docType, shipperInfo, isReturnLabel);
             // Initialize the service
             ShipPortTypeClient service = new ShipPortTypeClient();
 
@@ -118,12 +118,12 @@ namespace AM.Core
             }
         }
 
-        private ProcessShipmentRequest CreateShipmentRequest(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, DocType docType, ShipperInformation shipperInfo, bool isReturnLabel)
+        private ProcessShipmentRequest CreateShipmentRequest(MailPieceDTO mailPiece, FedExAccountInfo fedExAccInfo, Client client, DocType docType, ShipperInformation shipperInfo, bool isReturnLabel)
         {
             // Build the ShipmentRequest
             ProcessShipmentRequest shipRequest = new ProcessShipmentRequest();
             SetShipmentDetails(shipRequest, mailPiece, fedExAccInfo, docType, shipperInfo, isReturnLabel);
-            SetPackageLineItems(shipRequest, mailPiece);
+            SetPackageLineItems(shipRequest, mailPiece, client);
 
             if (!string.IsNullOrEmpty(docType.ShippingSpecialService))
             {
@@ -311,9 +311,9 @@ namespace AM.Core
             }
         }
 
-        private void SetPackageLineItems(ProcessShipmentRequest request, MailPieceDTO mailPiece)
+        private void SetPackageLineItems(ProcessShipmentRequest request, MailPieceDTO mailPiece, Client client)
         {
-            string refNotes = "{0}_{1}_{2}".Fill(mailPiece.Client.AppCode, mailPiece.Id, Path.GetFileNameWithoutExtension(mailPiece.FileName));
+            string refNotes = "{0}_{1}_{2}".Fill(client.AppCode, mailPiece.Id, Path.GetFileNameWithoutExtension(mailPiece.FileName));
             request.RequestedShipment.RequestedPackageLineItems = new RequestedPackageLineItem[1];
             request.RequestedShipment.RequestedPackageLineItems[0] = new RequestedPackageLineItem();
             request.RequestedShipment.RequestedPackageLineItems[0].SequenceNumber = "1";
