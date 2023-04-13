@@ -538,8 +538,10 @@ namespace AM.Services
         public DateTime? PickedUpOn { get; set; }
         public string TrackingNo { get; set; }
         public string DocType { get; set; }
+        public bool IsEDeliveryEnabled { get; set; }
         public bool IsEDeliveryRequested { get; set; }
         public bool IsESignRequested { get; set; }
+        public DateTime? ExpiryDate { get; set; }
         public DateTime? DueDate { get; set; }
         public string Channel { get; set; }
         public string ShippingMethod { get; set; }

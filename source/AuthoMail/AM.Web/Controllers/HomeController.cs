@@ -167,8 +167,17 @@ namespace AM.Web.Controllers
                     m.PickedUpOn = m.PickedUpOn.HasValue ? m.PickedUpOn.Value.AddMinutes(-timezoneOffset) : m.PickedUpOn;
                     m.DueDate = m.DueDate.HasValue ? m.DueDate.Value.AddMinutes(-timezoneOffset) : m.DueDate;
                     m.ShipmentStatusUpdatedOn = m.ShipmentStatusUpdatedOn.HasValue ? m.ShipmentStatusUpdatedOn.Value.AddMinutes(-timezoneOffset) : m.ShipmentStatusUpdatedOn;
+                    m.IsESignRequested = m.ExpiryDate.HasValue ? true : false;
                 });
                 var dataTable = ExcelHelper.ToDataTable<SearchViewModel>(model.Value);
+
+                if (!(bool)dataTable.Rows[0]["IsEDeliveryEnabled"])
+                {
+                    List<string> columnsToDelete = new List<string>() { "IsEDeliveryEnabled", "ExpiryDate" };
+                    foreach (var column in columnsToDelete)
+                        dataTable.Columns.Remove(column);
+                }
+
 
                 if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                 {
