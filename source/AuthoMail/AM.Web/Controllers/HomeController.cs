@@ -162,7 +162,8 @@ namespace AM.Web.Controllers
                 model.Value.ForEach(m =>
                 {
                     m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
-                    m.ShippedOn = m.ShippedOn.HasValue ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : m.ShippedOn;
+                    m.EsignedOn = m.Status == "eSigned" ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : m.EsignedOn;
+                    m.ShippedOn = m.Status != "eSigned" && m.ShippedOn.HasValue ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : (DateTime?)null;
                     m.PickedUpOn = m.PickedUpOn.HasValue ? m.PickedUpOn.Value.AddMinutes(-timezoneOffset) : m.PickedUpOn;
                     m.DueDate = m.DueDate.HasValue ? m.DueDate.Value.AddMinutes(-timezoneOffset) : m.DueDate;
                     m.ShipmentStatusUpdatedOn = m.ShipmentStatusUpdatedOn.HasValue ? m.ShipmentStatusUpdatedOn.Value.AddMinutes(-timezoneOffset) : m.ShipmentStatusUpdatedOn;

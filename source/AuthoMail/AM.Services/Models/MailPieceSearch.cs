@@ -521,7 +521,7 @@ namespace AM.Services
     public class SearchViewModel
     {
         private readonly DateTime CurrentDateTime = Common.Now;
-        public DateTime StartDate { get; set; }
+        //public DateTime StartDate { get; set; }
         public int MailPieceId { get; set; }
         public int MailBatchId { get; set; }
         public string LoanNumber { get; set; }
@@ -534,6 +534,7 @@ namespace AM.Services
         public string State { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public DateTime? ShippedOn { get; set; }
+        public DateTime? EsignedOn { get; set; }
         public DateTime? PickedUpOn { get; set; }
         public string TrackingNo { get; set; }
         public string DocType { get; set; }

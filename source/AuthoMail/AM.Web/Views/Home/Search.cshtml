@@ -267,6 +267,7 @@
                 <th>Received <span class="fontcapitalize">(Local)</span></th>
                 <th>Due <span class="fontcapitalize">(Local)</span></th>
                 <th>Shipped <span class="fontcapitalize">(Local)</span></th>
+                <th>Esigned <span class="fontcapitalize">(Local)</span></th>
                 <th>PickedUp <span class="fontcapitalize">(Local)</span></th>
                 <th>Shipment Status</th>
                 <th>Document Type</th>
@@ -301,12 +302,13 @@
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{ShippedOnFormatted}</span></td>
+                <td><span>{EsignedOnFormatted}</span></td>
                 <td><span>{PickedUpOnFormatted}</span></td>
                 <td><span>{ShipmentStatus}</span></td>
                 <td><span>{DocType}</span></td>
                 <td><span>{IsEDeliveryRequestedFormatted}</span></td>
-                <td><span>{Channel}</span></td>                
-                <td>{ShippingCarrierOrMethod}</td>                
+                <td><span>{Channel}</span></td>
+                <td>{ShippingCarrierOrMethod}</td>
                 <td>{ErrorCode}</td>
                 <td>{ErrorDesc}</td>
             </tr>
@@ -444,6 +446,12 @@
                 <div class="input-group">
                     <label for="BusinessFriendlyIdValue">Shipped On:&nbsp; </label>
                     <span class="form-control-static">{ShippedOnFormatted}</span>
+                </div>
+            </div>
+            <div class="form-group margin-bottom-2">
+                <div class="input-group">
+                    <label for="BusinessFriendlyIdValue">Esigned On:&nbsp; </label>
+                    <span class="form-control-static">{EsignedOnFormatted}</span>
                 </div>
             </div>
             <div class="form-group margin-bottom-2">
@@ -806,9 +814,10 @@
                 this.ShortBatchName = shortName(this.BatchName);
                 this.ShortFileName = shortName(this.FileName);
                 this.ShortPrintFileName = shortName(this.PrintFileName);
-                this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                //this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                
                 this.PickedUpOnFormatted = this.PickedUpOn == null ? "--" : moment(this.PickedUpOn).format("MM/DD/YY HH:mm:ss");
-                this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
+                //this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.PulledBackOnFormatted = this.PulledBackOn == null ? "--" : moment(this.PulledBackOn).format("MM/DD/YY HH:mm:ss");
                 this.ShipmentStatusUpdatedOnFormatted = this.ShipmentStatusUpdatedOn == null ? "--" : moment(this.ShipmentStatusUpdatedOn).format("MM/DD/YY HH:mm:ss");
@@ -818,7 +827,30 @@
 
                 var returnCityStateZip = this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
                 this.RetRcptName = this.RetRcptName == null || this.RetRcptName.trim() == "" ? "--" : this.RetRcptName.replace(/null/g, "").trim();
-                this.RetRcptAddress = this.RetRcptAddress == null || this.RetRcptAddress.trim() =="" ? "--" : this.RetRcptAddress.replace(/null/g, "").trim() + (returnCityStateZip != "" ? ", " + returnCityStateZip : "");
+                this.RetRcptAddress = this.RetRcptAddress == null || this.RetRcptAddress.trim() == "" ? "--" : this.RetRcptAddress.replace(/null/g, "").trim() + (returnCityStateZip != "" ? ", " + returnCityStateZip : "");
+
+                var shippedOnDate = "";
+                var esignedOnDate = "";
+                if (this.ShippedOn == null || this.ShippingStatus == 'eSigned') {
+                    shippedOnDate = "--";
+                }
+                else {
+                    shippedOnDate = moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                    esignedOnDate = "--";
+                }
+
+                if (this.ShippingStatus == 'eSigned') {
+                    esignedOnDate = moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                }
+                else {
+                    esignedOnDate = "--";
+                }
+
+                this.ShippedOnFormatted = shippedOnDate;
+                this.PrintedOnFormatted = shippedOnDate;
+                this.EsignedOnFormatted = esignedOnDate;
+
+
                 switch (this.ShippingStatus) {
 
                     case "PulledBack":
@@ -840,10 +872,10 @@
                         status = '<span class="label medium label-Esign">' + this.ShippingStatus + '</span>';
                         break;
                 }
-                this.ShippingStatus = status;
-                //this.IsEDeliveryRequestedFormatted = this.IsEDeliveryRequested && !this.IsESignRequested ? '<span class="label medium label-success">E-Delivery</span>' : this.IsEDeliveryRequested && this.IsESignRequested ? '<span class="label medium label-success">E-Sign</span>' : '<span class="label medium label-blue">P&S</span>';
+                this.ShippingStatus = status;                
 
                 this.IsEDeliveryRequestedFormatted = this.IsEDeliveryRequested && !this.IsESignRequested ? '<span class="label medium label-success">E-Delivery</span>' : this.IsEDeliveryRequested && this.IsESignRequested ? '<span class="label medium label-success">E-Sign</span>' : '<span class="label medium label-blue">P&S</span>';
+
 
 
                 var trackingNo = "";
@@ -874,8 +906,7 @@
         function FormatObject(Model) {
             //console.log(Model);
             $(Model).each(function () {
-                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
-                this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");                
                 this.PickedUpOnFormatted = this.PickedUpOn == null ? "--" : moment(this.PickedUpOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.RcptNameFormatted = (this.FirstName==null || this.FirstName=="" ? "--" : this.FirstName) + " " +(this.LastName==null || this.LastName=="" ? "" : this.LastName);
@@ -905,6 +936,27 @@
                         break;
                 }
                 this.ShippingStatusFormatted = status;
+
+                var shippedOnDate = "";
+                var esignedOnDate = "";
+                if (this.ShippedOn == null || this.Status == 'eSigned') {
+                    shippedOnDate = "--";
+                }
+                else {
+                    shippedOnDate = moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                    esignedOnDate = "--";
+                }
+
+                if (this.Status == 'eSigned') {
+                    esignedOnDate = moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
+                }
+                else {
+                    esignedOnDate = "--";
+                }
+
+                this.ShippedOnFormatted = shippedOnDate;
+                this.EsignedOnFormatted = esignedOnDate;
+
                 var trackingNo = "";
                 if ((this.TrackingNo == null || this.TrackingNo == "") && this.IsEDeliveryRequested == true && this.IsESignRequested == false && this.ShippingStatus != "Error") {
                     trackingNo = '<a id="' + this.MailBatchId + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track?id=' + this.MailBatchId + '&IsEdelivery=true" target="_blank"><i class="fa faspinner"></i> E-Delivery</a>';
