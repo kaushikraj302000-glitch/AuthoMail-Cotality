@@ -171,12 +171,10 @@ namespace AM.Web.Controllers
                 });
                 var dataTable = ExcelHelper.ToDataTable<SearchViewModel>(model.Value);
 
-                if (!(bool)dataTable.Rows[0]["IsEDeliveryEnabled"])
-                {
-                    List<string> columnsToDelete = new List<string>() { "IsEDeliveryEnabled", "ExpiryDate" };
-                    foreach (var column in columnsToDelete)
-                        dataTable.Columns.Remove(column);
-                }
+
+                List<string> edeliveryColumnsToDelete = new List<string>() { "IsEDeliveryEnabled", "ExpiryDate" };
+                foreach (var column in edeliveryColumnsToDelete)
+                    dataTable.Columns.Remove(column);
 
 
                 if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))

@@ -992,12 +992,14 @@ where cd.Id=@Id";
             string query = @"SELECT MailBatchId,StepName,StepTimeStamp
                             FROM
                             (
-                                SELECT MailBatchId, CAST(SigningRoomName AS varchar(256))SigningRoomName, CONVERT(VARCHAR(256), [SigningRoomCreatedOn],22)[SigningRoomCreatedOn], CONVERT(VARCHAR(256), [InvitationSentOn],22)[InvitationSentOn], CONVERT(VARCHAR(256), [eDeliveredOn],22)[eDeliveredOn],  CONVERT(VARCHAR(256), [ConsentAcceptedOn],22)[ConsentAcceptedOn], CONVERT(VARCHAR(256), [ConsentDeclinedOn],22)[ConsentDeclinedOn],  CONVERT(VARCHAR(256), [DocReviewedOn],22)[DocReviewedOn], CONVERT(VARCHAR(256), [DocDownloadedOn],22)[DocDownloadedOn], CONVERT(VARCHAR(256), [ESignedOn],22)[ESignedOn], CAST(DownloadedIPAddress AS varchar(256))DownloadedIPAddress
-                                 FROM AM.EDeliveryMailPieces WHERE MailBatchId = @MailBatchId
+                                SELECT ED.MailBatchId, CAST(SigningRoomName AS varchar(256))SigningRoomName, CONVERT(VARCHAR(256), [SigningRoomCreatedOn],22)[SigningRoomCreatedOn], CONVERT(VARCHAR(256), [InvitationSentOn],22)[InvitationSentOn], CONVERT(VARCHAR(256), [eDeliveredOn],22)[eDeliveredOn],  CONVERT(VARCHAR(256), [ConsentAcceptedOn],22)[ConsentAcceptedOn], CONVERT(VARCHAR(256), [ConsentDeclinedOn],22)[ConsentDeclinedOn], IIF(ED.ErrorCode = 'Expired', CONVERT(VARCHAR(256), [ExpiryDate],22), NULL) AS [ExpiredOn], CONVERT(VARCHAR(256), [DocReviewedOn],22)[DocReviewedOn], CONVERT(VARCHAR(256), [DocDownloadedOn],22)[DocDownloadedOn], CONVERT(VARCHAR(256), [ESignedOn],22)[ESignedOn], CAST(DownloadedIPAddress AS varchar(256))DownloadedIPAddress
+                                 FROM AM.EDeliveryMailPieces ED 
+								 INNER JOIN AM.MailPieces MP ON MP.UniqueId = ED.UniqueId 
+								 WHERE ED.MailBatchId = @MailBatchId
                             )P
                             UNPIVOT
                             (
-                            StepTimeStamp FOR StepName IN([SigningRoomCreatedOn], [InvitationSentOn], [eDeliveredOn],  [ConsentAcceptedOn], [ConsentDeclinedOn],  [DocReviewedOn], [DocDownloadedOn],  [ESignedOn], DownloadedIPAddress, SigningRoomName)
+                            StepTimeStamp FOR StepName IN([SigningRoomCreatedOn], [InvitationSentOn], [eDeliveredOn],  [ConsentAcceptedOn], [ConsentDeclinedOn], [ExpiredOn],  [DocReviewedOn], [DocDownloadedOn],  [ESignedOn], DownloadedIPAddress, SigningRoomName)
                             ) AS EDeliveryInfo";
 
             return db.Query<EDeliveryStatusInfoModel>(query, new { MailBatchId = mailBatchId }).ToList();
