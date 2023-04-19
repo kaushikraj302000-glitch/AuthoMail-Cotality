@@ -116,7 +116,7 @@ namespace AM.Reporting
                         return;
                     }
 
-                    string reportFilePath = Path.Combine(AppConfig.FARErrorReportPath, $"DocSolErrorReport_{startDate.ToString("MMddyyyy")}.csv");
+                    string reportFilePath = Path.Combine(AppConfig.DocSolErrorReportPath, $"DocSolErrorReport_{startDate.ToString("MMddyyyy")}.csv");
                     GenerateReportForDocSol(errorMps, reportFilePath, $"{Config.Common_Environment} : DocSol Error Report For {startDate.ToString("MM-dd-yyyy")}");
                 }
                 log.Debug("DocSol Client Error Report Execution Completed at {0} Est".Fill(Common.Now.UtcToEst()));
