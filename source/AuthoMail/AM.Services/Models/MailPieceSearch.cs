@@ -39,7 +39,7 @@ namespace AM.Services
         {
             get
             {
-                string nm = string.Format("{0} {1} {2}", this.RcptFirstName, this.RcptMiddleName, this.RcptLastName);
+                string nm = $"{this.RcptPrefix} {this.RcptFirstName} {this.RcptMiddleName} {this.RcptLastName} {this.RcptSuffix}";
                 return nm.IsNullOrWhiteSpace() ? null : nm.Replace("  ", " ");
             }
         }
@@ -529,6 +529,7 @@ namespace AM.Services
         public Guid UniqueId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        public string RcptAddress { get; set; }
         public string City { get; set; }
         public string ZIP { get; set; }
         public string State { get; set; }
