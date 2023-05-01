@@ -19,6 +19,7 @@ namespace AM.Entities
         public bool IsReqBlankPageValidation { get; set; }
         public bool IsEncrypted { get; set; }
         public int RetentionPeriod { get; set; }
+        public string GroupAlias { get; set; }
         public string Contact1Email { get; set; }
         public string Contact2Email { get; set; }
         public bool IsResponseRequired { get; set; }

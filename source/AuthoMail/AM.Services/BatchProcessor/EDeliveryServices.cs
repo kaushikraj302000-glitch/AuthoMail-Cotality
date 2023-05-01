@@ -107,12 +107,14 @@ namespace AM.Services
                     mailPieceDTO.DocTypeId = mpDocType.Id;
                     mailPieceDTO.PnSConfigDetailId = mpDocType.PnSConfigDetailId;
                     mailPieceDTO.PrintTrailId = mpDocType.PrintTrailId;
+                    mailPieceDTO.IsEDeliveryRequested = false;                    
+                    mailPieceDTO.IsESignRequested = false;
                     GetExactDocumentType(mpDocType, mailPieceDTO);
                     commonSvc.GetUpdatedDueDateAndPrintLocation(newReceivedOnDateTime, mailPieceDTO, mpDocType, client);
                     mpSvc.UpdateBatchMailPieceDetails(mailPieceDTO);
 
                     var newValidatedOnDateTime = Common.Now;
-                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Validated, newValidatedOnDateTime).Wait();
+                    commonSvc.UpdateBatchPipeLineStatus(edmp.MailBatchId, BatchPipelineStatus.Acknowledged, newValidatedOnDateTime).Wait();
                     eDeliverySvc.UpdateEDMailPiecePipelineStatus(edmp.Id, EDPipelineStatus.ReportedBack, newValidatedOnDateTime);
                     return 1;
                 }
