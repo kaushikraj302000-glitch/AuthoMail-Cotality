@@ -74,6 +74,7 @@
     <Compile Include="AlaskaReports.cs" />
     <Compile Include="AMCChannel.cs" />
     <Compile Include="AppConfig.cs" />
+    <Compile Include="CSSReporting.cs" />
     <Compile Include="DallasNotification.cs" />
     <Compile Include="DALLASReconReport.cs" />
     <Compile Include="CarrierTrackingInfo.cs" />
@@ -140,6 +141,7 @@
   <ItemGroup>
     <Folder Include="AlaskaReconReport\" />
     <Folder Include="BECUReconReport\" />
+    <Folder Include="CSSReport\ErrorReport\" />
     <Folder Include="DALLASReconReport\" />
     <Folder Include="DocSolReconReport\" />
     <Folder Include="FARReconReport\" />
