@@ -21,7 +21,7 @@ namespace AM.Reporting
             try
             {
                 log.Debug("CSS Error Report Execution Triggered at {0} Est".Fill(Common.Now.UtcToEst()));
-                List<ReportWizard> errorReportData;
+                List<ReportWizard> mpDetails;
                 using (IClientService clientSvc = new ClientService())
                 using (IReportService reportSvc = new ReportService())
                 {
@@ -31,16 +31,14 @@ namespace AM.Reporting
                     DateTime startDate = currentTime.Date.ToStartDateTime();
                     //NOTE : Please change UTC to EST code when Daylight saving is off in service call
 
-                    errorReportData = reportSvc.GetReportWizard(clientInfo.Select(x => x.Id).ToList(), null, null, startDate, endDate, null, null, null, null, null);  
-                    var errorMps = errorReportData.Where(x => x.Status == ShippingStatus.Error.ToString()).ToList();
+                    mpDetails = reportSvc.GetReportWizard(clientInfo.Select(x => x.Id).ToList(), null, null, startDate, endDate, null, null, null, null, null);  
+                    var errorMps = mpDetails.Where(x => x.Status == ShippingStatus.Error.ToString()).ToList();
                     if (errorMps.Count == 0)
                     {
                         log.Debug($"CSS Error Report does not contain any records so exiting from the process at {Common.Now.UtcToEst()} Est");
                         return;
                     }
-
-                        GenerateErrorReport(errorReportData, endDate);
-                    
+                    GenerateErrorReport(errorMps, endDate);                    
                 }
                 log.Debug("CSS Error Report Execution Completed at {0} Est".Fill(Common.Now.UtcToEst()));
             }
