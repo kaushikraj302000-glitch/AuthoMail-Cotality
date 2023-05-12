@@ -1,4 +1,5 @@
-﻿using AM.Lib;
+﻿using AM.Entities;
+using AM.Lib;
 using AM.Services;
 using NPOI.SS.Formula.Functions;
 using System;
@@ -20,20 +21,26 @@ namespace AM.Reporting
             try
             {
                 log.Debug("CSS Error Report Execution Triggered at {0} Est".Fill(Common.Now.UtcToEst()));
-                List<MailPieces> errorReportData;
+                List<ReportWizard> errorReportData;
                 using (IClientService clientSvc = new ClientService())
                 using (IReportService reportSvc = new ReportService())
                 {
                     var clientInfo = clientSvc.GetClientsByAlias("CSS Invoices");
-                    DateTime previousDate = Common.EstToday.AddDays(-1);
+                    DateTime currentTime = Common.EstToday;
+                    DateTime endDate = currentTime.Date.ToEndDateTime();
+                    DateTime startDate = currentTime.Date.ToStartDateTime();
                     //NOTE : Please change UTC to EST code when Daylight saving is off in service call
-                    
-                    errorReportData = reportSvc.GetErrorReportByDateOrBatch(clientInfo.Select(x => x.Id).FirstOrDefault(), previousDate, previousDate, null, "");
 
-                    if (errorReportData.Count > 0)
+                    errorReportData = reportSvc.GetReportWizard(clientInfo.Select(x => x.Id).ToList(), null, null, startDate, endDate, null, null, null, null, null);  
+                    var errorMps = errorReportData.Where(x => x.Status == ShippingStatus.Error.ToString()).ToList();
+                    if (errorMps.Count == 0)
                     {
-                        GenerateErrorReport(errorReportData, previousDate);
+                        log.Debug($"CSS Error Report does not contain any records so exiting from the process at {Common.Now.UtcToEst()} Est");
+                        return;
                     }
+
+                        GenerateErrorReport(errorReportData, endDate);
+                    
                 }
                 log.Debug("CSS Error Report Execution Completed at {0} Est".Fill(Common.Now.UtcToEst()));
             }
@@ -42,11 +49,11 @@ namespace AM.Reporting
                 log.Error("Error occured while generating CSS Error Report", ex);
             }
         }
-        private static void GenerateErrorReport(List<MailPieces> errorReportData, DateTime previousDate)
+        private static void GenerateErrorReport(List<ReportWizard> errorReportData, DateTime endDate)
         {
-            string subject = "{0} : {1}".Fill(Config.Common_Environment, AppConfig.CSSErrorReportEMailSubject.Fill(previousDate.ToString("MM/dd/yyyy")));
+            string subject = "{0} : {1}".Fill(Config.Common_Environment, AppConfig.CSSErrorReportEMailSubject.Fill(endDate.ToString("MM/dd/yyyy")));
 
-            string body = "CSS Error Report For : {0}".Fill(previousDate.ToString("MM/dd/yyyy"));
+            string body = "CSS Error Report For : {0}".Fill(endDate.ToString("MM/dd/yyyy"));
 
             var columnName = String.Join(",", "Loan Number", "Document Type", "Error Reason", "Receive Date");
 
@@ -55,10 +62,11 @@ namespace AM.Reporting
             reconReport.AppendLine();
             foreach (var mp in errorReportData)
             {
-                var line = String.Join(",", mp.BusinessFriendlyIdValue.ToCsvString(), mp.DocumentOrPackageType, mp.ErrorDesc, mp.MailBatches.ReceivedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"));
+                var line = String.Join(",", mp.BatchId.ToCsvString(), mp.DocumentOrPackageType, mp.ErrorDesc, mp.ReceivedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"));
+
                 reconReport.AppendLine(line);
             }
-            string reportFilePath = Path.Combine(AppConfig.CSSErrorReportPath, "CSSErrorReport_" + previousDate.ToString("MM-dd-yyyy") + ".csv");
+            string reportFilePath = Path.Combine(AppConfig.CSSErrorReportPath, "CSSErrorReport_" + endDate.ToString("MM-dd-yyyy") + ".csv");
             File.WriteAllText(reportFilePath, reconReport.ToString());
 
             SendReportToCSSTeam(reportFilePath, subject, body);
