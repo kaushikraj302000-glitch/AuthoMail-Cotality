@@ -60,7 +60,7 @@ namespace AM.Reporting
             reconReport.AppendLine();
             foreach (var mp in errorReportData)
             {
-                var line = String.Join(",", mp.BatchId.ToCsvString(), mp.DocumentOrPackageType, mp.ErrorDesc, mp.ReceivedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"));
+                var line = String.Join(",", mp.LoanNumber.ToCsvString(), mp.DocumentOrPackageType, mp.ErrorDesc, mp.ReceivedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"));
 
                 reconReport.AppendLine(line);
             }
