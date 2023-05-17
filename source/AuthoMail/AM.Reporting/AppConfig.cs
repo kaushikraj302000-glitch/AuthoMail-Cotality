@@ -89,6 +89,10 @@ namespace AM.Reporting
         public static string RaymondJamesErrorEMailCc { get; private set; }
         public static string RaymondJamesErrorReportPath { get; private set; }
 
+        public static string CSSErrorEMailTo { get; private set; }
+        public static string CSSErrorEMailCc { get; private set; }
+        public static string CSSErrorReportPath { get; private set; }
+        public static string CSSErrorReportEMailSubject { get; private set; }
 
         public static Dictionary<string, string> GOSDailyEmailListByAppCode
         {
@@ -246,6 +250,11 @@ namespace AM.Reporting
                 RaymondJamesErrorEMailTo = ConfigurationManager.AppSettings["RaymondJamesErrorEMailTo"].Trim();
                 RaymondJamesErrorEMailCc = ConfigurationManager.AppSettings["RaymondJamesErrorEMailCc"].Trim();
                 RaymondJamesErrorReportPath = ConfigurationManager.AppSettings["RaymondJamesErrorReportPath"].Trim();
+
+                CSSErrorEMailTo = ConfigurationManager.AppSettings["CSSErrorEMailTo"].Trim();
+                CSSErrorEMailCc = ConfigurationManager.AppSettings["CSSErrorEMailCc"].Trim();
+                CSSErrorReportPath = ConfigurationManager.AppSettings["CSSErrorReportPath"].Trim();
+                CSSErrorReportEMailSubject = ConfigurationManager.AppSettings["CSSErrorReportEMailSubject"].Trim();
             }
             catch (Exception ex)
             {

@@ -130,6 +130,16 @@ namespace AM.Reporting
                 case "RaymondJamesError":
                     ErrorReports.GenerateRaymondJamesErrorReport();
                     break;
+                case "CSS":
+                    switch (args[1])
+                    {
+                        case "ErrorReport":
+                            CSSReporting.GenerateErrorReport();
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
                 default:
                     break;
             }
