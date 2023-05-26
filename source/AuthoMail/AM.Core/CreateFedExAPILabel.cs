@@ -282,7 +282,7 @@ namespace AM.Core
             request.RequestedShipment.LabelSpecification = new LabelSpecification();
             request.RequestedShipment.LabelSpecification.ImageType = ImageType.PNG;
             request.RequestedShipment.LabelSpecification.LabelFormatType = LabelFormatType.COMMON2D;
-            request.RequestedShipment.LabelSpecification.LabelStockType = LabelStockType.PAPER_4X9;
+            request.RequestedShipment.LabelSpecification.LabelStockType = LabelStockType.PAPER_4X6;
             request.RequestedShipment.LabelSpecification.LabelPrintingOrientation = LabelPrintingOrientation.BOTTOM_EDGE_OF_TEXT_FIRST;
 
             if (isReturnLabel)
@@ -453,7 +453,7 @@ namespace AM.Core
                     var logo1 = Image.GetInstance(Convert.FromBase64String(pieceResponse.PackageDocuments[0].EncodedLabel));
                     logo1.Alignment = Element.ALIGN_CENTER;
                     logo1.RotationDegrees = 270;
-                    logo1.ScaleToFit(430, 600);
+                    logo1.ScaleToFit(267, 430);
                     // logo1.SetDpi(600, 600);
                     logo1.Border = 0;
                     PdfPCell image1Cell = new PdfPCell();
