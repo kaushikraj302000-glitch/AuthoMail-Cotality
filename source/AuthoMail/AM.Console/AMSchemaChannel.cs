@@ -1088,7 +1088,7 @@ namespace AM.Console
 
             if (!commonSvc.IsBusinessDay(expiryDate, Config.Common_FederalHolidays, false, false))
             {
-                expiryDate = commonSvc.GetNextWorkingDay(receivedOnEst.UtcToEst(), Config.Common_FederalHolidays, false, false);
+                expiryDate = commonSvc.GetNextWorkingDay(expiryDate, Config.Common_FederalHolidays, false, false);
             }
 
             return expiryDate;
@@ -1335,7 +1335,7 @@ namespace AM.Console
             {
                 Client client = clientSvc.GetClientById(mailPiece.ClientId);
 
-                if (client.AppCode == "CAPONE" || client.AppCode == "MTBANK")
+                if (client.GroupAlias == "Flood Integration")
                 {
                     if (mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value.IsNullOrWhiteSpace() || mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value.IsNullOrWhiteSpace() || mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value.IsNullOrWhiteSpace() || mailPiece.MailPieceCustomInfo.SingleOrDefault(m => m.Key == "PropertyZip").Value.IsNullOrWhiteSpace())
                         yield return new MailPieceValidationResult() { Code = OutComeCodes.Property_Address_Missing_Or_Invalid, ErrorMessage = "Property address details are missing or invalid in package." };

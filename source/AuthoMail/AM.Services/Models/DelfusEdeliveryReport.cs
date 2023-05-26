@@ -8,7 +8,7 @@ namespace AM.Services
 {
     public class DelfusEdeliveryReport
     {
-        public string LoanId { get; set; }
+        public string RD_LOAN_ID { get; set; }
         public string BatchName { get; set; }
         public string SubmittedDate { get; set; }
         public string EDeliveryStatus { get; set; }

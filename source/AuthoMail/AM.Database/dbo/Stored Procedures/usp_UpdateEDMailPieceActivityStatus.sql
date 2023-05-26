@@ -46,7 +46,7 @@ BEGIN
 	BEGIN
 		IF(@IsConsentAccepted = 0 OR @IsDocDownloaded = 0 OR (@IsDocEsigned = 0 AND @IsESignRequested = 1))
 		BEGIN
-			UPDATE [AM].[EDeliveryMailPieces] SET PipelineStatus = 'Expired' WHERE Id=@Id
+			UPDATE [AM].[EDeliveryMailPieces] SET PipelineStatus = 'Expired', ErrorCode = 'Expired', ErrorDesc = 'SigningRoom is Expired.' WHERE Id=@Id
 		END
 	END
 

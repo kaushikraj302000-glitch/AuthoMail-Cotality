@@ -162,12 +162,20 @@ namespace AM.Web.Controllers
                 model.Value.ForEach(m =>
                 {
                     m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
-                    m.ShippedOn = m.ShippedOn.HasValue ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : m.ShippedOn;
+                    m.EsignedOn = m.Status == "eSigned" ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : m.EsignedOn;
+                    m.ShippedOn = m.Status != "eSigned" && m.ShippedOn.HasValue ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : (DateTime?)null;
                     m.PickedUpOn = m.PickedUpOn.HasValue ? m.PickedUpOn.Value.AddMinutes(-timezoneOffset) : m.PickedUpOn;
                     m.DueDate = m.DueDate.HasValue ? m.DueDate.Value.AddMinutes(-timezoneOffset) : m.DueDate;
                     m.ShipmentStatusUpdatedOn = m.ShipmentStatusUpdatedOn.HasValue ? m.ShipmentStatusUpdatedOn.Value.AddMinutes(-timezoneOffset) : m.ShipmentStatusUpdatedOn;
+                    m.IsESignRequested = m.ExpiryDate.HasValue ? true : false;
                 });
                 var dataTable = ExcelHelper.ToDataTable<SearchViewModel>(model.Value);
+
+
+                List<string> edeliveryColumnsToDelete = new List<string>() { "IsEDeliveryEnabled", "ExpiryDate" };
+                foreach (var column in edeliveryColumnsToDelete)
+                    dataTable.Columns.Remove(column);
+
 
                 if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                 {

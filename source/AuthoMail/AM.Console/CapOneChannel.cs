@@ -214,7 +214,7 @@ namespace AM.Console
                     }
                     log.Info("Local Folder is created");
 
-                    var eDeliveryData = floodData.Value.Where(x => x.SendEDelivery == "Y").ToList();
+                    var eDeliveryData = floodData.Value.Where(x => x.SendEDelivery == "Y" && !x.BorrowerEmailId.IsNullOrWhiteSpace()).ToList();
                     if (eDeliveryData.Count > 0)
                     {
                         foreach (var eDeliveryMP in eDeliveryData)
@@ -311,7 +311,7 @@ namespace AM.Console
                         }
                     }
 
-                    var pnsData = floodData.Value.Where(x => x.SendEDelivery == "N" || x.SendEDelivery.IsNullOrWhiteSpace()).ToList();
+                    var pnsData = floodData.Value.Where(x => x.SendEDelivery == "N" || x.SendEDelivery.IsNullOrWhiteSpace() || (x.SendEDelivery == "Y" && x.BorrowerEmailId.IsNullOrWhiteSpace())).ToList();
                     if (pnsData.Count > 0)
                     {
                         clientCounter++;

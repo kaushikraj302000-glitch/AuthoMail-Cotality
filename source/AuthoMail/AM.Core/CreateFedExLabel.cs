@@ -200,7 +200,7 @@ namespace AM.Core
             request.RequestedShipment.LabelSpecification.ImageType = ShippingDocumentImageType.PNG;
             request.RequestedShipment.LabelSpecification.ImageTypeSpecified = true;
             request.RequestedShipment.LabelSpecification.LabelFormatType = LabelFormatType.COMMON2D;
-            request.RequestedShipment.LabelSpecification.LabelStockType = LabelStockType.PAPER_4X9;
+            request.RequestedShipment.LabelSpecification.LabelStockType = LabelStockType.PAPER_4X6;
             request.RequestedShipment.LabelSpecification.LabelStockTypeSpecified = true;
             request.RequestedShipment.LabelSpecification.LabelPrintingOrientation = LabelPrintingOrientationType.BOTTOM_EDGE_OF_TEXT_FIRST;
             request.RequestedShipment.LabelSpecification.LabelPrintingOrientationSpecified = true;
@@ -380,7 +380,7 @@ namespace AM.Core
                     doc.Open();
                     var logo1 = Image.GetInstance(packageDetail.Label.Parts[0].Image);
                     logo1.Alignment = Element.ALIGN_CENTER;
-                    logo1.ScaleToFit(430, 600);
+                    logo1.ScaleToFit(267, 430);
                     // logo1.SetDpi(600, 600);
                     logo1.Border = 0;
                     PdfPCell image1Cell = new PdfPCell();

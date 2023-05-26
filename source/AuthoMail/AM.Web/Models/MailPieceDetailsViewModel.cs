@@ -48,6 +48,7 @@ namespace AM.Web.Models
         }
         public bool IsEDeliveryRequested { get; set; }
         public bool IsESignRequested { get; set; }
+        public DateTime? ExpiryDate { get; set; }
         public int TotalPages { get; set; }
         public int TotalSheets { get; set; }
         public int TotalBlankPages { get; set; }

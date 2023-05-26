@@ -39,7 +39,7 @@ namespace AM.Services
         {
             get
             {
-                string nm = string.Format("{0} {1} {2}", this.RcptFirstName, this.RcptMiddleName, this.RcptLastName);
+                string nm = $"{this.RcptPrefix} {this.RcptFirstName} {this.RcptMiddleName} {this.RcptLastName} {this.RcptSuffix}";
                 return nm.IsNullOrWhiteSpace() ? null : nm.Replace("  ", " ");
             }
         }
@@ -160,6 +160,7 @@ namespace AM.Services
         public DateTime? MaxSubmissionTime { get; set; }
         public bool IsEDeliveryRequested { get; set; }
         public bool IsESignRequested { get; set; }
+        public DateTime? ExpiryDate { get; set; }
         public string MissedSLAReason { get; set; }
         public MailBatches MailBatches { get; set; }
         public Clients Clients { get; set; }
@@ -520,7 +521,7 @@ namespace AM.Services
     public class SearchViewModel
     {
         private readonly DateTime CurrentDateTime = Common.Now;
-        public DateTime StartDate { get; set; }
+        //public DateTime StartDate { get; set; }
         public int MailPieceId { get; set; }
         public int MailBatchId { get; set; }
         public string LoanNumber { get; set; }
@@ -528,16 +529,20 @@ namespace AM.Services
         public Guid UniqueId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        public string RcptAddress { get; set; }
         public string City { get; set; }
         public string ZIP { get; set; }
         public string State { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public DateTime? ShippedOn { get; set; }
+        public DateTime? EsignedOn { get; set; }
         public DateTime? PickedUpOn { get; set; }
         public string TrackingNo { get; set; }
         public string DocType { get; set; }
+        public bool IsEDeliveryEnabled { get; set; }
         public bool IsEDeliveryRequested { get; set; }
         public bool IsESignRequested { get; set; }
+        public DateTime? ExpiryDate { get; set; }
         public DateTime? DueDate { get; set; }
         public string Channel { get; set; }
         public string ShippingMethod { get; set; }

@@ -76,7 +76,7 @@ namespace AM.Web.Controllers
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
 
             //Ref only. remove it. also check doctype is required or not.
-            var model = edvSvc.GetESignedDocList(exactStartDate, exactEndDate, User.Identity.GetClientId().Value);
+            var model = edvSvc.GetESignedDocList(exactStartDate.ToStartDateTime().EstToUtc(), exactEndDate.ToEndDateTime().EstToUtc(), User.Identity.GetClientId().Value);
 
             model.ForEach(x =>
             {

@@ -415,8 +415,7 @@ namespace AM.Core
                                     #region FedEx Logic
                                     while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                     {
-                                        //response = createFedExLabel.Create(mailPiece, fedExAccInfo, client, originDocType, mbi, shipperInfo);
-
+                                        
                                         //response = createFedExLabel.Create(mailPiece, fedExAccInfo, originDocType, mbi, shipperInfo);
                                         response = createFedExAPILabel.Create(mailPiece, fedExAccInfo, client, originDocType, mbi, shipperInfo).Result;
                                         if (!response.HasError)
