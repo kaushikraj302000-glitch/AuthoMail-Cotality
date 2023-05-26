@@ -1310,7 +1310,6 @@ namespace AM.Console
                 }
             }
 
-
             if (mailPieceDTO.IsEDeliveryRequested && mailPieceDTO.ShippingStatus != ShippingStatus.Error.ToString())
             {
                 if (!mbi.Client.IsEDeliveryEnabled)
@@ -1334,7 +1333,28 @@ namespace AM.Console
                     return new MailPieceValidationResult() { Code = OutComeCodes.No_Error };
                 }
             }
+
+            //Set Custom Logic By Client
+            SetClientWiseData(mailPieceDTO, docType, mbi);
+
             return new MailPieceValidationResult() { Code = OutComeCodes.No_Error };
+
+        }
+
+        private void SetClientWiseData(MailPieceDTO mailPieceDTO, DocType docType, MailBatchInfo mbi)
+        {
+            switch (mbi.Client.AppCode)
+            {
+                //ADEAM-166: On the bottom of the FedEx label we are adding 2 insert indicators for the Dallas team for the Initial Disclosures Package only, "FedEx_PRI_BRE" & "RayJames_Folder". "RayJames_Folder" insert is already configured in database, so here we are adding only "FEDEX_PRI_BRE".
+                case "RAYJAMES":
+                    if (docType.DocTypeName == "Initial Disclosure Package")
+                    {
+                        mailPieceDTO.Inserts = "FEDEX_PRI_BRE";
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
 
         private MailPieceValidationResult ValidateClientSpecificRules(Client client, MailPieceDTO mailPiece)
