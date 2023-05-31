@@ -85,11 +85,8 @@ namespace AM.Entities
 
         [XmlElement(ElementName = "eDelivery")]
         public eDelivery eDelivery { get; set; }
-
-        public bool ShouldSerializeeDelivery()
-        {
-            return eDelivery != null;
-        }
+        [XmlIgnore]
+        public DateTime? EffectiveReceivedOnEst { get; set; }
 
         [XmlElement(ElementName = "RecipientInfo")]
         public RecipientInfo RecipientInfo { get; set; }

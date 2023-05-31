@@ -1226,9 +1226,10 @@ bufferSize: 4096, useAsync: true))
                     //insert error and response
                     using (IMailBatchService mailBatchService = new MailBatchService())
                     using (ICommonService commonSvc = new CommonService())
+                    using (IDocTypeService docTypeSvc = new DocTypeService())
                     using (IMailPieceService mailPieceService = new MailPieceService())
                     {
-
+                        mp.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docTypeSvc.GetDocTypeWithMaximumCutOffTimeByClientId(client.Id), receivedTime);
                         int mailBatchId = await mailBatchService.InsertBatchDetails(mailBatch, client.Id, sFTChannel);
                         // insert mailpiece
                         int mailPieceId = await mailPieceService.InsertBatchMailPieceDetails(mp, client.Id, mailBatchId, result.Code, result.ErrorMessage);
