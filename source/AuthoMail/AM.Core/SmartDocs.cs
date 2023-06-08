@@ -141,7 +141,7 @@ namespace AM.Core
             #endregion
         }
 
-        public SmartDocResponse GenerateeVSPriorityExpressCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName, bool isReturnLabel = false)
+        public SmartDocResponse GenerateeVSPriorityExpressCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName, string uspsUserId, bool isReturnLabel = false)
         {
             SmartDocResponse response = new SmartDocResponse();
 
@@ -166,7 +166,7 @@ namespace AM.Core
 
                 using (IUSPSService uspsSvc = new USPSService())
                 {
-                    eVSRes = uspsSvc.RequesteVSLabelAsync(sysUserId, eVSReq).Result;
+                    eVSRes = uspsSvc.RequesteVSLabelAsync(sysUserId, eVSReq, uspsUserId).Result;
 
                     if (eVSRes.HasError)
                     {
@@ -239,7 +239,7 @@ namespace AM.Core
             File.Move(newCoverLetterPath, coverLetterPDFPath);
         }
 
-        public SmartDocResponse GenerateeVSPriorityCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName, bool isReturnLabel = false)
+        public SmartDocResponse GenerateeVSPriorityCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName, string uspsUserId, bool isReturnLabel = false)
         {
             SmartDocResponse response = new SmartDocResponse();
 
@@ -264,7 +264,7 @@ namespace AM.Core
 
                 using (IUSPSService uspsSvc = new USPSService())
                 {
-                    eVSRes = uspsSvc.RequesteVSLabelAsync(sysUserId, eVSReq).Result;
+                    eVSRes = uspsSvc.RequesteVSLabelAsync(sysUserId, eVSReq, uspsUserId).Result;
 
                     if (eVSRes.HasError)
                     {

@@ -15,7 +15,7 @@ namespace AM.Services
 {
     public partial class USPSService
     {
-        public async Task<eVSLabelResponse> RequesteVSLabelAsync(string userId, eVSLabelRequest request)
+        public async Task<eVSLabelResponse> RequesteVSLabelAsync(string userId, eVSLabelRequest request, string uspsUserId)
         {
             try
             {
@@ -60,7 +60,7 @@ namespace AM.Services
                 eVSResponse eVSresponse = null;
 
                 var eVSrequest = new eVSRequest(request);
-                eVSrequest.USERID = Config.Web_API_USPS_UserId;
+                eVSrequest.USERID = uspsUserId;
 
                 var eVSrequestXML = eVSrequest.Serialize();
 

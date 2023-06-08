@@ -440,10 +440,11 @@ namespace AM.Core
 
                                                 //Update Due Date and its other calculation based on updated document type.
                                                 commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
+                                                var uspsUserId = Config.USPSAccountDetails[mailPiece.PrintLocation];
 
                                                 var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY_EXPRESS);
 
-                                                response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY_EXPRESS, mailPiece, mbi, systemUserId);
+                                                response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY_EXPRESS, mailPiece, mbi, systemUserId, uspsUserId);
 
                                                 if (!response.HasError)
                                                 {
@@ -1085,7 +1086,7 @@ namespace AM.Core
             return true;
         }
 
-        private static SmartDocResponse MakeUSPSRequest(eVSLabelRequest eVSRequest, USPSLib.ServiceType serviceType, MailPieceDTO mailPiece, MailBatchInfo mbi, string systemUserId, bool isReturnLabel = false)
+        private static SmartDocResponse MakeUSPSRequest(eVSLabelRequest eVSRequest, USPSLib.ServiceType serviceType, MailPieceDTO mailPiece, MailBatchInfo mbi, string systemUserId, string uspsUserId, bool isReturnLabel = false)
         {
             SmartDocResponse response = new SmartDocResponse();
 
@@ -1093,11 +1094,11 @@ namespace AM.Core
 
             if (serviceType == USPSLib.ServiceType.PRIORITY_EXPRESS)
             {
-                return doc.GenerateeVSPriorityExpressCoverLetter(systemUserId, mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSRequest, mailPiece.EnvelopeName, isReturnLabel);
+                return doc.GenerateeVSPriorityExpressCoverLetter(systemUserId, mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSRequest, mailPiece.EnvelopeName, uspsUserId, isReturnLabel);
             }
             else if (serviceType == USPSLib.ServiceType.PRIORITY)
             {
-                return doc.GenerateeVSPriorityCoverLetter(systemUserId, mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSRequest, mailPiece.EnvelopeName, isReturnLabel);
+                return doc.GenerateeVSPriorityCoverLetter(systemUserId, mbi.PnSRequestPath, mailPiece.Id.ToString(), eVSRequest, mailPiece.EnvelopeName, uspsUserId, isReturnLabel);
             }
 
             return response;
