@@ -232,8 +232,9 @@ namespace AM.Core
                                         while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                         {
                                             var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY_EXPRESS);
+                                            var uspsUserId = Config.USPSAccountDetails[mailPiece.PrintLocation];
 
-                                            response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY_EXPRESS, mailPiece, mbi, systemUserId);
+                                            response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY_EXPRESS, mailPiece, mbi, systemUserId,uspsUserId);
 
                                             if (!response.HasError)
                                             {
@@ -276,7 +277,7 @@ namespace AM.Core
 
                                                 eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
-                                                response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId);
+                                                response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId,uspsUserId);
 
                                                 if (!response.HasError)
                                                 {
@@ -326,8 +327,9 @@ namespace AM.Core
                                         while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                         {
                                             var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
+                                            var uspsUserId = Config.USPSAccountDetails[mailPiece.PrintLocation];
 
-                                            response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId);
+                                            response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId, uspsUserId);
 
                                             if (!response.HasError)
                                             {
@@ -484,7 +486,7 @@ namespace AM.Core
 
                                                     eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
-                                                    response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId);
+                                                    response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId, uspsUserId);
 
                                                     if (!response.HasError)
                                                     {
@@ -533,8 +535,9 @@ namespace AM.Core
 
 
                                                 var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
+                                                var uspsUserId = Config.USPSAccountDetails[mailPiece.PrintLocation];
 
-                                                response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId);
+                                                response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId, uspsUserId);
 
                                                 if (!response.HasError)
                                                 {
@@ -594,8 +597,8 @@ namespace AM.Core
                                                 commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
                                                 var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY_EXPRESS);
-
-                                                response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY_EXPRESS, mailPiece, mbi, systemUserId);
+                                                var uspsUserId = Config.USPSAccountDetails[mailPiece.PrintLocation];
+                                                response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY_EXPRESS, mailPiece, mbi, uspsUserId,systemUserId);
 
                                                 if (!response.HasError)
                                                 {
@@ -633,8 +636,7 @@ namespace AM.Core
                                                     commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
                                                     eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
-
-                                                    response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId);
+                                                    response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, uspsUserId, systemUserId);
 
                                                     if (!response.HasError)
                                                     {
@@ -683,8 +685,9 @@ namespace AM.Core
 
 
                                                 var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
+                                                var uspsUserId = Config.USPSAccountDetails[mailPiece.PrintLocation];
 
-                                                response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId);
+                                                response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId, uspsUserId);
 
                                                 if (!response.HasError)
                                                 {
@@ -763,8 +766,8 @@ namespace AM.Core
                                             if (docType.ReturnShippingServiceType == ShippingServiceType.PRIORITY_EXPRESS.ToString())
                                             {
                                                 var reteVSRequest = GenerateReturnEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY_EXPRESS, systemUserId);
-
-                                                returnResponse = MakeUSPSRequest(reteVSRequest, AM.USPSLib.ServiceType.PRIORITY_EXPRESS, mailPiece, mbi, systemUserId, true);
+                                                var uspsUserId = Config.USPSAccountDetails[mailPiece.PrintLocation];
+                                                returnResponse = MakeUSPSRequest(reteVSRequest, AM.USPSLib.ServiceType.PRIORITY_EXPRESS, mailPiece, mbi, systemUserId,uspsUserId, true);
 
                                                 if (!returnResponse.HasError)
                                                 {
@@ -783,7 +786,7 @@ namespace AM.Core
                                                 {
                                                     //Known error so break from while loop and error out record
                                                     log.Error($"{returnResponse.HasError} , {returnResponse.ExceptionCode} , {returnResponse.ExceptionDetail}");
-                                                    returnResponse = MakeUSPSRequest(reteVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId, true);
+                                                    returnResponse = MakeUSPSRequest(reteVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId,uspsUserId, true);
 
                                                     if (!returnResponse.HasError)
                                                     {
@@ -811,8 +814,9 @@ namespace AM.Core
                                             else if (docType.ReturnShippingServiceType == ShippingServiceType.PRIORITY.ToString())
                                             {
                                                 var reteVSRequest = GenerateReturnEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY, systemUserId);
+                                                var uspsUserId = Config.USPSAccountDetails[mailPiece.PrintLocation];
 
-                                                returnResponse = MakeUSPSRequest(reteVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId, true);
+                                                returnResponse = MakeUSPSRequest(reteVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId, uspsUserId, true);
 
                                                 if (!returnResponse.HasError)
                                                 {
@@ -882,7 +886,9 @@ namespace AM.Core
                                                 log.Error($"{returnResponse.HasError} , {returnResponse.ExceptionCode} , {returnResponse.ExceptionDetail}");
 
                                                 var reteVSRequest = GenerateReturnEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY, systemUserId);
-                                                returnResponse = MakeUSPSRequest(reteVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId, true);
+                                                var uspsUserId = Config.USPSAccountDetails[mailPiece.PrintLocation];
+
+                                                returnResponse = MakeUSPSRequest(reteVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId, uspsUserId,true);
 
                                                 if (!returnResponse.HasError)
                                                 {
