@@ -18,11 +18,23 @@ namespace AM.Core
 
             do
             {
-                prepFlag = AMCore.PrepPnSJobs();
-                submitFlag = AMCore.SubmitBatchesDocTypeWiseToPrintVendor();
-                submittedResFlag = AMCore.GetSubmittedPnSResponses();
-                parseResFlag = AMCore.ProcessPnSResponses();
-                reportPrepResFlag = AMCore.ReportPreppedProcess();
+                if (args.Length > 0)
+                {
+                    prepFlag = AMCore.PrepPnSJobs(args[0]);
+                    submitFlag = false;
+                    submittedResFlag = false;
+                    parseResFlag = false;
+                    reportPrepResFlag = false;
+                }
+                else
+                {
+                    prepFlag = AMCore.PrepPnSJobs("");
+                    submitFlag = AMCore.SubmitBatchesDocTypeWiseToPrintVendor();
+                    submittedResFlag = AMCore.GetSubmittedPnSResponses();
+                    parseResFlag = AMCore.ProcessPnSResponses();
+                    reportPrepResFlag = AMCore.ReportPreppedProcess();
+                }
+
             } while (prepFlag || submitFlag || submittedResFlag || parseResFlag || reportPrepResFlag);
         }
     }

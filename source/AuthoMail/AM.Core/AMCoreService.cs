@@ -19,11 +19,11 @@ namespace AM.Core
 
         protected override void OnStart(string[] args)
         {
-            AMCore.PrepPnSJobs();
-            AMCore.SubmitBatchesDocTypeWiseToPrintVendor();
-            AMCore.GetSubmittedPnSResponses();
-            AMCore.ProcessPnSResponses();
-            AMCore.ReportPreppedProcess();
+            //AMCore.PrepPnSJobs();
+            //AMCore.SubmitBatchesDocTypeWiseToPrintVendor();
+            //AMCore.GetSubmittedPnSResponses();
+            //AMCore.ProcessPnSResponses();
+            //AMCore.ReportPreppedProcess();
         }
 
         protected override void OnStop()
