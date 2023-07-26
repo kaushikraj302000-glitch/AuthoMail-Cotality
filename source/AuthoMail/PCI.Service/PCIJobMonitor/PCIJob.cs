@@ -409,7 +409,9 @@ namespace PCI.Service
             SFTUtil sftSite = new SFTUtil(ptDetails.Protocol.ParseEnum<SFT_ProtocolType>(), ptDetails.Host, ptDetails.UserName, ptDetails.Password,
                60000);
 
-            sftSite.Connect();
+            if (ptDetails.SimulateTrail == false)
+                sftSite.Connect();
+
 
             log.DebugFormat("Updating status started For PrintTrailBatchId : {0}", ptBatchDetails.Id);
 
@@ -425,7 +427,7 @@ namespace PCI.Service
                 //NOTE : Here we are inserting used envelope stock by PrintTrailBatch in EnvelopeUsage table
                 DAL.UpdateEnvelopeInventory(ptBatchDetails, envelopeData);
 
-                if (ptDetails.VendorCode != "CL_DALLAS")
+                if (ptDetails.VendorCode != "CL_DALLAS" && ptDetails.SimulateTrail == false)
                 {
                     string serverFilePath = "{0}/{1}.uploading".Fill(ptDetails.FromADEDir, ptBatchDetails.PrintBatchName);
                     if (sftSite.IsFileAvailable(serverFilePath))
@@ -439,7 +441,8 @@ namespace PCI.Service
 
             log.DebugFormat("Updating status completed For PrintTrailBatchId : {0}", ptBatchDetails.Id);
 
-            sftSite.Disconnect();
+            if (ptDetails.SimulateTrail == false)
+                sftSite.Disconnect();
         }
 
         private static void CreateDallasBatch(List<MailPieceDetail> mpList, PrintTrailDetail ptDetails, PrintTrailBatch ptBatchDetail)

@@ -30,13 +30,28 @@ namespace AM.Core
         private static readonly List<string> uspsKnownExceptionDescriptions = new List<string>() { "zip code you have entered is invalid", "may not exceed 50 characters", "must be specified when sending", "may not exceed 100 characters", "may not exceed 28 characters", "invalid value" };
 
         #region PrepPnSJob
-        internal static bool PrepPnSJobs()
+        internal static bool PrepPnSJobs(string channel)
         {
             log.Debug("PrepPnSJob started");
 
             using (IMailBatchService mailBatchService = new MailBatchService())
             {
-                List<MailBatchDTO> mailBatches = mailBatchService.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.Acknowledged);
+                List<MailBatchDTO> mailBatches;
+                SFTChannel sftChannelInfo;
+
+                using (IClientService clientSvc = new ClientService())
+                {
+                    sftChannelInfo = clientSvc.GetSFTChannelDetailsBySFTChannelCode($"DELFUS_{Config.Common_Environment}");
+                }
+
+                if (channel == "DELFUS")
+                {
+                    mailBatches = mailBatchService.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.Acknowledged, sftChannelInfo.Id);
+                }
+                else
+                {
+                    mailBatches = mailBatchService.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.Acknowledged).Where(x => x.SFTChannelId != sftChannelInfo.Id).ToList();
+                }
 
                 if (mailBatches.Count == 0)
                 {
