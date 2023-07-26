@@ -24,6 +24,7 @@ namespace AM.Services
         DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId);
         bool AllowInsertsOnlyDocumentType(int clientId, string docType);
         List<DocTypeReport> GetDocTypeList();
+        List<DocType> GetAllDocTypesToTest();
     }
 
     public class DocTypeService : ServiceBase, IDocTypeService
@@ -91,6 +92,12 @@ namespace AM.Services
             return db.Query<PnSConfigDetailCoverLetter>(query, new { PnSConfigDetailId = pnSConfigDetailId }).ToList();
         }
 
+        public List<DocType> GetAllDocTypesToTest()
+        {
+            string qry = "SELECT D.ClientId, D.DocTypeName, D.MaxPage FROM[dbo].[v_DocTypes] D group by ClientId, DocTypeName, MaxPage order by ClientId,DocTypeName, MaxPage";
+            return db.Query<DocType>(qry).ToList();
+        }
+
         public List<PnSConfigDetailCoverLetter> GetDocumentRearLetterTemplates(int pnSConfigDetailId)
         {
             string query = "SELECT * FROM [Common].[PnSConfigDetailCoverLetters] WHERE PnSConfigDetailId=@PnSConfigDetailId AND SeqId > 100 ORDER BY SeqId";
@@ -123,16 +130,40 @@ namespace AM.Services
 
                 if (lstDocType.Count > 1)
                 {
+                    IEnumerable<DocType> finalDocTypes;
                     if (lstDocType.Any(x => x.PrintVendorCode == "CL_DALLAS") && commonSvc.GetDallasBatchCounts() < Config.Common_DallasVolumeCap)
                     {
-                        return lstDocType.SingleOrDefault(d => d.PrintVendorCode == "CL_DALLAS");
+                        finalDocTypes = lstDocType.Where(d => d.PrintVendorCode == "CL_DALLAS");
+
+                        if (finalDocTypes.Count() > 1)
+                        {
+                            finalDocTypes = GetNonPrintReadyDocTypeOnConflict(lstDocType);
+                        }
+                        return finalDocTypes.SingleOrDefault(d => d.PrintVendorCode == "CL_DALLAS");
                     }
 
-                    return lstDocType.SingleOrDefault(d => d.PrintVendorCode != "CL_DALLAS");
+
+                    finalDocTypes = lstDocType.Where(d => d.PrintVendorCode != "CL_DALLAS");
+
+                    if (finalDocTypes.Count() > 1)
+                    {
+                        finalDocTypes = GetNonPrintReadyDocTypeOnConflict(lstDocType);
+                    }
+                    return finalDocTypes.SingleOrDefault(d => d.PrintVendorCode != "CL_DALLAS");
                 }
 
                 return null;
             }
+        }
+
+        private List<DocType> GetNonPrintReadyDocTypeOnConflict(List<DocType> lstDocType)
+        {
+            if (lstDocType.Count == 2 && lstDocType.Any(l => l.IsPrintReady) && lstDocType.Any(l => !l.IsPrintReady))
+            {
+                return lstDocType.Where(x => x.IsPrintReady == false).ToList();
+            }
+
+            return lstDocType;
         }
 
         private List<DocType> GetDocTypeByDocTypeName(int clientId, List<DocType> docTypeList, DateTime estReceivedOn)
