@@ -53,6 +53,7 @@ namespace AM.Services
         string GetEnvelopeCodeByEnvelopeId(int envelopeId);
         int GetDallasBatchCounts(int? mpId = 0);
         List<PackagesHoldInfo> GetPackagesHoldInfo();
+        List<USPSLabelCutOffDetail> GetUSPSLabelCutOffDetails();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -555,6 +556,13 @@ namespace AM.Services
             string query = "SELECT C.AppCode AS ClientCode,H.* FROM [AM].[PackagesHoldInfo] H INNER JOIN Common.Clients C ON H.ClientId = C.Id";
 
             return db.Query<PackagesHoldInfo>(query).ToList();
+        }
+
+        public List<USPSLabelCutOffDetail> GetUSPSLabelCutOffDetails()
+        {
+            string query = "SELECT * FROM [AM].[USPSLabelCutOffDetails]";
+
+            return db.Query<USPSLabelCutOffDetail>(query).ToList();
         }
     }
 }

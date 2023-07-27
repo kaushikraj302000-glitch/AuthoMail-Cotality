@@ -306,6 +306,7 @@ namespace AM.Services
         #region Web USPS Location
 
         public static string Web_API_USPS_AccountsByPrintLocations { get; set; }
+        public static List<USPSLabelCutOffDetail> USPSLabelCutOffDetails { get; private set; }
 
         public static Dictionary<string, string> USPSAccountDetails
         {
@@ -329,6 +330,7 @@ namespace AM.Services
                 clientGroupMap = commonSvc.GetClientHolidayGroup();
                 groupHolidays = commonSvc.GetHolidayList();
                 Monitor_PackagesHoldInfo = commonSvc.GetPackagesHoldInfo();
+                USPSLabelCutOffDetails = commonSvc.GetUSPSLabelCutOffDetails();
             }
 
             IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
