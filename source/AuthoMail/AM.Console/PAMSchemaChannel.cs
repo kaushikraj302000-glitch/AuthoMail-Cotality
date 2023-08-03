@@ -1199,11 +1199,6 @@ namespace AM.Console
                 return new MailPieceValidationResult() { Code = OutComeCodes.Missing_PDF_File, ErrorMessage = "Pdf file is not available for this package." };
             }
 
-            if (mailPieceDTO.DocumentOrPackageType == "E-Delivery")
-            {
-                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages) };
-            }
-
             int pageCount = 0;
             List<int> blankPageNos = new List<int>();
 
@@ -1254,10 +1249,10 @@ namespace AM.Console
                     receivedOn = mbi.MailBatch.ReceivedOn.Value;
                 }
             }
-
             //Document Or Package Type validation
-            var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, receivedOn.UtcToEst());
 
+            bool isCountryUS = mailPieceDTO.RcptAddressCountry.IsCountryUS();
+            var docType = !isCountryUS ? docTypeSvc.GetIntlDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, receivedOn.UtcToEst()) : docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, receivedOn.UtcToEst());
             if (docType != null)
             {
                 mailPieceDTO.DocTypeId = docType.Id;
@@ -1267,7 +1262,7 @@ namespace AM.Console
 
             if (docType == null)
             {
-                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages) };
+                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = $"Either the specified document or package type '{mailPieceDTO.DocumentOrPackageType}' is not configured  {(isCountryUS == false ? "for international mailing" : "")} or no matching print configuration found for page count ({pageCount})." };
             }
             else if (pageCount != 0 && pageCount == blankPageNos.Count)
             {
@@ -1334,27 +1329,8 @@ namespace AM.Console
                 }
             }
 
-            //Set Custom Logic By Client
-            SetClientWiseData(mailPieceDTO, docType, mbi);
-
             return new MailPieceValidationResult() { Code = OutComeCodes.No_Error };
 
-        }
-
-        private void SetClientWiseData(MailPieceDTO mailPieceDTO, DocType docType, MailBatchInfo mbi)
-        {
-            switch (mbi.Client.AppCode)
-            {
-                //ADEAM-166: On the bottom of the FedEx label we are adding 2 insert indicators for the Dallas team for the Initial Disclosures Package only, "FedEx_PRI_BRE" & "RayJames_Folder". "RayJames_Folder" insert is already configured in database, so here we are adding only "FEDEX_PRI_BRE".
-                case "RAYJAMES":
-                    if (docType.DocTypeName == "Initial Disclosure Package")
-                    {
-                        mailPieceDTO.Inserts = "FEDEX_PRI_BRE";
-                    }
-                    break;
-                default:
-                    break;
-            }
         }
 
         private MailPieceValidationResult ValidateClientSpecificRules(Client client, MailPieceDTO mailPiece)

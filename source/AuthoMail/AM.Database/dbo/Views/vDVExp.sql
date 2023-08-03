@@ -15,7 +15,7 @@ m.Id AS PkgId
 ,PCD.PrintSize
 ,PCD.EnvelopeId AS EnvPartNo
 ,IsBRE
-,BREEnvelopeId AS BREEnvPartNo
+,'' AS BREEnvPartNo
 ,PCD.ShippingCarrier
 ,PCD.ShippingServiceType
 ,PCD.ShippingSpecialService

@@ -51,6 +51,8 @@ namespace AM.Services
         ShipperInformation GetShipperInformationByPrintLocation(string printLocation, int printTrailId);
         Task<int> UpdateBatchPipeLineStatusByMailPieceId(Guid mailPieceId, string pipeLineStatus, DateTime timestamp);
         string GetEnvelopeCodeByEnvelopeId(int envelopeId);
+        List<string> GetInsertDataByDocTypeId(int docTypeId);
+
         int GetDallasBatchCounts(int? mpId = 0);
         List<PackagesHoldInfo> GetPackagesHoldInfo();
     }
@@ -533,6 +535,7 @@ namespace AM.Services
 
             return db.ExecuteAsync(query, new { pipeLineStatus, timestamp, mailPieceId });
         }
+
         public string GetEnvelopeCodeByEnvelopeId(int envelopeId)
         {
             return db.QuerySingle<string>("SELECT EnvelopeName FROM Common.Envelopes WHERE Id=@EnvelopeId", new { EnvelopeId = envelopeId });
@@ -555,6 +558,11 @@ namespace AM.Services
             string query = "SELECT C.AppCode AS ClientCode,H.* FROM [AM].[PackagesHoldInfo] H INNER JOIN Common.Clients C ON H.ClientId = C.Id";
 
             return db.Query<PackagesHoldInfo>(query).ToList();
+        }
+
+        public List<string> GetInsertDataByDocTypeId(int docTypeId)
+        {
+            return db.Query<string>("SELECT E.EnvelopeName FROM AM.DocTypeInserts DI INNER JOIN Common.Envelopes E ON E.Id=DI.BREEnvelopeId WHERE DI.DocTypeId = @DocTypeId", new { DocTypeId = docTypeId }).ToList();
         }
     }
 }

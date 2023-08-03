@@ -247,6 +247,8 @@
     <Build Include="AM\Tables\PackagesHoldInfo.sql" />
     <Build Include="AM\Tables\EsignDocConfig.sql" />
     <Build Include="API\Tables\APICredentials.sql" />
+    <Build Include="dbo\Views\v_IntlDocTypes.sql" />
+    <Build Include="AM\Tables\DocTypeInserts.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AM.Database.refactorlog" />

@@ -14,7 +14,7 @@ select
 ,PrintSize
 ,EnvelopeId as EnvPartNo
 ,IsBRE
-,BREEnvelopeId as BREEnvPartNo
+,'' as BREEnvPartNo
 ,ShippingCarrier
 ,ShippingServiceType
 ,ShippingSpecialService
@@ -69,7 +69,7 @@ select
 ,PrintSize
 ,EnvelopeId as EnvPartNo
 ,IsBRE
-,BREEnvelopeId as BREEnvPartNo
+,'' as BREEnvPartNo
 ,ShippingCarrier
 ,ShippingServiceType
 ,ShippingSpecialService

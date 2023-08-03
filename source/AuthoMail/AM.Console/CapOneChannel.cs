@@ -356,7 +356,7 @@ namespace AM.Console
                             borrowerAddress.City = loanInfo.BorrowerCity;
                             borrowerAddress.State = loanInfo.BorrowerState;
                             borrowerAddress.Zip = loanInfo.BorrowerZip;
-                            borrowerAddress.Country = loanInfo.BorrowerCountry;                           
+                            borrowerAddress.Country = loanInfo.BorrowerCountry;
 
                             Entities.Recipient borrowerName = new Entities.Recipient();
                             borrowerName.FirstName = loanInfo.BorrowerFirstName;
@@ -625,7 +625,8 @@ namespace AM.Console
 
                     foreach (var mp in mbData.MailPieces)
                     {
-                        DocType docType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0, mailBatch.ReceivedOn.Value.UtcToEst());
+                        bool isCountryUS = mp.RecipientInfo.Address.Country.IsCountryUS();
+                        DocType docType = !isCountryUS ? docTypeSvc.GetIntlDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0, mailBatch.ReceivedOn.Value.UtcToEst()) : docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0, mailBatch.ReceivedOn.Value.UtcToEst());
 
                         CustomTemplate customTemplate = commonSvc.GetCustomTemplateByDocTypeId(docType.Id, mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityCode").Value);
                         var printReadyTemplatePath = Path.Combine(mbi.AMRequestPath, mp.DocumentOrPackage.Name);

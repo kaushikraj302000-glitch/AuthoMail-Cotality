@@ -651,19 +651,19 @@ namespace AM.Console
                         }
                         else
                         {
-                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
+                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, !mailPiece.RcptAddressCountry.IsCountryUS() ? docTypeSvc.GetIntlDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value) : docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
                         }
                     }
                     else if (mailPiece.IsEDeliveryRequested)
                     {
-                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
+                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, !mailPiece.RcptAddressCountry.IsCountryUS() ? docTypeSvc.GetIntlDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value) : docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
                         mailPiece.DueDate = mailPiece.ExpiryDate;
                         mailPiece.StdSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddMinutes(30).EstToUtc();
                         mailPiece.MaxSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddHours(4).EstToUtc();
                     }
                     else
                     {
-                        DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+                        DocType docType = !mailPiece.RcptAddressCountry.IsCountryUS() ? docTypeSvc.GetIntlDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value) : docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
 
                         //NOTE : Here we are considering that by default receivedon will be original one but if any package that is for Hold then we are considering its effective receivedon date based on ProcessOn
                         DateTime receivedOn = mailBatch.ReceivedOn.Value; ;
@@ -764,35 +764,35 @@ namespace AM.Console
                     ConcurrentBag<AddressResponse> addressResponses = new ConcurrentBag<AddressResponse>();
 
                     Parallel.ForEach(addressBatches, new ParallelOptions { MaxDegreeOfParallelism = 8 }, (verifyBatch) =>
-                     {
-                         VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = verifyBatch.ToList() };
-                         VerifierAddressResponse verifierAddResponse;
+                    {
+                        VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = verifyBatch.ToList() };
+                        VerifierAddressResponse verifierAddResponse;
 
-                         using (IUSPSService uspsSvc = new USPSService())
-                         {
-                             verifierAddResponse = uspsSvc.VerifyAddressAsync(sysUserId, verifierAddRequest).Result;
-                         }
+                        using (IUSPSService uspsSvc = new USPSService())
+                        {
+                            verifierAddResponse = uspsSvc.VerifyAddressAsync(sysUserId, verifierAddRequest).Result;
+                        }
 
-                         if (verifierAddResponse != null)
-                         {
-                             //if any error at VerifierAddressResponse level then throw unexpected error and exit from loop
-                             if (verifierAddResponse.HasError)
-                             {
-                                 throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
-                             }
-                             foreach (var addRes in verifierAddResponse.AddressResponses)
-                             {
-                                 addressResponses.Add(addRes);
-                             }
-                         }
-                     });
+                        if (verifierAddResponse != null)
+                        {
+                            //if any error at VerifierAddressResponse level then throw unexpected error and exit from loop
+                            if (verifierAddResponse.HasError)
+                            {
+                                throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
+                            }
+                            foreach (var addRes in verifierAddResponse.AddressResponses)
+                            {
+                                addressResponses.Add(addRes);
+                            }
+                        }
+                    });
                     #endregion
 
                     foreach (MailPieceDTO mailPiece in validMailPieces.Where(mp => (mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested))
                     {
                         string documentOrPackageType = mailPiece.DocumentOrPackageType;
                         //Document Or Package Type validation
-                        var docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+                        var docType = !mailPiece.RcptAddressCountry.IsCountryUS() ? docTypeSvc.GetIntlDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value) : docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
 
                         var addressResponse = addressResponses.SingleOrDefault(c => c.Id.ToLower() == mailPiece.UniqueId.ToString().ToLower());
 

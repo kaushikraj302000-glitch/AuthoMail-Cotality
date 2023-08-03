@@ -103,11 +103,12 @@ namespace AM.Services
                     Client client = clientSvc.GetClientById(edmp.ClientId.Value);
 
                     //NOTE : Reason to take document type based on Name to just put valid Id after fall back
-                    DocType mpDocType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, edmp.TotalPages, edmp.ReceivedOn.Value.UtcToEst());
+                    bool IsCountryUS = mailPieceDTO.RcptAddressCountry.IsCountryUS();
+                    DocType mpDocType = !IsCountryUS ? docTypeSvc.GetIntlDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, edmp.TotalPages, edmp.ReceivedOn.Value.UtcToEst()) : docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, edmp.TotalPages, edmp.ReceivedOn.Value.UtcToEst());
                     mailPieceDTO.DocTypeId = mpDocType.Id;
                     mailPieceDTO.PnSConfigDetailId = mpDocType.PnSConfigDetailId;
                     mailPieceDTO.PrintTrailId = mpDocType.PrintTrailId;
-                    mailPieceDTO.IsEDeliveryRequested = false;                    
+                    mailPieceDTO.IsEDeliveryRequested = false;
                     mailPieceDTO.IsESignRequested = false;
                     GetExactDocumentType(mpDocType, mailPieceDTO);
                     commonSvc.GetUpdatedDueDateAndPrintLocation(newReceivedOnDateTime, mailPieceDTO, mpDocType, client);

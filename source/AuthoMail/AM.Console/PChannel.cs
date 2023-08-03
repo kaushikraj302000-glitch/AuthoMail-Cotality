@@ -814,10 +814,20 @@ namespace AM.Console
                     }
                     else
                     {
-                        DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+                        DocType docType = null;
+                        if (!mailPiece.RcptAddressCountry.IsCountryUS())
+                        {
+                            docType = docTypeSvc.GetIntlDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+
+                        }
+                        else
+                        {
+                            docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+
+                        }
 
                         //NOTE : Here we are considering that by default receivedon will be original one but if any package that is for Hold then we are considering its effective receivedon date based on ProcessOn
-                        DateTime receivedOn = mailBatch.ReceivedOn.Value; ;
+                        DateTime receivedOn = mailBatch.ReceivedOn.Value;
 
                         if (Config.Monitor_PackagesHoldInfo.Any(x => x.ClientId == mailPiece.ClientId && x.HoldOn == receivedOn.UtcToEst().Date))
                         {
@@ -942,7 +952,17 @@ namespace AM.Console
                     string documentOrPackageType = mailPiece.DocumentOrPackageType;
 
                     //Document Or Package Type validation
-                    var docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+                    DocType docType = null;
+                    if (!mailPiece.RcptAddressCountry.IsCountryUS())
+                    {
+                        docType = docTypeSvc.GetIntlDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+                    }
+                    else
+                    {
+                        docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+                    }
+
+
 
                     var addressResponse = addressResponses.SingleOrDefault(c => c.Id.ToLower() == mailPiece.UniqueId.ToString().ToLower());
 

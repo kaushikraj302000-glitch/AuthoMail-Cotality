@@ -808,13 +808,14 @@ namespace AM.Console
 
             string documentOrPackageType = mailPieceDTO.DocumentOrPackageType;
             DocType docType;
+            bool isCountryUS = mailPieceDTO.RcptAddressCountry.IsCountryUS();
             if (!string.IsNullOrWhiteSpace(mailPieceDTO.ShippingCarrier) && !string.IsNullOrWhiteSpace(mailPieceDTO.ShippingServiceType))
             {
-                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mailPieceDTO.ShippingCarrier, mailPieceDTO.ShippingServiceType);
+                docType = !isCountryUS ? docTypeSvc.GetIntlDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mailPieceDTO.ShippingCarrier, mailPieceDTO.ShippingServiceType) : docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mailPieceDTO.ShippingCarrier, mailPieceDTO.ShippingServiceType);
             }
             else
             {
-                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst());
+                docType = !isCountryUS ? docTypeSvc.GetIntlDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst()) : docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst());
             }
 
 
@@ -827,7 +828,7 @@ namespace AM.Console
 
             if (docType == null)
             {
-                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages) };
+                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = $"Either the specified document or package type '{mailPieceDTO.DocumentOrPackageType}' is not configured  {(isCountryUS == false ? "for international mailing" : "")} or no matching print configuration found for page count ({pageCount})." };
             }
             else if (pageCount == blankPageNos.Count())
             {

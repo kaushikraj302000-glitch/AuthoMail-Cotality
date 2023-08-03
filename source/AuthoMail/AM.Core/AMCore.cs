@@ -41,7 +41,7 @@ namespace AM.Core
 
                 using (IClientService clientSvc = new ClientService())
                 {
-                    sftChannelInfo = clientSvc.GetSFTChannelDetailsBySFTChannelCode($"DELFUS_{Config.Common_Environment}");
+                    sftChannelInfo = clientSvc.GetSFTChannelDetailsBySFTChannelCode($"DALLAS_{Config.Common_Environment}");
                 }
 
                 if (channel == "DELFUS")
@@ -85,7 +85,16 @@ namespace AM.Core
 
                             foreach (MailPieceDTO mailPiece in validMailPieces)
                             {
-                                DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+                                DocType docType = null;
+                                if (!mailPiece.RcptAddressCountry.IsCountryUS())
+                                {
+                                    docType = docTypeSvc.GetIntlDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+                                }
+                                else
+                                {
+                                    docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+                                }
+
 
                                 int mailPieceId = mailPiece.Id;
 
@@ -971,8 +980,12 @@ namespace AM.Core
                                 //Here we are finally updating BRE  envelope in inserts field because now shipping method is not going to change.
                                 if (docType.IsBRE)
                                 {
-                                    var breEnvelopeName = commonSvc.GetEnvelopeCodeByEnvelopeId(docType.BREEnvelopeId);
-                                    mailPiece.Inserts = $"{breEnvelopeName},{mailPiece.Inserts}".TrimEnd(',');
+                                    var breEnvelopeName = commonSvc.GetInsertDataByDocTypeId(docType.Id);
+
+                                    if (breEnvelopeName != null && breEnvelopeName.Count > 0)
+                                    {
+                                        mailPiece.Inserts = $"{string.Join(",", breEnvelopeName)},{mailPiece.Inserts}".TrimEnd(',');
+                                    }
                                 }
 
                                 //Print Inserts in coverletter
@@ -1790,10 +1803,18 @@ namespace AM.Core
 
             List<PrintBatch> printBatches = new List<PrintBatch>();
 
-            var docTypes = validMailPieces.Select(row => new { DocTypeId = row.DocTypeId.Value, PnSConfigDetailId = row.PnSConfigDetailId.Value }).Distinct();
+            var docTypes = validMailPieces.Select(row => new { DocTypeId = row.DocTypeId.Value, PnSConfigDetailId = row.PnSConfigDetailId.Value, row.RcptAddressCountry }).Distinct();
             foreach (var docTypePnSConfig in docTypes)
             {
-                DocType docType = docTypeSvc.GetDocTypeById(docTypePnSConfig.DocTypeId, docTypePnSConfig.PnSConfigDetailId);
+                DocType docType = null;
+                if (!docTypePnSConfig.RcptAddressCountry.IsCountryUS())
+                {
+                    docType = docTypeSvc.GetIntlDocTypeById(docTypePnSConfig.DocTypeId, docTypePnSConfig.PnSConfigDetailId);
+                }
+                else
+                {
+                    docType = docTypeSvc.GetDocTypeById(docTypePnSConfig.DocTypeId, docTypePnSConfig.PnSConfigDetailId);
+                }
 
                 var filteredMailPiecesDocTypeWise = validMailPieces.Where(c => c.DocTypeId == docTypePnSConfig.DocTypeId && c.PnSConfigDetailId == docTypePnSConfig.PnSConfigDetailId).ToList();
 

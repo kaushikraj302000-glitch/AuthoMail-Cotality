@@ -367,8 +367,8 @@ namespace AM.Services
                 newMailPiece.Weight = 0;
                 //Here we are storing originalUnique Id for reporting purpose.
                 newMailPiece.MailPieceCustomInfo.Add(new MailPieceCustomInfo() { Key = "OriginalUniqueId", DataType = DataType.String, Value = mailPiece.UniqueId.ToString() });
-
-                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPiece.ClientId, mailPiece.DocumentOrPackageType, mailPiece.TotalPages, newBatch.ReceivedOn.Value.UtcToEst());
+                bool IsCountryUS = mailPiece.RcptAddressCountry.IsCountryUS();
+                var docType = !IsCountryUS ? docTypeSvc.GetIntlDocTypeByDocTypeName(mailPiece.ClientId, mailPiece.DocumentOrPackageType, mailPiece.TotalPages, newBatch.ReceivedOn.Value.UtcToEst()) : docTypeSvc.GetDocTypeByDocTypeName(mailPiece.ClientId, mailPiece.DocumentOrPackageType, mailPiece.TotalPages, newBatch.ReceivedOn.Value.UtcToEst());
 
                 if (docType != null)
                 {
