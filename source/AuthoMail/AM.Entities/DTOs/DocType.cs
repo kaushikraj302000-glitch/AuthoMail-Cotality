@@ -17,6 +17,7 @@ namespace AM.Entities
     {
         public int Id { get; set; }
         public int? PnSConfigId { get; set; }
+        public int? IntlPnSConfigId { get; set; }
         public int? PnSConfigDetailId { get; set; }
         public string DocTypeName { get; set; }
         public bool IsBRE { get; set; }
