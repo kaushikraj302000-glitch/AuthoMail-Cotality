@@ -936,9 +936,9 @@ bufferSize: 4096, useAsync: true)) { }
                 using (IDocTypeService docSvc = new DocTypeService())
                 {
                     var docType = docSvc.GetDocTypeByDocTypeName(client.Id, mailPiece.DocumentOrPackageType);
-                    if (docType?.PnSConfigId == null || docType?.PnSConfigId <= 0)
+                    if (docType?.IntlPnSConfigId == null || docType?.IntlPnSConfigId <= 0)
                     {
-                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = $"Either the specified document or package type '{0}' is not configured for international mailing or no matching print configuration found for page count ({1}).".Fill(mailPiece.DocumentOrPackageType, mailPiece) };
+                        yield return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = $"Either the specified document or package type '{mailPiece.DocumentOrPackageType}' is not configured for international mailing or no matching print configuration found for page count ({mailPiece})." };
                     }
                 }
             }
