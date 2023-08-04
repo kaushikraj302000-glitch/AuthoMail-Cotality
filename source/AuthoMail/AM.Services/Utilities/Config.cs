@@ -31,6 +31,8 @@ namespace AM.Services
 
         public static int Common_ProcessingBufferTime { get; private set; }
         public static string Common_FedExTrackingAccountCode { get; private set; }
+        public static string Common_FedExTokenUrl { get; set; }
+        public static string Common_FedExShippingLabelUrl { get; set; }
         public static string Common_FedExTrackingUrl { get; private set; }
         public static string Common_ErrorSubscribedEmailSubject { get; private set; }
         public static string Common_DuplicateEmailSubject { get; private set; }
