@@ -41,7 +41,7 @@ namespace AM.Core
 
                 using (IClientService clientSvc = new ClientService())
                 {
-                    sftChannelInfo = clientSvc.GetSFTChannelDetailsBySFTChannelCode($"DALLAS_{Config.Common_Environment}");
+                    sftChannelInfo = clientSvc.GetSFTChannelDetailsBySFTChannelCode($"DELFUS_{Config.Common_Environment}");
                 }
 
                 if (channel == "DELFUS")
