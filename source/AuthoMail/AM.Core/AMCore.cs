@@ -439,7 +439,7 @@ namespace AM.Core
                                     #region FedEx Logic
                                     while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                     {
-                                        
+
                                         //response = createFedExLabel.Create(mailPiece, fedExAccInfo, originDocType, mbi, shipperInfo);
                                         response = createFedExAPILabel.Create(mailPiece, fedExAccInfo, client, originDocType, mbi, shipperInfo).Result;
                                         if (!response.HasError)
@@ -898,10 +898,12 @@ namespace AM.Core
 
                                             ShipperInformation shipperInfo = commonSvc.GetShipperInformationByPrintLocation(mailPiece.PrintLocation, mailPiece.PrintTrailId.Value);
 
-                                            CreateFedExLabel createFedExLabel = new CreateFedExLabel();
+                                            //CreateFedExLabel createFedExLabel = new CreateFedExLabel();
 
-                                            returnResponse = createFedExLabel.Create(mailPiece, fedExAccInfo, client, docType, mbi, shipperInfo, true);
+                                            CreateFedExAPILabel createFedExAPILabel = new CreateFedExAPILabel();
 
+                                            //returnResponse = createFedExLabel.Create(mailPiece, fedExAccInfo, client, docType, mbi, shipperInfo, true);
+                                            returnResponse = createFedExAPILabel.Create(mailPiece, fedExAccInfo, client, docType, mbi, shipperInfo, true).Result;
                                             if (!returnResponse.HasError)
                                             {
                                                 returnLabelFilePath = returnResponse.CoverLetterPath;
