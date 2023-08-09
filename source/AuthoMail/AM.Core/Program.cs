@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AM.Entities;
+using AM.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.ServiceProcess;
@@ -16,24 +18,29 @@ namespace AM.Core
         {
             bool prepFlag, submitFlag, submittedResFlag, parseResFlag, reportPrepResFlag;
 
-            do
+            List<int> channelIds = new List<int>();
+           
+            using (IClientService commonSvc = new ClientService())
             {
-                if (args.Length > 0)
+                var channels = commonSvc.GetSFTChannelDetailsByServerIP(Config.Common_ServerIP).Result;
+
+                if (channels != null && channels.Count() > 0)
                 {
-                    prepFlag = AMCore.PrepPnSJobs(args[0]);
-                    submitFlag = false;
-                    submittedResFlag = false;
-                    parseResFlag = false;
-                    reportPrepResFlag = false;
+                    channelIds = channels.Select(x => x.Id).ToList();
                 }
                 else
                 {
-                    prepFlag = AMCore.PrepPnSJobs("");
-                    submitFlag = AMCore.SubmitBatchesDocTypeWiseToPrintVendor();
-                    submittedResFlag = AMCore.GetSubmittedPnSResponses();
-                    parseResFlag = AMCore.ProcessPnSResponses();
-                    reportPrepResFlag = AMCore.ReportPreppedProcess();
+                    return;
                 }
+            }
+
+            do
+            {
+                prepFlag = AMCore.PrepPnSJobs(channelIds);
+                submitFlag = AMCore.SubmitBatchesDocTypeWiseToPrintVendor(channelIds);
+                submittedResFlag = AMCore.GetSubmittedPnSResponses(channelIds);
+                parseResFlag = AMCore.ProcessPnSResponses(channelIds);
+                reportPrepResFlag = AMCore.ReportPreppedProcess(channelIds);
 
             } while (prepFlag || submitFlag || submittedResFlag || parseResFlag || reportPrepResFlag);
         }

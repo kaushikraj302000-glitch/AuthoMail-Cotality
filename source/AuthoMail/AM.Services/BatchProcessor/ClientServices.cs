@@ -18,6 +18,7 @@ namespace AM.Services
         Task<Client> GetClientByName(string clientName);
         List<ClientSFTChannel> GetClientSFTChannelMapDetails(int clientId);
         Task<SFTChannel> GetSFTChannelDetailsBySFTChannelId(int sftChannelId);
+        Task<List<SFTChannel>> GetSFTChannelDetailsByServerIP(string serverIP);
         SFTChannel GetSFTChannelDetailsBySFTChannelCode(string sftChannelCode);
         List<ClientAMCCustIdMap> GetAMCClientIdMaps();
         Task<int?> GetAMCClientIdByCustId(string custId);
@@ -67,6 +68,14 @@ namespace AM.Services
 
             var data = await db.QuerySingleOrDefaultAsync<SFTChannel>(query, new { sftChannelId = sftChannelId });
             return data;
+        }
+
+        public async Task<List<SFTChannel>> GetSFTChannelDetailsByServerIP(string serverIP)
+        {
+            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction, APITokenURL, APIResponseURL, APIMaxResponseCount, APITokenHeaders, ServerIP FROM [Common].[SFTChannels] WHERE ServerIP=@ServerIP AND IsActive=1";
+
+            var data = await db.QueryAsync<SFTChannel>(query, new { ServerIP = serverIP });
+            return data.ToList();
         }
 
         public SFTChannel GetSFTChannelDetailsBySFTChannelCode(string sftChannelCode)
