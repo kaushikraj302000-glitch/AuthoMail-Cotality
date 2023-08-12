@@ -957,8 +957,12 @@ namespace AM.Core
                                 //Here we are finally updating BRE  envelope in inserts field because now shipping method is not going to change.
                                 if (docType.IsBRE)
                                 {
-                                    var breEnvelopeName = commonSvc.GetEnvelopeCodeByEnvelopeId(docType.BREEnvelopeId);
-                                    mailPiece.Inserts = $"{breEnvelopeName},{mailPiece.Inserts}".TrimEnd(',');
+                                    var breEnvelopeName = commonSvc.GetInsertDataByDocTypeId(docType.Id);
+
+                                    if (breEnvelopeName != null && breEnvelopeName.Count > 0)
+                                    {
+                                        mailPiece.Inserts = $"{string.Join(",", breEnvelopeName)},{mailPiece.Inserts}".TrimEnd(',');
+                                    }
                                 }
 
                                 //Print Inserts in coverletter

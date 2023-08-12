@@ -237,12 +237,11 @@ namespace AM.Services
 
         public List<DocTypeReport> GetDocTypeList()
         {
-            string query = @"SELECT D.*,C.AppCode,E.EnvelopeName,E.PartNumber AS EnvelopePartNumber, BE.EnvelopeName AS BREName, BE.PartNumber AS BREPartNumber,
+            string query = @"SELECT D.*,C.AppCode,E.EnvelopeName,E.PartNumber AS EnvelopePartNumber, BREName =STUFF((SELECT DISTINCT '|'+ CAST([EnvelopeName] AS VARCHAR(MAX)) FROM Common.Envelopes E INNER JOIN AM.DocTypeInserts DI ON DI.BREEnvelopeId=E.Id WHERE DI.DocTypeId = D.Id FOR XMl PATH('')),1,1,''), BREPartNumber =STUFF((SELECT DISTINCT '|'+ CAST([PartNumber] AS VARCHAR(MAX)) FROM Common.Envelopes E INNER JOIN AM.DocTypeInserts DI ON DI.BREEnvelopeId=E.Id WHERE DI.DocTypeId = D.Id FOR XMl PATH('')),1,1,''),
                 PT.TrailName AS PrintTrailName, PV.VendorCode AS PrintVendor
                 FROM [dbo].[v_DocTypes] D 
                 LEFT OUTER JOIN Common.Clients C ON D.ClientId=C.Id
                 LEFT OUTER JOIN Common.Envelopes E ON D.EnvelopeId=E.Id
-                LEFT OUTER JOIN Common.Envelopes BE ON D.BREEnvelopeId=BE.Id
                 LEFT OUTER JOIN Common.PrintTrails PT ON D.PrintTrailId=PT.Id
                 LEFT OUTER JOIN Common.PrintVendors PV ON PT.PrintVendorId=PV.Id
                 WHERE C.Id>0 ORDER BY C.AppCode";

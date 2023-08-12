@@ -32,7 +32,6 @@
     [AllowInsertsOnly]                       BIT            CONSTRAINT [DF_DocTypes_AllowInsertsOnly] DEFAULT ((0)) NOT NULL,
     [IsBRE]                               BIT            CONSTRAINT [DF_DocTypes_IsBRE] DEFAULT ((0)) NOT NULL,
     [NoOfCopies]                          INT            NOT NULL,
-    [BREEnvelopeId]                       INT            NULL,
     [RetRcptAddressCountry]               VARCHAR (255)  NULL,
     [PnSConfigId]                         INT            NULL,
     [PrintFormat] VARCHAR(255) NULL, 
@@ -43,7 +42,6 @@
     [ReturnShippingAccountCode] VARCHAR(255) NULL, 
     CONSTRAINT [PK_DocTypes] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
     CONSTRAINT [FK_CreatedBy_DocTypes_User] FOREIGN KEY ([CreatedBy]) REFERENCES [Profile].[Users] ([Id]),
-    CONSTRAINT [FK_DocTypes_BREEnvelopes] FOREIGN KEY ([BREEnvelopeId]) REFERENCES [Common].[Envelopes] ([Id]),
     CONSTRAINT [FK_DocTypes_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
     CONSTRAINT [FK_DocTypes_PnSConfig] FOREIGN KEY ([PnSConfigId]) REFERENCES [Common].[PnSConfig] ([Id]),
     CONSTRAINT [FK_ModifiedBy_DocTypes_User] FOREIGN KEY ([ModifiedBy]) REFERENCES [Profile].[Users] ([Id])

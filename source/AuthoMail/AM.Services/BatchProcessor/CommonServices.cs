@@ -53,6 +53,7 @@ namespace AM.Services
         string GetEnvelopeCodeByEnvelopeId(int envelopeId);
         int GetDallasBatchCounts(int? mpId = 0);
         List<PackagesHoldInfo> GetPackagesHoldInfo();
+        List<string> GetInsertDataByDocTypeId(int docTypeId);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -555,6 +556,11 @@ namespace AM.Services
             string query = "SELECT C.AppCode AS ClientCode,H.* FROM [AM].[PackagesHoldInfo] H INNER JOIN Common.Clients C ON H.ClientId = C.Id";
 
             return db.Query<PackagesHoldInfo>(query).ToList();
+        }
+
+        public List<string> GetInsertDataByDocTypeId(int docTypeId)
+        {
+            return db.Query<string>("SELECT E.EnvelopeName FROM AM.DocTypeInserts DI INNER JOIN Common.Envelopes E ON E.Id=DI.BREEnvelopeId WHERE DI.DocTypeId = @DocTypeId", new { DocTypeId = docTypeId }).ToList();
         }
     }
 }

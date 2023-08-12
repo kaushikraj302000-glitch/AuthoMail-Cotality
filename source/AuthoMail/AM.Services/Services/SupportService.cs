@@ -552,10 +552,9 @@ where cd.Id=@Id";
         #endregion docType
         public List<DocTypeVM> GetDocTypes()
         {
-            string query = @"SELECT D.*,C.AppCode, C.Name AS ClientName, BE.EnvelopeName AS BREName, BE.PartNumber AS BREPartNumber
+            string query = @"SELECT D.*,C.AppCode, C.Name AS ClientName, BREName =STUFF((SELECT DISTINCT '|'+ CAST([EnvelopeName] AS VARCHAR(MAX)) FROM Common.Envelopes E INNER JOIN AM.DocTypeInserts DI ON DI.BREEnvelopeId=E.Id WHERE DI.DocTypeId = D.Id FOR XMl PATH('')),1,1,''), BREPartNumber =STUFF((SELECT DISTINCT '|'+ CAST([PartNumber] AS VARCHAR(MAX)) FROM Common.Envelopes E INNER JOIN AM.DocTypeInserts DI ON DI.BREEnvelopeId=E.Id WHERE DI.DocTypeId = D.Id FOR XMl PATH('')),1,1,'')
                 FROM [AM].[DocTypes] D 
                 LEFT OUTER JOIN Common.Clients C ON D.ClientId=C.Id
-                LEFT OUTER JOIN Common.Envelopes BE ON D.BREEnvelopeId=BE.Id
                 WHERE C.Id>0 ORDER BY C.AppCode";
             return db.Query<DocTypeVM>(query).ToList();
         }

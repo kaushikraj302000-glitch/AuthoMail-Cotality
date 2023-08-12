@@ -25,7 +25,7 @@ BEGIN
 	UPDATE [AM].[EDeliveryMailPieces] 
 	SET [ConsentAcceptedOn] = @ConsentAcceptedOn, [ConsentDeclinedOn] = @ConsentDeclinedOn, [DocReviewedOn] = @DocReviewedOn, [ESignedOn] = @DocEsignedOn, [DocDownloadedOn] = @DocDownloadedOn, DownloadedIPAddress = @IpAddress WHERE Id=@Id
 
-	SELECT @IsConsentAccepted = IsConsentAccepted, @IsConsentDeclined = IsConsentDeclined, @IsDocEsigned = IsEsigned, @IsDocDownloaded = [IsDocDownloaded], @ConsentAcceptedOn = ConsentAcceptedOn, @DocEsignedOn = ESignedOn, @DocDownloadedOn = DocDownloadedOn FROM [AM].[EDeliveryMailPieces] WHERE Id = @id
+	SELECT @IsConsentAccepted = IsConsentAccepted, @IsConsentDeclined = IsConsentDeclined, @IsDocEsigned = IsESigned, @IsDocDownloaded = [IsDocDownloaded], @ConsentAcceptedOn = ConsentAcceptedOn, @DocEsignedOn = ESignedOn, @DocDownloadedOn = DocDownloadedOn FROM [AM].[EDeliveryMailPieces] WHERE Id = @id
 
 	IF(@IsConsentDeclined=1)
 	BEGIN
