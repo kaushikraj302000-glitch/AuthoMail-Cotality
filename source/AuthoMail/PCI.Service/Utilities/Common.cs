@@ -11,6 +11,7 @@ using System.Net.Mail;
 using PCI.Service;
 using System.Data;
 using log4net;
+using System.Net;
 
 namespace PCI.Service
 {
@@ -77,6 +78,7 @@ namespace PCI.Service
         public static string UnexpectedEmail_CcEmail { get; private set; }
         public static string DocGenAPIUrl { get; private set; }
         public static string ManifestTemplatePath { get; private set; }
+        public static string ServerIP { get; private set; }
 
         static Common()
         {
@@ -165,6 +167,10 @@ namespace PCI.Service
 
                 DocGenAPIUrl = sysSettings["Common_DocGen_API"];
                 ManifestTemplatePath = sysSettings["PnS_ManifestTemplatePath"];
+
+
+                IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+                ServerIP = ipHostInfo.AddressList[0].ToString();
             }
             catch (Exception ex)
             {

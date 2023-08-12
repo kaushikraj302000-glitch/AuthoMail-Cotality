@@ -260,7 +260,8 @@ namespace AM.Console
                     UniqueId = batchUniqueId,
                     Priority = Priority.Medium.ToString(),
                     ClientBatchId = batchName,
-                    IsReturnInfoSpecified = false
+                    IsReturnInfoSpecified = false,
+                    ServerIP = Config.Common_ServerIP
                 };
 
                 MailBatch mb = new MailBatch()
@@ -426,6 +427,7 @@ namespace AM.Console
             mailBatch.BatchName = batchName;
             mailBatch.ClientBatchId = batchName;
             mailBatch.Priority = Priority.Low.ToString();
+            mailBatch.ServerIP = Config.Common_ServerIP;
             mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
             commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, receivedOn).Wait();
             mailBatchSvc.MarkMailBatchAsInvalid(mailBatch.Id, errorMessage).Wait();

@@ -1824,7 +1824,7 @@ namespace AM.Core
                 }
             }
 
-            string pnsRootFolder = Config.Core_PnS_SFT_RootDir;
+            string pnsRootFolder = Path.Combine(Config.Core_PnS_SFT_RootDir, Config.Common_ServerIP);
 
             foreach (var printBatchData in printBatches)
             {

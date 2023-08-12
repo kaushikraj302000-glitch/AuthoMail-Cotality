@@ -96,7 +96,8 @@ namespace AM.Console
                         DocumentOrPackageType = documentOrPackageType,
                         PipelineStatus = BatchPipelineStatus.Received,
                         BatchStatus = BatchStatus.InProgress.ToString(),
-                        ReceivedOn = lastModifiedTime
+                        ReceivedOn = lastModifiedTime,
+                        ServerIP = Config.Common_ServerIP
                     };
 
                     mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);

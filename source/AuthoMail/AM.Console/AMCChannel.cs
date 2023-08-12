@@ -152,7 +152,8 @@ namespace AM.Console
                 SFTChannelId = SFTChannel.Id,
                 BatchName = batchName,
                 ClientBatchId = batchName,
-                Priority = Priority.Medium.ToString()
+                Priority = Priority.Medium.ToString(),
+                ServerIP = Config.Common_ServerIP
             };
             mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
             commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, receivedOn).Wait();
@@ -260,7 +261,8 @@ namespace AM.Console
                             ReceivedOn = receivedOn,
                             PipelineStatus = BatchPipelineStatus.Received,
                             BatchStatus = BatchStatus.InProgress.ToString(),
-                            IsReturnInfoSpecified = false
+                            IsReturnInfoSpecified = false,
+                            ServerIP = Config.Common_ServerIP
                         };
                         mailBatches.Add(mailBatch);
                     }
@@ -298,7 +300,8 @@ namespace AM.Console
                                 PipelineStatus = BatchPipelineStatus.Received,
                                 BatchStatus = BatchStatus.InProgress.ToString(),
                                 IsReturnInfoSpecified = false,
-                                IsEDeliveryBatch = true
+                                IsEDeliveryBatch = true,
+                                ServerIP = Config.Common_ServerIP
                             };
                             mailBatches.Add(mailBatch);
                         }

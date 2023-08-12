@@ -44,7 +44,7 @@ namespace PCI.Service
         {
             log.Debug("Started preparing PCI jobs");
 
-            List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PnSCoreService, OperationTypes.Prep);
+            List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PnSCoreService, OperationTypes.Prep, Common.ServerIP);
 
             if (batchIds == null || batchIds.Count == 0)
             {
@@ -837,7 +837,7 @@ namespace PCI.Service
             log.Debug("Started Processing PCI Response");
 
             List<SubmittedBatches> submittedPrintBatches;
-            submittedPrintBatches = DAL.GetSubmittedBatches();
+            submittedPrintBatches = DAL.GetSubmittedBatches(Common.ServerIP);
             if (submittedPrintBatches.Count == 0)
             {
                 log.Debug("Processing PCI Response job queue is empty.");
@@ -1340,7 +1340,7 @@ namespace PCI.Service
         {
             log.Debug("Started Generating PnSResponse");
 
-            List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PnSCoreService, OperationTypes.ProcessMRDF);
+            List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PnSCoreService, OperationTypes.ProcessMRDF, Common.ServerIP);
 
             if (batchIds == null || batchIds.Count == 0)
             {

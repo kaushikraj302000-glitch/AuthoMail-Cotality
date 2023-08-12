@@ -47,7 +47,7 @@ namespace PCI.Service
                     int bundlingTime = 0;
 
                     //Waiting Code for AuthoMail as well as BatchSummary
-                    while (!DAL.CheckBatchesInQueue(startDateTime, endDateTime))
+                    while (!DAL.CheckBatchesInQueue(startDateTime, endDateTime, Common.ServerIP))
                     {
                         log.Debug("Queue Check Waiting...");
 
@@ -112,7 +112,7 @@ namespace PCI.Service
         {
             //NOTE : Here system will process not submitted batches if any error occured while getting any type of data. 
             //NOTE : It will be used specifically for PCI and NORDIS client because they all have fix sweeps.
-            var notSubmittedList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode);
+            var notSubmittedList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode, Common.ServerIP);
 
             while (notSubmittedList.Count > 0)
             {
@@ -120,7 +120,7 @@ namespace PCI.Service
                 SubmitBatches(notSubmittedList, pvCode);
                 log.Info("Submit Bundle Process Completed");
                 Thread.Sleep(12000);
-                notSubmittedList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode);
+                notSubmittedList = DAL.GetNotSubmittedPrintBatchDetailByPrintVendorCode(pvCode, Common.ServerIP);
             }
         }
 
@@ -195,7 +195,7 @@ namespace PCI.Service
                 return;
             }
 
-            List<MailPieceDetail> mpDetails = DAL.GetMRDFRequestDataByPrintTrailId(ptDetail.PrintTrailId);
+            List<MailPieceDetail> mpDetails = DAL.GetMRDFRequestDataByPrintTrailId(ptDetail.PrintTrailId, Common.ServerIP);
 
             if (mpDetails == null || mpDetails.Count == 0)
             {
@@ -231,7 +231,8 @@ namespace PCI.Service
             ptBatchDetail = new PrintTrailBatch()
             {
                 PrintTrailId = ptDetail.PrintTrailId,
-                ShipperId = ptDetail.ShipperId
+                ShipperId = ptDetail.ShipperId,
+                ServerIP = Common.ServerIP
             };
 
 
@@ -678,43 +679,43 @@ namespace PCI.Service
         #endregion
 
         #region Download Response MRDF and update batch status in DB.
-        public static void GetPrintVendorResponse(string printVendorCodes)
+        public static void GetPrintVendorResponse()
         {
             log.Debug("Print vendor response download job started.");
 
-            string[] vendorCodes = printVendorCodes.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            List<SubmittedBatches> submittedPrintBatches;
+            submittedPrintBatches = DAL.GetSubmittedBatches(Common.ServerIP);
+            if (submittedPrintBatches.Count == 0)
+            {
+                log.Debug($"PrintVendorResponse's job queue is empty for server - {Common.ServerIP}.");
+                return;
+            }
 
-            foreach (string printVendorCode in vendorCodes)
+            var groupBYPrintVendorCode = submittedPrintBatches.GroupBy(x => x.PrintVendorCode);
+
+            foreach (var submittedBatches in groupBYPrintVendorCode)
             {
                 try
                 {
-                    var printVendorDetail = DAL.GetPrintVendorDetailByVendorCode(printVendorCode);
-                    List<SubmittedBatches> submittedPrintBatches;
-                    submittedPrintBatches = DAL.GetSubmittedBatches(printVendorCode);
-                    if (submittedPrintBatches.Count == 0)
-                    {
-                        log.Debug("Print vendor - {0}'s job queue is empty.".Fill(printVendorCode));
-                        continue;
-                    }
+                    var printVendorDetail = DAL.GetPrintVendorDetailByVendorCode(submittedBatches.Key);
 
                     SFTUtil sftSite = new SFTUtil(printVendorDetail.Protocol.ParseEnum<SFT_ProtocolType>(), printVendorDetail.Host, printVendorDetail.UserName, printVendorDetail.Password, 60000);
 
                     sftSite.Connect();
 
-                    CheckAndDownloadResponseFile(sftSite, submittedPrintBatches, printVendorDetail);
+                    CheckAndDownloadResponseFile(sftSite, submittedBatches.ToList(), printVendorDetail);
 
                     sftSite.Disconnect();
-
-                    log.Debug("MRDF download job ended.");
                 }
                 catch (Exception ex)
                 {
-                    var msg = "Error occured while downloading report from Print Vendor {0}'s site".Fill(printVendorCode);
+                    var msg = "Error occured while downloading report from Print Vendor {0}'s site".Fill(submittedBatches.Key);
                     log.Error(msg, ex);
                     MailUtility.SendUnexpectedNotificationEmail(msg + "<br/> <b>Error Message</b> <br/> {0}".Fill(ex));
-                    continue;
                 }
             }
+
+            log.Debug("MRDF download job ended.");
         }
 
         private static void CheckAndDownloadResponseFile(SFTUtil sftSite, List<SubmittedBatches> submittedPrintBatches, PrintVendor printVendorDetail)
