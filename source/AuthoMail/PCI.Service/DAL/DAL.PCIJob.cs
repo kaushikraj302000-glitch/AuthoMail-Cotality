@@ -122,7 +122,7 @@ namespace PCI.Service
 
         public static int InsertPrintTrailBatchDetail(PrintTrailBatch printTrailBatchDetail)
         {
-            var printTrailBatchId = db.ExecuteSqlScalar<int>(@"INSERT INTO [PnS].[PrintTrailBatches]([PrintBatchName],[ShipperId],[SubmittedOn],[MRDFReceivedOn],[PrintTrailId]) OUTPUT INSERTED.Id VALUES(@p1,@p2,@p3,@p4,@p5)", printTrailBatchDetail.PrintBatchName, printTrailBatchDetail.ShipperId, printTrailBatchDetail.SubmittedOn, printTrailBatchDetail.MRDFReceivedOn, printTrailBatchDetail.PrintTrailId);
+            var printTrailBatchId = db.ExecuteSqlScalar<int>(@"INSERT INTO [PnS].[PrintTrailBatches]([PrintBatchName],[ShipperId],[SubmittedOn],[MRDFReceivedOn],[PrintTrailId],[ServerIP]) OUTPUT INSERTED.Id VALUES(@p1,@p2,@p3,@p4,@p5,@p6)", printTrailBatchDetail.PrintBatchName, printTrailBatchDetail.ShipperId, printTrailBatchDetail.SubmittedOn, printTrailBatchDetail.MRDFReceivedOn, printTrailBatchDetail.PrintTrailId, printTrailBatchDetail.ServerIP);
 
             return printTrailBatchId;
         }
