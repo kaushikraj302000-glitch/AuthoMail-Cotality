@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AM.Services;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,10 +14,19 @@ namespace AM.Scanner.Controllers
     [RoutePrefix("api/PdfAPI")]
     public class PdfOperationAPIController : ApiController
     {
+        IScannerService scannerSvc;
+
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public PdfOperationAPIController()
+        {
+            this.scannerSvc = new ScannerService();
+        }
+
+
         [HttpGet]
         [Route("DownloadPdf")]
-        public HttpResponseMessage DownloadPdf(string fileName)
+        public HttpResponseMessage DownloadPdf(int fileId)
         {
             try
             {
@@ -24,22 +34,35 @@ namespace AM.Scanner.Controllers
                 {
                     return Request.CreateResponse(HttpStatusCode.Unauthorized);
                 }
+
                 //Create HTTP Response.
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
 
+                var fileInfo = scannerSvc.GetDocumentInfo(fileId);
 
-
-                //Check whether File exists.
-                if (!File.Exists(fileName))
+                if (fileInfo == null)
                 {
                     //Throw 404 (Not Found) exception if File not found.
                     response.StatusCode = HttpStatusCode.NotFound;
-                    response.ReasonPhrase = string.Format("File not found: {0} .", Path.GetFileName(fileName));
+                    response.ReasonPhrase = $"File not found: {fileId}.";
+                    return response;
+                }
+
+                var fileName = $"{fileInfo.Id}_{fileInfo.FileName}";
+
+                var filePath = Path.Combine($@"\\{fileInfo.ServerIP}\", Common.Common.PCIRootPath, fileInfo.AppCode, fileInfo.JobId.ToString(), "PCIRequest", HttpUtility.UrlEncode(fileName));
+
+                //Check whether File exists.
+                if (!File.Exists(filePath))
+                {
+                    //Throw 404 (Not Found) exception if File not found.
+                    response.StatusCode = HttpStatusCode.NotFound;
+                    response.ReasonPhrase = $"File not found: {fileName}.";
                     return response;
                 }
 
                 //Read the File into a Byte Array.
-                byte[] bytes = File.ReadAllBytes(fileName);
+                byte[] bytes = File.ReadAllBytes(filePath);
 
                 //Set the Response Content.
                 response.Content = new ByteArrayContent(bytes);
@@ -52,7 +75,7 @@ namespace AM.Scanner.Controllers
                 response.Content.Headers.ContentDisposition.FileName = fileName;
 
                 //Set the File Content Type.
-                response.Content.Headers.ContentType = new MediaTypeHeaderValue(MimeMapping.GetMimeMapping(fileName));
+                response.Content.Headers.ContentType = new MediaTypeHeaderValue(MimeMapping.GetMimeMapping(filePath));
                 return response;
             }
             catch (Exception e)
