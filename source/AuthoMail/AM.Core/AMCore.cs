@@ -1925,9 +1925,9 @@ namespace AM.Core
                     {
                         try
                         {
-                            string triggerFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, printBatch.AppCode, $"{printBatch.SubmittedBatchName}.rpt");
+                            string triggerFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, Config.Common_ServerIP, printBatch.AppCode, $"{printBatch.SubmittedBatchName}.rpt");
                             string responseFileName = $"{printBatch.SubmittedBatchName}-res.xml";
-                            string responseFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, printBatch.AppCode, responseFileName);
+                            string responseFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, Config.Common_ServerIP, printBatch.AppCode, responseFileName);
 
                             if (!File.Exists(triggerFilePath))
                             {

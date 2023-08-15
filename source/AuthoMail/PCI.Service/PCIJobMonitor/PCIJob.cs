@@ -691,7 +691,7 @@ namespace PCI.Service
                 return;
             }
 
-            var groupBYPrintVendorCode = submittedPrintBatches.GroupBy(x => x.PrintVendorCode);
+            var groupBYPrintVendorCode = submittedPrintBatches.Where(x => x.PrintVendorCode != "CL_DALLAS").GroupBy(x => x.PrintVendorCode);
 
             foreach (var submittedBatches in groupBYPrintVendorCode)
             {

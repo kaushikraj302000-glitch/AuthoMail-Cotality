@@ -17,6 +17,7 @@ namespace PCI.Service
             {
                 PrintTrailBatchId = x.Field<int>("PrintTrailBatchId"),
                 PrintBatchName = x.Field<string>("PrintBatchName"),
+                PrintVendorCode = x.Field<string>("PrintVendorCode"),
                 ReceivedFileList = new List<string>()
             }).ToList();
             return printBatches;
