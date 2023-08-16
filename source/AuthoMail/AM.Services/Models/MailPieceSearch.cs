@@ -572,6 +572,7 @@ namespace AM.Services
             }
         }
         public bool IsWithinRetentionPeriod { get; set; }
+        public string ServerIP { get; set; }
     }
 
 

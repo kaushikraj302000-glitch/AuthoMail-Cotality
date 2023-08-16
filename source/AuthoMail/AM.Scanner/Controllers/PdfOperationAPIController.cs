@@ -50,8 +50,9 @@ namespace AM.Scanner.Controllers
 
                 var fileName = $"{fileInfo.Id}_{fileInfo.FileName}";
 
-                var filePath = Path.Combine($@"\\{fileInfo.ServerIP}\", Common.Common.PCIRootPath, fileInfo.AppCode, fileInfo.JobId.ToString(), "PCIRequest", HttpUtility.UrlEncode(fileName));
+                var filePath = Path.Combine(Common.Common.PCIRootPath, fileInfo.AppCode, fileInfo.JobId.ToString(), "PCIRequest", HttpUtility.UrlEncode(fileName));
 
+                log.Debug($"File Path : {filePath} ");
                 //Check whether File exists.
                 if (!File.Exists(filePath))
                 {

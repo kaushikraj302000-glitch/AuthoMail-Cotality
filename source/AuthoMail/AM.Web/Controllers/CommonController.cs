@@ -170,14 +170,14 @@ namespace AM.Web.Controllers
         //}
 
         [HttpGet]
-        public async Task<ActionResult> DownloadPdf(int mpId,string fileName)
+        public async Task<ActionResult> DownloadPdf(int mpId, string fileName, string serverIP)
         {
             try
             {
                 HttpClient client = new HttpClient();
                 client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
                 HttpResponseMessage response = new HttpResponseMessage();
-                response = await client.GetAsync($@"{Config.Web_Pdf_API_Url}\DownloadPdf?fileId={mpId}");
+                response = await client.GetAsync($@"{Config.Web_Pdf_API_Url.Replace("ServerIP", serverIP)}\DownloadPdf?fileId={mpId}");
                 if (response.IsSuccessStatusCode)
                 {
                     var stream = await response.Content.ReadAsByteArrayAsync();
