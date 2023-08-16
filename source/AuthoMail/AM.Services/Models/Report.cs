@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AM.Entities;
 using AM.Lib;
 
 namespace AM.Services
@@ -175,6 +176,7 @@ namespace AM.Services
         public string Channel { get; set; }
         public string DocumentOrPackageType { get; set; }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
         //public string BusinessIdName { get; set; }
         //public string BusinessIdValue { get; set; }
         public string LoanNumber { get; set; }
@@ -182,6 +184,7 @@ namespace AM.Services
         public DateTime? ReceivedOn { get; set; }
         public DateTime? PrintedOn { get; set; }
         public DateTime? MailedOn { get; set; }
+        public DateTime? ESignedOn { get { if (Status == ShippingStatus.eSigned.ToString() && MailedOn.HasValue) return MailedOn; return null; } }
         public string FileName { get; set; }
         public string ClientCode { get; set; }
         public string ShippingMethod { get; set; }

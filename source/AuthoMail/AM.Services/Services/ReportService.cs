@@ -167,7 +167,7 @@ namespace AM.Services
         public List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel)
         {
             string query = "[dbo].[uspweb_MonthlyReconReport] @clientId, @startDate, @endDate, @channel";
-            string appCode = GetAppcodeByClientid(clientId);
+            //string appCode = GetAppcodeByClientid(clientId);
             //if (appCode == "USAA")
             //{
             //    startDate = (startDate.Date + new TimeSpan(20, 00, 01)).EstToUtc();
@@ -457,7 +457,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
                     SELECT M.Id as MailPieceId, M.BusinessFriendlyIdValue as LoanNumber, M.ShippingStatus as [Status], M.UniqueId,
                     M.RcptFirstName as FirstName, M.RcptLastName as LastName, M.RcptAddressCity as [City], M.RcptAddressZip as ZIP,
                     M.RcptAddressStreet, M.RcptAddressState as [State], M.ShippedOn as MailedOn,M.TrackingNo, M.DueDate, M.ErrorCode, M.ErrorDesc,
-                    M.PrintLocation, M.PrintedOn ,B.BatchName as BatchId, B.ReceivedOn, M.DocTypeId, M.IsEDeliveryRequested, M.FileName,
+                    M.PrintLocation, M.PrintedOn ,B.BatchName as BatchId, B.ReceivedOn, M.DocTypeId, M.IsEDeliveryRequested, M.IsESignRequested, M.FileName,
                     D.DocTypeName as DocType, (PCD.ShippingCarrier + '-' + PCD.ShippingServiceType) as ShippingMethod, M.DocumentOrPackageType,
                     M.TotalPages as PagesShipped,M.TotalBlankPages as BlankPages, M.DeliveryStatus, M.DeliveryDate, M.Inserts, CH.Title as Channel,
                     C.AppCode as ClientCode, E.EnvelopeName, PTB.PrintBatchName as PrintFileName, M.ReturnDeliveryStatus, M.ReturnDeliveryDate,
