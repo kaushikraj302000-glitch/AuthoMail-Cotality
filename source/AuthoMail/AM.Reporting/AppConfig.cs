@@ -94,6 +94,11 @@ namespace AM.Reporting
         public static string CSSErrorReportPath { get; private set; }
         public static string CSSErrorReportEMailSubject { get; private set; }
 
+        public static string ReportWizardEMailTo { get; private set; }
+        public static string ReportWizardEMailCc { get; private set; }
+        public static string ReportWizardReportPath { get; private set; }
+        public static string ReportWizardEMailSubject { get; private set; }
+
         public static Dictionary<string, string> GOSDailyEmailListByAppCode
         {
             get
@@ -255,6 +260,11 @@ namespace AM.Reporting
                 CSSErrorEMailCc = ConfigurationManager.AppSettings["CSSErrorEMailCc"].Trim();
                 CSSErrorReportPath = ConfigurationManager.AppSettings["CSSErrorReportPath"].Trim();
                 CSSErrorReportEMailSubject = ConfigurationManager.AppSettings["CSSErrorReportEMailSubject"].Trim();
+
+                ReportWizardEMailTo = ConfigurationManager.AppSettings["ReportWizardEMailTo"].Trim();
+                ReportWizardEMailCc = ConfigurationManager.AppSettings["ReportWizardEMailCc"].Trim();
+                ReportWizardReportPath = ConfigurationManager.AppSettings["ReportWizardReportPath"].Trim();
+                ReportWizardEMailSubject = ConfigurationManager.AppSettings["ReportWizardEMailSubject"].Trim();
             }
             catch (Exception ex)
             {

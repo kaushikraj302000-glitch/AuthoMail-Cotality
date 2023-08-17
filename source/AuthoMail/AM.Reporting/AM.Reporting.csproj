@@ -82,6 +82,7 @@
     <Compile Include="ErrorReports.cs" />
     <Compile Include="FedExPickUP.cs" />
     <Compile Include="FloodReports.cs" />
+    <Compile Include="WizardReport.cs" />
     <Compile Include="GOSReports.cs" />
     <Compile Include="HSBCChannel.cs" />
     <Compile Include="PCIReconReport.cs" />
@@ -154,6 +155,7 @@
     <Folder Include="USAAReport\ErrorReports\" />
     <Folder Include="USAAReport\MonthlyReconReports\" />
     <Folder Include="USAAReport\WeeklyReports\" />
+    <Folder Include="WizardReport\" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">
