@@ -56,6 +56,7 @@ namespace AM.Services
         int GetDallasBatchCounts(int? mpId = 0);
         List<PackagesHoldInfo> GetPackagesHoldInfo();
         List<string> GetInsertDataByDocTypeId(int docTypeId);
+        List<USPSLabelCutOffDetail> GetUSPSLabelCutOffDetails();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -564,6 +565,13 @@ namespace AM.Services
         public List<string> GetInsertDataByDocTypeId(int docTypeId)
         {
             return db.Query<string>("SELECT E.EnvelopeName FROM AM.DocTypeInserts DI INNER JOIN Common.Envelopes E ON E.Id=DI.BREEnvelopeId WHERE DI.DocTypeId = @DocTypeId", new { DocTypeId = docTypeId }).ToList();
+        }
+
+        public List<USPSLabelCutOffDetail> GetUSPSLabelCutOffDetails()
+        {
+            string query = "SELECT * FROM [AM].[USPSLabelCutOffDetails]";
+
+            return db.Query<USPSLabelCutOffDetail>(query).ToList();
         }
     }
 }

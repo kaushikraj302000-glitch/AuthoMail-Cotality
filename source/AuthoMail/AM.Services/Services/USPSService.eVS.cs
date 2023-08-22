@@ -15,7 +15,7 @@ namespace AM.Services
 {
     public partial class USPSService
     {
-        public async Task<eVSLabelResponse> RequesteVSLabelAsync(string userId, eVSLabelRequest request)
+        public async Task<eVSLabelResponse> RequesteVSLabelAsync(string userId, eVSLabelRequest request, string uspsUserId)
         {
             try
             {
@@ -60,28 +60,44 @@ namespace AM.Services
                 eVSResponse eVSresponse = null;
 
                 var eVSrequest = new eVSRequest(request);
-                eVSrequest.USERID = Config.Web_API_USPS_UserId;
+                if (uspsUserId == "api")
+                {
+                    USPSLabelCutOffDetail uspsCutOffDetail;
+                    var estTime = Common.Now.UtcToEst();
+                    var dayOfWeek = estTime.DayOfWeek;
+
+                    if (dayOfWeek == DayOfWeek.Saturday)
+                    {
+                        uspsCutOffDetail = Config.USPSLabelCutOffDetails.SingleOrDefault(u => u.SatStartTime >= TimeSpan.Parse(estTime.ToString()) && u.SatEndTime <= TimeSpan.Parse(estTime.ToString()));
+                    }
+                    else
+                    {
+                        uspsCutOffDetail = Config.USPSLabelCutOffDetails.SingleOrDefault(u => u.BizStartTime >= TimeSpan.Parse(estTime.ToString()) && u.BizEndTime <= TimeSpan.Parse(estTime.ToString()));
+                    }
+                    eVSrequest.USERID = uspsCutOffDetail.USPSUserId;
+                }
+                else
+                {
+                    eVSrequest.USERID = uspsUserId;
+                }
 
                 var eVSrequestXML = eVSrequest.Serialize();
 
                 using (HttpClient httpClient = new HttpClient())
                 {
                     string url = Config.Web_API_USPS_URL;
-                    //string url = @"https://stg-secure.shippingapis.com/ShippingAPI.dll";
 
                     if (url.StartsWith("https", StringComparison.CurrentCultureIgnoreCase))
                     {
                         ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
                     }
 
-                    payload = new FormUrlEncodedContent(new[] 
+                    payload = new FormUrlEncodedContent(new[]
                         {
                             new KeyValuePair<string, string>("API",Config.Web_API_USPS_eVSAPIName),
-                            //new KeyValuePair<string, string>("API","Verify"),
                             new KeyValuePair<string, string>("XML",eVSrequestXML)
                         });
 
-                    //var payloadResult = await payload.ReadAsStringAsync().ConfigureAwait(false);
                     var uspsReq = httpClient.PostAsync(url, payload);
 
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)

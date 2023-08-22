@@ -305,6 +305,21 @@ namespace AM.Services
 
         #endregion
 
+        #region Web USPS Location
+
+        public static string Web_API_USPS_AccountsByPrintLocations { get; set; }
+        public static List<USPSLabelCutOffDetail> USPSLabelCutOffDetails { get; private set; }
+
+        public static Dictionary<string, string> USPSAccountDetails
+        {
+            get
+            {
+                return Web_API_USPS_AccountsByPrintLocations.Split('|').ToList().Select(x => x.Split('-')).ToDictionary(x => x[0].Trim(), x => x[1].Trim());
+            }
+        }
+
+        #endregion
+
         private static List<string> errors;
         static Config()
         {
@@ -317,6 +332,7 @@ namespace AM.Services
                 clientGroupMap = commonSvc.GetClientHolidayGroup();
                 groupHolidays = commonSvc.GetHolidayList();
                 Monitor_PackagesHoldInfo = commonSvc.GetPackagesHoldInfo();
+                USPSLabelCutOffDetails = commonSvc.GetUSPSLabelCutOffDetails();
             }
 
             IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());

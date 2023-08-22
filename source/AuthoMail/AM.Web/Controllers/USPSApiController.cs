@@ -35,7 +35,8 @@ namespace AM.Web.Controllers
         [HttpPost]
         public async Task<eVSLabelResponse> RequesteVSLabel([FromBody]eVSLabelRequest request)
         {
-            return await uspsSvc.RequesteVSLabelAsync(User.Identity.GetUserId(), request).ConfigureAwait(false);
+            //We are passing UspsUserID as "api" to fetch the account details of API user based on Cut-off
+            return await uspsSvc.RequesteVSLabelAsync(User.Identity.GetUserId(), request, "api").ConfigureAwait(false);
         }
 
         [Route("eVSCancel")]

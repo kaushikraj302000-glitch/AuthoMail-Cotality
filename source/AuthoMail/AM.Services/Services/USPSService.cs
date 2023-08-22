@@ -12,7 +12,7 @@ namespace AM.Services
     {
         Task<VerifierAddressResponse> VerifyAddressAsync(string userId, VerifierAddressRequest request);
 
-        Task<eVSLabelResponse> RequesteVSLabelAsync(string userId, eVSLabelRequest request);
+        Task<eVSLabelResponse> RequesteVSLabelAsync(string userId, eVSLabelRequest request, string uspsUserId);
 
         Task<eVSCancelLabelResponse> RequesteVSCancelLabelAsync(string userId, eVSCancelLabelRequest request);
 

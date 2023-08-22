@@ -157,6 +157,7 @@
     <Compile Include="Models\AuthoMailSettings.cs" />
     <Compile Include="Models\SupportVM.cs" />
     <Compile Include="Models\USPSAddressVerify.cs" />
+    <Compile Include="Models\USPSLabelCutOffDetail.cs" />
     <Compile Include="Models\USPS\TrackV2\ITrackFieldRequest.cs" />
     <Compile Include="Models\USPS\TrackV2\ITrackResponse.cs" />
     <Compile Include="Models\USPS\TrackV2\TrackFieldRequest.cs" />
