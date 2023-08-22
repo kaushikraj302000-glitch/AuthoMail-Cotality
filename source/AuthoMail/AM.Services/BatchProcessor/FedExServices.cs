@@ -131,7 +131,7 @@ namespace AM.Services
                             //todo separate this data to new prop Delivery Status and the Delivery Date
                             pickupDetail.DeliveryStatus = trackEvent.EventDescription;
                             pickupDetail.DeliveryDate = trackEvent.Timestamp.ToUniversalTime();
-                            pickupDetail.ShipmentStatus = $"{trackEvent.EventDescription} on {trackEvent.Timestamp.ToUniversalTime()} UTC at ( {trackEvent.Address.City}, { trackEvent.Address.StateOrProvinceCode} )";
+                            pickupDetail.ShipmentStatus = $"{trackEvent.EventDescription} on {trackEvent.Timestamp.ToUniversalTime()} UTC at ( {trackEvent.Address.City}, {trackEvent.Address.StateOrProvinceCode} )";
                             fedExPickedPackageDetails.Add(pickupDetail);
                         }
                     }
@@ -195,7 +195,7 @@ namespace AM.Services
                             trackingDetail.TrackingNo = trackDetail.TrackingNumber;
                             trackingDetail.DeliveryStatus = trackEvent.EventDescription;
                             trackingDetail.DeliveryDate = trackEvent.Timestamp.ToUniversalTime();
-                            trackingDetail.ShipmentStatus = $"{trackEvent.EventDescription} on {trackEvent.Timestamp.ToUniversalTime()} UTC at ( {trackEvent.Address.City}, { trackEvent.Address.StateOrProvinceCode} )";
+                            trackingDetail.ShipmentStatus = $"{trackEvent.EventDescription} on {trackEvent.Timestamp.ToUniversalTime()} UTC at ( {trackEvent.Address.City}, {trackEvent.Address.StateOrProvinceCode} )";
                             trackingDetail.ShipmentStatusUpdatedOn = jobRunTime;
                             trackingDetail.IsReturnTracking = isReturnTrackingInfo;
                             trackingDetail.ShippingCarrier = "FEDEX";
@@ -359,7 +359,7 @@ namespace AM.Services
                     {
                         db.QuerySingleOrDefault<int>("usp_InsertTrackingDump", new { TrackingDump = trackingResponses.ToList().ToDataTable() }, commandType: System.Data.CommandType.StoredProcedure);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         return;
                     }

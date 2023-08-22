@@ -18,7 +18,6 @@ namespace AM.Web.Controllers
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         IHomeService homeSvc;
-        ICommonService commonSvc;
         IEDeliveryService edvSvc;
 
         public EVaultController(IEDeliveryService edvSvc, IHomeService homeSvc)
