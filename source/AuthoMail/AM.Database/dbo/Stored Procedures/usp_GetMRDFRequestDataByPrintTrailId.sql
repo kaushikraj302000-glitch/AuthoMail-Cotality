@@ -1,5 +1,6 @@
 ﻿CREATE  PROCEDURE [dbo].[usp_GetMRDFRequestDataByPrintTrailId] 
-@printTrailId INT
+@printTrailId INT,
+@serverIP VARCHAR(50)
 AS
 BEGIN
 	-- SET NOCOUNT ON added to prevent extra result sets FROM
@@ -30,6 +31,6 @@ BEGIN
  INNER JOIN Common.Clients C ON C.Id=BS.ClientId
  LEFT OUTER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id
  WHERE BS.PipelineStatus='Prepped' AND  IsPrepped = 1 AND IsSubmitted = 0 AND REQ.PrintTrailBatchId IS NULL
- AND BS.PrintTrailId=@printTrailId
+ AND BS.PrintTrailId=@printTrailId AND BS.ServerIP = @serverIP
 	
 END

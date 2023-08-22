@@ -206,9 +206,9 @@ namespace AM.Console
                     UniqueId = batchXML.DocumentElement.Attributes["Id"] == null ? Guid.NewGuid() : Guid.Parse(batchXML.DocumentElement.Attributes["Id"].Value),
                     Priority = batchXML.DocumentElement.Attributes["Priority"] == null ? Priority.Medium.ToString() : batchXML.DocumentElement.Attributes["Priority"].Value,
                     DocumentOrPackageType = batchXML.DocumentElement.Attributes["DocumentOrPackageType"]?.Value,
-                    ClientBatchId = batchXML.DocumentElement.Attributes["ClientBatchId"] == null ? batchName : batchXML.DocumentElement.Attributes["ClientBatchId"].Value
+                    ClientBatchId = batchXML.DocumentElement.Attributes["ClientBatchId"] == null ? batchName : batchXML.DocumentElement.Attributes["ClientBatchId"].Value,
+                    ServerIP = Config.Common_ServerIP
                 };
-
                 //AM Mail Batch Custom Info
 
                 MailBatchCustomInfo mailBatchCustomInfo;
@@ -385,7 +385,8 @@ namespace AM.Console
                 SFTChannelId = SFTChannel.Id,
                 BatchName = batchName,
                 ClientBatchId = batchName,
-                Priority = Priority.Low.ToString()
+                Priority = Priority.Low.ToString(),
+                ServerIP = Config.Common_ServerIP
             };
             mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
             commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, receivedOn).Wait();

@@ -58,6 +58,7 @@ namespace AM.Entities
         public string RetRcptAddressCountry { get; set; }
         //This property will be used only to identify as E-Delivery Batch while separating. System will not store anywhere in database.
         public bool IsEDeliveryBatch { get; set; }
+        public string ServerIP { get; set; }
     }
 
     public class MailBatchCustomInfo

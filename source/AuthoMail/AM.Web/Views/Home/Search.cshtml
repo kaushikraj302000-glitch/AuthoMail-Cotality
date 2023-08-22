@@ -986,7 +986,7 @@
                 this.IsESignRequestedFormatted = this.ExpiryDate == null ? '<span class="label medium label-red">False</span>' : '<span class="label medium label-success">True</span>';
 
                 this.IsEDeliveryRequestedFormatted = this.IsEDeliveryRequested && !this.IsESignRequested ? '<span class="label medium label-success">E-Delivery</span>' : this.IsEDeliveryRequested && this.IsESignRequested ? '<span class="label medium label-success">E-Sign</span>' : '<span class="label medium label-blue">P&S</span>';
-                this.FileFormatted = this.IsWithinRetentionPeriod && this.RequestedPdf != null ? '<a href="' + baseUrl + 'Common/DownloadPdf?fileName=' + encodeURIComponent(this.PDFFileName) + '&appCode=' + encodeURIComponent(this.AppCode) + '&id=' + this.JobId + '"  style="cursor: pointer;font-size:1.2em;margin-right:10%;" class="btn btn-transparent-red btn-sm" data-filename="' + this.RequestedPdf + '" ><i class=" fa fa-file-pdf-o"></i> </a>' : '--';
+                this.FileFormatted = this.IsWithinRetentionPeriod && this.RequestedPdf != null ? '<a href="' + baseUrl + 'Common/DownloadPdf?fileName=' + encodeURIComponent(this.PDFFileName) + '&mpId=' + this.MailPieceId + '&serverIP=' + this.ServerIP + '"  style="cursor: pointer;font-size:1.2em;margin-right:10%;" class="btn btn-transparent-red btn-sm" data-filename="' + this.RequestedPdf + '" ><i class=" fa fa-file-pdf-o"></i> </a>' : '--';
             });
             return Model;
         }

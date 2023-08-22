@@ -31,38 +31,24 @@ namespace AM.Core
         private static readonly List<string> uspsKnownExceptionDescriptions = new List<string>() { "zip code you have entered is invalid", "may not exceed 50 characters", "must be specified when sending", "may not exceed 100 characters", "may not exceed 28 characters", "invalid value" };
 
         #region PrepPnSJob
-        internal static bool PrepPnSJobs(string channel)
+        internal static bool PrepPnSJobs(List<int> sftChannelIds)
         {
             log.Debug("PrepPnSJob started");
 
             using (IMailBatchService mailBatchService = new MailBatchService())
             {
                 List<MailBatchDTO> mailBatches;
-                SFTChannel sftChannelInfo;
 
-                using (IClientService clientSvc = new ClientService())
-                {
-                    sftChannelInfo = clientSvc.GetSFTChannelDetailsBySFTChannelCode($"DELFUS_{Config.Common_Environment}");
-                }
-
-                if (channel == "DELFUS")
-                {
-                    mailBatches = mailBatchService.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.Acknowledged, sftChannelInfo.Id);
-                }
-                else
-                {
-                    mailBatches = mailBatchService.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.Acknowledged).Where(x => x.SFTChannelId != sftChannelInfo.Id).ToList();
-                }
+                mailBatches = mailBatchService.GetBatchesByPipelineStatusAndSFTChannelIds(BatchPipelineStatus.Acknowledged, sftChannelIds).ToList();
 
                 if (mailBatches.Count == 0)
                 {
                     log.Debug("Prep Job queue is empty.");
                     return false;
                 }
+
                 Parallel.ForEach(mailBatches, (mailBatch) =>
                 {
-                    //    foreach (var mailBatch in mailBatches)
-                    //{
                     using (IMailBatchService mailBatchSvc = new MailBatchService())
                     using (IClientService clientSvc = new ClientService())
                     using (ICommonService commonSvc = new CommonService())
@@ -1118,7 +1104,6 @@ namespace AM.Core
                             SendUnexpectedExceptionEmail(msg);
                         }
                     }
-                    //}
                 });
             }
             log.Debug("PrepPnSJob Completed");
@@ -1739,13 +1724,13 @@ namespace AM.Core
         #endregion
 
         #region SubmitBatchesDocTypeWise
-        internal static bool SubmitBatchesDocTypeWiseToPrintVendor()
+        internal static bool SubmitBatchesDocTypeWiseToPrintVendor(List<int> sftChannelIds)
         {
             using (IMailBatchService mailBatchService = new MailBatchService())
             {
                 log.Debug("Submitted Batches job started.");
 
-                List<MailBatchDTO> preppedBatches = mailBatchService.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.Prepped);
+                List<MailBatchDTO> preppedBatches = mailBatchService.GetBatchesByPipelineStatusAndSFTChannelIds(BatchPipelineStatus.Prepped, sftChannelIds);
 
                 if (preppedBatches.Count == 0)
                 {
@@ -1872,7 +1857,7 @@ namespace AM.Core
                 }
             }
 
-            string pnsRootFolder = Config.Core_PnS_SFT_RootDir;
+            string pnsRootFolder = Path.Combine(Config.Core_PnS_SFT_RootDir, Config.Common_ServerIP);
 
             foreach (var printBatchData in printBatches)
             {
@@ -1948,14 +1933,14 @@ namespace AM.Core
         }
         #endregion
 
-        internal static bool GetSubmittedPnSResponses()
+        internal static bool GetSubmittedPnSResponses(List<int> sftChannelIds)
         {
             var processedCount = 0;
 
             using (IMailBatchService mailBatchService = new MailBatchService())
             {
                 log.Debug("Get submitted job started.");
-                var submittedPrintBatches = mailBatchService.GetSubmittedPrintBatchDetails();
+                var submittedPrintBatches = mailBatchService.GetSubmittedPrintBatchDetails(sftChannelIds);
 
                 if (submittedPrintBatches.Count == 0)
                 {
@@ -1969,9 +1954,9 @@ namespace AM.Core
                     {
                         try
                         {
-                            string triggerFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, printBatch.AppCode, $"{printBatch.SubmittedBatchName}.rpt");
+                            string triggerFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, Config.Common_ServerIP, printBatch.AppCode, $"{printBatch.SubmittedBatchName}.rpt");
                             string responseFileName = $"{printBatch.SubmittedBatchName}-res.xml";
-                            string responseFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, printBatch.AppCode, responseFileName);
+                            string responseFilePath = Path.Combine(Config.Core_PnS_SFT_RootDir, Config.Common_ServerIP, printBatch.AppCode, responseFileName);
 
                             if (!File.Exists(triggerFilePath))
                             {
@@ -2008,13 +1993,13 @@ namespace AM.Core
             return processedCount > 0;
         }
 
-        internal static bool ProcessPnSResponses()
+        internal static bool ProcessPnSResponses(List<int> sftChannelIds)
         {
             log.Debug("Process PnS response job is started.");
 
             using (IMailBatchService mailBatchService = new MailBatchService())
             {
-                var responseReceivedPrintBatches = mailBatchService.GetResponseReceivedPrintBatchDetails();
+                var responseReceivedPrintBatches = mailBatchService.GetResponseReceivedPrintBatchDetails(sftChannelIds);
 
                 if (responseReceivedPrintBatches.Count == 0)
                 {
@@ -2194,13 +2179,13 @@ namespace AM.Core
         }
 
         #region ReportPreppedProcess
-        internal static bool ReportPreppedProcess()
+        internal static bool ReportPreppedProcess(List<int> sftChannelIds)
         {
             log.Debug("Report prepped job is started.");
 
             using (IMailBatchService mailBatchService = new MailBatchService())
             {
-                List<MailBatchDTO> resReceivedBatches = mailBatchService.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.ShippingResponseReceived);
+                List<MailBatchDTO> resReceivedBatches = mailBatchService.GetBatchesByPipelineStatusAndSFTChannelIds(BatchPipelineStatus.ShippingResponseReceived, sftChannelIds);
                 if (resReceivedBatches.Count == 0)
                 {
                     log.Debug("Report prepped job queue is empty.");

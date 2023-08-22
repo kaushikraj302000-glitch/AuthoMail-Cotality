@@ -10,13 +10,14 @@ namespace PCI.Service
 {
     partial class DAL
     {
-        public static List<SubmittedBatches> GetSubmittedBatches(string printVendorCode = "")
+        public static List<SubmittedBatches> GetSubmittedBatches(string serverIP, string printVendorCode = "")
         {
-            var submittedBatches = db.ExecuteDataSet("usp_GetSubmittedBatches", printVendorCode).Tables[0];
+            var submittedBatches = db.ExecuteDataSet("usp_GetSubmittedBatches", serverIP, printVendorCode).Tables[0];
             List<SubmittedBatches> printBatches = submittedBatches.AsEnumerable().Select(x => new SubmittedBatches
             {
                 PrintTrailBatchId = x.Field<int>("PrintTrailBatchId"),
                 PrintBatchName = x.Field<string>("PrintBatchName"),
+                PrintVendorCode = x.Field<string>("PrintVendorCode"),
                 ReceivedFileList = new List<string>()
             }).ToList();
             return printBatches;
@@ -48,9 +49,9 @@ namespace PCI.Service
         //    return amMailPieces;
         //}
 
-        public static List<MailPieceDetail> GetMRDFRequestDataByPrintTrailId(int printTrailId)
+        public static List<MailPieceDetail> GetMRDFRequestDataByPrintTrailId(int printTrailId, string serverIP)
         {
-            var data = db.ExecuteDataSet("usp_GetMRDFRequestDataByPrintTrailId", printTrailId).Tables[0];
+            var data = db.ExecuteDataSet("usp_GetMRDFRequestDataByPrintTrailId", printTrailId, serverIP).Tables[0];
 
             List<MailPieceDetail> mrdfReqs = new List<MailPieceDetail>();
             foreach (DataRow row in data.Rows)
@@ -122,7 +123,7 @@ namespace PCI.Service
 
         public static int InsertPrintTrailBatchDetail(PrintTrailBatch printTrailBatchDetail)
         {
-            var printTrailBatchId = db.ExecuteSqlScalar<int>(@"INSERT INTO [PnS].[PrintTrailBatches]([PrintBatchName],[ShipperId],[SubmittedOn],[MRDFReceivedOn],[PrintTrailId]) OUTPUT INSERTED.Id VALUES(@p1,@p2,@p3,@p4,@p5)", printTrailBatchDetail.PrintBatchName, printTrailBatchDetail.ShipperId, printTrailBatchDetail.SubmittedOn, printTrailBatchDetail.MRDFReceivedOn, printTrailBatchDetail.PrintTrailId);
+            var printTrailBatchId = db.ExecuteSqlScalar<int>(@"INSERT INTO [PnS].[PrintTrailBatches]([PrintBatchName],[ShipperId],[SubmittedOn],[MRDFReceivedOn],[PrintTrailId],[ServerIP]) OUTPUT INSERTED.Id VALUES(@p1,@p2,@p3,@p4,@p5,@p6)", printTrailBatchDetail.PrintBatchName, printTrailBatchDetail.ShipperId, printTrailBatchDetail.SubmittedOn, printTrailBatchDetail.MRDFReceivedOn, printTrailBatchDetail.PrintTrailId, printTrailBatchDetail.ServerIP);
 
             return printTrailBatchId;
         }
@@ -164,9 +165,9 @@ namespace PCI.Service
             }).SingleOrDefault();
         }
 
-        public static List<PrintTrailBatch> GetNotSubmittedPrintBatchDetailByPrintVendorCode(string pvCode)
+        public static List<PrintTrailBatch> GetNotSubmittedPrintBatchDetailByPrintVendorCode(string pvCode, string serverIP)
         {
-            string sqlQuery = "SELECT PTB.*,PT.IsSinglePdf,PT.[IsManifestRequired] FROM PnS.PrintTrailBatches PTB INNER JOIN Common.PrintTrails PT ON PTB.PrintTrailId = PT.Id INNER JOIN Common.PrintVendors PV ON PT.PrintVendorId = PV.Id WHERE PTB.IsSubmitted=0 AND PT.PrintVendorCode = '{0}'".Fill(pvCode);
+            string sqlQuery = $"SELECT PTB.*,PT.IsSinglePdf,PT.[IsManifestRequired] FROM PnS.PrintTrailBatches PTB INNER JOIN Common.PrintTrails PT ON PTB.PrintTrailId = PT.Id INNER JOIN Common.PrintVendors PV ON PT.PrintVendorId = PV.Id WHERE PTB.IsSubmitted=0 AND PT.PrintVendorCode = '{pvCode}' AND PTB.ServerIP = '{serverIP}'";
             return db.ExecuteSqlStringAccessor<PrintTrailBatch>(sqlQuery).ToList();
         }
 

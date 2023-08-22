@@ -55,6 +55,7 @@ namespace AM.Services
 
         int GetDallasBatchCounts(int? mpId = 0);
         List<PackagesHoldInfo> GetPackagesHoldInfo();
+        List<string> GetInsertDataByDocTypeId(int docTypeId);
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {

@@ -80,7 +80,7 @@ namespace AM.Console
                 mailBatch.ClientBatchId = batchName;
                 mailBatch.UniqueId = Guid.NewGuid();
                 mailBatch.Priority = Priority.Medium.ToString();
-
+                mailBatch.ServerIP = Config.Common_ServerIP;
                 //Insert New Batch Entry
                 mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
 

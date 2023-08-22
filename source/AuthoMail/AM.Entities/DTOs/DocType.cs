@@ -66,7 +66,6 @@ namespace AM.Entities
         public string CreatedBy { get; set; }
         public string ShippingSpecialService { get; set; }
         public int EnvelopeId { get; set; }
-        public int BREEnvelopeId { get; set; }
         public int NoOfCopies { get; set; }
         public string PrintFormat { get; set; }
         public int MinPage { get; set; }

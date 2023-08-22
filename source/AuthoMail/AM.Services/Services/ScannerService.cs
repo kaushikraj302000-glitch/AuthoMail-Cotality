@@ -2,6 +2,7 @@
 using Dapper;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,7 @@ namespace AM.Services
         List<PendingScanning> GetPendingScanning(string clientCode);
         USPSScanDetails RegisterUSPSScan(int mailPieceId, string trackingNo, string clientCode);
         List<RegisterScanDetails> RegisterBulkScan(string barcode, string clientCode, string username, string machineName, string batchName);
+        MailPieceDetails GetDocumentInfo(int mailPieceId);
     }
     public class ScannerService : ServiceBase, IScannerService
     {
@@ -193,6 +195,22 @@ namespace AM.Services
                 db.Dispose();
                 return registerScanData;
 
+            }
+            catch (Exception e)
+            {
+                log.Error(e.Message.ToString());
+                throw e;
+            }
+        }
+
+        public MailPieceDetails GetDocumentInfo(int mailPieceId)
+        {
+
+            try
+            {
+                var registerScanData = db.QuerySingleOrDefault<MailPieceDetails>(@"SELECT P.Id,P.FileName,B.ServerIP,C.AppCode,REQ.JobId FROM AM.MailPieces P INNER JOIN AM.MailBatches B ON B.Id=P.MailBatchId INNER JOIN PnS.MRDFRequest REQ ON REQ.UniqueId=P.UniqueId INNER JOIN Common.Clients C ON C.Id=B.ClientId WHERE P.Id=@MailPieceID", new { MailPieceID = mailPieceId });
+                db.Dispose();
+                return registerScanData;
             }
             catch (Exception e)
             {

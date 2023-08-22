@@ -134,26 +134,53 @@ namespace AM.Web.Controllers
 
         }
 
+        //[HttpGet]
+        //public async Task<ActionResult> DownloadPdf(string fileName, string appCode, int id)
+        //{
+        //    try
+        //    {
+        //        var filePath = Path.Combine(Config.PnS_PCIRootFolder, HttpUtility.UrlEncode(appCode), id.ToString(), "PCIRequest", HttpUtility.UrlEncode(fileName));
+        //        HttpClient client = new HttpClient();
+        //        client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
+        //        HttpResponseMessage response = new HttpResponseMessage();
+        //        response = await client.GetAsync($@"{Config.Web_Pdf_API_Url}\DownloadPdf?fileName={filePath}");
+        //        if (response.IsSuccessStatusCode)
+        //        {
+        //            var stream = await response.Content.ReadAsByteArrayAsync();
+        //            //return Json(JsonResponseFactory.SuccessResponse(
+        //            //new
+        //            //{
+        //            //    fileName = Path.GetFileNameWithoutExtension(fileName),
+        //            //    stream = Convert.ToBase64String(stream)
+        //            //}
+        //            //));
+        //            var pdfFileName = Path.GetFileName(fileName);
+        //            return File(stream, "application/pdf", pdfFileName);
+        //        }
+        //        else
+        //        {
+        //            return Json(JsonResponseFactory.ErrorResponse("File not found."));
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        log.Error(ex.ToString());
+        //        return Json(JsonResponseFactory.ErrorResponse(ex.Message));
+        //    }
+        //}
+
         [HttpGet]
-        public async Task<ActionResult> DownloadPdf(string fileName, string appCode, int id)
+        public async Task<ActionResult> DownloadPdf(int mpId, string fileName, string serverIP)
         {
             try
             {
-                var filePath = Path.Combine(Config.PnS_PCIRootFolder, HttpUtility.UrlEncode(appCode), id.ToString(), "PCIRequest", HttpUtility.UrlEncode(fileName));
                 HttpClient client = new HttpClient();
                 client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
                 HttpResponseMessage response = new HttpResponseMessage();
-                response = await client.GetAsync($@"{Config.Web_Pdf_API_Url}\DownloadPdf?fileName={filePath}");
+                response = await client.GetAsync($@"{Config.Web_Pdf_API_Url.Replace("ServerIP", serverIP)}\DownloadPdf?fileId={mpId}");
                 if (response.IsSuccessStatusCode)
                 {
                     var stream = await response.Content.ReadAsByteArrayAsync();
-                    //return Json(JsonResponseFactory.SuccessResponse(
-                    //new
-                    //{
-                    //    fileName = Path.GetFileNameWithoutExtension(fileName),
-                    //    stream = Convert.ToBase64String(stream)
-                    //}
-                    //));
                     var pdfFileName = Path.GetFileName(fileName);
                     return File(stream, "application/pdf", pdfFileName);
                 }
@@ -265,7 +292,7 @@ namespace AM.Web.Controllers
                     mailPiece.ClientCode = supSvc.FindByClientId(User.Identity.GetClientId().Value).AppCode;
 
                     if (mailPiece.ClientCode == "LOANCARE")
-                    {                        
+                    {
                         CustomTemplate customTemplate = commonSvc.GetCustomTemplateByCommunityCode(mailPiece.ProductCode);
 
                         var templateFilePath = Server.MapPath($"/Template/{customTemplate.CustomTemplatePath}");

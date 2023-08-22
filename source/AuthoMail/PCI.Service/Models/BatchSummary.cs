@@ -109,6 +109,7 @@ namespace PCI.Service
     {
         public int PrintTrailBatchId { get; set; }
         public string PrintBatchName { get; set; }
+        public string PrintVendorCode { get; set; }
         public List<string> ReceivedFileList { get; set; }
     }
 
@@ -227,6 +228,7 @@ namespace PCI.Service
         public DateTime? SuspendedOn { get; set; }
         public string ValidationErrors { get; set; }
         public Int64? ZipFileSize { get; set; }
+        public string ServerIP { get; set; }
     }
 
     public class EmailChannel

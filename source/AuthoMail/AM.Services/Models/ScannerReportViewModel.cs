@@ -20,6 +20,15 @@ namespace AM.Services
         public string FilePath { get; set; }
     }
 
+    public class MailPieceDetails
+    {
+        public int Id { get; set; }
+        public string FileName { get; set; }
+        public string ServerIP { get; set; }
+        public string AppCode { get; set; }
+        public int JobId { get; set; }
+    }
+
     public class PendingScanning
     {
         public string PrintBatchName { get; set; }

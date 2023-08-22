@@ -572,6 +572,7 @@ namespace AM.Services
             }
         }
         public bool IsWithinRetentionPeriod { get; set; }
+        public string ServerIP { get; set; }
     }
 
 
@@ -603,6 +604,7 @@ namespace AM.Services
         public int TotalBlankPages { get; set; }
         public bool IsEDeliveryRequested { get; set; }
         public bool IsESignRequested { get; set; }
+        public DateTime? ESignedOn { get { if (this.Status == ShippingStatus.eSigned.ToString() && ShippedOn.HasValue) return ShippedOn; return null; } }
         public string ShippingMethod { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
