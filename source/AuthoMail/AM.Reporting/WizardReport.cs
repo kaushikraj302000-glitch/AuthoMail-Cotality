@@ -3,12 +3,15 @@ using AM.Lib.Utilities;
 using AM.Services;
 using AM.Services.Models;
 using log4net;
+using NPOI.SS.Formula.Functions;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 
@@ -37,6 +40,17 @@ namespace AM.Reporting
                         m.ShippedOn = m.ShippedOn.HasValue ? m.ShippedOn.Value.UtcToEst() : m.ShippedOn;
                     });
                     var dataTable = ExcelHelper.ToDataTable<AutoReportWizard>(reportDetails);
+
+                    Dictionary<string, string> columnMaaper = new Dictionary<string, string>();
+
+                    foreach (var prop in typeof(AutoReportWizard).GetProperties())
+                    {
+                        columnMaaper.Add(prop.Name, prop.GetCustomAttribute<ColumnAttribute>().Name);
+                    }
+                    foreach (DataColumn column in dataTable.Columns)
+                    {
+                        column.ColumnName = columnMaaper[column.ColumnName];
+                    }
 
                     if (dataTable.Rows.Count > 0)
                     {
