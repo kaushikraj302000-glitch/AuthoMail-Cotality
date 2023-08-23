@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -215,5 +216,24 @@ namespace AM.Services
         public string FloodLoan_Number { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
+    }
+
+    public class AutoReportWizard
+    {
+
+        public string AppCode { get; set; }
+        public string BatchName { get; set; }
+        public DateTime? ReceivedOn { get; set; }
+        public string Code { get; set; }//SFT channel code
+        public string RcptFirstName { get; set; }//Receipent's first name
+        public string RcptLastName { get; set; }//Reciepent's Last name
+        public string DocumentOrPackageType { get; set; }//Doc or Package Type
+        public int TotalPages { get; set; }
+        public int TotalSheets { get; set; }
+        public DateTime? ShippedOn { get; set; }
+        public string ErrorDesc { get; set; }
+        public string TrackingNo { get; set; }
+        public string ShippingStatus { get; set; }
+        public string ShippingMethod { get; set; }
     }
 }

@@ -9,6 +9,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
+using System.Reflection.Emit;
 using System.Text;
 
 namespace AM.Reporting
@@ -22,30 +23,33 @@ namespace AM.Reporting
             try
             {
                 log.Debug($"Wizard report Execution Triggered at {Common.Now.UtcToEst()} Est");
-                List<ReportWizard> reportDetails;
+                List<AutoReportWizard> reportDetails;
                 DateTime endDate = Common.EstToday.AddDays(-1);
                 DateTime startDate = endDate.AddDays(-9);
                 using (IReportService reportSvc = new ReportService())
                 {
                     //NOTE : Please change UTC to EST code when Daylight saving is off in service call
-                    reportDetails = reportSvc.GetReportWizard(new List<int>() { }, null, null, startDate, endDate, null, null, null, null, null);
+                    reportDetails = reportSvc.GetAutoReportWizard(startDate, endDate);
 
                     reportDetails.ForEach(m =>
                     {
                         m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.UtcToEst() : m.ReceivedOn;
-                        m.PrintedOn = m.PrintedOn.HasValue ? m.PrintedOn.Value.UtcToEst() : m.PrintedOn;
-                        m.MailedOn = m.MailedOn.HasValue ? m.MailedOn.Value.UtcToEst() : m.MailedOn;
-                        m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.UtcToEst() : m.DeliveryDate;
-                        m.ReturnDeliveryDate = m.ReturnDeliveryDate.HasValue ? m.ReturnDeliveryDate.Value.UtcToEst() : m.ReturnDeliveryDate;
+                        m.ShippedOn = m.ShippedOn.HasValue ? m.ShippedOn.Value.UtcToEst() : m.ShippedOn;
                     });
-                    var dataTable = ExcelHelper.ToDataTable<ReportWizard>(reportDetails);
-                    var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+                    var dataTable = ExcelHelper.ToDataTable<AutoReportWizard>(reportDetails);
 
-                    if (reportDetails.Count > 0)
+                    if (dataTable.Rows.Count > 0)
                     {
-                        string reportFileName = $"ReportWizard_{startDate.ToString("MMddyyyy")}_{endDate.ToString("MMddyyyy")}.xlsx";
-                        SendEmailNotification(reportDetails, memoryStream, reportFileName, AppConfig.ReportWizardEMailSubject.Fill(startDate.ToString("MMddyyyy"), endDate.ToString("MMddyyyy")));
+                        var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+
+                        string reportFileName = $"AutoReportWizard_{startDate.ToString("MMddyyyy")}_{endDate.ToString("MMddyyyy")}.xlsx";
+                        using (FileStream steam = new FileStream(Path.Combine(AppConfig.ReportWizardReportPath, reportFileName), FileMode.Create))
+                        {
+                            memoryStream.WriteTo(steam);
+                        }
+                        memoryStream.Dispose();
                     }
+
                 }
                 log.Debug($"Wizard report Execution completed at {Common.Now.UtcToEst()} Est");
             }

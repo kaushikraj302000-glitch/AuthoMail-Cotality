@@ -33,6 +33,7 @@ namespace AM.Services
         List<SupplyInventoryVM> SupplyInventoryReport(List<string> envelopes);
         MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
         List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo);
+        List<AutoReportWizard> GetAutoReportWizard(DateTime startDate, DateTime endDate);
         List<TrackingReport> GetFedExData(int[] isPickedUp = null);
         string GetAppcodeByClientid(int clientId);
         List<string> GetMonthlyReconDate(int clientId);
@@ -529,6 +530,17 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             }
             query = string.Format("{0} order by b.ReceivedOn desc", query);
             var data = db.Query<ReportWizard>(query, parameter).ToList();
+            return data;
+        }
+
+        public List<AutoReportWizard> GetAutoReportWizard(DateTime startDate, DateTime endDate)
+        {
+            startDate = startDate.ToStartDateTime().EstToUtc();
+            endDate = endDate.ToStartDateTime().EstToUtc();
+            
+            string query = "[dbo].[usp_AutoReportWizard] @startDate, @endDate";
+
+            var data = db.Query<AutoReportWizard>(query,new { startDate, endDate }).ToList();
             return data;
         }
 
