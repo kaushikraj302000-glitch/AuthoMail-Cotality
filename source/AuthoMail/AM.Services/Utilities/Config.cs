@@ -310,14 +310,6 @@ namespace AM.Services
         public static string Web_API_USPS_AccountsByPrintLocations { get; set; }
         public static List<USPSLabelCutOffDetail> USPSLabelCutOffDetails { get; private set; }
 
-        public static Dictionary<string, string> USPSAccountDetails
-        {
-            get
-            {
-                return Web_API_USPS_AccountsByPrintLocations.Split('|').ToList().Select(x => x.Split('-')).ToDictionary(x => x[0].Trim(), x => x[1].Trim());
-            }
-        }
-
         #endregion
 
         private static List<string> errors;

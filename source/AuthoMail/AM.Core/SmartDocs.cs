@@ -141,7 +141,7 @@ namespace AM.Core
             #endregion
         }
 
-        public SmartDocResponse GenerateeVSPriorityExpressCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName, string uspsUserId, bool isReturnLabel = false)
+        public SmartDocResponse GenerateeVSPriorityExpressCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName, USPSCredentialInfo uspsUserId, bool isReturnLabel = false)
         {
             SmartDocResponse response = new SmartDocResponse();
 
@@ -239,7 +239,7 @@ namespace AM.Core
             File.Move(newCoverLetterPath, coverLetterPDFPath);
         }
 
-        public SmartDocResponse GenerateeVSPriorityCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName, string uspsUserId, bool isReturnLabel = false)
+        public SmartDocResponse GenerateeVSPriorityCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName, USPSCredentialInfo uspsUserId, bool isReturnLabel = false)
         {
             SmartDocResponse response = new SmartDocResponse();
 
