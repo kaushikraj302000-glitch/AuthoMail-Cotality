@@ -16,4 +16,11 @@ namespace AM.Services
         public string PrintVendorCode { get; set; }
         public string PrintVendorLocation { get; set; }
     }
+
+    public class USPSCredentialInfo
+    {
+        public string UserId { get; set; }
+        public string PassKey { get; set; }
+        public string PrintLocation { get; set; }
+    }
 }

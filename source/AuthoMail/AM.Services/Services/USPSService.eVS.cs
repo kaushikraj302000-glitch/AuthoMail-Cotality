@@ -9,13 +9,12 @@ using AM.Lib;
 using System.Net.Http;
 using Dapper;
 using AM.USPSLib;
-using log4net;
 
 namespace AM.Services
 {
     public partial class USPSService
     {
-        public async Task<eVSLabelResponse> RequesteVSLabelAsync(string userId, eVSLabelRequest request, string uspsUserId)
+        public async Task<eVSLabelResponse> RequesteVSLabelAsync(string userId, eVSLabelRequest request, USPSCredentialInfo uspsUserInfo)
         {
             try
             {
@@ -60,7 +59,7 @@ namespace AM.Services
                 eVSResponse eVSresponse = null;
 
                 var eVSrequest = new eVSRequest(request);
-                if (uspsUserId == "api")
+                if (uspsUserInfo.PrintLocation == "api")
                 {
                     USPSLabelCutOffDetail uspsCutOffDetail;
                     var estTime = Common.Now.UtcToEst();
@@ -74,11 +73,19 @@ namespace AM.Services
                     {
                         uspsCutOffDetail = Config.USPSLabelCutOffDetails.SingleOrDefault(u => u.BizStartTime >= TimeSpan.Parse(estTime.ToString()) && u.BizEndTime <= TimeSpan.Parse(estTime.ToString()));
                     }
+
+                    var creds = db.QuerySingle<USPSCredentialInfo>("SELECT AccountNumber AS UserId, WebAuthenticationPassword AS PassKey , WebAuthenticationKey AS PrintLocation FROM [AM].[ShippingAccounts] WHERE ShippingCarrier = 'USPS' AND WebAuthenticationKey = @PrintLocation AND AccountNumber = @UserId", new { PrintLocation = uspsCutOffDetail.PrintVendorLocation, AccountNumber = uspsCutOffDetail.USPSUserId });
+
                     eVSrequest.USERID = uspsCutOffDetail.USPSUserId;
+
+                    if (creds.PassKey.IsNullOrWhiteSpace()) { eVSrequest.PASSWORD = creds.PassKey; }
                 }
                 else
                 {
-                    eVSrequest.USERID = uspsUserId;
+                    eVSrequest.USERID = uspsUserInfo.UserId;
+
+                    if (uspsUserInfo.PassKey.IsNullOrWhiteSpace()) { eVSrequest.PASSWORD = uspsUserInfo.PassKey; }
+
                 }
 
                 var eVSrequestXML = eVSrequest.Serialize();

@@ -1,4 +1,4 @@
-﻿CREATE TABLE [AM].[USPSLabelCutOffDetails]
+﻿CREATE TABLE [API].[USPSLabelCutOffDetails]
 (
 	[Id] INT PRIMARY KEY IDENTITY (1, 1) NOT NULL,
     [USPSUserId] VARCHAR(30) NOT NULL, 
