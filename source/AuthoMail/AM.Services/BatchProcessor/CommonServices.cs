@@ -569,7 +569,7 @@ namespace AM.Services
 
         public List<USPSLabelCutOffDetail> GetUSPSLabelCutOffDetails()
         {
-            string query = "SELECT * FROM [AM].[USPSLabelCutOffDetails]";
+            string query = "SELECT * FROM [API].[USPSLabelCutOffDetails]";
 
             return db.Query<USPSLabelCutOffDetail>(query).ToList();
         }

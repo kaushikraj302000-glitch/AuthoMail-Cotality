@@ -67,24 +67,24 @@ namespace AM.Services
 
                     if (dayOfWeek == DayOfWeek.Saturday)
                     {
-                        uspsCutOffDetail = Config.USPSLabelCutOffDetails.SingleOrDefault(u => u.SatStartTime >= TimeSpan.Parse(estTime.ToString()) && u.SatEndTime <= TimeSpan.Parse(estTime.ToString()));
+                        uspsCutOffDetail = Config.USPSLabelCutOffDetails.SingleOrDefault(u => u.SatStartTime >= estTime.TimeOfDay && u.SatEndTime <= estTime.TimeOfDay);
                     }
                     else
                     {
-                        uspsCutOffDetail = Config.USPSLabelCutOffDetails.SingleOrDefault(u => u.BizStartTime >= TimeSpan.Parse(estTime.ToString()) && u.BizEndTime <= TimeSpan.Parse(estTime.ToString()));
+                        uspsCutOffDetail = Config.USPSLabelCutOffDetails.SingleOrDefault(u => estTime.TimeOfDay >= u.BizStartTime && estTime.TimeOfDay <= u.BizEndTime);
                     }
 
-                    var creds = db.QuerySingle<USPSCredentialInfo>("SELECT AccountNumber AS UserId, WebAuthenticationPassword AS PassKey , WebAuthenticationKey AS PrintLocation FROM [AM].[ShippingAccounts] WHERE ShippingCarrier = 'USPS' AND WebAuthenticationKey = @PrintLocation AND AccountNumber = @UserId", new { PrintLocation = uspsCutOffDetail.PrintVendorLocation, AccountNumber = uspsCutOffDetail.USPSUserId });
+                    var creds = db.QuerySingleOrDefault<USPSCredentialInfo>("SELECT AccountNumber AS UserId, WebAuthenticationPassword AS PassKey , WebAuthenticationKey AS PrintLocation FROM [AM].[ShippingAccounts] WHERE ShippingCarrier = 'USPS' AND WebAuthenticationKey = @PrintLocation AND AccountNumber = @AccountNumber", new { PrintLocation = uspsCutOffDetail.PrintVendorLocation, AccountNumber = uspsCutOffDetail.USPSUserId });
 
                     eVSrequest.USERID = uspsCutOffDetail.USPSUserId;
 
-                    if (creds.PassKey.IsNullOrWhiteSpace()) { eVSrequest.PASSWORD = creds.PassKey; }
+                    if (!creds.PassKey.IsNullOrWhiteSpace()) { eVSrequest.PASSWORD = creds.PassKey; }
                 }
                 else
                 {
                     eVSrequest.USERID = uspsUserInfo.UserId;
 
-                    if (uspsUserInfo.PassKey.IsNullOrWhiteSpace()) { eVSrequest.PASSWORD = uspsUserInfo.PassKey; }
+                    if (!uspsUserInfo.PassKey.IsNullOrWhiteSpace()) { eVSrequest.PASSWORD = uspsUserInfo.PassKey; }
 
                 }
 
