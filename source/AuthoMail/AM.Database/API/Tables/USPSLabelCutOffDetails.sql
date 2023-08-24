@@ -6,6 +6,9 @@
     [BizEndTime] TIME NULL, 
     [SatStartTime] TIME NULL, 
     [SatEndTime] TIME NULL, 
-    [PrintVendorCode] VARCHAR(255) NOT NULL, 
     [PrintVendorLocation] VARCHAR(255) NOT NULL
 )
+
+GO
+
+CREATE INDEX [IX_USPSLabelCutOffDetails_UniqueIndex] ON [API].[USPSLabelCutOffDetails] ([USPSUserId], [BizStartTime], [BizEndTime], [PrintVendorLocation])

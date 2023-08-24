@@ -13,7 +13,6 @@ namespace AM.Services
         public TimeSpan? BizEndTime { get; set; }
         public TimeSpan? SatStartTime { get; set; }
         public TimeSpan? SatEndTime { get; set; }
-        public string PrintVendorCode { get; set; }
         public string PrintVendorLocation { get; set; }
     }
 
