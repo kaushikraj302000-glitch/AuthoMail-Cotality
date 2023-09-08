@@ -578,7 +578,7 @@ namespace AM.Services
         {
             string query = "SELECT AccountNumber AS UserId, WebAuthenticationPassword AS PassKey , WebAuthenticationKey AS PrintLocation FROM [AM].[ShippingAccounts] WHERE ShippingCarrier = 'USPS' AND WebAuthenticationKey = @printLocation";
 
-            return db.QuerySingle<USPSCredentialInfo>(query, printLocation);
+            return db.QuerySingle<USPSCredentialInfo>(query, new { printLocation });
         }
     }
 }
