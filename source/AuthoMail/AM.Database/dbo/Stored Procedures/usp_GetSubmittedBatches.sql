@@ -2,8 +2,8 @@
 
 
 CREATE PROCEDURE [dbo].[usp_GetSubmittedBatches]
-@printVendorCode VARCHAR(50),
-@serverIP VARCHAR(50)
+@serverIP VARCHAR(50),
+@printVendorCode VARCHAR(50)
 AS
 BEGIN
 

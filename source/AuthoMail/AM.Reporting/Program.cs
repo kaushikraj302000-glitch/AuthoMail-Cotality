@@ -140,6 +140,9 @@ namespace AM.Reporting
                             break;
                     }
                     break;
+                case "ReportWizard":
+                    WizardReport.GenerateWizardReport();
+                    break;
                 default:
                     break;
             }

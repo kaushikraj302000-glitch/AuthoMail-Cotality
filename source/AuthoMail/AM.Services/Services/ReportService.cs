@@ -33,6 +33,7 @@ namespace AM.Services
         List<SupplyInventoryVM> SupplyInventoryReport(List<string> envelopes);
         MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
         List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo);
+        List<AutoReportWizard> GetAutoReportWizard(DateTime startDate, DateTime endDate);
         List<TrackingReport> GetFedExData(int[] isPickedUp = null);
         string GetAppcodeByClientid(int clientId);
         List<string> GetMonthlyReconDate(int clientId);
@@ -462,16 +463,16 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
                     M.TotalPages as PagesShipped,M.TotalBlankPages as BlankPages, M.DeliveryStatus, M.DeliveryDate, M.Inserts, CH.Title as Channel,
                     C.AppCode as ClientCode, E.EnvelopeName, PTB.PrintBatchName as PrintFileName, M.ReturnDeliveryStatus, M.ReturnDeliveryDate,
                     M.ReturnTrackingNo {extraColumns}
-                    FROM [AM].[MailPieces] M
-                    INNER JOIN [AM].[MailBatches] B ON M.MailBatchId=B.Id
-                    INNER JOIN [Common].[Clients] C ON M.ClientId=C.Id
-                    INNER JOIN [Common].[SFTChannels] CH ON B.SFTChannelId=CH.Id
-                    LEFT OUTER JOIN [Profile].[Users] U ON M.PulledBackRequestedBy=U.Id
-                    LEFT OUTER JOIN [AM].[DocTypes] D ON M.DocTypeId=D.Id 
-                    LEFT OUTER JOIN Common.PnSConfigDetail PCD ON M.PnSConfigDetailId = PCD.Id
-                    LEFT OUTER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id
-                    LEFT OUTER JOIN PnS.MRDFRequest REQ ON M.UniqueId=REQ.UniqueId
-                    LEFT OUTER JOIN PnS.PrintTrailBatches PTB on REQ.PrintTrailBatchId=PTB.Id
+                    FROM [AM].[MailPieces] M WITH (NOLOCK)
+                    INNER JOIN [AM].[MailBatches] B WITH (NOLOCK) ON M.MailBatchId=B.Id
+                    INNER JOIN [Common].[Clients] C WITH (NOLOCK) ON M.ClientId=C.Id
+                    INNER JOIN [Common].[SFTChannels] CH WITH (NOLOCK) ON B.SFTChannelId=CH.Id
+                    LEFT OUTER JOIN [Profile].[Users] U WITH (NOLOCK) ON M.PulledBackRequestedBy=U.Id
+                    LEFT OUTER JOIN [AM].[DocTypes] D WITH (NOLOCK) ON M.DocTypeId=D.Id 
+                    LEFT OUTER JOIN Common.PnSConfigDetail PCD WITH (NOLOCK) ON M.PnSConfigDetailId = PCD.Id
+                    LEFT OUTER JOIN Common.Envelopes E WITH (NOLOCK) ON PCD.EnvelopeId=E.Id
+                    LEFT OUTER JOIN PnS.MRDFRequest REQ WITH (NOLOCK) ON M.UniqueId=REQ.UniqueId
+                    LEFT OUTER JOIN PnS.PrintTrailBatches PTB WITH (NOLOCK) on REQ.PrintTrailBatchId=PTB.Id
                     {extraQuery} WHERE 1=1";
 
             DynamicParameters parameter = new DynamicParameters();
@@ -529,6 +530,17 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             }
             query = string.Format("{0} order by b.ReceivedOn desc", query);
             var data = db.Query<ReportWizard>(query, parameter).ToList();
+            return data;
+        }
+
+        public List<AutoReportWizard> GetAutoReportWizard(DateTime startDate, DateTime endDate)
+        {
+            startDate = startDate.ToStartDateTime().EstToUtc();
+            endDate = endDate.ToStartDateTime().EstToUtc();
+            
+            string query = "[dbo].[usp_AutoReportWizard] @startDate, @endDate";
+
+            var data = db.Query<AutoReportWizard>(query,new { startDate, endDate }).ToList();
             return data;
         }
 
