@@ -21,13 +21,14 @@ namespace AM.Services
         Task<int> MarkMailBatchAsInvalid(int id, string errorDesc);
         List<MailBatchDTO> GetBatchesByPipelineStatusAndClientId(string batchPipelineStatus, int? clientId = null);
         List<MailBatchDTO> GetBatchesByPipelineStatusAndSFTChannelId(string batchPipelineStatus, int? sftChannelId = null);
-        List<MailBatchDTO> GetBatchesByPipelineStatusAndSFTChannelIds(string batchPipelineStatus, List<int> sftChannelIds);
+        List<MailBatchDTO> GetBatchesByPipelineStatusAndSFTChannelIdAndServerIP(string batchPipelineStatus, int sftChannelId, string serverIP);
+        List<MailBatchDTO> GetBatchesByPipelineStatusAndServerIP(string batchPipelineStatus, string serverIP);
         BatchData GetMailBatchDetailsByBatchId(int mailBatchId);
         MailBatchDTO GetMailBatchDetailByBatchId(int mailBatchId);
         int InsertPrintBatchDetails(PrintBatch printBatch);
-        List<SubmittedBatch> GetSubmittedPrintBatchDetails(List<int> sftChannelIds);
-        List<SubmittedBatch> GetResponseReceivedPrintBatchDetails(List<int> sftChannelIds);
-        List<SubmittedBatch> GetReportPreppedPrintBatchDetails();
+        List<SubmittedBatch> GetSubmittedPrintBatchDetails(string serverIP);
+        List<SubmittedBatch> GetResponseReceivedPrintBatchDetails(string serverIP);
+        List<SubmittedBatch> GetReportPreppedPrintBatchDetails(int sftChannelId, string serverIP);
         int GetMailBatchesReceivedCount(DateTime startTime, DateTime endTime, string status);
         int UpdatePrintBatchPipelineStatus(int printBatchId, string pipeLineStatus, DateTime timestamp);
         int RemainingPrintBatchesReportedBackCount(int mailBatchId);
@@ -183,10 +184,10 @@ namespace AM.Services
             return db.Query<MailBatchDTO>(query, new { batchPipelineStatus = batchPipelineStatus, SFTChannelId = sftChannelId }).ToList();
         }
 
-        public List<MailBatchDTO> GetBatchesByPipelineStatusAndSFTChannelIds(string batchPipelineStatus, List<int> sftChannelIds)
+        public List<MailBatchDTO> GetBatchesByPipelineStatusAndSFTChannelIdAndServerIP(string batchPipelineStatus, int sftChannelId, string serverIP)
         {
             //Sql Query
-            string query = $"SELECT TOP {Config.Common_MaxProcessingLimit} * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus AND SFTChannelId IN @SFTChannelIds";
+            string query = $"SELECT TOP {Config.Common_MaxProcessingLimit} * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus AND SFTChannelId= @sftChannelId AND ServerIP = @serverIP";
 
             switch (batchPipelineStatus)
             {
@@ -218,7 +219,45 @@ namespace AM.Services
                     break;
             }
 
-            return db.Query<MailBatchDTO>(query, new { batchPipelineStatus, SFTChannelIds = sftChannelIds }).ToList();
+            return db.Query<MailBatchDTO>(query, new { batchPipelineStatus, sftChannelId, serverIP }).ToList();
+        }
+
+        public List<MailBatchDTO> GetBatchesByPipelineStatusAndServerIP(string batchPipelineStatus, string serverIP)
+        {
+            //Sql Query
+            string query = $"SELECT TOP {Config.Common_MaxProcessingLimit} * FROM [AM].[MailBatches] WHERE PipelineStatus= @batchPipelineStatus AND ServerIP = @serverIP";
+
+            switch (batchPipelineStatus)
+            {
+                case BatchPipelineStatus.Received:
+                    query += " AND IsReceived=1 AND IsDownloaded=0";
+                    break;
+                case BatchPipelineStatus.Downloaded:
+                    query += " AND IsDownloaded=1 AND IsValidated=0";
+                    break;
+                case BatchPipelineStatus.Validated:
+                    query += " AND IsValidated=1 AND IsAcknowledged=0";
+                    break;
+                case BatchPipelineStatus.Acknowledged:
+                    query += " AND IsAcknowledged=1 AND IsPrepped=0";
+                    break;
+                case BatchPipelineStatus.Prepped:
+                    query += " AND IsPrepped=1 AND IsSubmittedToShipping=0";
+                    break;
+                case BatchPipelineStatus.SubmittedToShipping:
+                    query += " AND IsSubmittedToShipping=1 AND IsShippingResponseReceived=0";
+                    break;
+                case BatchPipelineStatus.ShippingResponseReceived:
+                    query += " AND IsShippingResponseReceived=1 AND IsReportPrepped=0";
+                    break;
+                case BatchPipelineStatus.ReportPrepped:
+                    query += " AND IsReportPrepped=1 AND IsReportedBack=0";
+                    break;
+                default:
+                    break;
+            }
+
+            return db.Query<MailBatchDTO>(query, new { batchPipelineStatus, serverIP }).ToList();
         }
 
         public BatchData GetMailBatchDetailsByBatchId(int mailBatchId)
@@ -267,28 +306,28 @@ namespace AM.Services
 
         }
 
-        public List<SubmittedBatch> GetSubmittedPrintBatchDetails(List<int> sftChannelIds)
+        public List<SubmittedBatch> GetSubmittedPrintBatchDetails(string serverIP)
         {
             //Sql Query
-            string query = $@"SELECT PB.Id AS PrintBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM AM.PrintBatches PB INNER JOIN AM.MailBatches B ON B.Id = PB.MailBatchId WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=0 AND B.SFTChannelId IN @SFTChannelIds";
+            string query = $@"SELECT PB.Id AS PrintBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode FROM AM.PrintBatches PB INNER JOIN AM.MailBatches B ON B.Id = PB.MailBatchId WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=0 AND B.ServerIP = @serverIP";
 
-            return db.Query<SubmittedBatch>(query, new { SFTChannelIds = sftChannelIds }).ToList();
+            return db.Query<SubmittedBatch>(query, new { serverIP }).ToList();
         }
 
-        public List<SubmittedBatch> GetResponseReceivedPrintBatchDetails(List<int> sftChannelIds)
+        public List<SubmittedBatch> GetResponseReceivedPrintBatchDetails(string serverIP)
         {
             //Sql Query
-            string query = $@"SELECT TOP {Config.Common_MaxProcessingLimit} PB.Id AS PrintBatchId,PB.MailBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode,MB.SFTChannelId FROM AM.PrintBatches PB INNER JOIN AM.MailBatches MB ON PB.MailBatchId=MB.Id WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1 AND PB.BatchStatus=@BatchStatus AND MB.SFTChannelId IN @SFTChannelIds";
+            string query = $@"SELECT TOP {Config.Common_MaxProcessingLimit} PB.Id AS PrintBatchId,PB.MailBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode,MB.SFTChannelId FROM AM.PrintBatches PB INNER JOIN AM.MailBatches MB ON PB.MailBatchId=MB.Id WHERE PB.IsSubmittedToShipping=1 AND PB.IsShippingResponseReceived=1 AND PB.BatchStatus=@BatchStatus AND MB.ServerIP = @serverIP";
 
-            return db.Query<SubmittedBatch>(query, new { BatchStatus = BatchStatus.InProgress.ToString(), SFTChannelIds = sftChannelIds }).ToList();
+            return db.Query<SubmittedBatch>(query, new { BatchStatus = BatchStatus.InProgress.ToString(), serverIP }).ToList();
         }
 
-        public List<SubmittedBatch> GetReportPreppedPrintBatchDetails()
+        public List<SubmittedBatch> GetReportPreppedPrintBatchDetails(int sftChannelId, string serverIP)
         {
             //Sql Query
-            string query = @"SELECT DISTINCT PB.Id AS PrintBatchId,PB.MailBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode,MB.SFTChannelId FROM AM.PrintBatches PB INNER JOIN AM.MailBatches MB ON PB.MailBatchId=MB.Id WHERE PB.IsSubmittedToShipping=1 AND PB.IsReportPrepped=1 AND PB.IsReportedBack=0";
+            string query = @"SELECT DISTINCT PB.Id AS PrintBatchId,PB.MailBatchId, PB.AppCode +'_'+ CONVERT(VARCHAR(10),PB.Id) AS SubmittedBatchName,PB.UniqueId,PB.DocTypeId,PB.AppCode,MB.SFTChannelId FROM AM.PrintBatches PB INNER JOIN AM.MailBatches MB ON PB.MailBatchId=MB.Id WHERE PB.IsSubmittedToShipping=1 AND PB.IsReportPrepped=1 AND PB.IsReportedBack=0 AND MB.SFTChannelId = @sftChannelId AND MB.ServerIP = @serverIP";
 
-            return db.Query<SubmittedBatch>(query, null).ToList();
+            return db.Query<SubmittedBatch>(query, new { sftChannelId, serverIP }).ToList();
         }
 
         public int GetMailBatchesReceivedCount(DateTime startDateTime, DateTime endDateTime, string status)
