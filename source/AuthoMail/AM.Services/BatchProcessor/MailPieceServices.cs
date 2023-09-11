@@ -30,7 +30,7 @@ namespace AM.Services
         List<MailPieceDTO> GetMailPiecesForUATBridge(DateTime utcStartDate, int clientId);
         List<MailPieceCustomInfo> GetMailPieceCustomInfos(int mailPieceId);
         BatchResponse GetMailPieceDetailsByMailPieceUniqueId(string uniqueId);
-        Task<IEnumerable<BatchResponse>> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId);
+        Task<IEnumerable<BatchResponse>> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId, string serverIP);
         List<MBInfo> GetReportedBackRecordsFromUATBridge();
         List<MBInfo> GetPnSReportedBackRecordsFromUATBridge();
         List<MBInfo> GetReportedBackAMRecordsFromUATBridge();
@@ -43,7 +43,7 @@ namespace AM.Services
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
-        private string apiResponseQuery = @"SELECT * FROM
+        private string apiResponseQuery = @"SELECT DISTINCT * FROM
                             (
                                 SELECT MP.*,MB.ReceivedOn
                                 ,CASE WHEN S.Code LIKE 'API_AMC%' THEN (SELECT AMCCustId FROM AM.ClientAMCCustIdMap AC WHERE AC.ClientId=CC.Id) ELSE CC.AppCode END AppCode
@@ -411,9 +411,9 @@ namespace AM.Services
             return invalidInserts;
         }
 
-        public Task<IEnumerable<BatchResponse>> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId)
+        public Task<IEnumerable<BatchResponse>> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId, string serverIP)
         {
-            string query = string.Format(apiResponseQuery, " MailBatchId IN (SELECT Id FROM AM.MailBatches MB WHERE MB.SFTChannelId=@SFTChannelId AND MB.PipelineStatus= @PipelineStatus AND MB.IsReportPrepped=1 AND MB.IsReportedBack=0 AND (MB.IsReshippedBatch=0 OR MB.IsReshippedBatch IS NULL))");
+            string query = string.Format(apiResponseQuery, " MailBatchId IN (SELECT Id FROM AM.MailBatches MB WHERE MB.SFTChannelId=@SFTChannelId AND MB.PipelineStatus= @PipelineStatus AND MB.IsReportPrepped=1 AND MB.IsReportedBack=0 AND MB.ServerIP = @serverIP AND (MB.IsReshippedBatch=0 OR MB.IsReshippedBatch IS NULL))");
 
             var mailPieceDictionary = new Dictionary<int, BatchResponse>();
 
@@ -432,7 +432,7 @@ namespace AM.Services
                 mp.MailPieceCustomInfo.Add(c);
                 return mp;
             },
-            new { SFTChannelId = sftChannelId, PipelineStatus = BatchPipelineStatus.ReportPrepped }, splitOn: "Id,MailPieceId");
+            new { SFTChannelId = sftChannelId, PipelineStatus = BatchPipelineStatus.ReportPrepped, serverIP }, splitOn: "Id,MailPieceId");
             return data;
         }
 

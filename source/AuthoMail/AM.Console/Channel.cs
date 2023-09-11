@@ -141,7 +141,7 @@ namespace AM.Console
                     return;
                 }
 
-                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.ReportPrepped, sftChannelDetails.Id);
+                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndSFTChannelIdAndServerIP(BatchPipelineStatus.ReportPrepped, sftChannelDetails.Id, Config.Common_ServerIP);
 
                 if (reportPreppedBatches == null || reportPreppedBatches.Count == 0)
                 {
@@ -215,7 +215,7 @@ namespace AM.Console
                     return;
                 }
 
-                var reportPreppedBatches = mailBatchSvc.GetReportPreppedPrintBatchDetails().Where(c => c.SFTChannelId == sftChannelDetails.Id).ToList();
+                var reportPreppedBatches = mailBatchSvc.GetReportPreppedPrintBatchDetails(sftChannelDetails.Id, Config.Common_ServerIP);
 
                 SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
                 sftSite.Connect();

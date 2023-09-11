@@ -16,31 +16,15 @@ namespace AM.Core
         /// </summary>
         static void Main(string[] args)
         {
-            bool prepFlag, submitFlag, submittedResFlag, parseResFlag, reportPrepResFlag;
-
-            List<int> channelIds = new List<int>();
-           
-            using (IClientService commonSvc = new ClientService())
-            {
-                var channels = commonSvc.GetSFTChannelDetailsByServerIP(Config.Common_ServerIP).Result;
-
-                if (channels != null && channels.Count() > 0)
-                {
-                    channelIds = channels.Select(x => x.Id).ToList();
-                }
-                else
-                {
-                    return;
-                }
-            }
+            bool prepFlag, submitFlag, submittedResFlag, parseResFlag, reportPrepResFlag;           
 
             do
             {
-                prepFlag = AMCore.PrepPnSJobs(channelIds);
-                submitFlag = AMCore.SubmitBatchesDocTypeWiseToPrintVendor(channelIds);
-                submittedResFlag = AMCore.GetSubmittedPnSResponses(channelIds);
-                parseResFlag = AMCore.ProcessPnSResponses(channelIds);
-                reportPrepResFlag = AMCore.ReportPreppedProcess(channelIds);
+                prepFlag = AMCore.PrepPnSJobs();
+                submitFlag = AMCore.SubmitBatchesDocTypeWiseToPrintVendor();
+                submittedResFlag = AMCore.GetSubmittedPnSResponses();
+                parseResFlag = AMCore.ProcessPnSResponses();
+                reportPrepResFlag = AMCore.ReportPreppedProcess();
 
             } while (prepFlag || submitFlag || submittedResFlag || parseResFlag || reportPrepResFlag);
         }

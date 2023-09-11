@@ -125,7 +125,7 @@ namespace AM.Console
             {
                 SFTChannel sftChannelDetails = clientService.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
 
-                var reportPreppedMailPieces = (await mailPieceService.GetMailPieceResponsesListForReportPreppedBatches(sftChannelDetails.Id)).Distinct().ToList();
+                var reportPreppedMailPieces = (await mailPieceService.GetMailPieceResponsesListForReportPreppedBatches(sftChannelDetails.Id, Config.Common_ServerIP)).ToList();
 
                 log.Debug("Total Reported Backcount {0}".Fill(reportPreppedMailPieces.Count));
                 if (reportPreppedMailPieces == null || reportPreppedMailPieces.Count == 0)
@@ -340,7 +340,7 @@ namespace AM.Console
             {
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
 
-                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndClientId(BatchPipelineStatus.ReportPrepped).Where(ch => ch.SFTChannelId == sftChannelDetails.Id).ToList();
+                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndSFTChannelIdAndServerIP(BatchPipelineStatus.ReportPrepped, sftChannelDetails.Id, Config.Common_ServerIP);
 
                 if (reportPreppedBatches == null || reportPreppedBatches.Count == 0)
                 {
@@ -414,9 +414,12 @@ namespace AM.Console
             using (IReportService reportSvc = new ReportService())
             {
                 SFTChannel sftChannelDetails = clientSvc.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
-                var reportPreppedBatches = mailBatchSvc.GetReportPreppedPrintBatchDetails().Where(c => c.SFTChannelId == sftChannelDetails.Id).ToList();
+
+                var reportPreppedBatches = mailBatchSvc.GetReportPreppedPrintBatchDetails(sftChannelDetails.Id, Config.Common_ServerIP);
+
                 SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
                 sftSite.Connect();
+
                 foreach (var preppedPrintBatch in reportPreppedBatches)
                 {
                     try
