@@ -96,11 +96,17 @@
                     @Html.ValidationMessageFor(model => model.RecipientInfo.Address.State, "", new { @class = "text-danger" })
                 </div>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-1">
                 <div class="form-group form-group-sm">
                     @Html.LabelFor(model => model.RecipientInfo.Address.Zip, htmlAttributes: new { @class = "control-label" })
                     @Html.EditorFor(model => model.RecipientInfo.Address.Zip, new { htmlAttributes = new { @class = "form-control" } })
                     @Html.ValidationMessageFor(model => model.RecipientInfo.Address.Zip, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group form-group-sm">
+                    @Html.LabelFor(model => model.RecipientInfo.Address.Country, htmlAttributes: new { @class = "control-label" })
+                    @Html.EditorFor(model => model.RecipientInfo.Address.Country, new { htmlAttributes = new { @class = "form-control" } })
                 </div>
             </div>
             <div class="clearfix"></div>
