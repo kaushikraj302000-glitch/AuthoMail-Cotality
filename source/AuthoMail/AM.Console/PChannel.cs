@@ -125,7 +125,7 @@ namespace AM.Console
             {
                 SFTChannel sftChannelDetails = clientService.GetSFTChannelDetailsBySFTChannelCode(channelCode + "_" + Config.Common_Environment);
 
-                var reportPreppedMailPieces = (await mailPieceService.GetMailPieceResponsesListForReportPreppedBatches(sftChannelDetails.Id, Config.Common_ServerIP)).ToList();
+                var reportPreppedMailPieces = (await mailPieceService.GetMailPieceResponsesListForReportPreppedBatches(sftChannelDetails.Id, Config.Common_ServerIP)).Distinct().ToList();
 
                 log.Debug("Total Reported Backcount {0}".Fill(reportPreppedMailPieces.Count));
                 if (reportPreppedMailPieces == null || reportPreppedMailPieces.Count == 0)
