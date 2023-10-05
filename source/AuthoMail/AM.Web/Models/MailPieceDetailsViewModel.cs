@@ -63,6 +63,7 @@ namespace AM.Web.Models
         public string RcptAddressCity { get; set; }
         public string RcptAddressState { get; set; }
         public string RcptAddressZIP { get; set; }
+        public string RcptAddressCountry { get; set; }
         public string CoRcptName { get; set; }
         public string CoRcptPhone { get; set; }
         public string CoRcptOrganization { get; set; }

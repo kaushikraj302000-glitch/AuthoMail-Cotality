@@ -39,7 +39,7 @@ namespace AM.Services
 	 WHERE m.ClientId=@clientId";
             string fields = @"m.Id AS MailPieceId,m.MailBatchId,m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressStreet as [RcptAddress],m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
-	 m.RcptAddressState as [State],m.PickedUpOn,m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.IsEDeliveryRequested, m.IsESignRequested,m.ExpiryDate,m.Inserts,m.ShipmentStatus,m.ShipmentStatusUpdatedOn,
+	 m.RcptAddressState as [State],m.RcptAddressCountry,m.PickedUpOn,m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.IsEDeliveryRequested, m.IsESignRequested,m.ExpiryDate,m.Inserts,m.ShipmentStatus,m.ShipmentStatusUpdatedOn,
 	 b.ReceivedOn,m.DocTypeId,
 	 d.DocTypeName as DocType,pcd.ShippingServiceType as ShippingMethod,pcd.ShippingCarrier,
 	 ch.Title as Channel,m.DeliveryStatus,m.DeliveryDate,m.Inserts,

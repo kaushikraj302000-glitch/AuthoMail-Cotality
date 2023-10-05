@@ -603,6 +603,12 @@
                         <span class="form-control-static">{RcptAddress}</span>
                     </div>
                 </div>
+                <div class="form-group margin-bottom-2">
+                    <div class="input-group">
+                        <label for="BusinessFriendlyIdValue">Recipient Country:&nbsp; </label>
+                        <span class="form-control-static">{RcptCountry}</span>
+                    </div>
+                </div>
             }
             <div class="form-group margin-bottom-2">
                 <div class="input-group">
@@ -819,7 +825,7 @@
                 this.ShortFileName = shortName(this.FileName);
                 this.ShortPrintFileName = shortName(this.PrintFileName);
                 //this.ShippedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
-                
+
                 this.PickedUpOnFormatted = this.PickedUpOn == null ? "--" : moment(this.PickedUpOn).format("MM/DD/YY HH:mm:ss");
                 //this.PrintedOnFormatted = this.PrintedOn == null ? "--" : moment(this.PrintedOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
@@ -827,7 +833,8 @@
                 this.ShipmentStatusUpdatedOnFormatted = this.ShipmentStatusUpdatedOn == null ? "--" : moment(this.ShipmentStatusUpdatedOn).format("MM/DD/YY HH:mm:ss");
                 this.RcptName = this.RcptName == null || this.RcptName == "" ? "--" : this.RcptName.trim();
                 var cityStateZip = this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
-                this.RcptAddress = this.RcptAddress == null || this.RcptAddress.trim() =="" ? "--" : this.RcptAddress.trim() + (cityStateZip != "" ? ", " + cityStateZip : "");
+                this.RcptAddress = this.RcptAddress == null || this.RcptAddress.trim() == "" ? "--" : this.RcptAddress.trim() + (cityStateZip != "" ? ", " + cityStateZip : "");
+                this.RcptCountry = this.RcptAddressCountry == null || this.RcptAddressCountry.trim() == "" ? "--" : this.RcptAddressCountry.trim();
 
                 var returnCityStateZip = this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
                 this.RetRcptName = this.RetRcptName == null || this.RetRcptName.trim() == "" ? "--" : this.RetRcptName.replace(/null/g, "").trim();
@@ -876,7 +883,7 @@
                         status = '<span class="label medium label-Esign">' + this.ShippingStatus + '</span>';
                         break;
                 }
-                this.ShippingStatus = status;                
+                this.ShippingStatus = status;
 
                 this.IsEDeliveryRequestedFormatted = this.IsEDeliveryRequested && !this.IsESignRequested ? '<span class="label medium label-success">E-Delivery</span>' : this.IsEDeliveryRequested && this.IsESignRequested ? '<span class="label medium label-success">E-Sign</span>' : '<span class="label medium label-blue">P&S</span>';
 
@@ -894,7 +901,7 @@
                 var eSignTracking = "";
                 if (this.ExpiryDate == null || this.ExpiryDate == "") {
                     eSignTracking = "--";
-                    
+
                 }
                 else {
                     eSignTracking = '<a id="' + this.MailBatchId + '" style="width:185px;" class="btn btn-transparent-blue btn-sm" href="/track?id=' + this.MailBatchId + '&IsEdelivery=true" target="_blank"><i class="fa faspinner"></i> ' + this.MailBatchId + '</a>';
@@ -910,7 +917,7 @@
         function FormatObject(Model) {
             //console.log(Model);
             $(Model).each(function () {
-                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");                
+                this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.PickedUpOnFormatted = this.PickedUpOn == null ? "--" : moment(this.PickedUpOn).format("MM/DD/YY HH:mm:ss");
                 this.DueDateFormatted = this.DueDate == null ? "--" : moment(this.DueDate).format("MM/DD/YY HH:mm:ss");
                 this.RcptNameFormatted = (this.FirstName==null || this.FirstName=="" ? "--" : this.FirstName) + " " +(this.LastName==null || this.LastName=="" ? "" : this.LastName);

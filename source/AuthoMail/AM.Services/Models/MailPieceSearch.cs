@@ -68,6 +68,7 @@ namespace AM.Services
         public string RcptAddressCity { get; set; }
         public string RcptAddressState { get; set; }
         public string RcptAddressZIP { get; set; }
+        public string RcptAddressCountry { get; set; }
 
         public string RcptAddress
         {
@@ -533,6 +534,7 @@ namespace AM.Services
         public string City { get; set; }
         public string ZIP { get; set; }
         public string State { get; set; }
+        public string RcptAddressCountry { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public DateTime? ShippedOn { get; set; }
         public DateTime? EsignedOn { get; set; }
