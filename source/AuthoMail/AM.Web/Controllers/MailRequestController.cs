@@ -27,6 +27,7 @@ using System.Collections.ObjectModel;
 using AM.Services.Services;
 using System.Web;
 using Org.BouncyCastle.Ocsp;
+using Microsoft.AspNet.Identity;
 
 namespace AM.Web.Controllers
 {
@@ -1057,6 +1058,11 @@ bufferSize: 4096, useAsync: true)) { }
         [HttpPost, Route("apimailrequest")]
         public async Task<object> CreateAPIMailRequestAsync(MailPiece mailPiece, List<string> downloadedFiles)
         {
+            SPELogInfo logInfo = new SPELogInfo();
+            logInfo.ClientId = User.Identity.GetClientId().Value;
+            logInfo.CreatedBy = User.Identity.GetUserId();
+            logInfo.CreatedOn = Common.Now;
+
             if (mailPiece == null) throw new HttpResponseException(HttpStatusCode.BadRequest);
             DateTime receivedTime = Common.Now;
             SFTChannel sFTChannel;
@@ -1081,6 +1087,8 @@ bufferSize: 4096, useAsync: true)) { }
 
             mp.Id = Guid.NewGuid();
 
+            logInfo.Id = mp.Id;
+
             mailBatch.MailPieces.Add(mp);
 
             using (IClientService clientService = new ClientService())
@@ -1089,7 +1097,13 @@ bufferSize: 4096, useAsync: true)) { }
 
                 if (clientIdOfUser == null)
                 {
-                    var resultError = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Invalid_ClientCode, ErrorDesc = "Client is not assigned to the user. Please reach out to your manager to get it configured.", ReceivedOn = receivedTime };
+                    var errorMsg = "Client is not assigned to the user. Please reach out to your manager to get it configured.";
+
+                    logInfo.ErrorDesc = errorMsg;
+                    logInfo.Status = ShippingStatus.Error.ToString();
+                    mailPieceSvc.InsertSPELogInfo(logInfo);
+
+                    var resultError = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Invalid_ClientCode, ErrorDesc = errorMsg, ReceivedOn = receivedTime };
                     return new { Key = HttpStatusCode.BadRequest, Value = resultError };
                 }
 
@@ -1097,7 +1111,13 @@ bufferSize: 4096, useAsync: true)) { }
 
                 if (!clientSFTMaps.Any(s => s.SFTChannelId == Config.Web_SubmissionSFTChannelId))
                 {
-                    var result = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidChannelCode", ErrorDesc = "You do have rights to use this channel for creating print and ship package. Please reach out to your manager to get an access.", ReceivedOn = receivedTime };
+                    var errorMsg = "You do have rights to use this channel for creating print and ship package. Please reach out to your manager to get an access.";
+
+                    logInfo.ErrorDesc = errorMsg;
+                    logInfo.Status = ShippingStatus.Error.ToString();
+                    mailPieceSvc.InsertSPELogInfo(logInfo);
+
+                    var result = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidChannelCode", ErrorDesc = errorMsg, ReceivedOn = receivedTime };
                     return new { Key = HttpStatusCode.BadRequest, Value = result };
                 }
 
@@ -1106,6 +1126,12 @@ bufferSize: 4096, useAsync: true)) { }
 
             if (sFTChannel == null)
             {
+                var errorMsg = "You do have rights to use this channel for creating print and ship package. Please reach out to your manager to get an access.";
+
+                logInfo.ErrorDesc = errorMsg;
+                logInfo.Status = ShippingStatus.Error.ToString();
+                mailPieceSvc.InsertSPELogInfo(logInfo);
+
                 var result = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidChannelCode", ErrorDesc = "You do have rights to use this channel for creating print and ship package. Please reach out to your manager to get an access.", ReceivedOn = receivedTime };
                 return new { Key = HttpStatusCode.BadRequest, Value = result };
             }

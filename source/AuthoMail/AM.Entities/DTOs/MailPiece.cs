@@ -172,6 +172,16 @@ namespace AM.Entities
         public TimeSpan EndTime { get; set; }
     }
 
+    public class SPELogInfo
+    {
+        public Guid Id { get; set; }
+        public int ClientId { get; set; }
+        public string CreatedBy { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public string Status { get; set; }
+        public string ErrorDesc { get; set; }
+    }
+
     public class MBInfo
     {
         public int MailBatchId { get; set; }

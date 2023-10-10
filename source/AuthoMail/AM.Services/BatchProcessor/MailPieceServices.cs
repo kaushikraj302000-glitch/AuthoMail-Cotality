@@ -40,6 +40,8 @@ namespace AM.Services
         List<string> GetInvalidInserts(List<string> inserts);
         bool IsDuplicateRecord(MailPieceDTO mailPiece);
         bool IsDuplicateRecord(MailPiece mailPiece);
+        int InsertSPELogInfo(SPELogInfo logInfo);
+        int UpdateSPELogInfo(SPELogInfo logInfo);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
@@ -448,6 +450,16 @@ namespace AM.Services
             string query = @"SELECT CAST(CASE WHEN (SELECT COUNT(*) FROM [AM].[MailPieces] WHERE ShippingStatus NOT IN ('Error','PulledBack') AND ClientId = (select Id from Common.Clients where AppCode = @ClientCode) AND RcptFirstName = @FirstName AND RcptLastName = @LastName AND RcptAddressStreet = @Street AND RcptAddressCity = @City AND RcptAddressState = @State AND RcptAddressZIP = @Zip AND BusinessFriendlyIdValue = @BusinessFriendlyIdValue AND [FileName] = @FileName AND DocumentOrPackageType = @DocumentOrPackageType AND CAST(EffectiveReceivedOnEst AS DATE) BETWEEN DATEADD(DAY,-5,CAST(@EffectiveReceivedOnEst AS DATE)) AND CAST(@EffectiveReceivedOnEst AS DATE)) > 1 THEN 1 ELSE 0 END AS BIT)";
 
             return db.ExecuteScalar<bool>(query, new { ClientCode = mailPiece.ClientCode, FirstName = mailPiece.RecipientInfo.Recipient.FirstName, LastName = mailPiece.RecipientInfo.Recipient.LastName, Street = mailPiece.RecipientInfo.Address.Street, City = mailPiece.RecipientInfo.Address.City, State = mailPiece.RecipientInfo.Address.State, Zip = mailPiece.RecipientInfo.Address.Zip, BusinessFriendlyIdValue = mailPiece.BusinessFriendlyIdValue, FileName = mailPiece.DocumentOrPackage.Name, DocumentOrPackageType = mailPiece.DocumentOrPackageType, EffectiveReceivedOnEst = Common.Now.UtcToEst() });
+        }
+
+        public int InsertSPELogInfo(SPELogInfo logInfo)
+        {
+            return db.ExecuteScalar<int>("INSERT INTO AM.SPELogs(Id,ClientId,CreatedBy,CreatedOn,Status,ErrorDesc)VALUES(@Id,@ClientId,@CreatedBy,@CreatedOn,@Status,@ErrorDesc)", new { Id = logInfo.Id == null || logInfo.Id == Guid.Empty ? Guid.NewGuid() : logInfo.Id, logInfo.ClientId, logInfo.CreatedBy, logInfo.CreatedOn, logInfo.Status, logInfo.ErrorDesc });
+        }
+
+        public int UpdateSPELogInfo(SPELogInfo logInfo)
+        {
+            return db.ExecuteScalar<int>("UPDATE AM.SPELogs SET Status = @Status,ErrorDesc = @ErrorDesc WHERE Id=@Id", new { logInfo.Id, logInfo.Status, logInfo.ErrorDesc });
         }
     }
 }

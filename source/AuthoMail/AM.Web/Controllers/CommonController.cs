@@ -253,13 +253,23 @@ namespace AM.Web.Controllers
         [HttpPost]
         public async Task<ActionResult> SingleLoanEntry(MailPiece mailPiece, List<HttpPostedFileBase> pdffile, DateTime? ExpiryDate)
         {
+            SPELogInfo logInfo = new SPELogInfo();
+            logInfo.ClientId = User.Identity.GetClientId().Value;
+            logInfo.CreatedBy = User.Identity.GetUserId();
+            logInfo.CreatedOn = Common.Now;
 
             if (mailPiece.eDelivery != null)
             {
                 //Email Validation
                 if (mailPiece.eDelivery.PrintAndShipOnExpiry && ExpiryDate == null)
                 {
-                    ModelState.AddModelError("", "Expiry Date must be future date.");
+                    var errorMsg = "Expiry Date must be future date.";
+                    logInfo.ErrorDesc = errorMsg;
+                    logInfo.Status = ShippingStatus.Error.ToString();
+                    mailpieceSvc.InsertSPELogInfo(logInfo);
+
+                    ModelState.AddModelError("", errorMsg);
+
                     goto Error;
                 }
                 if (mailPiece.eDelivery.PrintAndShipOnExpiry)
@@ -277,7 +287,13 @@ namespace AM.Web.Controllers
                 {
                     if (pdffile[0] == null)
                     {
-                        ModelState.AddModelError("", "Please upload PDF file.");
+                        var errorMsg = "Please upload PDF file.";
+                        logInfo.ErrorDesc = errorMsg;
+                        logInfo.Status = ShippingStatus.Error.ToString();
+                        mailpieceSvc.InsertSPELogInfo(logInfo);
+
+                        ModelState.AddModelError("", errorMsg);
+
                         goto Error;
                     }
 
@@ -326,7 +342,13 @@ namespace AM.Web.Controllers
                             int value;
                             if (!int.TryParse(file.FileName.Split('_')[0], out value))
                             {
-                                ModelState.AddModelError("", $"The pdf {file.FileName} does not contain the order sequence number.");
+                                var errorMsg = $"The pdf {file.FileName} does not contain the order sequence number.";
+                                logInfo.ErrorDesc = errorMsg;
+                                logInfo.Status = ShippingStatus.Error.ToString();
+                                mailpieceSvc.InsertSPELogInfo(logInfo);
+
+                                ModelState.AddModelError("", errorMsg);
+
                                 goto Error;
                             }
                         }
@@ -355,8 +377,14 @@ namespace AM.Web.Controllers
 
                     if (mailAPIResponse.MailingStatus == "Error")
                     {
+                        var errorMsg = mailAPIResponse.ErrorDesc;
+                        logInfo.ErrorDesc = errorMsg;
+                        logInfo.Status = ShippingStatus.Error.ToString();
+                        mailpieceSvc.InsertSPELogInfo(logInfo);
+
                         ModelState.AddModelError("", mailAPIResponse.ErrorCode);
-                        ModelState.AddModelError("", mailAPIResponse.ErrorDesc);
+                        ModelState.AddModelError("", errorMsg);
+
                         goto Error;
                     }
                     return RedirectToAction("SingleLoanEntry", new { msg = mailAPIResponse.Message });
