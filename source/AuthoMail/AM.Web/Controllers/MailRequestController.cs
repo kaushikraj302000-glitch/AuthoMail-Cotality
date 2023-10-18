@@ -1144,9 +1144,16 @@ bufferSize: 4096, useAsync: true)) { }
                     if (client == null)
                     {
                         //Return error response and insert entry of invalid_client
+
+                        var errorMsg = "Invalid client code specified.";
+
+                        logInfo.ErrorDesc = errorMsg;
+                        logInfo.Status = ShippingStatus.Error.ToString();
+                        mailPieceSvc.InsertSPELogInfo(logInfo);
+
                         // sagar's common method call                        
                         var invalidClient = await clientService.GetClientByAppCode(sFTChannel.Code.Split('_')[0] + "_Invalid");
-                        await InsertInvalidBatch(receivedTime, sFTChannel, mailBatch, invalidClient.Id, "Invalid client code specified.");
+                        await InsertInvalidBatch(receivedTime, sFTChannel, mailBatch, invalidClient.Id, errorMsg);
                         mp.DocumentOrPackage.IncludePatternBaseString = false;
                         var resultError = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = "InvalidClientCode", ErrorDesc = "Invalid client code specified.", ReceivedOn = receivedTime };
                         return new { Key = HttpStatusCode.BadRequest, Value = resultError };
@@ -1182,8 +1189,13 @@ bufferSize: 4096, useAsync: true)) { }
                         }
                         catch (Exception ex)
                         {
-                            var msg = $"'{System.IO.Path.GetFileName(file)}' pdf file is either corrupt or invalid.";
-                            var errresult = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Invalid_PDF_File, ErrorDesc = msg, ReceivedOn = receivedTime };
+                            var errorMsg = $"'{System.IO.Path.GetFileName(file)}' pdf file is either corrupt or invalid.";
+
+                            logInfo.ErrorDesc = errorMsg;
+                            logInfo.Status = ShippingStatus.Error.ToString();
+                            mailPieceSvc.InsertSPELogInfo(logInfo);
+
+                            var errresult = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.Invalid_PDF_File, ErrorDesc = errorMsg, ReceivedOn = receivedTime };
                             log.Error($"Error occured while reading pdf file {ex}");
                             return new { Key = HttpStatusCode.BadRequest, Value = errresult };
                         }
@@ -1211,7 +1223,13 @@ bufferSize: 4096, useAsync: true)) { }
 
                     if (isDuplicate && client.IsRejectDupRecord)
                     {
-                        var errresult = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.NotAcceptable, ErrorDesc = "System already contains same package information so you cannot submit a duplicate request.", ReceivedOn = receivedTime };
+                        var errorMsg = "System already contains same package information so you cannot submit a duplicate request.";
+
+                        logInfo.ErrorDesc = errorMsg;
+                        logInfo.Status = ShippingStatus.Error.ToString();
+                        mailPieceSvc.InsertSPELogInfo(logInfo);
+
+                        var errresult = new MailAPIResponse { Id = mp.Id, ClientCode = mp.ClientCode, BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackage = mp.DocumentOrPackage, RecipientInfo = mp.RecipientInfo, MailingStatus = ShippingStatus.Error.ToString(), ErrorCode = OutComeCodes.NotAcceptable, ErrorDesc = errorMsg, ReceivedOn = receivedTime };
 
                         return new { Key = HttpStatusCode.BadRequest, Value = errresult };
                     }
@@ -1249,16 +1267,29 @@ bufferSize: 4096, useAsync: true))
 
                         File.SetLastWriteTime(triggerFilePath, receivedTime);
                     }
+
+                    //Insert SPE Log Info with Success Record
+                    logInfo.ErrorDesc = null;
+                    logInfo.Status = ShippingStatus.InProgress.ToString();
+                    mailPieceSvc.InsertSPELogInfo(logInfo);
+
                     var res = new MailAPIResponse
                     {
                         Id = mp.Id,
                         MailingStatus = ShippingStatus.Acknowledgement.ToString(),
-                        Message = "Your request is queued for processing."
+                        Message = $"Your request is queued for processing with ClientBatchId : {mailBatch.ClientBatchId}"
                     };
                     return new { Key = HttpStatusCode.OK, Value = res };
                 }
                 else
                 {
+
+                    var errorMsg = result.ErrorMessage;
+
+                    logInfo.ErrorDesc = errorMsg;
+                    logInfo.Status = ShippingStatus.Error.ToString();
+                    mailPieceSvc.InsertSPELogInfo(logInfo);
+
                     //insert error and response
                     using (IMailBatchService mailBatchService = new MailBatchService())
                     using (ICommonService commonSvc = new CommonService())
