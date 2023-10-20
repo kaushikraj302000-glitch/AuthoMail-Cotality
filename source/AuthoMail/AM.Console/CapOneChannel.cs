@@ -550,6 +550,26 @@ namespace AM.Console
             caponeValues.BorrowerCountry = values[25].RemoveCSVStringFormat().Trim();
             caponeValues.SendEDelivery = values[26].RemoveCSVStringFormat().Trim();
             caponeValues.BorrowerEmailId = values[27].RemoveCSVStringFormat().Trim();
+
+            if (caponeValues.SendEDelivery == "Y" && (caponeValues.BorrowerLastName.IsNullOrWhiteSpace() || caponeValues.BorrowerFirstName.IsNullOrWhiteSpace()))
+            {
+                if ((caponeValues.BorrowerLastName.IsNullOrWhiteSpace() && !caponeValues.BorrowerFirstName.IsNullOrWhiteSpace()) && caponeValues.BorrowerFirstName.Any(x => Char.IsWhiteSpace(x)))
+                {
+                    var splitFirstName = caponeValues.BorrowerFirstName.Split(' ');
+
+                    caponeValues.BorrowerFirstName = splitFirstName[0];
+                    caponeValues.BorrowerLastName = string.Join(" ", splitFirstName.Where(x => x != splitFirstName[0]));
+                }
+
+                if ((!caponeValues.BorrowerLastName.IsNullOrWhiteSpace() && caponeValues.BorrowerFirstName.IsNullOrWhiteSpace()) && caponeValues.BorrowerLastName.Any(x => Char.IsWhiteSpace(x)))
+                {
+                    var splitLastName = caponeValues.BorrowerLastName.Split(' ');
+
+                    caponeValues.BorrowerFirstName = splitLastName[0];
+                    caponeValues.BorrowerLastName = string.Join(" ", splitLastName.Where(x => x != splitLastName[0]));
+                }
+            }
+
             return caponeValues;
         }
 
