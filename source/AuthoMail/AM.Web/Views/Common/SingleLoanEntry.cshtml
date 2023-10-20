@@ -6,7 +6,7 @@
 
 @if (ViewBag.msg != null)
 {
-    <div class="alert alert-green text-center">@(ViewBag.msg)</div>
+    <div class="alert alert-green text-center"><span id="copyClientBatchId">@(ViewBag.msg)</span> <i class="fa fa-copy" style="font-size: 18px; margin-left: 10px; cursor: pointer;" onclick="copyClientBatchId()"></i></div>
     <br />
 }
 
@@ -121,6 +121,18 @@
                 $("#ExpiryDate").val(startDate.format('MM-DD-YYYY'));
             });
         });
+
+        function copyClientBatchId() {
+            // Get the text field
+            var copyText = document.getElementById("copyClientBatchId");
+            // Select the text field
+            var stringData = copyText.innerText.split(" ");
+
+            var clientBatchId = stringData[stringData.length - 1];
+
+            // Copy the text inside the text field
+            navigator.clipboard.writeText(clientBatchId);
+        }
 
         function GetReturnAddressInfo() {
             var doctypeName = $("#ddlDocType").val();
