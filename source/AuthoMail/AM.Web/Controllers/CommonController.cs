@@ -255,7 +255,7 @@ namespace AM.Web.Controllers
         {
             SPELogInfo logInfo = new SPELogInfo();
             logInfo.ClientId = User.Identity.GetClientId().Value;
-            logInfo.CreatedBy = User.Identity.GetUserId();
+            logInfo.CreatedBy = new Guid(User.Identity.GetUserId());
             logInfo.CreatedOn = Common.Now;
 
             if (mailPiece.eDelivery != null)

@@ -176,7 +176,7 @@ namespace AM.Entities
     {
         public Guid Id { get; set; }
         public int ClientId { get; set; }
-        public string CreatedBy { get; set; }
+        public Guid CreatedBy { get; set; }
         public DateTime CreatedOn { get; set; }
         public string Status { get; set; }
         public string ErrorDesc { get; set; }
