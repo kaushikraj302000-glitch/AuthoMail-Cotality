@@ -1656,7 +1656,7 @@ namespace AM.Core
         public class FedExResponse
         {
             [JsonProperty("transactionId")]
-            public Guid TransactionId { get; set; }
+            public string TransactionId { get; set; }
             [JsonProperty("customerTransactionId")]
             public string CustomerTransactionId { get; set; }
             [JsonProperty("output")]
