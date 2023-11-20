@@ -534,7 +534,7 @@ namespace AM.Services
         public string City { get; set; }
         public string ZIP { get; set; }
         public string State { get; set; }
-        public string RcptAddressCountry { get; set; }
+        public string Country { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public DateTime? ShippedOn { get; set; }
         public DateTime? EsignedOn { get; set; }

@@ -13,7 +13,7 @@ namespace AM.Services
         //Remove Method(make sure below method in use)
         //List<MailPieces> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime startDate, DateTime endDate, string docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo)
         KeyValuePair<int, List<SearchViewModel>> GetMailPieceByParam
-            (int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList, bool isDownload, int? mailPieceId);
+            (int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, string mailPieceUniqueId, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList, bool isDownload, int? mailPieceId);
         MailPieces GetMailPieceByUniqueId(Guid uniqueId);
         List<MailPieces> GetAllData(int clientId);
 
@@ -23,7 +23,7 @@ namespace AM.Services
     }
     public class SearchService : ServiceBase, ISearchService
     {
-        public KeyValuePair<int, List<SearchViewModel>> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList, bool isDownload, int? mailPieceId)
+        public KeyValuePair<int, List<SearchViewModel>> GetMailPieceByParam(int clientId, string businessFriendlyIdName, string businessFriendlyIdValue, string mailPieceUniqueId, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, string clientBatchId, int? mailBatchId, string trackingNo, List<string> errorList, bool isDownload, int? mailPieceId)
         {
             string query = @"SELECT {{fields}}
 	 FROM AM.MailPieces m
@@ -39,7 +39,7 @@ namespace AM.Services
 	 WHERE m.ClientId=@clientId";
             string fields = @"m.Id AS MailPieceId,m.MailBatchId,m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
 	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressStreet as [RcptAddress],m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,
-	 m.RcptAddressState as [State],m.RcptAddressCountry,m.PickedUpOn,m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.IsEDeliveryRequested, m.IsESignRequested,m.ExpiryDate,m.Inserts,m.ShipmentStatus,m.ShipmentStatusUpdatedOn,
+	 m.RcptAddressState as [State],m.RcptAddressCountry AS Country,m.PickedUpOn,m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.IsEDeliveryRequested, m.IsESignRequested,m.ExpiryDate,m.Inserts,m.ShipmentStatus,m.ShipmentStatusUpdatedOn,
 	 b.ReceivedOn,m.DocTypeId,
 	 d.DocTypeName as DocType,pcd.ShippingServiceType as ShippingMethod,pcd.ShippingCarrier,
 	 ch.Title as Channel,m.DeliveryStatus,m.DeliveryDate,m.Inserts,
@@ -56,6 +56,13 @@ namespace AM.Services
                 query = string.Format("{0} and m.businessFriendlyIdValue like @businessFriendlyIdValue", query);
                 parameter.Add("@businessFriendlyIdValue", $"%{businessFriendlyIdValue}%");
             }
+
+            if (!string.IsNullOrWhiteSpace(mailPieceUniqueId))
+            {
+                query = string.Format("{0} and m.UniqueId = @mailPieceUniqueId", query);
+                parameter.Add("@mailPieceUniqueId", mailPieceUniqueId);
+            }
+
             if (!string.IsNullOrWhiteSpace(status))
             {
                 query = string.Format("{0} and m.ShippingStatus=@ShippingStatus", query);

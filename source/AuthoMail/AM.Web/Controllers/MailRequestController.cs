@@ -1277,7 +1277,7 @@ bufferSize: 4096, useAsync: true))
                     {
                         Id = mp.Id,
                         MailingStatus = ShippingStatus.Acknowledgement.ToString(),
-                        Message = $"Your request is queued for processing with ClientBatchId : {mailBatch.ClientBatchId}"
+                        Message = $"Your request is queued for processing with unique Mail Piece Id : {mp.Id}"
                     };
                     return new { Key = HttpStatusCode.OK, Value = res };
                 }

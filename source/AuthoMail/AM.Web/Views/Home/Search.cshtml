@@ -167,6 +167,16 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="MailPieceUniqueId">MailPiece Unique Id</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="MailPieceUniqueId" placeholder="Mail Piece Unique Id" id="MailPieceUniqueId">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">                       
                         @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA) || User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                         {
                             <div class="col-md-3">
@@ -200,7 +210,8 @@
                             <input class="form-control" value="" name="BatchId" type="hidden" id="BatchId">
                             <input class="form-control" value="" name="MailPieceId" type="hidden" id="MailPieceId">
                         }
-
+                    </div>
+                    <div class="row">
                         <div class="col-md-1">
                             <div class="form-group " style="padding-top:27px;">
                                 <label for="filterData">  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
@@ -226,7 +237,6 @@
                                 </button>
                             </div>
                         </div>
-
                     </div>
                 </form>
 
@@ -606,7 +616,7 @@
                 <div class="form-group margin-bottom-2">
                     <div class="input-group">
                         <label for="BusinessFriendlyIdValue">Recipient Country:&nbsp; </label>
-                        <span class="form-control-static">{RcptCountry}</span>
+                        <span class="form-control-static">{RcptAddressCountry}</span>
                     </div>
                 </div>
             }
@@ -834,7 +844,7 @@
                 this.RcptName = this.RcptName == null || this.RcptName == "" ? "--" : this.RcptName.trim();
                 var cityStateZip = this.RcptAddressCity + " " + this.RcptAddressState + " " + this.RcptAddressZIP;
                 this.RcptAddress = this.RcptAddress == null || this.RcptAddress.trim() == "" ? "--" : this.RcptAddress.trim() + (cityStateZip != "" ? ", " + cityStateZip : "");
-                this.RcptCountry = this.RcptAddressCountry == null || this.RcptAddressCountry.trim() == "" ? "--" : this.RcptAddressCountry.trim();
+                this.RcptCountry = this.Country == null || this.Country.trim() == "" ? "--" : this.Country.trim();
 
                 var returnCityStateZip = this.RetRcptAddressCity + " " + this.RetRcptAddressState + " " + this.RetRcptAddressZIP;
                 this.RetRcptName = this.RetRcptName == null || this.RetRcptName.trim() == "" ? "--" : this.RetRcptName.replace(/null/g, "").trim();
@@ -1079,6 +1089,7 @@
                 data: JSON.stringify({
                     BusinessFriendlyIdName: $("#BusinessFriendlyIdName").val(),
                     BusinessFriendlyIdValue: $("#BusinessFriendlyIdValue").val(),
+                    MailPieceUniqueId: $("#MailPieceUniqueId").val(),
                     DocType: $("#DocType").val(),
                     Status: $("#Status").val(),
                     Channel: $("#Channel").val(),
