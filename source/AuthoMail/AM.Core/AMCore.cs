@@ -420,8 +420,6 @@ namespace AM.Core
 
                                     ShipperInformation shipperInfo = commonSvc.GetShipperInformationByPrintLocation(mailPiece.PrintLocation, mailPiece.PrintTrailId.Value);
 
-                                    //CreateFedExLabel createFedExLabel = new CreateFedExLabel();
-                                    CreateFedExAPILabel createFedExAPILabel = new CreateFedExAPILabel();
                                     //Here maintain original doc type for retry in unexpected errors
                                     var originDocType = docType;
 
@@ -429,8 +427,11 @@ namespace AM.Core
                                     while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                     {
 
-                                        //response = createFedExLabel.Create(mailPiece, fedExAccInfo, originDocType, mbi, shipperInfo);
-                                        response = createFedExAPILabel.Create(mailPiece, fedExAccInfo, client, originDocType, mbi, shipperInfo).Result;
+                                        if (fedExAccInfo.AccountCode.Contains("API"))
+                                            response = new CreateFedExAPILabel().Create(mailPiece, fedExAccInfo, client, originDocType, mbi, shipperInfo).Result;
+                                        else
+                                            response = new CreateFedExLabel().Create(mailPiece, fedExAccInfo, client, originDocType, mbi, shipperInfo);
+
                                         if (!response.HasError)
                                         {
                                             coverLetterPdfPaths.Add(response.CoverLetterPath);
@@ -894,12 +895,11 @@ namespace AM.Core
 
                                             ShipperInformation shipperInfo = commonSvc.GetShipperInformationByPrintLocation(mailPiece.PrintLocation, mailPiece.PrintTrailId.Value);
 
-                                            //CreateFedExLabel createFedExLabel = new CreateFedExLabel();
-
-                                            CreateFedExAPILabel createFedExAPILabel = new CreateFedExAPILabel();
-
-                                            //returnResponse = createFedExLabel.Create(mailPiece, fedExAccInfo, client, docType, mbi, shipperInfo, true);
-                                            returnResponse = createFedExAPILabel.Create(mailPiece, fedExAccInfo, client, docType, mbi, shipperInfo, true).Result;
+                                            if (fedExAccInfo.AccountCode.Contains("API"))
+                                                returnResponse = new CreateFedExAPILabel().Create(mailPiece, fedExAccInfo, client, docType, mbi, shipperInfo, true).Result;
+                                            else
+                                                returnResponse = new CreateFedExLabel().Create(mailPiece, fedExAccInfo, client, docType, mbi, shipperInfo, true);
+                                           
                                             if (!returnResponse.HasError)
                                             {
                                                 returnLabelFilePath = returnResponse.CoverLetterPath;

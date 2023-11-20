@@ -56,7 +56,7 @@ namespace AM.Core
                     else if (httpResponseMessage.StatusCode == HttpStatusCode.BadRequest)
                     {
                         //If we get saturday delivery failed then we just remove that special handling parameters.
-                        if (fedExResponse.Errors[0].Code == "REQUESTEDSHIPMENT.SERVICETYPE.NOTSUPPORTED" || fedExResponse.Errors[0].Code == "SHIPMENT.SPECIALSERVICETYPE.NOT.ALLOWED" || fedExResponse.Errors[0].Message.Contains("SATURDAY_DELIVERY is not supported") || fedExResponse.Errors[0].Message.Contains("SATURDAY_DELIVERY is not allowed with the service selected"))
+                        if (fedExResponse.Errors[0].Code == "REQUESTEDSHIPMENT.SERVICETYPE.NOTSUPPORTED" || fedExResponse.Errors[0].Code == "SHIPMENT.SPECIALSERVICETYPE.NOT.ALLOWED" || fedExResponse.Errors[0].Message.Contains("SATURDAY_DELIVERY is not supported") || fedExResponse.Errors[0].Message.Contains("SATURDAY_DELIVERY is not allowed with the service selected") || fedExResponse.Errors[0].Message.Contains("special service type is not allowed"))
                         {
                             log.Error($"MailPieceId - {mailPiece.Id} does not support saturday delivery.");
                             fedExRequest.RequestedShipment.ShipmentSpecialServices = null;
