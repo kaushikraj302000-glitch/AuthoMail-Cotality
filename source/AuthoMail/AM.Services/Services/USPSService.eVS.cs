@@ -74,7 +74,7 @@ namespace AM.Services
                         uspsCutOffDetail = Config.USPSLabelCutOffDetails.SingleOrDefault(u => estTime.TimeOfDay >= u.BizStartTime && estTime.TimeOfDay <= u.BizEndTime);
                     }
 
-                    var creds = db.QuerySingleOrDefault<USPSCredentialInfo>("SELECT AccountNumber AS UserId, WebAuthenticationPassword AS PassKey , WebAuthenticationKey AS PrintLocation FROM [AM].[ShippingAccounts] WHERE ShippingCarrier = 'USPS' AND WebAuthenticationKey = @PrintLocation AND AccountNumber = @AccountNumber", new { PrintLocation = uspsCutOffDetail.PrintVendorLocation, AccountNumber = uspsCutOffDetail.USPSUserId });
+                    var creds = Config.USPSCredentialDetails.SingleOrDefault(x => x.PrintLocation == uspsCutOffDetail.PrintVendorLocation);
 
                     eVSrequest.USERID = uspsCutOffDetail.USPSUserId;
 

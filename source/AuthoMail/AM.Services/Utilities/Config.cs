@@ -309,6 +309,7 @@ namespace AM.Services
 
         public static string Web_API_USPS_AccountsByPrintLocations { get; set; }
         public static List<USPSLabelCutOffDetail> USPSLabelCutOffDetails { get; private set; }
+        public static List<USPSCredentialInfo> USPSCredentialDetails { get; private set; }
 
         #endregion
 
@@ -325,6 +326,7 @@ namespace AM.Services
                 groupHolidays = commonSvc.GetHolidayList();
                 Monitor_PackagesHoldInfo = commonSvc.GetPackagesHoldInfo();
                 USPSLabelCutOffDetails = commonSvc.GetUSPSLabelCutOffDetails();
+                USPSCredentialDetails = commonSvc.GetUSPSCredentialDetails();
             }
 
             IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());

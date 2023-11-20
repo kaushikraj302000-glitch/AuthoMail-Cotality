@@ -56,7 +56,7 @@ namespace AM.Services
         int GetDallasBatchCounts(int? mpId = 0);
         List<PackagesHoldInfo> GetPackagesHoldInfo();
         List<USPSLabelCutOffDetail> GetUSPSLabelCutOffDetails();
-        USPSCredentialInfo GetUSPSCredentialInfo(string printLocation);
+        List<USPSCredentialInfo> GetUSPSCredentialDetails();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -574,11 +574,11 @@ namespace AM.Services
             return db.Query<USPSLabelCutOffDetail>(query).ToList();
         }
 
-        public USPSCredentialInfo GetUSPSCredentialInfo(string printLocation)
+        public List<USPSCredentialInfo> GetUSPSCredentialDetails()
         {
-            string query = "SELECT AccountNumber AS UserId, WebAuthenticationPassword AS PassKey , WebAuthenticationKey AS PrintLocation FROM [AM].[ShippingAccounts] WHERE ShippingCarrier = 'USPS' AND WebAuthenticationKey = @printLocation";
+            string query = "SELECT AccountNumber AS UserId, WebAuthenticationPassword AS PassKey , WebAuthenticationKey AS PrintLocation FROM [AM].[ShippingAccounts] WHERE ShippingCarrier = 'USPS'";
 
-            return db.QuerySingle<USPSCredentialInfo>(query, new { printLocation });
+            return db.Query<USPSCredentialInfo>(query).ToList();
         }
     }
 }
