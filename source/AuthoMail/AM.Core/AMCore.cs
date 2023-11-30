@@ -243,7 +243,7 @@ namespace AM.Core
                                         while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                         {
                                             var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY_EXPRESS);
-                                            var uspsUserInfo = commonSvc.GetUSPSCredentialInfo(mailPiece.PrintLocation);
+                                            var uspsUserInfo = Config.USPSCredentialDetails.SingleOrDefault(x => x.PrintLocation == mailPiece.PrintLocation);
 
                                             response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY_EXPRESS, mailPiece, mbi, systemUserId, uspsUserInfo);
 
@@ -285,7 +285,7 @@ namespace AM.Core
                                                 docType = fbPriority;
 
                                                 commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
-                                                uspsUserInfo = commonSvc.GetUSPSCredentialInfo(mailPiece.PrintLocation);
+                                                uspsUserInfo = Config.USPSCredentialDetails.SingleOrDefault(x => x.PrintLocation == mailPiece.PrintLocation);
 
                                                 eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
@@ -339,7 +339,7 @@ namespace AM.Core
                                         while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                         {
                                             var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
-                                            var uspsUserInfo = commonSvc.GetUSPSCredentialInfo(mailPiece.PrintLocation);
+                                            var uspsUserInfo = Config.USPSCredentialDetails.SingleOrDefault(x => x.PrintLocation == mailPiece.PrintLocation);
 
                                             response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY, mailPiece, mbi, systemUserId, uspsUserInfo);
 
@@ -463,7 +463,7 @@ namespace AM.Core
 
                                                 //Update Due Date and its other calculation based on updated document type.
                                                 commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
-                                                var uspsUserInfo = commonSvc.GetUSPSCredentialInfo(mailPiece.PrintLocation);
+                                                var uspsUserInfo = Config.USPSCredentialDetails.SingleOrDefault(x => x.PrintLocation == mailPiece.PrintLocation);
 
                                                 var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY_EXPRESS);
 
@@ -503,7 +503,7 @@ namespace AM.Core
                                                     docType = fbPriority;
 
                                                     commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
-                                                    uspsUserInfo = commonSvc.GetUSPSCredentialInfo(mailPiece.PrintLocation);
+                                                    uspsUserInfo = Config.USPSCredentialDetails.SingleOrDefault(x => x.PrintLocation == mailPiece.PrintLocation);
 
                                                     eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
@@ -554,7 +554,7 @@ namespace AM.Core
                                                 //Update Due Date and its other calculation based on updated document type.
                                                 commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
-                                                var uspsUserInfo = commonSvc.GetUSPSCredentialInfo(mailPiece.PrintLocation);
+                                                var uspsUserInfo = Config.USPSCredentialDetails.SingleOrDefault(x => x.PrintLocation == mailPiece.PrintLocation);
 
                                                 var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
@@ -617,7 +617,7 @@ namespace AM.Core
 
                                                 //Update Due Date and its other calculation based on updated document type.
                                                 commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
-                                                var uspsUserInfo = commonSvc.GetUSPSCredentialInfo(mailPiece.PrintLocation);
+                                                var uspsUserInfo = Config.USPSCredentialDetails.SingleOrDefault(x => x.PrintLocation == mailPiece.PrintLocation);
 
                                                 var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY_EXPRESS);
                                                 response = MakeUSPSRequest(eVSRequest, AM.USPSLib.ServiceType.PRIORITY_EXPRESS, mailPiece, mbi, systemUserId, uspsUserInfo);
@@ -656,7 +656,7 @@ namespace AM.Core
                                                     docType = fbPriority;
 
                                                     commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
-                                                    uspsUserInfo = commonSvc.GetUSPSCredentialInfo(mailPiece.PrintLocation);
+                                                    uspsUserInfo = Config.USPSCredentialDetails.SingleOrDefault(x => x.PrintLocation == mailPiece.PrintLocation);
 
                                                     eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
@@ -707,7 +707,7 @@ namespace AM.Core
                                                 //Update Due Date and its other calculation based on updated document type.
                                                 commonSvc.GetUpdatedDueDateAndPrintLocation(mailBatch.ReceivedOn.Value, mailPiece, docType, client);
 
-                                                var uspsUserInfo = commonSvc.GetUSPSCredentialInfo(mailPiece.PrintLocation);
+                                                var uspsUserInfo = Config.USPSCredentialDetails.SingleOrDefault(x => x.PrintLocation == mailPiece.PrintLocation);
 
                                                 var eVSRequest = GenerateEVSLabelRequest(mailPiece, client.Name, AM.USPSLib.ServiceType.PRIORITY);
 
@@ -783,7 +783,7 @@ namespace AM.Core
 
                                     reTrycnt = 0;
 
-                                    var uspsUserInfo = commonSvc.GetUSPSCredentialInfo(mailPiece.PrintLocation);
+                                    var uspsUserInfo = Config.USPSCredentialDetails.SingleOrDefault(x => x.PrintLocation == mailPiece.PrintLocation);
 
                                     while (reTrycnt < Config.Core_NoOfAttemptOnFailure)
                                     {
@@ -899,7 +899,7 @@ namespace AM.Core
                                                 returnResponse = new CreateFedExAPILabel().Create(mailPiece, fedExAccInfo, client, docType, mbi, shipperInfo, true).Result;
                                             else
                                                 returnResponse = new CreateFedExLabel().Create(mailPiece, fedExAccInfo, client, docType, mbi, shipperInfo, true);
-                                           
+
                                             if (!returnResponse.HasError)
                                             {
                                                 returnLabelFilePath = returnResponse.CoverLetterPath;
