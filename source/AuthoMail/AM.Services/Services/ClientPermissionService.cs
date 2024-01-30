@@ -14,6 +14,7 @@ namespace AM.Services
         Task<IEnumerable<ClientIdNameVM>> GetClientDomainByDomainName(string domainName);
         Task<IEnumerable<ClientIdNameVM>> GetClientDomainForCL();
         Task<IEnumerable<ClientIdNameVM>> GetAppCodeByUserIdORall(string userId);
+        Task<IEnumerable<ClientIdNameVM>> GetAppCodeByClientDomain(string clientDomain);
         Task InsertClientIdAndUserId(ClientUserMapping clientUserMapping);
         Task<IEnumerable<ClientUserMapping>> ApproveOrDeclinedClientsForUser(string userId, List<int> approveclientIds, string modifiedById, bool isCLUser);
         Task<IEnumerable<ClientUserMapping>> GetClientDomainByUserId(string userId);
@@ -140,6 +141,20 @@ values(@ClientId,@UserId,@Status,@CreatedOn,@ModifiedOn,@ModifiedById)";
                 string sql = @"SELECT Id, Name, AppCode, GroupAlias from Common.Clients where IsAMActive=1 and Id in(
 select ClientId from Common.ClientUserMapping where UserId=@userId) order by Name";
                 return await db.QueryAsync<ClientIdNameVM>(sql, new { userId = userId });
+            }
+        }
+
+        public async Task<IEnumerable<ClientIdNameVM>> GetAppCodeByClientDomain(string clientDomain)
+        {
+            if (clientDomain == null)
+            {
+                string sql = @"SELECT Id, Name, AppCode, GroupAlias from Common.Clients where IsAMActive=1 order by Name";
+                return await db.QueryAsync<ClientIdNameVM>(sql);
+            }
+            else
+            {
+                string sql = @"SELECT Id, Name, AppCode, GroupAlias from Common.Clients where IsAMActive=1 and Id in(select ClientId from Common.ClientDomains WHERE AllowedDomain =@Domain) order by Name";
+                return await db.QueryAsync<ClientIdNameVM>(sql, new { Domain = clientDomain });
             }
         }
 

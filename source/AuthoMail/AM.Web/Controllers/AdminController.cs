@@ -83,7 +83,9 @@ namespace AM.Web.Controllers
                 roles.Add(AMRoles.BAOffShore);
             }
 
-            var appCodes = await clientPermissionSvc.GetAppCodeByUserIdORall(IsCL ? null : userId);
+            var domain = user.Email.Split('@')[1];
+
+            var appCodes = await clientPermissionSvc.GetAppCodeByClientDomain(IsCL ? null : domain);
 
             var data = new
             {
