@@ -25,14 +25,14 @@ namespace AM.Core
             [JsonProperty("accountNumber")]
             public AccountNumber AccountNumber { get; set; }
 
-            [JsonProperty("shipAction")]
-            public ShipAction ShipAction { get; set; }
+            //[JsonProperty("shipAction")]
+            //public ShipAction ShipAction { get; set; }
 
-            [JsonProperty("processingOptionType")]
-            public ProcessingOptionType ProcessingOptionType { get; set; }
+            //[JsonProperty("processingOptionType")]
+            //public ProcessingOptionType ProcessingOptionType { get; set; }
 
-            [JsonProperty("oneLabelAtATime")]
-            public bool OneLabelAtATime { get; set; }
+            //[JsonProperty("oneLabelAtATime")]
+            //public bool OneLabelAtATime { get; set; }
         }
 
         public class AccountNumber
