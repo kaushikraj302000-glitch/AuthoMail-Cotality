@@ -466,13 +466,13 @@ namespace PCI.Service
 
         private static string CreateNordisBatch(List<MailPieceDetail> mpList, PrintTrailBatch ptBatchDetails, string zipFilePath, string xmlFilePath)
         {
-            var shippingMethod = mpList.Select(x => new { x.ShippingCarrier, ShippingServiceType = x.ShippingServiceType == "IMB" ? "FIRSTCLASS" : x.ShippingServiceType }).Distinct().First();
+            var shippingMethod = mpList.Select(x => new { x.ShippingCarrier, ShippingServiceType = x.ShippingServiceType == "IMB" ? "FIRSTCLASS" : (x.ShippingServiceType == "FEDEX_2_DAY" || x.ShippingServiceType == "STANDARD_OVERNIGHT") ? "PRIORITY_OVERNIGHT" : x.ShippingServiceType }).Distinct().First();
 
             List<Package> packageData = new List<Package>();
             PrintRequest printRequestXml = new PrintRequest();
             printRequestXml.JobId = ptBatchDetails.Id;
             printRequestXml.ShippingMethod = shippingMethod.ShippingCarrier.ParseEnum<ShippingMethod>();
-            printRequestXml.ShippingServiceType = shippingMethod.ShippingServiceType.ParseEnum<Nordis.Lib.ShippingServiceType>();
+            printRequestXml.ShippingServiceType = (shippingMethod.ShippingServiceType == "FEDEX_2_DAY" || shippingMethod.ShippingServiceType == "STANDARD_OVERNIGHT") ? "PRIORITY_OVERNIGHT".ParseEnum<Nordis.Lib.ShippingServiceType>() : shippingMethod.ShippingServiceType.ParseEnum<Nordis.Lib.ShippingServiceType>();
 
             if (File.Exists(zipFilePath))
             {
