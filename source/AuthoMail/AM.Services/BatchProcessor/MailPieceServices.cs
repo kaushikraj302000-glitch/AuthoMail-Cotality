@@ -12,6 +12,7 @@ namespace AM.Services
     public interface IMailPieceService : IDisposable
     {
         int InsertBatchMailPieceDetails(MailPieceDTO mailPiece, List<MailPieceCustomInfo> mailPieceCustomInfo, DateTime? receivedOn = null, DateTime? downloadedOn = null);
+        int InsertBatchMailPieceDetails(MailPieceDTO mailPiece, List<MailPieceCustomInfo> mailPieceCustomInfo, bool isReshipped);
         List<MailPieceDTO> GetMailPiecesByMailBatchId(int mailBatchId);
         List<MailPieceDTO> GetMailPiecesByPrintBatchId(int printBatchId);
         int InsertBatchMailPieceCustomDetails(List<MailPieceCustomInfo> mailPieceCustomInfos);
@@ -20,7 +21,7 @@ namespace AM.Services
         int UpdateMailPiecePickedUpDetailsFromTrackingNo(FedExPickedPackagesDetail pickedUpDetail);
         int UpdateMailPieceShipmentStatusFromTrackingNo(string shipmentStatus, string trackingNo, DateTime jobRunTime, string deliveryStatus, DateTime? deliveryDate, bool isReturnTrackingInfo);
         MailPieceDTO GetMailPieceDataFromTrackingNo(string trackingNo);
-        List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string sweepName);
+        List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string sweepName, DateTime currentDate);
         BatchSummary GetBatchSummaryDetailByUniqueId(Guid uniqueId);
         MailPieceDTO GetMailPieceDataByUniqueIdAndMBId(Guid uniqueId, int mailBatchId);
         Task<int> InsertBatchMailPieceDetails(MailPiece mailPiece, int clientId, int mailBatchId, string errorCode, string errorDesc);
@@ -29,7 +30,7 @@ namespace AM.Services
         List<MailPieceDTO> GetMailPiecesForUATBridge(DateTime utcStartDate, int clientId);
         List<MailPieceCustomInfo> GetMailPieceCustomInfos(int mailPieceId);
         BatchResponse GetMailPieceDetailsByMailPieceUniqueId(string uniqueId);
-        Task<IEnumerable<BatchResponse>> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId);
+        Task<IEnumerable<BatchResponse>> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId, string serverIP);
         List<MBInfo> GetReportedBackRecordsFromUATBridge();
         List<MBInfo> GetPnSReportedBackRecordsFromUATBridge();
         List<MBInfo> GetReportedBackAMRecordsFromUATBridge();
@@ -37,12 +38,38 @@ namespace AM.Services
         int DeletePrintBatchDetails(int printBatchId);
         dynamic GetCoversheetData(int mailPieceId);
         List<string> GetInvalidInserts(List<string> inserts);
+        bool IsDuplicateRecord(MailPieceDTO mailPiece);
+        bool IsDuplicateRecord(MailPiece mailPiece);
+        int InsertSPELogInfo(SPELogInfo logInfo);
+        int UpdateSPELogInfo(SPELogInfo logInfo);
     }
     public class MailPieceService : ServiceBase, IMailPieceService //It implements Interfaces 
     {
+        private string apiResponseQuery = @"SELECT DISTINCT * FROM
+                            (
+                                SELECT MP.*,MB.ReceivedOn
+                                ,CASE WHEN S.Code LIKE 'API_AMC%' THEN (SELECT AMCCustId FROM AM.ClientAMCCustIdMap AC WHERE AC.ClientId=CC.Id) ELSE CC.AppCode END AppCode
+                                ,PCD.ShippingCarrier,PCD.ShippingServiceType 
+                                FROM AM.MailPieces MP 
+                                INNER JOIN AM.MailBatches MB ON MP.MailBatchId = MB.Id
+                                INNER JOIN Common.Clients CC ON MP.ClientId = CC.Id
+                                INNER JOIN Common.SFTChannels S ON MB.SFTChannelId = S.Id
+                                LEFT OUTER JOIN [AM].[DocTypes] D ON MP.DocTypeId=D.Id 
+                                LEFT OUTER JOIN [Common].[PnSConfigDetail] PCD ON MP.PnSConfigDetailId = PCD.Id
+                                WHERE {0}
+                            )X
+                            LEFT OUTER JOIN 
+                            (
+                                SELECT * FROM AM.MailPieceCustomInfo
+                                WHERE MailPieceId IN 
+                                (
+                                    SELECT Id FROM AM.MailPieces MP WHERE {0}
+                                )
+                            )Y ON Y.MailPieceId=X.Id
+                            ";
         public int InsertBatchMailPieceDetails(MailPieceDTO mailPiece, List<MailPieceCustomInfo> mailPieceCustomInfo, DateTime? receivedOn = null, DateTime? downloadedOn = null)
         {
-            string query = "INSERT INTO [AM].[MailPieces](ClientId, UniqueId, PnSConfigDetailId, MailBatchId, PrintBatchId, BusinessFriendlyIdName, BusinessFriendlyIdValue, FileName, FilePattern, DocumentOrPackageType, DueDate, ShippingStatus, IsRcptInfoSpecified, RcptPrefix, RcptFirstName, RcptMiddleName, RcptLastName, RcptSuffix, RcptPhone, RcptOrganization, CoRcptPrefix, CoRcptFirstName, CoRcptMiddleName, CoRcptLastName, CoRcptSuffix, CoRcptPhone, CoRcptOrganization, RcptAddrOptionalLine1AboveStreet, RcptAddrOptionalLine2AboveStreet, RcptAddressStreet, RcptAddressAptOrSuiteOrOther, RcptAddrOptionalLine1BelowStreet, RcptAddrOptionalLine2BelowStreet, RcptAddressCity, RcptAddressState, RcptAddressZIP, RcptAddressCountry, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP,RetRcptAddressCountry, TotalPages, TotalSheets, ErrorCode, ErrorDesc, TrackingNo, PullBackRequestedOn, PulledBackOn,PrintedOn, ShippedOn, ShippingCost, Weight, IsQCRequested, IsQCPerformed, DocTypeId, PrintLocation, RcptAddressTypes, PDFFileSize, IsEDeliveryRequested, IsFallBackRequested, ExpiryDate, RcptEmailId, PrintTrailId, Inserts, TotalBlankPages, BlankPageNumbers, ReturnTrackingNo) Output Inserted.Id VALUES (@ClientId, @UniqueId,@PnSConfigDetailId, @MailBatchId, @PrintBatchId, SUBSTRING(@BusinessFriendlyIdName,1,255), SUBSTRING(@BusinessFriendlyIdValue,1,255), SUBSTRING(@FileName,1,255), @FilePattern, SUBSTRING(@DocumentOrPackageType,1,255), @DueDate, @ShippingStatus, @IsRcptInfoSpecified, SUBSTRING(@RcptPrefix,1,255), SUBSTRING(@RcptFirstName,1,255), SUBSTRING(@RcptMiddleName,1,255), SUBSTRING(@RcptLastName,1,255), SUBSTRING(@RcptSuffix,1,255), SUBSTRING(@RcptPhone,1,255), SUBSTRING(@RcptOrganization,1,255), @CoRcptPrefix, @CoRcptFirstName, @CoRcptMiddleName, @CoRcptLastName, @CoRcptSuffix, @CoRcptPhone, @CoRcptOrganization, SUBSTRING(@RcptAddrOptionalLine1AboveStreet,1,255), SUBSTRING(@RcptAddrOptionalLine2AboveStreet,1,255), SUBSTRING(@RcptAddressStreet,1,255), SUBSTRING(@RcptAddressAptOrSuiteOrOther,1,255), SUBSTRING(@RcptAddrOptionalLine1BelowStreet,1,255), SUBSTRING(@RcptAddrOptionalLine2BelowStreet,1,255), SUBSTRING(@RcptAddressCity,1,255), SUBSTRING(@RcptAddressState,1,255), SUBSTRING(@RcptAddressZIP,1,255), SUBSTRING(@RcptAddressCountry,1,255), @IsReturnInfoSpecified, SUBSTRING(@RetRcptPrefix,1,255), SUBSTRING(@RetRcptFirstName,1,255), SUBSTRING(@RetRcptMiddleName,1,255), SUBSTRING(@RetRcptLastName,1,255), SUBSTRING(@RetRcptSuffix,1,255), SUBSTRING(@RetRcptPhone,1,255), SUBSTRING(@RetRcptOrganization,1,255), SUBSTRING(@RetRcptAddrOptionalLine1AboveStreet,1,255), SUBSTRING(@RetRcptAddrOptionalLine2AboveStreet,1,255), SUBSTRING(@RetRcptAddressStreet,1,255), SUBSTRING(@RetRcptAddressAptOrSuiteOrOther,1,255), SUBSTRING(@RetRcptAddrOptionalLine1BelowStreet,1,255), SUBSTRING(@RetRcptAddrOptionalLine2BelowStreet,1,255), SUBSTRING(@RetRcptAddressCity,1,255), SUBSTRING(@RetRcptAddressState,1,255), SUBSTRING(@RetRcptAddressZIP,1,255), SUBSTRING(@RetRcptAddressCountry,1,255), 0, 0, @ErrorCode, @ErrorDesc, @TrackingNo, @PullBackRequestedOn, @PulledBackOn, @PrintedOn, @ShippedOn, @ShippingCost, @Weight, @IsQCRequested, @IsQCPerformed, @DocTypeId, @PrintLocation, @RcptAddressTypes, @PDFFileSize, @IsEDeliveryRequested, @IsFallBackRequested, @ExpiryDate, SUBSTRING(@RcptEmailId,1,255), @PrintTrailId, @Inserts,@TotalBlankPages,@BlankPageNumbers , @ReturnTrackingNo)";
+            string query = "INSERT INTO [AM].[MailPieces](ClientId, UniqueId, PnSConfigDetailId, MailBatchId, PrintBatchId, BusinessFriendlyIdName, BusinessFriendlyIdValue, FileName, FilePattern, DocumentOrPackageType, DueDate, ShippingStatus, IsRcptInfoSpecified, RcptPrefix, RcptFirstName, RcptMiddleName, RcptLastName, RcptSuffix, RcptPhone, RcptOrganization, CoRcptPrefix, CoRcptFirstName, CoRcptMiddleName, CoRcptLastName, CoRcptSuffix, CoRcptPhone, CoRcptOrganization, RcptAddrOptionalLine1AboveStreet, RcptAddrOptionalLine2AboveStreet, RcptAddressStreet, RcptAddressAptOrSuiteOrOther, RcptAddrOptionalLine1BelowStreet, RcptAddrOptionalLine2BelowStreet, RcptAddressCity, RcptAddressState, RcptAddressZIP, RcptAddressCountry, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP,RetRcptAddressCountry, TotalPages, TotalSheets, ErrorCode, ErrorDesc, TrackingNo, PullBackRequestedOn, PulledBackOn,PrintedOn, ShippedOn, ShippingCost, Weight, IsQCRequested, IsQCPerformed, DocTypeId, PrintLocation, RcptAddressTypes, PDFFileSize, IsEDeliveryRequested, IsFallBackRequested, ExpiryDate, RcptEmailId, PrintTrailId, Inserts, TotalBlankPages, BlankPageNumbers, ReturnTrackingNo, IsESignRequested) Output Inserted.Id VALUES (@ClientId, @UniqueId,@PnSConfigDetailId, @MailBatchId, @PrintBatchId, SUBSTRING(@BusinessFriendlyIdName,1,255), SUBSTRING(@BusinessFriendlyIdValue,1,255), SUBSTRING(@FileName,1,255), @FilePattern, SUBSTRING(@DocumentOrPackageType,1,255), @DueDate, @ShippingStatus, @IsRcptInfoSpecified, SUBSTRING(@RcptPrefix,1,255), SUBSTRING(@RcptFirstName,1,255), SUBSTRING(@RcptMiddleName,1,255), SUBSTRING(@RcptLastName,1,255), SUBSTRING(@RcptSuffix,1,255), SUBSTRING(@RcptPhone,1,255), SUBSTRING(@RcptOrganization,1,255), @CoRcptPrefix, @CoRcptFirstName, @CoRcptMiddleName, @CoRcptLastName, @CoRcptSuffix, @CoRcptPhone, @CoRcptOrganization, SUBSTRING(@RcptAddrOptionalLine1AboveStreet,1,255), SUBSTRING(@RcptAddrOptionalLine2AboveStreet,1,255), SUBSTRING(@RcptAddressStreet,1,255), SUBSTRING(@RcptAddressAptOrSuiteOrOther,1,255), SUBSTRING(@RcptAddrOptionalLine1BelowStreet,1,255), SUBSTRING(@RcptAddrOptionalLine2BelowStreet,1,255), SUBSTRING(@RcptAddressCity,1,255), SUBSTRING(@RcptAddressState,1,255), SUBSTRING(@RcptAddressZIP,1,255), SUBSTRING(@RcptAddressCountry,1,255), @IsReturnInfoSpecified, SUBSTRING(@RetRcptPrefix,1,255), SUBSTRING(@RetRcptFirstName,1,255), SUBSTRING(@RetRcptMiddleName,1,255), SUBSTRING(@RetRcptLastName,1,255), SUBSTRING(@RetRcptSuffix,1,255), SUBSTRING(@RetRcptPhone,1,255), SUBSTRING(@RetRcptOrganization,1,255), SUBSTRING(@RetRcptAddrOptionalLine1AboveStreet,1,255), SUBSTRING(@RetRcptAddrOptionalLine2AboveStreet,1,255), SUBSTRING(@RetRcptAddressStreet,1,255), SUBSTRING(@RetRcptAddressAptOrSuiteOrOther,1,255), SUBSTRING(@RetRcptAddrOptionalLine1BelowStreet,1,255), SUBSTRING(@RetRcptAddrOptionalLine2BelowStreet,1,255), SUBSTRING(@RetRcptAddressCity,1,255), SUBSTRING(@RetRcptAddressState,1,255), SUBSTRING(@RetRcptAddressZIP,1,255), SUBSTRING(@RetRcptAddressCountry,1,255), 0, 0, @ErrorCode, @ErrorDesc, @TrackingNo, @PullBackRequestedOn, @PulledBackOn, @PrintedOn, @ShippedOn, @ShippingCost, @Weight, @IsQCRequested, @IsQCPerformed, @DocTypeId, @PrintLocation, @RcptAddressTypes, @PDFFileSize, @IsEDeliveryRequested, @IsFallBackRequested, @ExpiryDate, SUBSTRING(@RcptEmailId,1,255), @PrintTrailId, @Inserts,@TotalBlankPages,@BlankPageNumbers , @ReturnTrackingNo, @IsESignRequested)";
 
             int mailPieceId = db.ExecuteScalar<int>(query, mailPiece);
 
@@ -57,6 +84,22 @@ namespace AM.Services
             {
                 InsertMailPieceEDeliveryDetails(mailPiece, receivedOn, downloadedOn);
             }
+
+            return mailPieceId;
+        }
+
+        public int InsertBatchMailPieceDetails(MailPieceDTO mailPiece, List<MailPieceCustomInfo> mailPieceCustomInfo, bool isReshipped)
+        {
+            string query = "INSERT INTO [AM].[MailPieces]([UniqueId], [ClientId], [MailBatchId], [BusinessFriendlyIdName], [BusinessFriendlyIdValue], [FileName], [FilePattern], [DocumentOrPackageType], [DueDate], [ShippingStatus], [IsRcptInfoSpecified], [RcptPrefix], [RcptFirstName], [RcptMiddleName], [RcptLastName], [RcptSuffix], [RcptPhone], [RcptOrganization], [CoRcptPrefix], [CoRcptFirstName], [CoRcptMiddleName], [CoRcptLastName], [CoRcptSuffix], [CoRcptPhone], [CoRcptOrganization], [RcptAddrOptionalLine1AboveStreet], [RcptAddrOptionalLine2AboveStreet], [RcptAddressStreet], [RcptAddressAptOrSuiteOrOther], [RcptAddrOptionalLine1BelowStreet], [RcptAddrOptionalLine2BelowStreet], [RcptAddressCity], [RcptAddressState], [RcptAddressZIP], [IsReturnInfoSpecified], [RetRcptPrefix], [RetRcptFirstName], [RetRcptMiddleName], [RetRcptLastName], [RetRcptSuffix], [RetRcptPhone], [RetRcptOrganization], [RetRcptAddrOptionalLine1AboveStreet], [RetRcptAddrOptionalLine2AboveStreet], [RetRcptAddressStreet], [RetRcptAddressAptOrSuiteOrOther], [RetRcptAddrOptionalLine1BelowStreet], [RetRcptAddrOptionalLine2BelowStreet], [RetRcptAddressCity], [RetRcptAddressState], [RetRcptAddressZIP], [ErrorCode], [ErrorDesc], [IsQCRequested], [IsQCPerformed], [DocTypeId], [PrintLocation], [EffectiveReceivedOnEst], [RcptAddressTypes], [StdSubmissionTime], [MaxSubmissionTime], [PrintTrailId], [PDFFileSize], [RcptAddressCountry], [RetRcptAddressCountry], [IsEDeliveryRequested], [IsFallBackRequested], [RcptEmailId], [ExpiryDate], [PnSConfigDetailId], [Inserts], [TotalBlankPages], [BlankPageNumbers], [ShipperId]) Output Inserted.Id VALUES ( @UniqueId, @ClientId, @MailBatchId, SUBSTRING(@BusinessFriendlyIdName,1,255), SUBSTRING(@BusinessFriendlyIdValue,1,255), @FileName, @FilePattern, SUBSTRING(@DocumentOrPackageType,1,255), @DueDate, @ShippingStatus, @IsRcptInfoSpecified, SUBSTRING(@RcptPrefix,1,255), SUBSTRING(@RcptFirstName,1,255), SUBSTRING(@RcptMiddleName,1,255), SUBSTRING(@RcptLastName,1,255), SUBSTRING(@RcptSuffix,1,255), SUBSTRING(@RcptPhone,1,255), SUBSTRING(@RcptOrganization,1,255), SUBSTRING(@CoRcptPrefix,1,255), SUBSTRING(@CoRcptFirstName,1,255), SUBSTRING(@CoRcptMiddleName,1,255), SUBSTRING(@CoRcptLastName,1,255), SUBSTRING(@CoRcptSuffix,1,255), SUBSTRING(@CoRcptPhone,1,255), SUBSTRING(@CoRcptOrganization,1,255), SUBSTRING(@RcptAddrOptionalLine1AboveStreet,1,255), SUBSTRING(@RcptAddrOptionalLine2AboveStreet,1,255), SUBSTRING(@RcptAddressStreet,1,255), SUBSTRING(@RcptAddressAptOrSuiteOrOther,1,255), SUBSTRING(@RcptAddrOptionalLine1BelowStreet,1,255), SUBSTRING(@RcptAddrOptionalLine2BelowStreet,1,255), SUBSTRING(@RcptAddressCity,1,255), SUBSTRING(@RcptAddressState,1,255), SUBSTRING(@RcptAddressZIP,1,255), @IsReturnInfoSpecified, SUBSTRING(@RetRcptPrefix,1,255), SUBSTRING(@RetRcptFirstName,1,255), SUBSTRING(@RetRcptMiddleName,1,255), SUBSTRING(@RetRcptLastName,1,255), SUBSTRING(@RetRcptSuffix,1,255), SUBSTRING(@RetRcptPhone,1,255), SUBSTRING(@RetRcptOrganization,1,255), SUBSTRING(@RetRcptAddrOptionalLine1AboveStreet,1,255), SUBSTRING(@RetRcptAddrOptionalLine2AboveStreet,1,255), SUBSTRING(@RetRcptAddressStreet,1,255), SUBSTRING(@RetRcptAddressAptOrSuiteOrOther,1,255), SUBSTRING(@RetRcptAddrOptionalLine1BelowStreet,1,255), SUBSTRING(@RetRcptAddrOptionalLine2BelowStreet,1,255), SUBSTRING(@RetRcptAddressCity,1,255), SUBSTRING(@RetRcptAddressState,1,255), SUBSTRING(@RetRcptAddressZIP,1,255), @ErrorCode, @ErrorDesc, @IsQCRequested, @IsQCPerformed, @DocTypeId, @PrintLocation, @EffectiveReceivedOnEst, @RcptAddressTypes, @StdSubmissionTime, @MaxSubmissionTime, @PrintTrailId, @PDFFileSize, @RcptAddressCountry, @RetRcptAddressCountry, @IsEDeliveryRequested, @IsFallBackRequested, SUBSTRING(@RcptEmailId, @ExpiryDate, @PnSConfigDetailId, @Inserts, @TotalBlankPages, @BlankPageNumbers, @ShipperId )";
+
+            int mailPieceId = db.ExecuteScalar<int>(query, mailPiece);
+
+            mailPieceCustomInfo.ForEach(c =>
+            {
+                c.MailPieceId = mailPieceId;
+            });
+
+            InsertBatchMailPieceCustomDetails(mailPieceCustomInfo);
 
             return mailPieceId;
         }
@@ -91,7 +134,7 @@ namespace AM.Services
 
         public int UpdateBatchMailPieceDetails(MailPieceDTO mailPiece)
         {
-            string query = @"UPDATE [AM].[MailPieces] SET [DocTypeId] = @DocTypeId,[PnSConfigDetailId] = @PnSConfigDetailId, [EffectiveReceivedOnEst] = @EffectiveReceivedOnEst, RcptAddressTypes=@RcptAddressTypes, [DueDate] = @DueDate,[ShippingStatus] = @ShippingStatus,[TotalPages] = @TotalPages,[TotalSheets] = @TotalSheets,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[TrackingNo] = @TrackingNo,[PrintLocation] = @PrintLocation, [StdSubmissionTime] = @StdSubmissionTime, [MaxSubmissionTime] = @MaxSubmissionTime, [PrintTrailId] = @PrintTrailId, [RetRcptFirstName]= @RetRcptFirstName, [RetRcptLastName]= @RetRcptLastName, [RetRcptPhone] = @RetRcptPhone, [RetRcptAddressStreet] = @RetRcptAddressStreet, [RetRcptAddrOptionalLine1BelowStreet] = @RetRcptAddrOptionalLine1BelowStreet, [RetRcptAddressCity] = @RetRcptAddressCity, [RetRcptAddressState] = @RetRcptAddressState, [RetRcptAddressZIP] = @RetRcptAddressZIP, [RetRcptAddressCountry] = @RetRcptAddressCountry, [ShippingCost] = @ShippingCost, [ShipperId] = @ShipperId, [Inserts] = @Inserts WHERE Id=@Id";
+            string query = @"UPDATE [AM].[MailPieces] SET [DocTypeId] = @DocTypeId,[PnSConfigDetailId] = @PnSConfigDetailId, [EffectiveReceivedOnEst] = @EffectiveReceivedOnEst, RcptAddressTypes=@RcptAddressTypes, [DueDate] = @DueDate,[ShippingStatus] = @ShippingStatus,[TotalPages] = @TotalPages,[TotalSheets] = @TotalSheets,[ErrorCode] = @ErrorCode,[ErrorDesc] = @ErrorDesc,[TrackingNo] = @TrackingNo, [ReturnTrackingNo] = ISNULL(@ReturnTrackingNo,ReturnTrackingNo), [PrintLocation] = @PrintLocation, [StdSubmissionTime] = @StdSubmissionTime, [MaxSubmissionTime] = @MaxSubmissionTime, [PrintTrailId] = @PrintTrailId, [RetRcptFirstName]= @RetRcptFirstName, [RetRcptLastName]= @RetRcptLastName, [RetRcptPhone] = @RetRcptPhone, [RetRcptAddressStreet] = @RetRcptAddressStreet, [RetRcptAddrOptionalLine1BelowStreet] = @RetRcptAddrOptionalLine1BelowStreet, [RetRcptAddressCity] = @RetRcptAddressCity, [RetRcptAddressState] = @RetRcptAddressState, [RetRcptAddressZIP] = @RetRcptAddressZIP, [RetRcptAddressCountry] = @RetRcptAddressCountry, [ShippingCost] = @ShippingCost, [ShipperId] = @ShipperId, [Inserts] = @Inserts, [UsedEnvelopeId] = @UsedEnvelopeId, IsEDeliveryRequested = @IsEDeliveryRequested, IsESignRequested = @IsESignRequested WHERE Id=@Id";
 
             return db.Execute(query, mailPiece);
         }
@@ -134,7 +177,7 @@ namespace AM.Services
             else
             {
                 query = @"UPDATE [AM].[MailPieces] SET [ShipmentStatus] = @ShipmentStatus,[ShipmentStatusUpdatedOn]=@jobRunTime, DeliveryStatus = @DeliveryStatus, DeliveryDate = @DeliveryDate WHERE Id = (SELECT TOP 1 Id FROM [AM].[MailPieces] WHERE [TrackingNo] = @TrackingNo ORDER BY EffectiveReceivedOnEst DESC)";
-            }             
+            }
 
             return db.ExecuteScalar<int>(query, new { ShipmentStatus = shipmentStatus, TrackingNo = trackingNo, jobRunTime, DeliveryStatus = deliveryStatus, DeliveryDate = deliveryDate });
         }
@@ -146,11 +189,11 @@ namespace AM.Services
             return db.ExecuteScalar<MailPieceDTO>(query, trackingNo);
         }
 
-        public List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string batchName)
+        public List<DallasMailPieceData> GetDallasMailPiecesByTimingsAndClient(string batchName, DateTime currentDate)
         {
             string query = @"SELECT * FROM [dbo].[ufn_GetDallasBatchDetails](@EstDate) WHERE BatchName=@BatchName";
 
-            return db.Query<DallasMailPieceData>(query, new { BatchName = batchName, EstDate = Common.EstToday }).ToList();
+            return db.Query<DallasMailPieceData>(query, new { BatchName = batchName, EstDate = currentDate }).ToList();
         }
 
         public BatchSummary GetBatchSummaryDetailByUniqueId(Guid uniqueId)
@@ -169,7 +212,7 @@ namespace AM.Services
 
         public async Task<int> InsertBatchMailPieceDetails(MailPiece mailPiece, int clientId, int mailBatchId, string errorCode, string errorDesc)
         {
-            string query = "INSERT INTO [AM].[MailPieces](ClientId, UniqueId, MailBatchId,BusinessFriendlyIdName, BusinessFriendlyIdValue, FileName,Inserts, DocumentOrPackageType, ShippingStatus, RcptPrefix, RcptFirstName, RcptMiddleName, RcptLastName, RcptSuffix, RcptPhone, RcptOrganization, RcptAddrOptionalLine1AboveStreet, RcptAddrOptionalLine2AboveStreet, RcptAddressStreet,RcptAddressAptOrSuiteOrOther, RcptAddrOptionalLine1BelowStreet, RcptAddrOptionalLine2BelowStreet, RcptAddressCity, RcptAddressState, RcptAddressZIP, RcptAddressCountry, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP,RetRcptAddressCountry,TotalPages, TotalSheets, ErrorCode, ErrorDesc,RcptEmailId,PullBackRequestedOn, PulledBackOn,PrintedOn, ShippedOn,PickedUpOn) Output Inserted.Id VALUES (@ClientId, @UniqueId,@MailBatchId, @BusinessFriendlyIdName, @BusinessFriendlyIdValue, @FileName,@Inserts, @DocumentOrPackageType,@ShippingStatus, @RcptPrefix, @RcptFirstName, @RcptMiddleName, @RcptLastName, @RcptSuffix, @RcptPhone, @RcptOrganization,@RcptAddrOptionalLine1AboveStreet, @RcptAddrOptionalLine2AboveStreet, @RcptAddressStreet,@RcptAddressAptOrSuiteOrOther, @RcptAddrOptionalLine1BelowStreet, @RcptAddrOptionalLine2BelowStreet, @RcptAddressCity, @RcptAddressState, @RcptAddressZIP, @RcptAddressCountry, @RetRcptPrefix, @RetRcptFirstName, @RetRcptMiddleName, @RetRcptLastName, @RetRcptSuffix, @RetRcptPhone, @RetRcptOrganization, @RetRcptAddrOptionalLine1AboveStreet, @RetRcptAddrOptionalLine2AboveStreet, @RetRcptAddressStreet, @RetRcptAddressAptOrSuiteOrOther, @RetRcptAddrOptionalLine1BelowStreet, @RetRcptAddrOptionalLine2BelowStreet, @RetRcptAddressCity, @RetRcptAddressState, @RetRcptAddressZIP, @RetRcptAddressCountry, 0, 0,@ErrorCode, @ErrorDesc,@RcptEmailId,@PullBackRequestedOn, @PulledBackOn,@PrintedOn, @ShippedOn,@PickedUpOn)";
+            string query = "INSERT INTO [AM].[MailPieces](ClientId, UniqueId, MailBatchId,BusinessFriendlyIdName, BusinessFriendlyIdValue, FileName,Inserts, DocumentOrPackageType, ShippingStatus, RcptPrefix, RcptFirstName, RcptMiddleName, RcptLastName, RcptSuffix, RcptPhone, RcptOrganization, RcptAddrOptionalLine1AboveStreet, RcptAddrOptionalLine2AboveStreet, RcptAddressStreet,RcptAddressAptOrSuiteOrOther, RcptAddrOptionalLine1BelowStreet, RcptAddrOptionalLine2BelowStreet, RcptAddressCity, RcptAddressState, RcptAddressZIP, RcptAddressCountry, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP,RetRcptAddressCountry,TotalPages, TotalSheets, ErrorCode, ErrorDesc,RcptEmailId,PullBackRequestedOn, PulledBackOn,PrintedOn, ShippedOn,PickedUpOn,EffectiveReceivedOnEst) Output Inserted.Id VALUES (@ClientId, @UniqueId,@MailBatchId, @BusinessFriendlyIdName, @BusinessFriendlyIdValue, @FileName,@Inserts, @DocumentOrPackageType,@ShippingStatus, @RcptPrefix, @RcptFirstName, @RcptMiddleName, @RcptLastName, @RcptSuffix, @RcptPhone, @RcptOrganization,@RcptAddrOptionalLine1AboveStreet, @RcptAddrOptionalLine2AboveStreet, @RcptAddressStreet,@RcptAddressAptOrSuiteOrOther, @RcptAddrOptionalLine1BelowStreet, @RcptAddrOptionalLine2BelowStreet, @RcptAddressCity, @RcptAddressState, @RcptAddressZIP, @RcptAddressCountry, @RetRcptPrefix, @RetRcptFirstName, @RetRcptMiddleName, @RetRcptLastName, @RetRcptSuffix, @RetRcptPhone, @RetRcptOrganization, @RetRcptAddrOptionalLine1AboveStreet, @RetRcptAddrOptionalLine2AboveStreet, @RetRcptAddressStreet, @RetRcptAddressAptOrSuiteOrOther, @RetRcptAddrOptionalLine1BelowStreet, @RetRcptAddrOptionalLine2BelowStreet, @RetRcptAddressCity, @RetRcptAddressState, @RetRcptAddressZIP, @RetRcptAddressCountry, 0, 0,@ErrorCode, @ErrorDesc,@RcptEmailId,@PullBackRequestedOn, @PulledBackOn,@PrintedOn, @ShippedOn,@PickedUpOn,@EffectiveReceivedOnEst)";
 
             Guid mpId;
             if (errorCode == OutComeCodes.Invalid_DuplicateKey)
@@ -233,7 +276,8 @@ namespace AM.Services
                 PulledBackOn = (DateTime?)null,
                 PrintedOn = (DateTime?)null,
                 ShippedOn = (DateTime?)null,
-                PickedUpOn = (DateTime?)null
+                PickedUpOn = (DateTime?)null,
+                EffectiveReceivedOnEst = mailPiece?.EffectiveReceivedOnEst == null ? (DateTime?)null : mailPiece?.EffectiveReceivedOnEst
             });
 
             if (mailPiece.CustomInfo != null)
@@ -281,14 +325,30 @@ namespace AM.Services
 
         public BatchResponse GetMailPieceDetailsByMailPieceUniqueId(string uniqueId)
         {
-            string query = @"SELECT MP.*,MB.ReceivedOn,CC.AppCode,D.ShippingCarrier,D.ShippingServiceType from AM.MailPieces MP 
-inner join AM.MailBatches MB ON MP.MailBatchId = MB.Id
-inner join Common.Clients CC ON MP.ClientId = CC.Id
-left outer join [dbo].[v_DocTypes] D ON MP.DocTypeId=D.Id and MP.PnSConfigDetailId = D.PnSConfigDetailId
-where MP.UniqueId = @UniqueId
-";
+            string query = string.Format(apiResponseQuery, "MP.UniqueId = @UniqueId");
 
-            return db.QuerySingleOrDefault<BatchResponse>(query, new { UniqueId = uniqueId });
+            var mailPieceDictionary = new Dictionary<int, BatchResponse>();
+
+            var data = db.Query<BatchResponse, MailPieceCustomInfo, BatchResponse>(query,
+            (m, c) =>
+            {
+                BatchResponse mp;
+
+                if (!mailPieceDictionary.TryGetValue(m.Id, out mp))
+                {
+                    mp = m;
+                    mp.MailPieceCustomInfo = new List<MailPieceCustomInfo>();
+                    mailPieceDictionary.Add(mp.Id, mp);
+                }
+
+                mp.MailPieceCustomInfo.Add(c);
+                return mp;
+            },
+            new
+            {
+                UniqueId = uniqueId
+            }, splitOn: "Id,MailPieceId").Distinct().ToList();
+            return data.SingleOrDefault();
         }
 
         public List<MBInfo> GetReportedBackRecordsFromUATBridge()
@@ -353,18 +413,53 @@ where MP.UniqueId = @UniqueId
             return invalidInserts;
         }
 
-        public Task<IEnumerable<BatchResponse>> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId)
+        public Task<IEnumerable<BatchResponse>> GetMailPieceResponsesListForReportPreppedBatches(int sftChannelId, string serverIP)
         {
-            string query = @"SELECT MP.*,MB.ReceivedOn,CC.AppCode,PCD.ShippingCarrier,PCD.ShippingServiceType from AM.MailPieces MP
-inner join AM.MailBatches MB ON MP.MailBatchId = MB.Id
-inner join Common.Clients CC ON MP.ClientId = CC.Id
-left outer join [AM].[DocTypes] D ON MP.DocTypeId=D.Id 
-left outer join [Common].[PnSConfigDetail] PCD ON MP.PnSConfigDetailId = PCD.Id
-where MB.PipelineStatus=@PipelineStatus AND IsReportPrepped=1 AND IsReportedBack=0 AND MB.SFTChannelId=@SFTChannelId
-";
+            string query = string.Format(apiResponseQuery, " MailBatchId IN (SELECT Id FROM AM.MailBatches MB WHERE MB.SFTChannelId=@SFTChannelId AND MB.PipelineStatus= @PipelineStatus AND MB.IsReportPrepped=1 AND MB.IsReportedBack=0 AND MB.ServerIP = @serverIP AND (MB.IsReshippedBatch=0 OR MB.IsReshippedBatch IS NULL))");
 
-            return db.QueryAsync<BatchResponse>(query, new { SFTChannelId = sftChannelId, PipelineStatus = BatchPipelineStatus.ReportPrepped });
+            var mailPieceDictionary = new Dictionary<int, BatchResponse>();
 
+            var data = db.QueryAsync<BatchResponse, MailPieceCustomInfo, BatchResponse>(query,
+            (m, c) =>
+            {
+                BatchResponse mp;
+
+                if (!mailPieceDictionary.TryGetValue(m.Id, out mp))
+                {
+                    mp = m;
+                    mp.MailPieceCustomInfo = new List<MailPieceCustomInfo>();
+                    mailPieceDictionary.Add(mp.Id, mp);
+                }
+
+                mp.MailPieceCustomInfo.Add(c);
+                return mp;
+            },
+            new { SFTChannelId = sftChannelId, PipelineStatus = BatchPipelineStatus.ReportPrepped, serverIP }, splitOn: "Id,MailPieceId");
+            return data;
+        }
+
+        public bool IsDuplicateRecord(MailPieceDTO mailPiece)
+        {
+            string query = @"SELECT CAST(CASE WHEN (SELECT COUNT(*) FROM [AM].[MailPieces] WHERE ShippingStatus NOT IN ('Error','PulledBack') AND ClientId = @ClientId AND ISNULL(RcptFirstName,'') = ISNULL(@RcptFirstName,'') AND ISNULL(RcptLastName,'') = ISNULL(@RcptLastName,'') AND ISNULL(RcptAddressStreet,'') = ISNULL(@RcptAddressStreet,'') AND ISNULL(RcptAddressCity,'') = ISNULL(@RcptAddressCity,'') AND ISNULL(RcptAddressState,'') = ISNULL(@RcptAddressState,'') AND ISNULL(RcptAddressZIP,'') = ISNULL(@RcptAddressZIP,'') AND BusinessFriendlyIdValue = @BusinessFriendlyIdValue AND [FileName] = @FileName AND DocumentOrPackageType = @DocumentOrPackageType AND CAST(EffectiveReceivedOnEst AS DATE) BETWEEN DATEADD(DAY,-5,CAST(@EffectiveReceivedOnEst AS DATE)) AND CAST(@EffectiveReceivedOnEst AS DATE)) > 1 THEN 1 ELSE 0 END AS BIT)";
+
+            return db.ExecuteScalar<bool>(query, mailPiece);
+        }
+
+        public bool IsDuplicateRecord(MailPiece mailPiece)
+        {
+            string query = @"SELECT CAST(CASE WHEN (SELECT COUNT(*) FROM [AM].[MailPieces] WHERE ShippingStatus NOT IN ('Error','PulledBack') AND ClientId = (select Id from Common.Clients where AppCode = @ClientCode) AND RcptFirstName = @FirstName AND RcptLastName = @LastName AND RcptAddressStreet = @Street AND RcptAddressCity = @City AND RcptAddressState = @State AND RcptAddressZIP = @Zip AND BusinessFriendlyIdValue = @BusinessFriendlyIdValue AND [FileName] = @FileName AND DocumentOrPackageType = @DocumentOrPackageType AND CAST(EffectiveReceivedOnEst AS DATE) BETWEEN DATEADD(DAY,-5,CAST(@EffectiveReceivedOnEst AS DATE)) AND CAST(@EffectiveReceivedOnEst AS DATE)) > 1 THEN 1 ELSE 0 END AS BIT)";
+
+            return db.ExecuteScalar<bool>(query, new { ClientCode = mailPiece.ClientCode, FirstName = mailPiece.RecipientInfo.Recipient.FirstName, LastName = mailPiece.RecipientInfo.Recipient.LastName, Street = mailPiece.RecipientInfo.Address.Street, City = mailPiece.RecipientInfo.Address.City, State = mailPiece.RecipientInfo.Address.State, Zip = mailPiece.RecipientInfo.Address.Zip, BusinessFriendlyIdValue = mailPiece.BusinessFriendlyIdValue, FileName = mailPiece.DocumentOrPackage.Name, DocumentOrPackageType = mailPiece.DocumentOrPackageType, EffectiveReceivedOnEst = Common.Now.UtcToEst() });
+        }
+
+        public int InsertSPELogInfo(SPELogInfo logInfo)
+        {
+            return db.ExecuteScalar<int>("INSERT INTO AM.SPELogs(Id,ClientId,CreatedBy,CreatedOn,Status,ErrorDesc)VALUES(@Id,@ClientId,@CreatedBy,@CreatedOn,@Status,@ErrorDesc)", new { Id = logInfo.Id == null || logInfo.Id == Guid.Empty ? Guid.NewGuid() : logInfo.Id, logInfo.ClientId, logInfo.CreatedBy, logInfo.CreatedOn, logInfo.Status, logInfo.ErrorDesc });
+        }
+
+        public int UpdateSPELogInfo(SPELogInfo logInfo)
+        {
+            return db.ExecuteScalar<int>("UPDATE AM.SPELogs SET Status = @Status,ErrorDesc = @ErrorDesc WHERE Id=@Id", new { logInfo.Id, logInfo.Status, logInfo.ErrorDesc });
         }
     }
 }

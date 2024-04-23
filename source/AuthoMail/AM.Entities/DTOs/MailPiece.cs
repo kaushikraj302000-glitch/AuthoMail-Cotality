@@ -98,6 +98,7 @@ namespace AM.Entities
         public int? PrintTrailId { get; set; }
         public Int64? PDFFileSize { get; set; }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
         public bool IsFallBackRequested { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public bool IsPrintReady { get; set; }
@@ -111,6 +112,10 @@ namespace AM.Entities
         public string ReturnTrackingNo { get; set; }
         public string ReturnDeliveryStatus { get; set; }
         public DateTime? ReturnDeliveryDate { get; set; }
+        public Client Client { get; set; }
+        public MailBatchDTO MailBatch { get; set; }
+        public DocType DocType { get; set; }
+        public int UsedEnvelopeId { get; set; }
     }
 
     public class MailPieceCustomInfo
@@ -165,6 +170,16 @@ namespace AM.Entities
         public string AppCode { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
+    }
+
+    public class SPELogInfo
+    {
+        public Guid Id { get; set; }
+        public int ClientId { get; set; }
+        public Guid CreatedBy { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public string Status { get; set; }
+        public string ErrorDesc { get; set; }
     }
 
     public class MBInfo

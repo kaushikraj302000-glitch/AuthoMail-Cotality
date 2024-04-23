@@ -25,19 +25,21 @@ namespace AM.Services
         {
             date = date.Date + new TimeSpan(20, 00, 00);// : date.Date + new TimeSpan(20, 15, 00);
             date = date.EstToUtc();
-            string query = @"select bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode as ClientCode,d.DocTypeName as DocTypeCode,m.IsEDeliveryRequested, d.ShippingCarrier,d.ShippingServiceType,Count(m.Id) as TotalPackages,Sum(m.TotalPages) as TotalPages 
-from PnS.MRDFRequest rq inner join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch 
-left outer join Common.Clients c on bs.ClientId=c.Id 
-left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
-left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.PnSConfigDetailId
-left outer join AM.MailPieces m on rq.UniqueId=m.UniqueId 
-where bs.PrintLocation=ISNULL(@printLocation,bs.PrintLocation) and bs.PipelineStatus not in ('ReportedBack','Cancelled') and bs.SubmittedOn <= @date 
-group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode,d.DocTypeName, d.ShippingCarrier,d.ShippingServiceType";
+            string query = @"SELECT PTB.Id AS BatchId,SI.PrintLocation,SI.PrintVendorName,PTB.SubmittedOn,PTB.PrintBatchName,C.AppCode,P.DocumentOrPackageType, PCD.ShippingCarrier,PCD.ShippingServiceType, COUNT(*) AS TotalPackages, SUM(P.TotalPages) AS TotalPages
+FROM AM.MailPieces P
+INNER JOIN PnS.MRDFRequest REQ ON P.UniqueId=REQ.UniqueId
+INNER JOIN PnS.PrintTrailBatches PTB ON REQ.PrintTrailBatchId=PTB.Id
+INNER JOIN Common.ShipperInformation SI ON PTB.ShipperId=SI.Id
+INNER JOIN Common.Clients C ON P.ClientId=C.Id
+INNER JOIN Common.PnSConfigDetail PCD ON P.PnSConfigDetailId=PCD.Id
+WHERE PTB.SubmittedOn <= @date AND PTB.IsMRDFReceived<>1 AND SI.PrintVendorCode = ISNULL(@printLocation,SI.PrintVendorCode)
+GROUP BY PTB.Id,SI.PrintLocation,SI.PrintVendorName,PTB.SubmittedOn,PTB.PrintBatchName,C.AppCode,P.DocumentOrPackageType, PCD.ShippingCarrier,PCD.ShippingServiceType
+ORDER BY PTB.Id";
             return db.Query<NotReportedBackMailPieces>(query,
                 new
                 {
                     //ClientId = clientId,
-                    PrintLocation = printLocation,
+                    PrintLocation = string.IsNullOrWhiteSpace(printLocation) ? null : printLocation,
                     date = date
                 }).ToList();
         }
@@ -54,7 +56,7 @@ group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileNa
         {
             date = clientId != 104 ? date.Date + new TimeSpan(20, 00, 00) : date.Date + new TimeSpan(20, 15, 00);
             date = date.EstToUtc();
-            string query = "select bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode as ClientCode,d.DocTypeName as DocTypeCode, d.ShippingCarrier,d.ShippingServiceType,Count(m.Id) as TotalPackages,Sum(m.TotalPages) as TotalPages from PnS.MRDFRequest rq inner join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch inner join Common.Clients c on bs.ClientId=c.Id inner join [AM].[DocTypes] d ON bs.DocTypeId=d.Id inner join Common.PnSConfigDetail pcd ON bs.PnSConfigDetailId = pcd.PnSConfigDetailId inner join AM.MailPieces m on rq.UniqueId=m.UniqueId where c.Id=@clientId and bs.SubmittedOn <= @date group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode,d.DocTypeName, d.ShippingCarrier,d.ShippingServiceType";
+            string query = "select bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode as ClientCode,d.DocTypeName as DocTypeCode, pcd.ShippingCarrier,pcd.ShippingServiceType,Count(m.Id) as TotalPackages,Sum(m.TotalPages) as TotalPages from PnS.MRDFRequest rq inner join PnS.BatchSummary bs on rq.JobId=bs.PrintBatch inner join Common.Clients c on bs.ClientId=c.Id inner join [AM].[DocTypes] d ON bs.DocTypeId=d.Id inner join Common.PnSConfigDetail pcd ON bs.PnSConfigDetailId = pcd.Id inner join AM.MailPieces m on rq.UniqueId=m.UniqueId where c.Id=@clientId and bs.SubmittedOn <= @date group by bs.PrintBatch,bs.PrintLocation,bs.SubmittedOn,bs.JobName,bs.PrintFileName,bs.PipelineStatus, c.AppCode,d.DocTypeName, pcd.ShippingCarrier,pcd.ShippingServiceType";
             return db.Query<NotReportedBackMailPieces>(query,
                 new
                 {

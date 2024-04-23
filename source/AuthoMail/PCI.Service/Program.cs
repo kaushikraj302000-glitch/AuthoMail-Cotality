@@ -44,7 +44,7 @@ namespace PCI.Service
 
             try
             {
-                log.Info($"{string.Join(",",args)} started.");
+                log.Info($"{string.Join(",", args)} started.");
                 Common.PCIRootFolder.IsNullOrEmpty();
                 switch (args[0])
                 {
@@ -82,7 +82,7 @@ namespace PCI.Service
                         log.Info("PCIJob Completed");
                         break;
                     case "DownloadPrinterReport":
-                        PCIJobMonitor.GetPrintVendorResponse(args.Length > 1 ? args[1] : "");
+                        PCIJobMonitor.GetPrintVendorResponse();
                         //PCIJobMonitor.GetReturnPDFsZip();
                         break;
                     default:

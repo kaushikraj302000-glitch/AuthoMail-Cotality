@@ -259,5 +259,21 @@ namespace AM.Lib
                 File.WriteAllBytes(coversheetPath, Convert.FromBase64String(resObj.documentData.Value));
             }
         }
+
+        public static void GenerateBarcodeManifest(string apiUrl, string templatePath, string coversheetPath, dynamic manifestData)
+        {
+            dynamic mergeRequest = new ExpandoObject();
+            mergeRequest.Settings = new { MailMergeOptions = "RemoveEmptyParagraphs", OutputDocType = "pdf", Template = Convert.ToBase64String(File.ReadAllBytes(templatePath)) };
+            mergeRequest.Data = manifestData;
+            mergeRequest.TransformData = null;
+            using (var client = new HttpClient())
+            {
+                var stringContent = new StringContent(JsonConvert.SerializeObject(mergeRequest), Encoding.UTF8, "application/json");
+                HttpResponseMessage httpResponse = client.PostAsync(apiUrl, stringContent).Result;
+                var responseString = httpResponse.Content.ReadAsStringAsync().Result;
+                var resObj = JsonConvert.DeserializeObject<dynamic>(responseString);
+                File.WriteAllBytes(coversheetPath, Convert.FromBase64String(resObj.documentData.Value));
+            }
+        }
     }
 }

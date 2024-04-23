@@ -20,6 +20,12 @@
                         </span>
                     </div>
                 }
+                else if (Model.EDeliveryStatusInfoModel != null)
+                {
+                    <div class="table-responsive">
+                        @Html.Partial("~/Views/Track/_GetEDeliveryTrackingInfo.cshtml", Model.EDeliveryStatusInfoModel)
+                    </div>
+                }
                 else if (Model.USPSTrackingInfo != null && Model.TrackingDetailViewModel.ShippingCarrier == "USPS" && Model.TrackingDetailViewModel.ShippingServiceType == "IMB")
                 {
                     <div class="table-responsive">
@@ -39,7 +45,7 @@
                         $(document).ready(function () {
                             var trackingNo = '@Model.TrackingDetailViewModel.TrackingNo';
                             setTimeout(function () {
-                                window.location.href = 'http://www.fedex.com/Tracking?cntry_code=us&action=1&track=y&tracknumbers=' + trackingNo;
+                                window.location.href = 'https://www.fedex.com/fedextrack/?trknbr=' + trackingNo;
 
                             }, 2000);
                         });

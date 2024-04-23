@@ -47,6 +47,12 @@ namespace AM.Console
         {
             log.Debug("Enumerate Batches job queue for " + SFTChannel.Code + " is started.");
 
+            if (SFTChannel.ServerIP.IsNullOrWhiteSpace() || Config.Common_ServerIP != SFTChannel.ServerIP)
+            {
+                log.Debug("System cannot process Print Ready channel on this server.");
+                return;
+            }
+
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();
 
@@ -200,9 +206,9 @@ namespace AM.Console
                     UniqueId = batchXML.DocumentElement.Attributes["Id"] == null ? Guid.NewGuid() : Guid.Parse(batchXML.DocumentElement.Attributes["Id"].Value),
                     Priority = batchXML.DocumentElement.Attributes["Priority"] == null ? Priority.Medium.ToString() : batchXML.DocumentElement.Attributes["Priority"].Value,
                     DocumentOrPackageType = batchXML.DocumentElement.Attributes["DocumentOrPackageType"]?.Value,
-                    ClientBatchId = batchXML.DocumentElement.Attributes["ClientBatchId"] == null ? batchName : batchXML.DocumentElement.Attributes["ClientBatchId"].Value
+                    ClientBatchId = batchXML.DocumentElement.Attributes["ClientBatchId"] == null ? batchName : batchXML.DocumentElement.Attributes["ClientBatchId"].Value,
+                    ServerIP = Config.Common_ServerIP
                 };
-
                 //AM Mail Batch Custom Info
 
                 MailBatchCustomInfo mailBatchCustomInfo;
@@ -379,7 +385,8 @@ namespace AM.Console
                 SFTChannelId = SFTChannel.Id,
                 BatchName = batchName,
                 ClientBatchId = batchName,
-                Priority = Priority.Low.ToString()
+                Priority = Priority.Low.ToString(),
+                ServerIP = Config.Common_ServerIP
             };
             mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
             commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, receivedOn).Wait();
@@ -720,6 +727,12 @@ namespace AM.Console
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                 mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
                             }
+
+                            if (ex.Number == -2)
+                            {
+                                //If Timeout exception occured while processing batch then we are re-processing whole batch completly and breaking out from foreach loop.
+                                break;
+                            }
                         }
                     }
 
@@ -753,7 +766,7 @@ namespace AM.Console
                         throw new Exception("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceList.Count, totalNodes));
                     }
 
-                    Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceList);
+                    Channel.CalculateDueDateAndPrintLocation(client, mailBatch, mailPieceList);
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now).Wait();
                 }
@@ -782,7 +795,11 @@ namespace AM.Console
             using (iTextSharp.text.pdf.PdfReader reader = new iTextSharp.text.pdf.PdfReader(localFilePath))
             {
                 pageCount = reader.NumberOfPages;
-                blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
+
+                if (mbi.Client.IsReqBlankPageValidation)
+                {
+                    blankPageNos = Channel.CheckIfPdfBlank(pageCount, blankPageNos, localFilePath, reader);
+                }
             }
 
 
@@ -792,13 +809,14 @@ namespace AM.Console
 
             string documentOrPackageType = mailPieceDTO.DocumentOrPackageType;
             DocType docType;
+            bool isCountryUS = mailPieceDTO.RcptAddressCountry.IsCountryUS();
             if (!string.IsNullOrWhiteSpace(mailPieceDTO.ShippingCarrier) && !string.IsNullOrWhiteSpace(mailPieceDTO.ShippingServiceType))
             {
-                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mailPieceDTO.ShippingCarrier, mailPieceDTO.ShippingServiceType);
+                docType = !isCountryUS ? docTypeSvc.GetIntlDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mailPieceDTO.ShippingCarrier, mailPieceDTO.ShippingServiceType) : docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mailPieceDTO.ShippingCarrier, mailPieceDTO.ShippingServiceType);
             }
             else
             {
-                docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst());
+                docType = !isCountryUS ? docTypeSvc.GetIntlDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst()) : docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, documentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst());
             }
 
 
@@ -811,7 +829,7 @@ namespace AM.Console
 
             if (docType == null)
             {
-                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages) };
+                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = $"Either the specified document or package type '{mailPieceDTO.DocumentOrPackageType}' is not configured  {(isCountryUS == false ? "for international mailing" : "")} or no matching print configuration found for page count ({pageCount})." };
             }
             else if (pageCount == blankPageNos.Count())
             {

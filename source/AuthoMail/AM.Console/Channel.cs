@@ -2,9 +2,11 @@
 using AM.Lib;
 using AM.Services;
 using AM.USPSLib;
+using MoreLinq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -123,32 +125,6 @@ namespace AM.Console
             log.Debug("ReportedBack job is completed.");
         }
 
-        public static async Task<string> GenerateToken()
-        {
-            HttpClient client = new HttpClient();
-            string baseAddress = Path.Combine(Config.EllieMae_BaseURL, Config.EllieMae_TokenUrl);
-
-            string grant_type = Config.EllieMae_GrantType;
-            string client_id = Config.EllieMae_UserId;
-            string client_secret = Config.EllieMae_UserPass;
-            string scope = Config.EllieMae_Scope;
-
-            var form = new Dictionary<string, string>
-                    {
-                        {"grant_type", grant_type},
-                        {"client_id", client_id},
-                        {"client_secret", client_secret},
-                        {"scope", scope}
-                    };
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-            HttpResponseMessage tokenResponse = await client.PostAsync(baseAddress, new FormUrlEncodedContent(form));
-            var jsonContent = await tokenResponse.Content.ReadAsStringAsync();
-            var jObj = JObject.Parse(jsonContent);
-
-            return jObj.GetValue("access_token").ToString();
-        }
-
         private static void ProcessGeneralReportedBack(string channelCode)
         {
             using (IMailBatchService mailBatchSvc = new MailBatchService())
@@ -165,7 +141,7 @@ namespace AM.Console
                     return;
                 }
 
-                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndSFTChannelId(BatchPipelineStatus.ReportPrepped, sftChannelDetails.Id);
+                List<MailBatchDTO> reportPreppedBatches = mailBatchSvc.GetBatchesByPipelineStatusAndSFTChannelIdAndServerIP(BatchPipelineStatus.ReportPrepped, sftChannelDetails.Id, Config.Common_ServerIP);
 
                 if (reportPreppedBatches == null || reportPreppedBatches.Count == 0)
                 {
@@ -239,7 +215,7 @@ namespace AM.Console
                     return;
                 }
 
-                var reportPreppedBatches = mailBatchSvc.GetReportPreppedPrintBatchDetails().Where(c => c.SFTChannelId == sftChannelDetails.Id).ToList();
+                var reportPreppedBatches = mailBatchSvc.GetReportPreppedPrintBatchDetails(sftChannelDetails.Id, Config.Common_ServerIP);
 
                 SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
                 sftSite.Connect();
@@ -253,7 +229,7 @@ namespace AM.Console
 
                         string localReportPath = Path.Combine(Config.Common_AuthoMailRootFolder, client.AppCode, Util.AMResponseFolderName, preppedPrintBatch.PrintBatchId.ToString());
                         //Here we are passing localReportPath as PrintBatches folder structure AMRoot/AMResponses/PrintBatchId
-                        UploadReportsToIncrementalClients(deliverables, localReportPath, sftSite, sftChannelDetails);
+                        UploadReportsToIncrementalClients(deliverables, localReportPath, sftSite, sftChannelDetails, client);
 
                         mailBatchSvc.UpdatePrintBatchPipelineStatus(preppedPrintBatch.PrintBatchId, BatchPipelineStatus.ReportedBack, Common.Now);
                     }
@@ -353,7 +329,7 @@ namespace AM.Console
             }
         }
 
-        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite, SFTChannel sftChannel)
+        private static void UploadReportsToIncrementalClients(List<Deliverable> deliverables, string localReportPath, SFTUtil sftSite, SFTChannel sftChannel, Client client)
         {
             string deliveryUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Delivery).UploadPath;
             string errorUploadPath = deliverables.SingleOrDefault(up => up.ReportType == ReportTypes.Error).UploadPath;
@@ -409,6 +385,29 @@ namespace AM.Console
                         sftSite.UploadFile(errorGoFilePath, ftpErrorGoUploadPath);
                     }
                     break;
+                case "TDBANK":
+                    //NOTE : Below zip file naming convention is EDG Naming convention.
+                    zipFileName = "{0}FAGOS.ZYONT.N0010393.TDOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                    zipFilePath = Path.Combine(localReportPath, zipFileName);
+                    ftpUploadPath = Path.Combine(deliveryUploadPath, zipFileName);
+                    resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();
+                    using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                    {
+                        foreach (string filePath in resXmlList)
+                        {
+                            string fileName = Path.GetFileName(filePath);
+                            newFile.CreateEntryFromFile(filePath, fileName);
+                            //After upload change extention as a Complete
+                            File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
+                        }
+                    }
+
+                    if (client.IsResponseRequired)
+                        sftSite.UploadFile(zipFilePath, ftpUploadPath);
+
+                    File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
+                    Thread.Sleep(1000);
+                    break;
                 case "PENFED":
 
                     //NOTE : Below zip file naming convention is EDG Naming convention.
@@ -426,7 +425,33 @@ namespace AM.Console
                             File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
                         }
                     }
-                    sftSite.UploadFile(zipFilePath, ftpUploadPath);
+
+                    if (client.IsResponseRequired)
+                        sftSite.UploadFile(zipFilePath, ftpUploadPath);
+
+                    File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
+                    Thread.Sleep(1000);
+                    break;
+                case "FAM":
+                    //NOTE : Below zip file naming convention is EDG Naming convention.
+                    zipFileName = "{0}FAGOS.ZYONT.N0010412.FAMPNSOUTPUT.D{1}.T{2}.zip".Fill(Config.Common_EnvironmentInitial, Common.Now.ToString("yyyyMMdd"), Common.Now.ToString("hhmmss"));
+                    zipFilePath = Path.Combine(localReportPath, zipFileName);
+                    ftpUploadPath = Path.Combine(deliveryUploadPath, zipFileName);
+                    resXmlList = Directory.EnumerateFiles(localReportPath, "*.xml").ToList();
+                    using (ZipArchive newFile = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+                    {
+                        foreach (string filePath in resXmlList)
+                        {
+                            string fileName = Path.GetFileName(filePath);
+                            newFile.CreateEntryFromFile(filePath, fileName);
+                            //After upload change extention as a Complete
+                            File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
+                        }
+                    }
+
+                    if (client.IsResponseRequired)
+                        sftSite.UploadFile(zipFilePath, ftpUploadPath);
+
                     File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
                     Thread.Sleep(1000);
                     break;
@@ -447,7 +472,10 @@ namespace AM.Console
                             File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
                         }
                     }
-                    sftSite.UploadFile(zipFilePath, ftpUploadPath);
+
+                    if (client.IsResponseRequired)
+                        sftSite.UploadFile(zipFilePath, ftpUploadPath);
+
                     File.Move(zipFilePath, Path.ChangeExtension(zipFilePath, ".ZipUploaded"));
                     Thread.Sleep(1000);
                     break;
@@ -458,8 +486,9 @@ namespace AM.Console
                     {
                         string fileName = Path.GetFileName(filePath);
                         ftpUploadPath = Path.Combine(deliveryUploadPath, fileName);
-                        sftSite.UploadFile(filePath, ftpUploadPath);
 
+                        if (client.IsResponseRequired)
+                            sftSite.UploadFile(filePath, ftpUploadPath);
 
                         //After upload change extention as a Complete
                         File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
@@ -472,8 +501,9 @@ namespace AM.Console
                     {
                         string fileName = Path.GetFileName(filePath);
                         ftpUploadPath = Path.Combine(deliveryUploadPath, fileName);
-                        sftSite.UploadFile(filePath, ftpUploadPath);
 
+                        if (client.IsResponseRequired)
+                            sftSite.UploadFile(filePath, ftpUploadPath);
 
                         //After upload change extention as a Complete
                         File.Move(filePath, Path.ChangeExtension(filePath, ".Complete"));
@@ -582,7 +612,7 @@ namespace AM.Console
                     string reportPath = Path.Combine(Config.Common_AuthoMailRootFolder, mbi.Client.AppCode, mbi.MailBatch.Id.ToString(), Util.AMResponseFolderName);
 
                     //Here we are passing localReportPath as MailBatch folder structure AMRoot/USAA/MailBatchId/AMResponses
-                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite, sftChannel);
+                    UploadReportsToIncrementalClients(deliverables, reportPath, sftSite, sftChannel, mbi.Client);
 
                     GenerateAndSendProductionSummaryNotification(mbi, mailPieceData, deliverables, sftChannel);
                     isUploaded = true;
@@ -594,21 +624,24 @@ namespace AM.Console
         #endregion
 
         #region EffectiveReceivedOn DueDate PrintLocation Logic
-        public static void CalculateDueDateAndPrintLocation(MailBatchDTO mailBatch, List<MailPieceDTO> mailPieces)
+        public static void CalculateDueDateAndPrintLocation(Client client, MailBatchDTO mailBatch, List<MailPieceDTO> mailPieces)
         {
             log.Debug("Calculation of Due Date and Print location job is started.");
-            using (IMailBatchService mailBatchSvc = new MailBatchService())
-            using (IMailPieceService mailPieceSvc = new MailPieceService())
-            using (IDocTypeService docTypeSvc = new DocTypeService())
+            List<Sweep> sweepTimings = new List<Sweep>();
+
+
             using (ICommonService commonSvc = new CommonService())
-            using (IClientService clientSvc = new ClientService())
+            using (IDocTypeService docTypeSvc = new DocTypeService())
+            using (IMailPieceService mailPieceSvc = new MailPieceService())
             {
-                var sweepTimings = commonSvc.GetSweepTimings();
+                sweepTimings = commonSvc.GetSweepTimings();
 
-                Client client = clientSvc.GetClientById(mailBatch.ClientId);
-
-                foreach (MailPieceDTO mailPiece in mailPieces)
+                List<MailPieceDTO> duplicateMailPieces = new List<MailPieceDTO>();
+                foreach (var mailPiece in mailPieces)
                 {
+                    log.Debug($"Calculation is going for MailPieceId : {mailPiece.Id}");
+
+                    bool isDuplicate = false;
                     if (mailPiece.ShippingStatus == ShippingStatus.Error.ToString())
                     {
                         if (!mailPiece.DocTypeId.HasValue)
@@ -618,23 +651,43 @@ namespace AM.Console
                         }
                         else
                         {
-                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
+                            mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, !mailPiece.RcptAddressCountry.IsCountryUS() ? docTypeSvc.GetIntlDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value) : docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
                         }
                     }
                     else if (mailPiece.IsEDeliveryRequested)
                     {
-                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
+                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, !mailPiece.RcptAddressCountry.IsCountryUS() ? docTypeSvc.GetIntlDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value) : docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value), mailBatch.ReceivedOn.Value);
                         mailPiece.DueDate = mailPiece.ExpiryDate;
                         mailPiece.StdSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddMinutes(30).EstToUtc();
                         mailPiece.MaxSubmissionTime = mailPiece.EffectiveReceivedOnEst.Value.AddHours(4).EstToUtc();
                     }
                     else
                     {
-                        DocType docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+                        DocType docType = !mailPiece.RcptAddressCountry.IsCountryUS() ? docTypeSvc.GetIntlDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value) : docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+
+                        //NOTE : Here we are considering that by default receivedon will be original one but if any package that is for Hold then we are considering its effective receivedon date based on ProcessOn
+                        DateTime receivedOn = mailBatch.ReceivedOn.Value; ;
+
+                        if (Config.Monitor_PackagesHoldInfo.Any(x => x.ClientId == mailPiece.ClientId && x.HoldOn == receivedOn.UtcToEst().Date))
+                        {
+                            var packageHoldInfo = Config.Monitor_PackagesHoldInfo.SingleOrDefault(x => x.ClientId == mailPiece.ClientId && x.HoldOn == receivedOn.UtcToEst().Date);
+                            if (packageHoldInfo.DocumentOrPackageType.IsNullOrWhiteSpace())
+                            {
+                                receivedOn = packageHoldInfo.ProcessOn.EstToUtc();
+                            }
+                            else if (packageHoldInfo.DocumentOrPackageType == mailPiece.DocumentOrPackageType)
+                            {
+                                receivedOn = packageHoldInfo.ProcessOn.EstToUtc();
+                            }
+                            else
+                            {
+                                receivedOn = mailBatch.ReceivedOn.Value;
+                            }
+                        }
 
                         //Here first we will calculate effective received on date and based on that we will calculate due date,Print location, print trail id,etc. for that
                         //Here storing effective receivedon in EST format
-                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docType, mailBatch.ReceivedOn.Value);
+                        mailPiece.EffectiveReceivedOnEst = commonSvc.GetEffectiveEstReceivedOn(client.Id, docType, receivedOn);
                         //Calculate Due Date for Mail Pieces doc type wise
                         mailPiece.DueDate = commonSvc.GetDueDate(client.Id, docType, mailPiece.EffectiveReceivedOnEst.Value);
                         //Set print location where mail piece will go for print and ship
@@ -643,12 +696,39 @@ namespace AM.Console
                         mailPiece.ShipperId = printVendorDetails.ShipperId;
                         mailPiece.PrintLocation = commonSvc.GetShipperInformation(printVendorDetails.ShipperId).PrintLocation;
                         //This field will be used for monitoring data    
-                        mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, mailBatch.ReceivedOn.Value, sweepTimings);
+                        mailPiece.StdSubmissionTime = commonSvc.GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, receivedOn, sweepTimings);
                         mailPiece.MaxSubmissionTime = commonSvc.GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
+                        mailPiece.UsedEnvelopeId = docType.EnvelopeId;
                     }
+
                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+
+                    isDuplicate = mailPieceSvc.IsDuplicateRecord(mailPiece);
+
+                    if (isDuplicate)
+                    {
+                        duplicateMailPieces.Add(mailPiece);
+                    }
+
+                    if (client.IsRejectDupRecord && isDuplicate)
+                    {
+                        mailPiece.TotalPages = 0;
+                        mailPiece.DueDate = null;
+                        mailPiece.PrintLocation = null;
+                        mailPiece.PrintTrailId = null;
+                        mailPiece.ErrorCode = OutComeCodes.DuplicatePackage;
+                        mailPiece.ErrorDesc = "Rejected due to duplicate record identified";
+                        mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                        mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                    }
+                }
+
+                if (duplicateMailPieces.Count > 0 && !client.IsRejectDupRecord)
+                {
+                    MailUtility.SendDuplicateRecordNotificationEmail(duplicateMailPieces, mailBatch.ReceivedOn.Value.UtcToEst(), mailBatch.BatchName, client.AppCode, client.Contact1Email, client.Contact2Email);
                 }
             }
+
             log.Debug("Calculation of Due Date and Print location Job is ended.");
         }
 
@@ -668,33 +748,29 @@ namespace AM.Console
                 {
                     #region Address Validation Logic
                     //Get validate Addresses for each records
-                    List<AddressResponse> addressResponses = new List<AddressResponse>();
                     List<AddressRequest> addressRequestes = new List<AddressRequest>();
+
+                    var client = clientSvc.GetClientById(mailBatch.ClientId);
+
+                    var sysUserId = commonSvc.GetSystemUserId();
 
                     var usMPs = validMailPieces.Where(mp => (((mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested) && mp.RcptAddressCountry.IsCountryUS())).ToList();
 
-                    foreach (var mailPiece in usMPs) // Here system will verify only those address which have fallbackrequested=true or Edeliveryrequested=false and if country exist than it will check for country name must be from above metioned one
+                    addressRequestes.AddRange(usMPs.Select(mp => new AddressRequest() { Id = mp.UniqueId.ToString(), StreetAddress = mp.RcptAddressStreet + " " + mp.RcptAddrOptionalLine1BelowStreet, City = mp.RcptAddressCity, State = mp.RcptAddressState, Zip4 = mp.RcptAddressZIP.SeparateZip4And5(4), Zip5 = mp.RcptAddressZIP.SeparateZip4And5(5) }));
+
+                    // Here batching in 5 address look up because USPS support only 5 per transaction.
+                    var addressBatches = addressRequestes.Batch(5);
+
+                    ConcurrentBag<AddressResponse> addressResponses = new ConcurrentBag<AddressResponse>();
+
+                    Parallel.ForEach(addressBatches, new ParallelOptions { MaxDegreeOfParallelism = 8 }, (verifyBatch) =>
                     {
-                        AddressRequest addressRequest = new AddressRequest() { Id = mailPiece.UniqueId.ToString(), StreetAddress = mailPiece.RcptAddressStreet + " " + mailPiece.RcptAddrOptionalLine1BelowStreet, City = mailPiece.RcptAddressCity, State = mailPiece.RcptAddressState, Zip4 = mailPiece.RcptAddressZIP.SeparateZip4And5(4), Zip5 = mailPiece.RcptAddressZIP.SeparateZip4And5(5) };
-
-                        addressRequestes.Add(addressRequest);
-                    }
-
-                    int requestAddressCount = addressRequestes.Count;
-                    int maxAddressVerification = 5;
-                    int verifiedAddressCount = 0;
-                    double loopCount = Math.Ceiling(requestAddressCount / (float)maxAddressVerification);
-
-                    for (double i = 0; i < loopCount; i++)
-                    {
-                        var takenAddressesList = addressRequestes.Skip(verifiedAddressCount).Take(maxAddressVerification).ToList();
-                        VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = takenAddressesList };
-                        verifiedAddressCount += maxAddressVerification;
+                        VerifierAddressRequest verifierAddRequest = new VerifierAddressRequest() { AddressRequests = verifyBatch.ToList() };
                         VerifierAddressResponse verifierAddResponse;
 
                         using (IUSPSService uspsSvc = new USPSService())
                         {
-                            verifierAddResponse = uspsSvc.VerifyAddressAsync(commonSvc.GetSystemUserId(), verifierAddRequest).Result;
+                            verifierAddResponse = uspsSvc.VerifyAddressAsync(sysUserId, verifierAddRequest).Result;
                         }
 
                         if (verifierAddResponse != null)
@@ -704,17 +780,19 @@ namespace AM.Console
                             {
                                 throw new Exception("Error occured while validating Addresses : {0}".Fill(verifierAddResponse.Error));
                             }
-
-                            addressResponses.AddRange(verifierAddResponse.AddressResponses);
+                            foreach (var addRes in verifierAddResponse.AddressResponses)
+                            {
+                                addressResponses.Add(addRes);
+                            }
                         }
-                    }
+                    });
                     #endregion
 
                     foreach (MailPieceDTO mailPiece in validMailPieces.Where(mp => (mp.IsEDeliveryRequested && mp.IsFallBackRequested) || !mp.IsEDeliveryRequested))
                     {
                         string documentOrPackageType = mailPiece.DocumentOrPackageType;
                         //Document Or Package Type validation
-                        var docType = docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
+                        var docType = !mailPiece.RcptAddressCountry.IsCountryUS() ? docTypeSvc.GetIntlDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value) : docTypeSvc.GetDocTypeById(mailPiece.DocTypeId.Value, mailPiece.PnSConfigDetailId.Value);
 
                         var addressResponse = addressResponses.SingleOrDefault(c => c.Id.ToLower() == mailPiece.UniqueId.ToString().ToLower());
 
@@ -725,11 +803,14 @@ namespace AM.Console
 
                         if (addressResponse != null && addressResponse.AddressTypes.Any(addr => addr == AddressType.INVALID))
                         {
-                            mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
-                            mailPiece.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
-                            mailPiece.ErrorDesc = !string.IsNullOrEmpty(addressResponse.VerifierDesc) ? addressResponse.VerifierDesc : addressResponse.Error.Description;
-                            mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-                            continue;
+                            if (client.IsHardAddrValidationRequired)
+                            {
+                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                mailPiece.ErrorCode = OutComeCodes.Mailing_Address_Missing_Or_Invalid;
+                                mailPiece.ErrorDesc = !string.IsNullOrEmpty(addressResponse.VerifierDesc) ? addressResponse.VerifierDesc : addressResponse.Error.Description;
+                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                continue;
+                            }
                         }
 
                         if (!mailPiece.RcptAddressCountry.IsCountryUS())
@@ -741,7 +822,7 @@ namespace AM.Console
                         {
                             if (!(addressResponse != null && addressResponse.AddressTypes.All(c => c == AddressType.DHAM)))
                             {
-                                var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString());
+                                var fbPriorityExpress = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY_EXPRESS.ToString(), mailPiece.Id);
 
                                 if (fbPriorityExpress != null)
                                 {
@@ -749,7 +830,7 @@ namespace AM.Console
                                 }
                                 else
                                 {
-                                    var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString());
+                                    var fbPriority = docTypeSvc.GetFallBackDocTypeByPnSConfigId(mailPiece.ClientId, mailPiece.DocTypeId.Value, mailBatch.ReceivedOn.Value.UtcToEst(), Carrier.USPS.ToString(), ShippingServiceType.PRIORITY.ToString(), mailPiece.Id);
 
                                     if (fbPriority == null)
                                     {

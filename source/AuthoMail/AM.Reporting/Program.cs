@@ -42,6 +42,12 @@ namespace AM.Reporting
                 case "DALLASRecon":
                     DALLASReconReport.GenerateDALLASReconReport();
                     break;
+                case "AlaskaDailyOperation":
+                    AlaskaReports.GenerateDailyOperationReport();
+                    break;
+                case "AMPostageRecon":
+                    DALLASReconReport.GenerateAMPostageReconReport();
+                    break;
                 case "GOS":
                     switch (args[1])
                     {
@@ -53,6 +59,12 @@ namespace AM.Reporting
                             break;
                         case "DataPoints":
                             GOSReports.GenerateGOSDataPointReport();
+                            break;
+                        case "ConsolidatedDataPoints":
+                            GOSReports.GenerateGOSConsolidatedDataPointReport(args[2]);
+                            break;
+                        case "DailyDataPoints":
+                            GOSReports.GenerateGOSDailyDataPointReport(args[2]);
                             break;
                         default:
                             break;
@@ -74,8 +86,62 @@ namespace AM.Reporting
                             break;
                     }
                     break;
+                case "FAR":
+                    ErrorReports.GenerateFARErrorReport();
+                    break;
                 case "USAAMTD":
                     USAADailyMTDVolumeReporting.GenerateMTDReport();
+                    break;
+                case "DocSolError":
+                    ErrorReports.GenerateDocSolErrorReport();
+                    break;
+                case "BECUError":
+                    ErrorReports.GenerateBECUErrorReport();
+                    break;
+                case "FLOODAUTO":
+                    switch (args[1])
+                    {
+                        case "MonthlyReport":
+                            FloodReports.GenerateMonthlyReport();
+                            break;
+                        case "CapOneErrorReport":
+                            FloodReports.GenerateCapOneErrorReport();
+                            break;
+                        case "FloodErrorReport":
+                            FloodReports.GenerateFloodErrorReport();
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case "DelfusReport":
+                    switch (args[1])
+                    {
+                        case "ErrorReport":
+                            DelfusReporting.GenerateErrorReport();
+                            break;
+                        case "EdeliveryReport"://3rd parameter will be "Daily" or "Monthly"
+                            DelfusReporting.GenerateTaxComEdeliveryReport(args[2]);
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case "RaymondJamesError":
+                    ErrorReports.GenerateRaymondJamesErrorReport();
+                    break;
+                case "CSS":
+                    switch (args[1])
+                    {
+                        case "ErrorReport":
+                            CSSReporting.GenerateErrorReport();
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case "ReportWizard":
+                    WizardReport.GenerateWizardReport();
                     break;
                 default:
                     break;

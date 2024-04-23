@@ -64,7 +64,10 @@ namespace PCI.Service
             List<string> availableSFTFiles;
             List<string> availableBatches;
 
-            availableSFTFiles = sftSite.ListDirectory(string.Format("{0}/{1}", sftChannel.ToADEDir, clientInfo.AppCode));
+            var remoteDirPath = Path.Combine(sftChannel.ToADEDir, Common.ServerIP, clientInfo.AppCode);
+
+            availableSFTFiles = sftSite.ListDirectory(remoteDirPath);
+
             availableBatches = availableSFTFiles.Where(x => x.ToLower().EndsWith(".go")).ToList();
 
             if (availableBatches.Count > 0)
@@ -77,11 +80,11 @@ namespace PCI.Service
                 {
                     log.Debug("Downloading Started For Batch {0}".Fill(Path.GetFileNameWithoutExtension(goFile)));
                     string clientBatchName = Path.GetFileNameWithoutExtension(goFile);
-                    string appDirRemotePath = "{0}/{1}".Fill(sftChannel.ToADEDir, clientInfo.AppCode);
-                    string batchPDFsDirRemotePath = "{0}/{1}".Fill(appDirRemotePath, clientBatchName);
-                    string requestXMLRemotePath = "{0}/{1}.xml".Fill(appDirRemotePath, clientBatchName);
+                    string appDirRemotePath = remoteDirPath;
+                    string batchPDFsDirRemotePath = Path.Combine(appDirRemotePath, clientBatchName);
+                    string requestXMLRemotePath = Path.Combine(appDirRemotePath, $"{clientBatchName}.xml");
 
-                    if (!availableSFTFiles.Contains("{0}.xml".Fill(clientBatchName)) || !availableSFTFiles.Contains(clientBatchName))
+                    if (!availableSFTFiles.Contains($"{clientBatchName}.xml") || !availableSFTFiles.Contains(clientBatchName))
                     {
                         // If trigger file + XML + PDFs folder is available then only it will be considered a complete batch to be processed.
                         continue;
@@ -89,12 +92,12 @@ namespace PCI.Service
                     else
                     {
                         // TODO: Create batch summary record
-                        BatchSummary batchSummary = new BatchSummary { ClientId = clientInfo.Id, JobName = "{0}-{1}".Fill(clientInfo.AppCode, clientBatchName) };
-                        string sql = "INSERT INTO [PnS].[BatchSummary] (ClientId,JobName) OUTPUT INSERTED.PrintBatch VALUES (@p1, @p2)";
-                        batchSummary.PrintBatch = db.ExecuteSqlScalar<int>(sql, batchSummary.ClientId, batchSummary.JobName);
+                        BatchSummary batchSummary = new BatchSummary { ClientId = clientInfo.Id, JobName = $"{clientInfo.AppCode}-{clientBatchName}" };
+                        string sql = "INSERT INTO [PnS].[BatchSummary] (ClientId,JobName,ServerIP) OUTPUT INSERTED.PrintBatch VALUES (@p1, @p2, @p3)";
+                        batchSummary.PrintBatch = db.ExecuteSqlScalar<int>(sql, batchSummary.ClientId, batchSummary.JobName, Common.ServerIP);
 
                         // Mark the batch as received.
-                        DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile("{0}/{1}".Fill(appDirRemotePath, goFile)));
+                        DAL.UpdateBatchPipeLineStatus(batchSummary.PrintBatch, BatchPipelineStatus.Received, sftSite.LastModifiedTimeOfFile(Path.Combine(appDirRemotePath, goFile)));
 
                         BatchInfo bi = new BatchInfo(batchSummary, clientInfo);
 
@@ -112,7 +115,7 @@ namespace PCI.Service
 
         private static void DownloadPDFsAndCreateNewBatch(BatchInfo bi, string appDirRemotePath, string requestXMLRemotePath, SFTUtil sftSite, SFTChannel sftChannel)
         {
-            string batchPDFsDirRemotePath = "{0}/{1}".Fill(appDirRemotePath, bi.BatchName);
+            string batchPDFsDirRemotePath = Path.Combine(appDirRemotePath, bi.BatchName);
 
             try
             {
@@ -136,14 +139,14 @@ namespace PCI.Service
 
                 if (sftChannel.PostDownloadAction == "Delete")
                 {
-                    sftSite.DeleteFile("{0}/{1}.xml".Fill(appDirRemotePath, bi.BatchName));
-                    sftSite.DeleteFile("{0}/{1}.go".Fill(appDirRemotePath, bi.BatchName));
+                    sftSite.DeleteFile(Path.Combine(appDirRemotePath, $"{bi.BatchName}.xml"));
+                    sftSite.DeleteFile(Path.Combine(appDirRemotePath, $"{bi.BatchName}.go"));
                     sftSite.DeleteDirectory(batchPDFsDirRemotePath);
                 }
                 else
                 {
-                    string goFilePath = "{0}/{1}.go".Fill(appDirRemotePath, bi.BatchName);
-                    string archiveGOFilePath = "{0}/triggers/{1}.go".Fill(appDirRemotePath, bi.BatchName);
+                    string goFilePath = Path.Combine(appDirRemotePath, $"{bi.BatchName}.go");
+                    string archiveGOFilePath = Path.Combine(appDirRemotePath, "triggers", $"{bi.BatchName}.go");
 
                     if (sftSite.IsFileAvailable(archiveGOFilePath))
                         sftSite.DeleteFile(archiveGOFilePath);
@@ -242,7 +245,7 @@ namespace PCI.Service
 
         public static void SubmitFinalXMLReport()
         {
-            List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PnSJobMonitor, OperationTypes.ReportBack);
+            List<int> batchIds = DAL.GetNextBatchIdByJobName(JobTypes.PnSJobMonitor, OperationTypes.ReportBack, Common.ServerIP);
 
             if (batchIds == null || batchIds.Count == 0)
             {
@@ -272,15 +275,15 @@ namespace PCI.Service
                         sftSite.Connect();
                     }
 
-                    string batchRemoteDirPath = "{0}/{1}".Fill(sftChannel.ToADEDir, bi.Client.AppCode);
-                    string xmlReportPath = Path.Combine(bi.PnSResponsePath, "{0}-res.xml".Fill(bi.BatchName));
-                    string finalTriggerPath = Path.Combine(bi.PnSResponsePath, "{0}.rpt".Fill(bi.BatchName));
+                    string batchRemoteDirPath = Path.Combine(sftChannel.ToADEDir, Common.ServerIP, bi.Client.AppCode);
+                    string xmlReportPath = Path.Combine(bi.PnSResponsePath, $"{bi.BatchName}-res.xml");
+                    string finalTriggerPath = Path.Combine(bi.PnSResponsePath, $"{bi.BatchName}.rpt");
 
                     // In case of immediate error report; there will be .err as trigger file will be available.
                     // Like XML is invalid then immediate error report itself if final report.
                     if (!File.Exists(finalTriggerPath))
                     {
-                        string errTriggerPath = Path.Combine(bi.PnSResponsePath, "{0}.err".Fill(bi.BatchName));
+                        string errTriggerPath = Path.Combine(bi.PnSResponsePath, $"{bi.BatchName}.err");
                         if (File.Exists(errTriggerPath))
                         {
                             finalTriggerPath = errTriggerPath;

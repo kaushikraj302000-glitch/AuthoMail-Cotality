@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AM.Entities;
+using AM.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.ServiceProcess;
@@ -14,7 +16,7 @@ namespace AM.Core
         /// </summary>
         static void Main(string[] args)
         {
-            bool prepFlag, submitFlag, submittedResFlag, parseResFlag, reportPrepResFlag;
+            bool prepFlag, submitFlag, submittedResFlag, parseResFlag, reportPrepResFlag;           
 
             do
             {
@@ -23,6 +25,7 @@ namespace AM.Core
                 submittedResFlag = AMCore.GetSubmittedPnSResponses();
                 parseResFlag = AMCore.ProcessPnSResponses();
                 reportPrepResFlag = AMCore.ReportPreppedProcess();
+
             } while (prepFlag || submitFlag || submittedResFlag || parseResFlag || reportPrepResFlag);
         }
     }

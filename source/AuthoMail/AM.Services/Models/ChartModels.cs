@@ -16,6 +16,8 @@ namespace AM.Services
         public int ShippedAll { get; set; }
         public int Failed { get; set; }
         public int PulledBack { get; set; }
+        public int eDelivered { get; set; }
+        public int eSigned { get; set; }
     }
     public class TodayMailPieceChart
     {
@@ -63,6 +65,7 @@ namespace AM.Services
         public int DocTypeId { get; set; }
         public int Shipped { get; set; }
         public int eDelivered { get; set; }
+        public int eSigned { get; set; }
         public int InProgress { get; set; }
         public int PulledBack { get; set; }
         public int Error { get; set; }

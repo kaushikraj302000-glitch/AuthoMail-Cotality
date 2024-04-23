@@ -37,7 +37,7 @@
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="date">Select Date (EST)</label>
-                        <div class="input-group date" id="datepicker4">
+                        <div class="input-group daterange" id="datepicker4">
                             <input type="text" class="form-control" id="date">
                             <span class="input-group-addon">
                                 <i class="fa fa-calendar"></i>
@@ -53,7 +53,7 @@
                     </div>
                 </div>
                 <div class="col-md-1">
-                    <div class="form-group ">
+                    <div class="form-group " style="margin-top: 27px;">
                         <label for="input1"></label>
                         <button type="button" id="filterData" class="btn btn-primary" style=" padding-top: 6%;">
                             <span class="sr-only">Filter</span>
@@ -79,7 +79,7 @@
             </span>
         </div>
     </div>
-    <div class="panel-body" id="errorList">
+    <div class="panel-body" id="errorList" style="margin-top: 10px;">
 
 
     </div>
@@ -99,13 +99,16 @@
                 <th class="FileName">File Name</th>
                 <th class="ErrorCode">Error</th>
                 <th class="ReceivedDate">Received Date <span class="fontcapitalize">(Local)</span></th>
-                <th class="FirstName">First Name</th>
-                <th class="LastName">Last Name</th>
-                <th class="RecipientAddress">Recipient Street Address</th>
-                <th class="RecipientCity">Recipient City</th>
-                <th class="RecipientState">Recipient State</th>
-                <th class="RecipientZip">Recipient Zip</th>
-                <th class="ErrorText">Error Text</th>                
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <th class="FirstName">First Name</th>
+                    <th class="LastName">Last Name</th>
+                    <th class="RecipientAddress">Recipient Street Address</th>
+                    <th class="RecipientCity">Recipient City</th>
+                    <th class="RecipientState">Recipient State</th>
+                    <th class="RecipientZip">Recipient Zip</th>
+                }
+                <th class="ErrorText">Error Text</th>
                 <th class="ShippingMethod">Shipping Method<span class="fa fa-question-circle" title="Shipping Carrier / Service type"></span></th>
                 <th class="BatchId">BatchId</th>
 
@@ -127,14 +130,17 @@
                 <td><span>{FileName}</span></td>
                 <td><span>{ErrorDescPopover}</span></td>
                 <td><span>{ReceivedOnFormatted}</span></td>
-                <td><span>{FirstName}</span></td>
-                <td><span>{LastName}</span></td>
-                <td><span>{Address}</span></td>
-                <td><span>{City}</span></td>
-                <td><span>{State}</span></td>
-                <td><span>{ZIP}</span></td>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <td><span>{FirstName}</span></td>
+                    <td><span>{LastName}</span></td>
+                    <td><span>{Address}</span></td>
+                    <td><span>{City}</span></td>
+                    <td><span>{State}</span></td>
+                    <td><span>{ZIP}</span></td>
+                }
                 <td><span>{ErrorDesc}</span></td>
-                <td><span>{ShippingCarrier} / {ShippingMethod}</span></td>
+                <td><span>{ShippingCarrierOrMethod}</span></td>
                 <td>{BatchId}</td>
             </tr>
         </tbody>
@@ -158,7 +164,10 @@
                 'container': 'body'
             });
             var table = $('#sample_2');
-            var filename = "ErrorReport_" + moment($("#date").val()).format("MMDDYYYY") + "_" + $("#ClientName").text();
+            var selectedData = $("#date").val().split('-');
+            var startDate = moment(selectedData[0].trim()).format("MM/DD/YYYY");
+            var endDate = moment(selectedData[1].trim()).format("MM/DD/YYYY");
+            var filename = "ErrorReport_" + moment(startDate).format("MMDDYYYY") + "_To_" + moment(endDate).format("MMDDYYYY") + "_" + $("#ClientName").text();
             var title = "Error Report";
             var oTable = table.dataTable({
 
@@ -239,23 +248,27 @@
                 this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                 this.ErrorDesc = this.ErrorDesc != null ? this.ErrorDesc.replace(/"/g, '\'') : "";
                 var eddDesc = '<span id="popoverError" data-toggle="popover" data-original-title="Error Code: <ErrorCode>" data-html="true" data-content="<dataContent>" data-placement="left"><a> <ErrorCode> </a></span>'.replace(/<ErrorCode>/g, this.ErrorCode).replace("<dataContent>", this.ErrorDesc == null ? "--" : this.ErrorDesc);
-               this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
-               this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
+                this.ErrorDescPopover = this.ErrorCode == "No_Error" ? '<span>' + this.ErrorCode + '</span>' : eddDesc;
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested && !this.IsESignRequested ? '<span class="label medium label-success">E-Delivery</span>' : this.IsEDeliveryRequested && this.IsESignRequested ? '<span class="label medium label-success">E-Sign</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
         }
         function FilterData() {
             $("#errorHeader").hide();
             $("#errorList").hide();
-            var date = $("#date").val();
+            //var date = $("#date").val();
+            var selectedData = $("#date").val().split('-');
+            var startDate = moment(selectedData[0].trim()).format("MM/DD/YYYY");
+            var endDate = moment(selectedData[1].trim()).format("MM/DD/YYYY");
+
             var el = $('#errorList');
-            $("#headerdate").html(date + " EST");
+            $("#headerdate").html(startDate +" - "+ endDate + " EST");
             $("#loading").show();
             //el.html("<div class='alert alert-blue text-center'><span> Loading... </span></div>");
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_GetErrorsReport",
-                data: JSON.stringify({ date: date, channel: $("#Channel").val() }),
+                data: JSON.stringify({ startDate: startDate, endDate: endDate, channel: $("#Channel").val() }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
                     //console.log(response);
@@ -277,6 +290,14 @@
                             if (response.Object.model.length > 0) {
                                 var data = FormatObject(response.Object.model);
                                 $("#errorList").html("");
+                                $.each(data, function (index, value) {
+                                    if (value.ShippingCarrier == "E-Delivery") {
+                                        value.ShippingCarrierOrMethod = value.ShippingCarrier;
+                                    }
+                                    else {
+                                        value.ShippingCarrierOrMethod = value.ShippingCarrier + " / " + value.ShippingMethod;
+                                    }
+                                });
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#errorBody", "#errorbodyContent", "#errorTableContent", "#errorList");
                             }

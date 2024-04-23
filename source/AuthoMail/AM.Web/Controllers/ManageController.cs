@@ -14,7 +14,7 @@ using AM.Services;
 
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator)]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.BAOffShore)]
     public class ManageController : BaseController
     {
         private AMSignInManager _signInManager;

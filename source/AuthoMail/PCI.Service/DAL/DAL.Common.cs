@@ -12,9 +12,9 @@ namespace PCI.Service
     {
         private static Database db = DatabaseFactory.CreateDatabase();
 
-        public static List<int> GetNextBatchIdByJobName(string jobName, string operation)
+        public static List<int> GetNextBatchIdByJobName(string jobName, string operation, string serverIP)
         {
-            var batchIds = db.ExecuteDataSet("usp_GetNextBatchIdByJobName", jobName, operation);
+            var batchIds = db.ExecuteDataSet("usp_GetNextBatchIdByJobName", jobName, operation, serverIP);
 
             if (batchIds != null && batchIds.Tables.Count > 0)
                 return batchIds.Tables[0].AsEnumerable().Select(id => id.Field<int>("BatchId")).ToList();
@@ -75,10 +75,22 @@ namespace PCI.Service
             return db.ExecuteScalar("usp_GetSystemSettingsById", keyId).ToString();
         }
 
+        public static List<AMSystemSetting> GetSystemSettings()
+        {
+            var sysData = db.ExecuteDataSet(CommandType.Text, "SELECT * FROM Common.SystemSettings");
+            return sysData.DataTableAccessor<AMSystemSetting>(false).ToList();
+        }
+
         public static EmailChannel GetEmailChannelByTitleName(string titleName)
         {
             var emailChannel = db.ExecuteDataSet(CommandType.Text, "SELECT * FROM Common.EmailChannels WHERE Title='{0}'".Fill(titleName));
             return emailChannel.DataTableAccessor<EmailChannel>(false).Single();
+        }
+
+        public static List<EmailChannel> GetEmailChannels()
+        {
+            var emailChannel = db.ExecuteDataSet(CommandType.Text, "SELECT * FROM Common.EmailChannels");
+            return emailChannel.DataTableAccessor<EmailChannel>(false).ToList();
         }
 
         public static List<DallasBatch> GetDallasBatches(DateTime estToday)
@@ -90,6 +102,12 @@ namespace PCI.Service
         public static List<DallasBatchTiming> GetDallasBatchTimings(DateTime estToday)
         {
             var dallasTimings = db.ExecuteDataSet("usp_GetDallasBatchTimingsPnS", estToday);
+            return dallasTimings.DataTableAccessor<DallasBatchTiming>(false).ToList();
+        }
+
+        public static List<DallasBatchTiming> GetDallasBatchTimingsFromTable()
+        {
+            var dallasTimings = db.ExecuteDataSet(CommandType.Text, "SELECT * FROM Common.DallasBatchTimings");
             return dallasTimings.DataTableAccessor<DallasBatchTiming>(false).ToList();
         }
 
@@ -110,25 +128,25 @@ namespace PCI.Service
             return printTrailDetail.DataTableAccessor<PrintTrailDetail>(false).SingleOrDefault();
         }
 
-        public static bool CheckBatchesInQueue(DateTime startDateTime, DateTime endDateTime)
+        public static bool CheckBatchesInQueue(DateTime startDateTime, DateTime endDateTime, string serverIP)
         {
-            int receivedCount = db.ExecuteSqlScalar<int>("SELECT COUNT(*) FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND B.IsReceived=1", startDateTime, endDateTime);
+            int receivedCount = db.ExecuteSqlScalar<int>("SELECT COUNT(*) FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND B.IsReceived=1 AND B.ServerIP = @p3", startDateTime, endDateTime, serverIP);
 
-            int amSubmittedOrReportedCount = db.ExecuteSqlScalar<int>("SELECT COUNT(*) FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsSubmittedToShipping=1 OR B.IsReportedBack=1 OR B.IsReportPrepped=1 OR B.PipelineStatus='SubmittedToEDelivery')", startDateTime, endDateTime);
+            int amSubmittedOrReportedCount = db.ExecuteSqlScalar<int>("SELECT COUNT(*) FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsSubmittedToShipping=1 OR B.IsReportedBack=1 OR B.IsReportPrepped=1 OR B.PipelineStatus='SubmittedToEDelivery') AND B.ServerIP = @p3", startDateTime, endDateTime, serverIP);
 
             if (receivedCount != amSubmittedOrReportedCount)
                 return false;
 
             int pendingBatchCount = db.ExecuteSqlScalar<int>(@"WITH
             AMSubmitted as
-            (SELECT UniqueId FROM [AM].[PrintBatches] WHERE MailBatchId IN (SELECT Id FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsSubmittedToShipping=1 ))),
+            (SELECT UniqueId FROM [AM].[PrintBatches] WHERE MailBatchId IN (SELECT Id FROM [AM].[MailBatches] B WHERE B.ReceivedOn BETWEEN @p1 AND @p2 AND ( B.IsSubmittedToShipping=1 ) AND B.ServerIP = @p3)),
             PnSPrepped as
-            (SELECT BatchIdentifier FROM [PnS].[BatchSummary] WHERE ReceivedOn >= @p1 AND ( IsPrepped=1  OR IsSubmitted = 1 OR IsReportPrepped = 1 OR IsReportedBack = 1))
+            (SELECT BatchIdentifier FROM [PnS].[BatchSummary] WHERE ReceivedOn >= @p1 AND ( IsPrepped=1  OR IsSubmitted = 1 OR IsReportPrepped = 1 OR IsReportedBack = 1) AND ServerIP = @p3)
             select Count(*) from (
             select UniqueId from AMSubmitted 
             except
             select BatchIdentifier from PnSPrepped 
-            ) t", startDateTime, endDateTime);
+            ) t", startDateTime, endDateTime, serverIP);
 
             return pendingBatchCount == 0;
         }

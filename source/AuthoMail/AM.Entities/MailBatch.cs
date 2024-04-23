@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -46,6 +47,10 @@ namespace AM.Entities
 
         [XmlArrayItem(IsNullable = true)]
         public List<Metadata> CustomInfo { get; set; }
+        public bool ShouldSerializeCustomInfo()
+        {
+            return CustomInfo != null && CustomInfo.Count > 0;
+        }
     }
 
     [Serializable]
@@ -57,18 +62,22 @@ namespace AM.Entities
         public Guid Id { get; set; }
         public bool ShouldSerializeId()
         {
-            return Id != null;
+            return Id != null && Id != Guid.Empty;
         }
         [XmlIgnore]
         public string ClientCode { get; set; }
+        [XmlIgnore]
+        public string ProductCode { get; set; }
+        [XmlIgnore]
+        public string Comment { get; set; }
 
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("Business Friendly Id Name")]
         public string BusinessFriendlyIdName { get; set; }
 
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("Business Friendly Id Value")]
         public string BusinessFriendlyIdValue { get; set; }
 
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("Document Or Package Type")]
         public string DocumentOrPackageType { get; set; }
 
         [XmlElement(ElementName = "DocumentOrPackage")]
@@ -81,6 +90,9 @@ namespace AM.Entities
         {
             return eDelivery != null;
         }
+        
+        [XmlIgnore]
+        public DateTime? EffectiveReceivedOnEst { get; set; }
 
         [XmlElement(ElementName = "RecipientInfo")]
         public RecipientInfo RecipientInfo { get; set; }
@@ -108,24 +120,36 @@ namespace AM.Entities
 
         [XmlArrayItem(IsNullable = true)]
         public List<Metadata> CustomInfo { get; set; }
+        public bool ShouldSerializeCustomInfo()
+        {
+            return CustomInfo != null && CustomInfo.Count > 0;
+        }
     }
 
     [Serializable]
     [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
     public class eDelivery
     {
-        [XmlAttribute(DataType = "date")]
+        [XmlAttribute(DataType = "date"), DisplayName("Expiry Date")]
         public DateTime ExpiryDate { get; set; }
 
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("Is e-Sign")]
+        public bool IsEsign { get; set; }
+
+        [XmlAttribute, DisplayName("Is PrintAndShip On Expiry")]
         public bool PrintAndShipOnExpiry { get; set; }
+
+        public bool ShouldSerializeExpiryDate()
+        {
+            return ExpiryDate != null && ExpiryDate != DateTime.MinValue;
+        }        
     }
 
     [Serializable]
     [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
     public class DocumentOrPackage
     {
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("Doc Type Name")]
         public string Name { get; set; }
         [XmlAttribute]
         [XmlIgnore]
@@ -152,6 +176,7 @@ namespace AM.Entities
             return this.IncludePatternBaseString;
         }
 
+
         public bool ShouldSerializePath()
         {
             return this.IncludePatternBaseString;
@@ -164,7 +189,7 @@ namespace AM.Entities
 
         public bool ShouldSerializeInserts()
         {
-            return this.IncludePatternBaseString;
+            return Inserts != null;
         }
 
         [JsonIgnore]
@@ -192,7 +217,7 @@ namespace AM.Entities
     public class Recipient
     {
 
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("Organization")]
         public string Organization { get; set; }
         public bool ShouldSerializeOrganization()
         {
@@ -206,17 +231,17 @@ namespace AM.Entities
             return !string.IsNullOrWhiteSpace(Prefix);
         }
 
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("First Name")]
         public string FirstName { get; set; }
 
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("Middle Name")]
         public string MiddleName { get; set; }
         public bool ShouldSerializeMiddleName()
         {
             return !string.IsNullOrWhiteSpace(MiddleName);
         }
 
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("Last Name")]
         public string LastName { get; set; }
 
         [XmlAttribute]
@@ -232,11 +257,11 @@ namespace AM.Entities
         {
             return !string.IsNullOrWhiteSpace(Phone);
         }
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("Email Address")]
         public string EmailAddress { get; set; }
         public bool ShouldSerializeEmailAddress()
         {
-            return !(EmailAddress == null);
+            return !string.IsNullOrWhiteSpace(EmailAddress);
         }
     }
 
@@ -244,14 +269,14 @@ namespace AM.Entities
     [XmlType(Namespace = "http://schemas.corelogic.com/ade/authomail/v1.18.0")]
     public class Address
     {
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("Line1 Above Street")]
         public string OptionalLine1AboveStreet { get; set; }
         public bool ShouldSerializeOptionalLine1AboveStreet()
         {
             return !string.IsNullOrWhiteSpace(OptionalLine1AboveStreet);
         }
 
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("Line2 Above Street")]
         public string OptionalLine2AboveStreet { get; set; }
         public bool ShouldSerializeOptionalLine2AboveStreet()
         {
@@ -261,21 +286,21 @@ namespace AM.Entities
         [XmlAttribute]
         public string Street { get; set; }
 
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("Apt/Suite/Other")]
         public string AptOrSuiteOrOther { get; set; }
         public bool ShouldSerializeAptOrSuiteOrOther()
         {
             return !string.IsNullOrWhiteSpace(AptOrSuiteOrOther);
         }
 
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("Line1 Below Street")]
         public string OptionalLine1BelowStreet { get; set; }
         public bool ShouldSerializeOptionalLine1BelowStreet()
         {
             return !string.IsNullOrWhiteSpace(OptionalLine1BelowStreet);
         }
 
-        [XmlAttribute]
+        [XmlAttribute, DisplayName("Line2 Below Street")]
         public string OptionalLine2BelowStreet { get; set; }
         public bool ShouldSerializeOptionalLine2BelowStreet()
         {
@@ -294,7 +319,7 @@ namespace AM.Entities
         public string Country { get; set; }
         public bool ShouldSerializeCountry()
         {
-            return !(Country == null);
+            return !string.IsNullOrWhiteSpace(Country);
         }
     }
 

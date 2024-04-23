@@ -40,6 +40,7 @@ namespace AM.Services
         public DateTime? MaxSubmissionTime { get; set; }
         public string MissedSLAReason { get; set; }
         public bool? IsEDeliveryRequested { get; set; }
+        public bool? IsESignRequested { get; set; }
         public bool? IsInvitationSent { get; set; }
         public bool? IsFallBackRequested { get; set; }
         public string PrintTrail { get; set; }

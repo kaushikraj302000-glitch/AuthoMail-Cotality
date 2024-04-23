@@ -8,15 +8,13 @@ namespace AM.Services
 {
     public class NotReportedBackMailPieces
     {
-        public int PrintBatch { get; set; }
+        public int BatchId { get; set; }
         public string PrintLocation { get; set; }
+        public string PrintVendorName { get; set; }
         public DateTime? SubmittedOn { get; set; }
-        public string JobName { get; set; }
-        public string PrintFileName { get; set; }
-        public string PipelineStatus { get; set; }
-        public string ClientCode { get; set; }
-        public string DocTypeCode { get; set; }
-        public bool IsEDeliveryRequested { get; set; }
+        public string PrintBatchName { get; set; }
+        public string AppCode { get; set; }
+        public string DocumentOrPackageType { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
         public int TotalPackages { get; set; }

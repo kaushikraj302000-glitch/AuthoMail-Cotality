@@ -48,6 +48,12 @@ namespace AM.Console
         {
             log.Debug("EnumerateBatches job queue is started.");
 
+            if (SFTChannel.ServerIP.IsNullOrWhiteSpace() || Config.Common_ServerIP != SFTChannel.ServerIP)
+            {
+                log.Debug("System cannot process AMC channel on this server.");
+                return;
+            }
+
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();
 
@@ -93,8 +99,8 @@ namespace AM.Console
 
                     if (!sftSite.IsFileAvailable(ftpZipFilePath))
                     {
-                        var msg = "'{0}.zip' file is missing on SFT site.".Fill(batchName);
-                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), "");
+                        var msg = "{0}.zip file is missing on SFT site.".Fill(batchName);
+                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), "", msg);
                         continue;
                     }
 
@@ -113,9 +119,9 @@ namespace AM.Console
                     }
                     catch (Exception ex)
                     {
-                        var msg = "Unable to extract '{0}.zip' file.".Fill(batchName);
+                        var msg = $"Unable to extract '{batchName}.zip' file with error message {ex.Message}";
                         log.Error(msg, ex);
-                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), localZipFilePath);
+                        ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), localZipFilePath, msg);
                         continue;
                     }
                     #endregion
@@ -146,7 +152,8 @@ namespace AM.Console
                 SFTChannelId = SFTChannel.Id,
                 BatchName = batchName,
                 ClientBatchId = batchName,
-                Priority = Priority.Medium.ToString()
+                Priority = Priority.Medium.ToString(),
+                ServerIP = Config.Common_ServerIP
             };
             mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
             commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, receivedOn).Wait();
@@ -172,16 +179,16 @@ namespace AM.Console
             }
             catch (XmlException ex)
             {
-                var msg = "'{0}.xml' is not a valid XML document.".Fill(batchName);
+                var msg = $"{batchName}.xml is not a valid XML document.";
                 log.Error(msg, ex);
-                ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOn, msg), localZipFilePath);
+                ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOn, msg), localZipFilePath, msg);
                 return;
             }
             catch (Exception ex)
             {
-                var msg = "'{0}.xml' is not a valid XML document.".Fill(batchName);
+                var msg = $"{batchName}.xml is not a valid XML document.";
                 log.Error(msg, ex);
-                ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOn, msg), localZipFilePath);
+                ReportInvalidBatch(InsertInvalidBatchInfo(batchName, receivedOn, msg), localZipFilePath, msg);
                 return;
             }
 
@@ -254,7 +261,8 @@ namespace AM.Console
                             ReceivedOn = receivedOn,
                             PipelineStatus = BatchPipelineStatus.Received,
                             BatchStatus = BatchStatus.InProgress.ToString(),
-                            IsReturnInfoSpecified = false
+                            IsReturnInfoSpecified = false,
+                            ServerIP = Config.Common_ServerIP
                         };
                         mailBatches.Add(mailBatch);
                     }
@@ -292,7 +300,8 @@ namespace AM.Console
                                 PipelineStatus = BatchPipelineStatus.Received,
                                 BatchStatus = BatchStatus.InProgress.ToString(),
                                 IsReturnInfoSpecified = false,
-                                IsEDeliveryBatch = true
+                                IsEDeliveryBatch = true,
+                                ServerIP = Config.Common_ServerIP
                             };
                             mailBatches.Add(mailBatch);
                         }
@@ -349,7 +358,7 @@ namespace AM.Console
                 }
                 catch (Exception ex)
                 {
-                    var msg = "Error occured while inserting AMC batches details for Batch '{0}.xml'".Fill(batchName);
+                    var msg = $"Error occured while inserting AMC batches details for Batch {batchName}";
                     log.Error(msg, ex);
                     MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
                 }
@@ -417,14 +426,40 @@ namespace AM.Console
 
         private void MoveBatchToBackupDir(SFTUtil sftSite, string ftpFilePath)
         {
-            string ftpBackUpFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(ftpFilePath));
-
-            if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
+            int cnt = 0;
+            Exception exception = null;
+            while (cnt < 5)
             {
-                sftSite.MoveFile(ftpFilePath, ftpBackUpFilePath);
+                try
+                {
+                    log.Debug($"AM is trying to remove File {Path.GetFileName(ftpFilePath)} from SFTP.");
+                    string ftpBackUpFilePath = Path.Combine(SFTChannel.ArchiveDir, Path.GetFileName(ftpFilePath));
+
+                    if (SFTChannel.PostDownloadAction == PostDownloadAction.Archive)
+                    {
+                        sftSite.MoveFile(ftpFilePath, ftpBackUpFilePath);
+                    }
+                    else
+                        sftSite.DeleteFile(ftpFilePath);
+
+                    log.Debug($"AM has completed to remove File {Path.GetFileName(ftpFilePath)} from SFTP.");
+                    exception = null;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    var msg = $"Error occured while moving or removing file {Path.GetFileName(ftpFilePath)} from SFTP. System is trying for {cnt} time.";
+                    log.Error(msg, ex);
+                    MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
+                    cnt++;
+                    exception = ex;
+                }
             }
-            else
-                sftSite.DeleteFile(ftpFilePath);
+
+            if (exception != null)
+            {
+                throw exception;
+            }
         }
 
         private List<string> GetTriggerFilePaths(SFTUtil sftSite)
@@ -465,7 +500,7 @@ namespace AM.Console
 
         #endregion
 
-        private void ReportInvalidBatch(MailBatchDTO mailBatch, string localZipFilePath)
+        private void ReportInvalidBatch(MailBatchDTO mailBatch, string localZipFilePath, string errorMessage)
         {
             Client client = clientSvc.GetClientById(mailBatch.ClientId);
 
@@ -484,7 +519,7 @@ namespace AM.Console
 
             string invalidBatchPath = Path.Combine(mbi.AMResponsePath, invalidBatchFileName);
 
-            File.WriteAllText(invalidBatchPath, string.Empty);
+            File.WriteAllText(invalidBatchPath, errorMessage);
 
             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportPrepped, Common.Now).Wait();
 
@@ -494,11 +529,18 @@ namespace AM.Console
             sftSite.Connect();
 
             sftSite.UploadFile(invalidBatchPath, remoteFilePath);
+
+            log.Debug($"Checking for SFTP File {mbi.BatchName}.zip");
             if (sftSite.IsFileAvailable(Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip")))
+            {
+                log.Info($"{mbi.BatchName} is available with last modified time {sftSite.LastModifiedTimeOfFile(Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip"))}");
+                log.Debug($"Removing Process Started for SFTP File {mbi.BatchName}.zip");
                 MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + ".zip"));
-
+                log.Debug($"Removing Process Completed for SFTP File {mbi.BatchName}.zip");
+            }
+            log.Debug($"Removing Process Started for SFTP File {mbi.BatchName}_Complete.go");
             MoveBatchToBackupDir(sftSite, Path.Combine(SFTChannel.ToADEDir, mbi.BatchName + "_Complete.go"));
-
+            log.Debug($"Removing Process Started for SFTP File {mbi.BatchName}_Complete.go");
             if (sftSite.IsConnected)
                 sftSite.Disconnect();
 
@@ -528,7 +570,7 @@ namespace AM.Console
                     MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
 
                     //TODO: Can we have multiple business identifier in client business?
-                    ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.GetBusinessIdNameFromClientId(client.Id);
+                    ClientBusinessIdentifier clientBusinessIdDetails = commonSvc.CheckBusinessIdNameAlreadyExist(client.Id, "Loan Number");
 
                     if (clientBusinessIdDetails == null)
                     {
@@ -554,18 +596,18 @@ namespace AM.Console
                     }
                     catch (XmlException ex)
                     {
-                        var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
+                        var msg = $"{mbi.BatchName}.xml is not a valid XML document.";
                         log.Error(msg, ex);
 
-                        ReportInvalidBatch(mailBatch, "");
+                        ReportInvalidBatch(mailBatch, "", msg);
 
                         continue;
                     }
                     catch (Exception ex)
                     {
-                        var msg = "'{0}.xml' is not a valid XML document.".Fill(mbi.BatchName);
+                        var msg = $"{mbi.BatchName}.xml is not a valid XML document.";
                         log.Error(msg, ex);
-                        ReportInvalidBatch(mailBatch, "");
+                        ReportInvalidBatch(mailBatch, "", msg);
                         continue;
                     }
 
@@ -864,12 +906,12 @@ namespace AM.Console
                         }
                         catch (Exception ex)
                         {
-                            var msg = "Unable to process package info node for mail batch {0}".Fill(mbi.BatchName);
+                            var msg = $"Unable to process package info node for mail batch {mbi.BatchName}";
 
                             log.Error(msg, ex);
 
                             mailPieceDTO.ErrorCode = OutComeCodes.Unknown_Error;
-                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.ToString();
+                            mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
                             mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                         }
 
@@ -892,6 +934,12 @@ namespace AM.Console
                                 mailPieceDTO.ErrorDesc = msg + Environment.NewLine + ex.Message;
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                 mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
+                            }
+
+                            if (ex.Number == -2)
+                            {
+                                //If Timeout exception occured while processing batch then we are re-processing whole batch completly and breaking out from foreach loop.
+                                break;
                             }
                         }
                     }
@@ -936,7 +984,7 @@ namespace AM.Console
                         throw new Exception("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceData.Count, totalNodes));
                     }
 
-                    Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
+                    Channel.CalculateDueDateAndPrintLocation(client, mailBatch, mailPieceData);
 
                     if (mailPieceData.All(mp => mp.IsEDeliveryRequested && mp.ShippingStatus != ShippingStatus.Error.ToString()))
                     {
@@ -1008,7 +1056,7 @@ namespace AM.Console
                             //NOTE : After Sending an Email change extention only if partially valid because when system generates final reports then it will not upload duplicate records
                             if (File.Exists(emailErrorReportPath) && mbi.MailBatch.ValidationStatus != BatchValidationStatus.Invalid)
                                 File.Move(emailErrorReportPath, Path.ChangeExtension(emailErrorReportPath, ".Uploaded"));
-                            
+
                         }
                         catch (Exception ex)
                         {

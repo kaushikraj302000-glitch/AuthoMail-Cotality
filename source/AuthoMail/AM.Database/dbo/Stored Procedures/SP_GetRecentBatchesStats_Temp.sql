@@ -13,7 +13,8 @@ BEGIN
 	;with t as
 	(
 	select distinct BatchName,
-		count(case when MailPieceStatus = 'InProgress' and IsSubmitted=1 and CAST(EffectiveReceivedOnEst AS DATE)=@EstDate then 1 else null end) as PendingCount,
+		count(case when MailPieceStatus = 'InProgress' and IsSubmitted=1 --and CAST(EffectiveReceivedOnEst AS DATE)=@EstDate 
+		then 1 else null end) as PendingCount,
 		count(case when MailPieceStatus <> 'InProgress' and (ProcessingTimeStamp between @startdate and @enddate) then 1 else null end) as ScannedCount,AppCode
 		from dbo.ufn_GetDallasBatchDetails(@EstDate)
 		where ((MailPieceStatus = 'InProgress' and IsSubmitted=1) or (MailPieceStatus <> 'InProgress' and (ProcessingTimeStamp between @startdate and @enddate))) AND BatchName IS NOT NULL

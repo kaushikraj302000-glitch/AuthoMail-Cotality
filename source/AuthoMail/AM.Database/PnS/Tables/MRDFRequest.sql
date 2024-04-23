@@ -41,6 +41,7 @@
     [PrintTrailBatchId] INT              NULL,
     [FilePath]          VARCHAR (255)    NULL,
     [PDFFileSize]       BIGINT           NULL,
+    [BarcodeNumber] VARCHAR(255) NULL, 
     CONSTRAINT [PK_MRDFRequest] PRIMARY KEY CLUSTERED ([JobId] ASC, [PieceId] ASC) WITH (FILLFACTOR = 90),
     CONSTRAINT [FK_MRDFRequest_BatchSummary] FOREIGN KEY ([JobId]) REFERENCES [PnS].[BatchSummary] ([PrintBatch]),
     CONSTRAINT [FK_MRDFRequest_PrintTrailBatches] FOREIGN KEY ([PrintTrailBatchId]) REFERENCES [PnS].[PrintTrailBatches] ([Id])

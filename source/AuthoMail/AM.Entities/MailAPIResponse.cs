@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,6 +30,7 @@ namespace AM.Entities
         public string DocumentOrPackageType { get; set; }
         public DocumentOrPackage DocumentOrPackage { get; set; }
         public RecipientInfo RecipientInfo { get; set; }
+        public List<APIMetaData> CustomInfo { get; set; }
         public string MailingStatus { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
@@ -87,6 +89,14 @@ namespace AM.Entities
             if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
             return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
         }
+
+        public bool ShouldSerializeCustomInfo()
+        {
+            if (this.MailingStatus == ShippingStatus.NotFound.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
+            else if (this.CustomInfo == null || this.CustomInfo.Count == 0)
+                return false;
+            return this.MailingStatus != ShippingStatus.Acknowledgement.ToString();
+        }
         //public bool ShouldSerializeMailingStatus()
         //{
         //    return this.MailingStatus != null;
@@ -137,5 +147,11 @@ namespace AM.Entities
             if (this.MailingStatus == ShippingStatus.Acknowledgement.ToString() || this.MailingStatus == ShippingStatus.InProgress.ToString()) return false;
             return this.MailingStatus == ShippingStatus.PulledBack.ToString();
         }
+    }
+
+    public class APIMetaData
+    {
+        public string Key { get; set; }
+        public string Value { get; set; }
     }
 }

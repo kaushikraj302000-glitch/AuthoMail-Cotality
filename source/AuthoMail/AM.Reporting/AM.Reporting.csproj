@@ -58,8 +58,10 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web.Services" />
@@ -70,12 +72,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AlaskaReports.cs" />
     <Compile Include="AMCChannel.cs" />
     <Compile Include="AppConfig.cs" />
+    <Compile Include="CSSReporting.cs" />
     <Compile Include="DallasNotification.cs" />
     <Compile Include="DALLASReconReport.cs" />
     <Compile Include="CarrierTrackingInfo.cs" />
+    <Compile Include="DelfusReporting.cs" />
+    <Compile Include="ErrorReports.cs" />
     <Compile Include="FedExPickUP.cs" />
+    <Compile Include="FloodReports.cs" />
+    <Compile Include="WizardReport.cs" />
     <Compile Include="GOSReports.cs" />
     <Compile Include="HSBCChannel.cs" />
     <Compile Include="PCIReconReport.cs" />
@@ -90,7 +98,13 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
+    <None Include="Templates\GOSDailyReporting.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Templates\GOSReporting.xls">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Templates\StatusMapping.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="USAAMTDVolumeReport\USAAMTDVolumeReportTemplate.xlsx">
@@ -116,6 +130,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="EmailTemplates\GOSDailyDataPointNotification.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="EmailTemplates\GOSDataPointNotification.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -124,12 +141,22 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="AlaskaReconReport\" />
+    <Folder Include="BECUReconReport\" />
+    <Folder Include="CSSReport\ErrorReport\" />
     <Folder Include="DALLASReconReport\" />
+    <Folder Include="DocSolReconReport\" />
+    <Folder Include="FARReconReport\" />
+    <Folder Include="FloodReconReport\" />
     <Folder Include="GOSReconReport\" />
     <Folder Include="PCIReconReport\" />
+    <Folder Include="RaymondJamesReconReport\" />
+    <Folder Include="TaxComReport\EDeliveryReports\" />
+    <Folder Include="TaxComReport\ErrorReports\" />
     <Folder Include="USAAReport\ErrorReports\" />
     <Folder Include="USAAReport\MonthlyReconReports\" />
     <Folder Include="USAAReport\WeeklyReports\" />
+    <Folder Include="WizardReport\" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">

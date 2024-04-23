@@ -46,6 +46,12 @@ namespace AM.Console
             //Download File logic and separate according to clientcode in csv
             log.Debug("Enumerate Batches job queue for " + SFTChannel.Code + " is started.");
 
+            if (SFTChannel.ServerIP.IsNullOrWhiteSpace() || Config.Common_ServerIP != SFTChannel.ServerIP)
+            {
+                log.Debug("System cannot process Flood channel on this server.");
+                return;
+            }
+
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();
 
@@ -105,8 +111,8 @@ namespace AM.Console
                     DownloadBatchCsvFile(sftSite, ftpCsvFilePath, localCsvFilePath);
                     string localArchivePath = Path.Combine(Config.Common_AuthoMailRootFolder, "Archive", "{0}.csv".Fill(batchName));
                     //Generate List from CSV 
-                    Dictionary<string, List<CapOneData>> caponeClientData = new Dictionary<string, List<CapOneData>>();
-                    var lines = File.ReadAllLines(localCsvFilePath).ToList();
+                    Dictionary<string, List<FloodData>> caponeClientData = new Dictionary<string, List<FloodData>>();
+                    var lines = File.ReadAllLines(localCsvFilePath, Encoding.Default).ToList();
                     if (lines.Count <= 1)
                     {
                         MailUtility.SendUnexpectedExceptionEmail("No records found for received file {0}.csv".Fill(batchName));
@@ -125,7 +131,7 @@ namespace AM.Console
                         continue;
                     }
 
-                    List<CapOneData> data = lines.Skip(1).Select(v => FromCsv(v)).ToList();
+                    List<FloodData> data = lines.Skip(1).Select(v => FromCsv(v)).ToList();
 
                     var clData = data.GroupBy(cl => cl.ClientCode);
                     foreach (var clInfo in clData)
@@ -133,16 +139,16 @@ namespace AM.Console
                         caponeClientData.Add(clInfo.Key, clInfo.Where(cl => cl.ClientCode == clInfo.Key).ToList());
                     }
 
-                    bool isAllSuccess = SeparatePackages(caponeClientData, localCsvFilePath, batchName, localCsvDirPath, lastModifiedTime, sftSite);
+                    bool isAllSuccess = SeparatePackagesByClient(caponeClientData, localCsvFilePath, batchName, localCsvDirPath, lastModifiedTime, sftSite);
                     #endregion
                     //Here after moving all batches to particular client location , archive amc batch
 
                     if (File.Exists(localArchivePath))
                         File.Delete(localArchivePath);
-                    
-                    if(File.Exists(localCsvFilePath))
+
+                    if (File.Exists(localCsvFilePath))
                         File.Move(localCsvFilePath, localArchivePath);
-                    
+
                     //Deleting Local Directory 
                     if (Directory.Exists(localCsvDirPath))
                         Directory.Delete(localCsvDirPath, true);
@@ -162,17 +168,18 @@ namespace AM.Console
             }
         }
 
-        private bool SeparatePackages(Dictionary<string, List<CapOneData>> caponeClientData, string localCsvFilePath, string batchName, string localCsvDirPath, DateTime lastModifiedTime, SFTUtil sftSite)
+        private bool SeparatePackagesByClient(Dictionary<string, List<FloodData>> floodClientData, string localCsvFilePath, string batchName, string localCsvDirPath, DateTime lastModifiedTime, SFTUtil sftSite)
         {
             bool isAllSuccess = false;
             List<MailBatchDTO> mbList = new List<MailBatchDTO>();
-            foreach (var clKey in caponeClientData.Keys)
+            int clientCounter = 0;
+
+            foreach (var floodData in floodClientData)
             {
                 Client client;
-                MailBatchDTO mailBatch;
                 try
                 {
-                    var clientCode = clKey == null || string.IsNullOrWhiteSpace(clKey) ? "InvalidClientCode" : clKey;
+                    var clientCode = floodData.Key.IsNullOrWhiteSpace() ? "InvalidClientCode" : floodData.Key;
 
                     if (clientCode == "InvalidClientCode")
                     {
@@ -206,87 +213,196 @@ namespace AM.Console
                         Directory.CreateDirectory(batchPathByClient);
                     }
                     log.Info("Local Folder is created");
-                    //NOTE : Path : {channelDownloadPath}/{localCsvFilePath}.FileNameWithOutExtention/{ClientCode}/{XML}
-                    string xmlName = "{0}_{1}".Fill(client.AppCode, lastModifiedTime.ToString("MMddyyyyhhmmss"));
-                    var batchUniqueId = Guid.NewGuid();
-                    mailBatch = new MailBatchDTO
-                    {
-                        ClientId = client.Id,
-                        BatchName = xmlName,
-                        SFTChannelId = SFTChannel.Id,
-                        ReceivedOn = lastModifiedTime,
-                        PipelineStatus = BatchPipelineStatus.Received,
-                        BatchStatus = BatchStatus.InProgress.ToString(),
-                        //Parse AM mail batch request element
-                        UniqueId = batchUniqueId,
-                        Priority = Priority.Medium.ToString(),
-                        ClientBatchId = batchName,
-                        IsReturnInfoSpecified = false
-                    };
 
-                    MailBatch mb = new MailBatch()
+                    var eDeliveryData = floodData.Value.Where(x => x.SendEDelivery == "Y" && !x.BorrowerEmailId.IsNullOrWhiteSpace()).ToList();
+                    if (eDeliveryData.Count > 0)
                     {
-                        ClientCode = client.AppCode,
-                        Id = batchUniqueId
-                    };
-
-                    int cnt = 0;
-                    foreach (var loanInfo in caponeClientData[clKey])
-                    {
-                        cnt++;
-                        MailPiece mp = new MailPiece()
+                        foreach (var eDeliveryMP in eDeliveryData)
                         {
-                            BusinessFriendlyIdName = "Flood Cert Number",
-                            BusinessFriendlyIdValue = loanInfo.FloodCertNumber.IsNullOrWhiteSpace() ? null : loanInfo.FloodCertNumber,
-                            DocumentOrPackageType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, loanInfo.ClientId.Trim(), 0).DocTypeName,
-                            Id = Guid.NewGuid()
-                        };
+                            clientCounter++;
+                            string xmlName = $"{client.AppCode}_{lastModifiedTime.ToString("MMddyyyyhhmmss")}_{clientCounter}";
+                            var batchUniqueId = Guid.NewGuid();
+                            MailBatchDTO mailBatch = new MailBatchDTO
+                            {
+                                ClientId = client.Id,
+                                BatchName = xmlName,
+                                SFTChannelId = SFTChannel.Id,
+                                ReceivedOn = lastModifiedTime,
+                                PipelineStatus = BatchPipelineStatus.Received,
+                                BatchStatus = BatchStatus.InProgress.ToString(),
+                                //Parse AM mail batch request element
+                                UniqueId = batchUniqueId,
+                                Priority = Priority.Medium.ToString(),
+                                ClientBatchId = batchName,
+                                IsReturnInfoSpecified = false,
+                                ServerIP = Config.Common_ServerIP
+                            };
 
-                        Entities.Address borrowerAddress = new Entities.Address();
-                        borrowerAddress.Street = loanInfo.BorrowerStreetAddress;
-                        borrowerAddress.City = loanInfo.BorrowerCity;
-                        borrowerAddress.State = loanInfo.BorrowerState;
-                        borrowerAddress.Zip = loanInfo.BorrowerZip;
+                            MailBatch mb = new MailBatch()
+                            {
+                                ClientCode = client.AppCode,
+                                Id = batchUniqueId
+                            };
 
-                        Entities.Recipient borrowerName = new Entities.Recipient();
-                        borrowerName.FirstName = loanInfo.BorrowerFirstName;
-                        borrowerName.LastName = loanInfo.BorrowerLastName;
+                            MailPiece mp = new MailPiece()
+                            {
+                                BusinessFriendlyIdName = "Flood Cert Number",
+                                BusinessFriendlyIdValue = eDeliveryMP.FloodCertNumber.IsNullOrWhiteSpace() ? null : eDeliveryMP.FloodCertNumber,
+                                DocumentOrPackageType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, eDeliveryMP.ClientId.Trim(), 0, lastModifiedTime).DocTypeName,
+                                Id = Guid.NewGuid()
+                            };
 
-                        AM.Entities.RecipientInfo recipientInfo = new Entities.RecipientInfo();
-                        recipientInfo.Recipient = borrowerName;
-                        recipientInfo.Address = borrowerAddress;
+                            Entities.Address borrowerAddress = new Entities.Address();
+                            borrowerAddress.Street = eDeliveryMP.BorrowerStreetAddress;
+                            borrowerAddress.AptOrSuiteOrOther = eDeliveryMP.BorrowerStreetAddress2;
+                            borrowerAddress.City = eDeliveryMP.BorrowerCity;
+                            borrowerAddress.State = eDeliveryMP.BorrowerState;
+                            borrowerAddress.Zip = eDeliveryMP.BorrowerZip;
+                            borrowerAddress.Country = eDeliveryMP.BorrowerCountry;
 
-                        List<AM.Entities.Metadata> mpCustInfo = new List<Metadata>();
-                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "LoanNumber", Value = loanInfo.LoanNumber });
-                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyStreetAddress", Value = loanInfo.PropertyStreetAddress });
-                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyCity", Value = loanInfo.PropertyCity });
-                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyState", Value = loanInfo.PropertyState });
-                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyZip", Value = loanInfo.PropertyZip });
-                        mpCustInfo.Add(new Metadata() { DataType = DataType.DateTime, Key = "DocumentDate", Value = Convert.ToDateTime(loanInfo.DocumentDate).ToString("MMMM dd, yyyy") });
-                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "NoticeDate", Value = Convert.ToDateTime(loanInfo.NoticeDate).ToString("MM/dd/yyyy") });
-                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CommunityName", Value = loanInfo.CommunityName });
-                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CommunityCode", Value = loanInfo.CommunityCode });
-                        mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "ClientId", Value = loanInfo.ClientId });
+                            if (eDeliveryMP.SendEDelivery == "Y")
+                            {
+                                eDelivery eDeliveryInfo = new eDelivery();
+                                eDeliveryInfo.PrintAndShipOnExpiry = true;
+                                eDeliveryInfo.IsEsign = true; //By default client wants to opt for ESign facility
+                                mp.eDelivery = eDeliveryInfo;
+                            }
 
-                        mp.RecipientInfo = recipientInfo;
-                        mp.CustomInfo = mpCustInfo;
+                            Entities.Recipient borrowerName = new Entities.Recipient();
+                            borrowerName.FirstName = eDeliveryMP.BorrowerFirstName;
+                            borrowerName.LastName = eDeliveryMP.BorrowerLastName;
+                            borrowerName.EmailAddress = eDeliveryMP.BorrowerEmailId;
 
-                        DocumentOrPackage borrowerDocument = new DocumentOrPackage();
-                        borrowerDocument.Name = "{0}_{1}.pdf".Fill(loanInfo.FloodCertNumber.Trim(), cnt);
+                            AM.Entities.RecipientInfo recipientInfo = new Entities.RecipientInfo();
+                            recipientInfo.Recipient = borrowerName;
+                            recipientInfo.Address = borrowerAddress;
 
-                        mp.DocumentOrPackage = borrowerDocument;
-                        //NOTE : CODE FOR Generating PDFs for selected templates Naming Conventions = {LoanNumber+ +_+{cnt}.pdf                       
-                        mb.MailPieces.Add(mp);
+                            List<AM.Entities.Metadata> mpCustInfo = new List<Metadata>();
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "LoanNumber", Value = eDeliveryMP.LoanNumber });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "AccountNumber", Value = eDeliveryMP.AccountNumber });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyStreetAddress", Value = eDeliveryMP.PropertyStreetAddress });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyCity", Value = eDeliveryMP.PropertyCity });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyState", Value = eDeliveryMP.PropertyState });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyZip", Value = eDeliveryMP.PropertyZip });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.DateTime, Key = "DocumentDate", Value = Convert.ToDateTime(eDeliveryMP.DocumentDate).ToString("MMMM dd, yyyy") });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "NoticeDate", Value = Convert.ToDateTime(eDeliveryMP.NoticeDate).ToString("MM/dd/yyyy") });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CommunityName", Value = eDeliveryMP.CommunityName });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CommunityCode", Value = eDeliveryMP.CommunityCode });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "ClientId", Value = eDeliveryMP.ClientId });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "RequestorName", Value = eDeliveryMP.RequestorName });
+
+                            mp.RecipientInfo = recipientInfo;
+                            mp.CustomInfo = mpCustInfo;
+
+                            DocumentOrPackage borrowerDocument = new DocumentOrPackage();
+                            borrowerDocument.Name = $"{eDeliveryMP.FloodCertNumber.Trim()}_1.pdf";
+
+                            mp.DocumentOrPackage = borrowerDocument;
+                            //NOTE : CODE FOR Generating PDFs for selected templates Naming Conventions = {LoanNumber+ +_+{cnt}.pdf                       
+                            mb.MailPieces.Add(mp);
+
+                            //NOTE : Generate XML 
+
+                            var xmlByClient = mb.Serialize<MailBatch>();
+
+                            string xmlFilePath = Path.Combine(localCsvDirPath, client.AppCode, "{0}.xml".Fill(xmlName));
+                            File.WriteAllText(xmlFilePath, xmlByClient);
+                            log.Info("Local XML File is created");
+                            mbList.Add(mailBatch);
+                        }
                     }
 
-                    //NOTE : Generate XML 
+                    var pnsData = floodData.Value.Where(x => x.SendEDelivery == "N" || x.SendEDelivery.IsNullOrWhiteSpace() || (x.SendEDelivery == "Y" && x.BorrowerEmailId.IsNullOrWhiteSpace())).ToList();
+                    if (pnsData.Count > 0)
+                    {
+                        clientCounter++;
+                        string xmlName = $"{client.AppCode}_{lastModifiedTime.ToString("MMddyyyyhhmmss")}_{clientCounter}";
+                        var batchUniqueId = Guid.NewGuid();
+                        MailBatchDTO mailBatch = new MailBatchDTO
+                        {
+                            ClientId = client.Id,
+                            BatchName = xmlName,
+                            SFTChannelId = SFTChannel.Id,
+                            ReceivedOn = lastModifiedTime,
+                            PipelineStatus = BatchPipelineStatus.Received,
+                            BatchStatus = BatchStatus.InProgress.ToString(),
+                            //Parse AM mail batch request element
+                            UniqueId = batchUniqueId,
+                            Priority = Priority.Medium.ToString(),
+                            ClientBatchId = batchName,
+                            IsReturnInfoSpecified = false,
+                            ServerIP = Config.Common_ServerIP
+                        };
 
-                    var xmlByClient = mb.Serialize<MailBatch>();
+                        MailBatch mb = new MailBatch()
+                        {
+                            ClientCode = client.AppCode,
+                            Id = batchUniqueId
+                        };
 
-                    string xmlFilePath = Path.Combine(localCsvDirPath, client.AppCode, "{0}.xml".Fill(xmlName));
-                    File.WriteAllText(xmlFilePath, xmlByClient);
-                    log.Info("Local XML File is created");
-                    mbList.Add(mailBatch);
+                        int cnt = 0;
+                        foreach (var loanInfo in pnsData)
+                        {
+                            cnt++;
+                            MailPiece mp = new MailPiece()
+                            {
+                                BusinessFriendlyIdName = "Flood Cert Number",
+                                BusinessFriendlyIdValue = loanInfo.FloodCertNumber.IsNullOrWhiteSpace() ? null : loanInfo.FloodCertNumber,
+                                DocumentOrPackageType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, loanInfo.ClientId.Trim(), 0, lastModifiedTime).DocTypeName,
+                                Id = Guid.NewGuid()
+                            };
+
+                            Entities.Address borrowerAddress = new Entities.Address();
+                            borrowerAddress.Street = loanInfo.BorrowerStreetAddress;
+                            borrowerAddress.AptOrSuiteOrOther = loanInfo.BorrowerStreetAddress2;
+                            borrowerAddress.City = loanInfo.BorrowerCity;
+                            borrowerAddress.State = loanInfo.BorrowerState;
+                            borrowerAddress.Zip = loanInfo.BorrowerZip;
+                            borrowerAddress.Country = loanInfo.BorrowerCountry;
+
+                            Entities.Recipient borrowerName = new Entities.Recipient();
+                            borrowerName.FirstName = loanInfo.BorrowerFirstName;
+                            borrowerName.LastName = loanInfo.BorrowerLastName;
+                            borrowerName.EmailAddress = loanInfo.BorrowerEmailId;
+
+                            AM.Entities.RecipientInfo recipientInfo = new Entities.RecipientInfo();
+                            recipientInfo.Recipient = borrowerName;
+                            recipientInfo.Address = borrowerAddress;
+
+                            List<AM.Entities.Metadata> mpCustInfo = new List<Metadata>();
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "LoanNumber", Value = loanInfo.LoanNumber });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "AccountNumber", Value = loanInfo.AccountNumber });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyStreetAddress", Value = loanInfo.PropertyStreetAddress });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyCity", Value = loanInfo.PropertyCity });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyState", Value = loanInfo.PropertyState });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "PropertyZip", Value = loanInfo.PropertyZip });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.DateTime, Key = "DocumentDate", Value = Convert.ToDateTime(loanInfo.DocumentDate).ToString("MMMM dd, yyyy") });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "NoticeDate", Value = Convert.ToDateTime(loanInfo.NoticeDate).ToString("MM/dd/yyyy") });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CommunityName", Value = loanInfo.CommunityName });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "CommunityCode", Value = loanInfo.CommunityCode });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "ClientId", Value = loanInfo.ClientId });
+                            mpCustInfo.Add(new Metadata() { DataType = DataType.String, Key = "RequestorName", Value = loanInfo.RequestorName });
+
+                            mp.RecipientInfo = recipientInfo;
+                            mp.CustomInfo = mpCustInfo;
+
+                            DocumentOrPackage borrowerDocument = new DocumentOrPackage();
+                            borrowerDocument.Name = "{0}_{1}.pdf".Fill(loanInfo.FloodCertNumber.Trim(), cnt);
+
+                            mp.DocumentOrPackage = borrowerDocument;
+                            //NOTE : CODE FOR Generating PDFs for selected templates Naming Conventions = {LoanNumber+ +_+{cnt}.pdf                       
+                            mb.MailPieces.Add(mp);
+                        }
+
+                        //NOTE : Generate XML 
+
+                        var xmlByClient = mb.Serialize<MailBatch>();
+
+                        string xmlFilePath = Path.Combine(localCsvDirPath, client.AppCode, "{0}.xml".Fill(xmlName));
+                        File.WriteAllText(xmlFilePath, xmlByClient);
+                        log.Info("Local XML File is created");
+                        mbList.Add(mailBatch);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -300,7 +416,6 @@ namespace AM.Console
                     return isAllSuccess;
                 }
             }
-
             using (TransactionScope scope = new TransactionScope())
             {
                 try
@@ -309,17 +424,22 @@ namespace AM.Console
                     {
 
                         mb.Id = mailBatchSvc.InsertBatchDetails(mb);
+
                         Client client = clientSvc.GetClientById(mb.ClientId);
+
                         //NOTE : Generate Batch path
                         string channelBatchPath = Path.Combine(localCsvDirPath, client.AppCode);
+
                         MailBatchInfo mbi = new MailBatchInfo(mb, client, Config.Common_AuthoMailRootFolder);
 
                         //Here we create folder structure
+                        mbi.AMRequestPath.CreateDirectoryIfNotExist();
                         mbi.AMResponsePath.CreateDirectoryIfNotExist();
                         mbi.PnSRequestPath.CreateDirectoryIfNotExist();
                         mbi.PnSResponsePath.CreateDirectoryIfNotExist();
-                        //Here we are moving whole directory so no need to create AMRequestPath directly.
-                        Directory.Move(channelBatchPath, mbi.AMRequestPath);
+
+                        var localFilePath = Path.Combine(localCsvDirPath, client.AppCode, $"{mbi.BatchName}.xml");
+                        File.Move(localFilePath, Path.Combine(mbi.AMRequestPath, $"{mbi.BatchName}.xml"));
 
                         commonSvc.UpdateBatchPipeLineStatus(mb.Id, BatchPipelineStatus.Received, Common.Now).Wait();
                     }
@@ -388,6 +508,7 @@ namespace AM.Console
             mailBatch.BatchName = batchName;
             mailBatch.ClientBatchId = batchName;
             mailBatch.Priority = Priority.Low.ToString();
+            mailBatch.ServerIP = Config.Common_ServerIP;
             mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
             commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, receivedOn).Wait();
             mailBatchSvc.MarkMailBatchAsInvalid(mailBatch.Id, errorMessage).Wait();
@@ -400,11 +521,12 @@ namespace AM.Console
             return clientSvc.GetClientByAppCode(sftChannelCode + "_Invalid").Result;
         }
 
-        private CapOneData FromCsv(string csvLine)
+        private FloodData FromCsv(string csvLine)
         {
             List<string> values = csvLine.SplitCsv();
-            CapOneData caponeValues = new CapOneData();
+            FloodData caponeValues = new FloodData();
             caponeValues.FloodCertNumber = values[0].RemoveCSVStringFormat();
+            caponeValues.AccountNumber = values[1].RemoveCSVStringFormat();
             caponeValues.BorrowerLastName = values[2].RemoveCSVStringFormat();
             caponeValues.BorrowerFirstName = values[3].RemoveCSVStringFormat();
             caponeValues.BorrowerStreetAddress = values[4].RemoveCSVStringFormat();
@@ -420,8 +542,34 @@ namespace AM.Console
             caponeValues.CommunityCode = values[14].RemoveCSVStringFormat();
             caponeValues.LoanNumber = values[15].RemoveCSVStringFormat();
             caponeValues.NoticeDate = values[18].RemoveCSVStringFormat().AnyFormatToDateTimeString();
+            caponeValues.RequestorName = values[21].RemoveCSVStringFormat().Trim();
             caponeValues.ClientId = values[22].RemoveCSVStringFormat();
             caponeValues.ClientCode = values[23].RemoveCSVStringFormat().Trim();
+
+            caponeValues.BorrowerStreetAddress2 = values[24].RemoveCSVStringFormat().Trim();
+            caponeValues.BorrowerCountry = values[25].RemoveCSVStringFormat().Trim();
+            caponeValues.SendEDelivery = values[26].RemoveCSVStringFormat().Trim();
+            caponeValues.BorrowerEmailId = values[27].RemoveCSVStringFormat().Trim();
+
+            if (caponeValues.SendEDelivery == "Y" && (caponeValues.BorrowerLastName.IsNullOrWhiteSpace() || caponeValues.BorrowerFirstName.IsNullOrWhiteSpace()))
+            {
+                if ((caponeValues.BorrowerLastName.IsNullOrWhiteSpace() && !caponeValues.BorrowerFirstName.IsNullOrWhiteSpace()) && caponeValues.BorrowerFirstName.Any(x => Char.IsWhiteSpace(x)))
+                {
+                    var splitFirstName = caponeValues.BorrowerFirstName.Split(' ');
+
+                    caponeValues.BorrowerFirstName = splitFirstName[0];
+                    caponeValues.BorrowerLastName = string.Join(" ", splitFirstName.Where(x => x != splitFirstName[0]));
+                }
+
+                if ((!caponeValues.BorrowerLastName.IsNullOrWhiteSpace() && caponeValues.BorrowerFirstName.IsNullOrWhiteSpace()) && caponeValues.BorrowerLastName.Any(x => Char.IsWhiteSpace(x)))
+                {
+                    var splitLastName = caponeValues.BorrowerLastName.Split(' ');
+
+                    caponeValues.BorrowerFirstName = splitLastName[0];
+                    caponeValues.BorrowerLastName = string.Join(" ", splitLastName.Where(x => x != splitLastName[0]));
+                }
+            }
+
             return caponeValues;
         }
 
@@ -479,9 +627,6 @@ namespace AM.Console
                 return;
             }
 
-            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
-            sftSite.Connect();
-
             foreach (var mailBatch in downloadBatches)
             {
                 try
@@ -503,28 +648,8 @@ namespace AM.Console
 
                     foreach (var mp in mbData.MailPieces)
                     {
-                        #region Create Template with iTextSharp 
-                        //Dictionary<string, string> templateFieldData = new Dictionary<string, string>();
-                        //templateFieldData.Add("LoanNumber", mp.BusinessFriendlyIdValue);
-                        //templateFieldData.Add("BorrowerName", mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).Trim() : "" : "");
-                        //templateFieldData.Add("BorrowerAddress", mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}\n{1}".Fill(mp.RecipientInfo.Address.Street, "{0}, {1} {2}".Fill(mp.RecipientInfo.Address.City, mp.RecipientInfo.Address.State, mp.RecipientInfo.Address.Zip)).Trim() : "" : "");
-
-                        //if (mp.CustomInfo != null)
-                        //{
-                        //    templateFieldData.Add("Subject", "Proposed loan to be made to {0} by Capital One Multifamily Finance, LLC, secured by real property known as {1}, {2}, {3} {4}".Fill(mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).Trim() : "" : "", mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyZip").Value));
-                        //    templateFieldData.Add("PropertyFullAddress", mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value);
-                        //    templateFieldData.Add("PropertyAddress1", mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value);
-                        //    templateFieldData.Add("PropertyAddress2", "{0}, {1} {2}".Fill(mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState").Value, mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyZip").Value));
-                        //    templateFieldData.Add("DocumentDate", mp.CustomInfo.SingleOrDefault(m => m.Key == "DocumentDate").Value);
-                        //    templateFieldData.Add("NoticeDate", mp.CustomInfo.SingleOrDefault(m => m.Key == "NoticeDate").Value);
-                        //    templateFieldData.Add("CommunityName", mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityName").Value);
-                        //}
-
-                        //NOTE: move this line after selecting customTemplate
-                        //PdfUtil.PdfFormFiller(templateFilePath, printReadyTemplatePath, templateFieldData);
-                        #endregion
-
-                        DocType docType = docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0);
+                        bool isCountryUS = mp.RecipientInfo.Address.Country.IsCountryUS();
+                        DocType docType = !isCountryUS ? docTypeSvc.GetIntlDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0, mailBatch.ReceivedOn.Value.UtcToEst()) : docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0, mailBatch.ReceivedOn.Value.UtcToEst());
 
                         CustomTemplate customTemplate = commonSvc.GetCustomTemplateByDocTypeId(docType.Id, mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityCode").Value);
                         var printReadyTemplatePath = Path.Combine(mbi.AMRequestPath, mp.DocumentOrPackage.Name);
@@ -532,8 +657,6 @@ namespace AM.Console
                         if (customTemplate == null)
                         {
                             log.Error("No Template found");
-                            //NOTE Report Invalid                           
-
                             continue;
                         }
 
@@ -583,9 +706,6 @@ namespace AM.Console
                     continue;
                 }
             }
-
-            if (sftSite.IsConnected)
-                sftSite.Disconnect();
 
             log.Debug("Download job queue is completed.");
         }

@@ -27,7 +27,7 @@ SELECT Id AS MailPieceId
 ,ISNULL(RcptAddressState,'') AS ToState
 ,ISNULL(RcptAddressZIP,'') AS ToZip
 ,ISNULL(RcptAddressCountry,'') AS ToCountry
-,CASE WHEN RcptAddressCountry IS NOT NULL AND LEN(LTRIM(RTRIM(RcptAddressCountry)))>0 THEN 1 ELSE 0 END AS IsForeignAddress 
+,CASE WHEN RcptAddressTypes LIKE '%FOREIGN%'THEN 1 ELSE 0 END AS IsForeignAddress
 FROM AM.MailPieces WHERE Id=@MailPieceId 
 	
 END

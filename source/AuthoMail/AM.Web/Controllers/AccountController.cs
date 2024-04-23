@@ -108,9 +108,10 @@ namespace AM.Web.Controllers
         {
             try
             {
+
                 model.UserName = model.UserName.Contains("@") ? model.UserName : model.UserName + "@corelogic.com";
                 var mailAddress = new MailAddress(model.UserName);
-                if (mailAddress.Host.Equals("us.hsbc.com", StringComparison.CurrentCultureIgnoreCase))
+                if (mailAddress.Host.Equals("us.hsbc.com", StringComparison.CurrentCultureIgnoreCase) || mailAddress.Host.Equals("hsbc.com.mx", StringComparison.CurrentCultureIgnoreCase))
                 {
                     string clientIP = GetIp();
                     IPNetwork ipnetwork;
@@ -158,6 +159,16 @@ namespace AM.Web.Controllers
                 }
                 if (isCoreLogicUser)
                 {
+                    if (Config.CLAuth_EnabledAxisAuthentication)
+                    {
+                        var isValidUser = await CLAuthentication.IsValidCLUser(model.UserName);
+                        if (!isValidUser.Key)
+                        {
+                            ModelState.AddModelError("", isValidUser.Value);
+                            return View(model);
+                        }
+                    }
+
                     var hasLogin = CLAuthentication.LdapLogin(model.UserName, model.Password);
                     if (!hasLogin.Key)
                     {
@@ -915,14 +926,14 @@ namespace AM.Web.Controllers
         {
             return View();
         }
-        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.BAOffShore)]
         public async Task<JsonResult> GetAllUsers()
         {
             var users = await accSvc.GetAllUsers();
             if (users == null || users.Count() == 0) return Json(JsonResponseFactory.ErrorResponse("Users not found."), JsonRequestBehavior.AllowGet);
             return Json(JsonResponseFactory.SuccessResponse(new { model = users.ToList() }), JsonRequestBehavior.AllowGet);
         }
-        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.BAOffShore)]
         public async Task<JsonResult> GetAllUserToDownExcel(int timezoneOffset)
         {
             var users = await accSvc.GetAllUsers();
@@ -932,6 +943,7 @@ namespace AM.Web.Controllers
                 model.Add(
                     new AMAllUsersReportVM
                     {
+                        ClientName = user.Clients,
                         Email = user.Email,
                         EmailConfirmed = user.EmailConfirmed,
                         DisplayName = user.DisplayName,

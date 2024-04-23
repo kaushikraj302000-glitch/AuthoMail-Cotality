@@ -409,5 +409,72 @@ namespace AM.Console
 
             return isEmailSent;
         }
+
+        public static bool SendDuplicateRecordNotificationEmail(List<MailPieceDTO> mailPieces, DateTime receivedOnest, string batchName, string appCode, string clientToEmail, string clientCcEmail)
+        {
+            bool isEmailSent = false;
+
+            try
+            {
+                if (clientToEmail.IsNullOrWhiteSpace())
+                {
+                    return true;
+                }
+
+                if (!clientCcEmail.IsNullOrWhiteSpace())
+                {
+                    clientCcEmail = $"{clientCcEmail},{Config.Common_ErrorSubscribedEmailCc}";
+                }
+                else
+                {
+                    clientCcEmail = Config.Common_ErrorSubscribedEmailCc;
+                }
+
+                using (SmtpClient smtpClient = new SmtpClient())
+                {
+                    using (MailMessage msg = new MailMessage())
+                    {
+                        msg.IsBodyHtml = true;
+                        msg.To.Add(clientToEmail);
+                        msg.CC.Add(clientCcEmail);
+                        msg.Subject = "{0} : {1} {2}".Fill(Config.Common_Environment, appCode, Config.Common_DuplicateEmailSubject);
+                        msg.Priority = MailPriority.High;
+
+                        StringBuilder sb = new StringBuilder(File.ReadAllText(Config.Common_DuplicateEmailTemplate));
+                        sb = sb.Replace("<%BatchName%>", batchName);
+                        sb = sb.Replace("<%yyyymmdd%>", receivedOnest.ToString("yyyy-MM-dd hh:mm:ss"));
+                        sb = sb.Replace("<%BusinessIdentifierIdName%>", mailPieces.FirstOrDefault().BusinessFriendlyIdName);
+
+                        StringBuilder content = new StringBuilder();
+                        foreach (var mailPiece in mailPieces)
+                        {
+                            content.AppendLine("<tr>");
+                            content.Append($"<td>{mailPiece.BusinessFriendlyIdValue}</td>");
+                            content.Append($"<td>{$"{mailPiece.RcptLastName}, {mailPiece.RcptFirstName}"}</td>");
+                            content.Append($"<td>{mailPiece.DocumentOrPackageType}</td>");
+                            content.Append($"<td>{mailPiece.FileName}</td>");
+                            content.Append($"<td>{mailPiece.RcptAddressStreet}</td>");
+                            content.Append($"<td>{mailPiece.RcptAddressCity}</td>");
+                            content.Append($"<td>{mailPiece.RcptAddressState}</td>");
+                            content.Append($"<td>{mailPiece.RcptAddressZIP}</td>");
+                            content.AppendLine("</tr>");
+                        }
+
+                        sb.Replace("<%DuplicateData%>", content.ToString());
+
+                        msg.Body = sb.ToString();
+
+                        smtpClient.Send(msg);
+                        isEmailSent = true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
+
+            return isEmailSent;
+        }
     }
 }

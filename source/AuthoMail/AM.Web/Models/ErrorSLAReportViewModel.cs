@@ -9,6 +9,7 @@ namespace AM.Web.Models
     {
         public string DocType { get; set; }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
         public int BatchId { get; set; }
         public Guid UniqueId { get; set; }
         public DateTime? DueDate { get; set; }

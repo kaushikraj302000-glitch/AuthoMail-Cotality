@@ -22,7 +22,7 @@ namespace AM.Services
         List<UserRequestSignUp> GetUsersRequestSignUp(string userId);
         KeyValuePair<bool, string> UpdateUsersRequestSignUp(string Id, string status, string closedBy);
         //DocTypes
-        List<DocTypes> GetDocTypes();
+        List<DocTypeVM> GetDocTypes();
         List<DocTypeVM> GetDocTypesByClientId(int ClientId);
         List<DocTypeCoverLetterVM> GetDocTypeCoverLetterByDocTypeId(int Id);
         KeyValuePair<bool, string> SaveDocTypeCoverLetter(PnSConfigDetailCoverLetter dtcl);
@@ -67,6 +67,8 @@ namespace AM.Services
         List<EmailAllowedDomain> GetUserManagerList();
         string GetEmailsFromClientDomain(string clientEmail);
         TrackingDetailViewModel GetTrackingDetailByTrackingNo(string trackingNo);
+        List<PnSConfigDetail> GetPnSConfigDetailsByPnSConfigId(int pnsConfigId);
+        List<EDeliveryStatusInfoModel> GetEDeliveryHistoryByMailBatchId(int mailBatchId);
     }
     public class SupportService : ServiceBase, ISupportService
     {
@@ -548,21 +550,13 @@ where cd.Id=@Id";
         }
 
         #endregion docType
-        public List<DocTypes> GetDocTypes()
+        public List<DocTypeVM> GetDocTypes()
         {
-            string query = @"select d.*,c.Name as ClientName,d.DocTypeName as ClientDocTypesName,c.Name as ClientName from AM.DocTypes d
-inner join Common.Clients c on d.ClientId=c.Id";
-            var model = db.Query<DocTypes>(query).ToList();
-            //var list = GetDocTypesToClientDocTypes(model);
-            return model;
-            //string query = "SELECT d.*,c.* FROM [AM].[DocTypes] d,[Common].[Clients] c WHERE d.ClientId=c.Id";
-            //return db.Query<DocTypes, Clients, DocTypes>(query,
-            //    (d, c) =>
-            //    {
-            //        d.Client = c;
-            //        return d;
-            //    }
-            //    ).ToList();
+            string query = @"SELECT D.*,C.AppCode, C.Name AS ClientName, BREName =STUFF((SELECT DISTINCT '|'+ CAST([EnvelopeName] AS VARCHAR(MAX)) FROM Common.Envelopes E INNER JOIN AM.DocTypeInserts DI ON DI.BREEnvelopeId=E.Id WHERE DI.DocTypeId = D.Id FOR XMl PATH('')),1,1,''), BREPartNumber =STUFF((SELECT DISTINCT '|'+ CAST([PartNumber] AS VARCHAR(MAX)) FROM Common.Envelopes E INNER JOIN AM.DocTypeInserts DI ON DI.BREEnvelopeId=E.Id WHERE DI.DocTypeId = D.Id FOR XMl PATH('')),1,1,'')
+                FROM [AM].[DocTypes] D 
+                LEFT OUTER JOIN Common.Clients C ON D.ClientId=C.Id
+                WHERE C.Id>0 ORDER BY C.AppCode";
+            return db.Query<DocTypeVM>(query).ToList();
         }
         public List<SFTChannels> GetSFTChannels()
         {
@@ -982,6 +976,32 @@ inner join Common.Clients c on d.ClientId=c.Id";
             return db.QuerySingle<PrintTrail>("select * from Common.PrintTrails where Id=@Id", new { Id = Id });
         }
 
+        public List<PnSConfigDetail> GetPnSConfigDetailsByPnSConfigId(int pnsConfigId)
+        {
+            string query = @"SELECT PCD.*,PT.TrailName,E.EnvelopeName,E.PartNumber, PV.VendorCode
+                            FROM Common.PnSConfigDetail PCD
+                            LEFT OUTER JOIN Common.PrintTrails PT ON PCD.PrintTrailId = PT.Id
+                            LEFT OUTER JOIN Common.Envelopes E ON PCD.EnvelopeId = E.Id
+                            LEFT OUTER JOIN Common.PrintVendors PV ON PT.PrintVendorId = PV.Id WHERE PnSConfigId=@PnSConfigId";
+            return db.Query<PnSConfigDetail>(query, new { PnSConfigId = pnsConfigId }).ToList();
+        }
 
+        public List<EDeliveryStatusInfoModel> GetEDeliveryHistoryByMailBatchId(int mailBatchId)
+        {
+            string query = @"SELECT MailBatchId,StepName,StepTimeStamp
+                            FROM
+                            (
+                                SELECT ED.MailBatchId, CAST(SigningRoomName AS varchar(256))SigningRoomName, CONVERT(VARCHAR(256), [SigningRoomCreatedOn],22)[SigningRoomCreatedOn], CONVERT(VARCHAR(256), [InvitationSentOn],22)[InvitationSentOn], CONVERT(VARCHAR(256), [eDeliveredOn],22)[eDeliveredOn],  CONVERT(VARCHAR(256), [ConsentAcceptedOn],22)[ConsentAcceptedOn], CONVERT(VARCHAR(256), [ConsentDeclinedOn],22)[ConsentDeclinedOn], IIF(ED.ErrorCode = 'Expired', CONVERT(VARCHAR(256), [ExpiryDate],22), NULL) AS [ExpiredOn], CONVERT(VARCHAR(256), [DocReviewedOn],22)[DocReviewedOn], CONVERT(VARCHAR(256), [DocDownloadedOn],22)[DocDownloadedOn], CONVERT(VARCHAR(256), [ESignedOn],22)[ESignedOn], CAST(DownloadedIPAddress AS varchar(256))DownloadedIPAddress
+                                 FROM AM.EDeliveryMailPieces ED 
+								 INNER JOIN AM.MailPieces MP ON MP.UniqueId = ED.UniqueId 
+								 WHERE ED.MailBatchId = @MailBatchId
+                            )P
+                            UNPIVOT
+                            (
+                            StepTimeStamp FOR StepName IN([SigningRoomCreatedOn], [InvitationSentOn], [eDeliveredOn],  [ConsentAcceptedOn], [ConsentDeclinedOn], [ExpiredOn],  [DocReviewedOn], [DocDownloadedOn],  [ESignedOn], DownloadedIPAddress, SigningRoomName)
+                            ) AS EDeliveryInfo";
+
+            return db.Query<EDeliveryStatusInfoModel>(query, new { MailBatchId = mailBatchId }).ToList();
+        }
     }
 }

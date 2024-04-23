@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using AM.Lib;
 using System.ComponentModel.DataAnnotations;
+using AM.Entities;
+
 namespace AM.Services
 {
 
@@ -31,12 +33,13 @@ namespace AM.Services
         public string RcptSuffix { get; set; }
         public string RcptPhone { get; set; }
         public string RcptOrganization { get; set; }
+        public string RcptEmailId { get; set; }
 
         public string RcptName
         {
             get
             {
-                string nm = string.Format("{0} {1} {2}", this.RcptFirstName, this.RcptMiddleName, this.RcptLastName);
+                string nm = $"{this.RcptPrefix} {this.RcptFirstName} {this.RcptMiddleName} {this.RcptLastName} {this.RcptSuffix}";
                 return nm.IsNullOrWhiteSpace() ? null : nm.Replace("  ", " ");
             }
         }
@@ -65,6 +68,7 @@ namespace AM.Services
         public string RcptAddressCity { get; set; }
         public string RcptAddressState { get; set; }
         public string RcptAddressZIP { get; set; }
+        public string RcptAddressCountry { get; set; }
 
         public string RcptAddress
         {
@@ -156,6 +160,8 @@ namespace AM.Services
         public DateTime? StdSubmissionTime { get; set; }
         public DateTime? MaxSubmissionTime { get; set; }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
+        public DateTime? ExpiryDate { get; set; }
         public string MissedSLAReason { get; set; }
         public MailBatches MailBatches { get; set; }
         public Clients Clients { get; set; }
@@ -189,6 +195,8 @@ namespace AM.Services
         public string DeliveryStatus { get; set; }
         public string EnvelopeName { get; set; }
         public string PrintFileName { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
     }
     public class MailBatches
     {
@@ -382,7 +390,18 @@ namespace AM.Services
         public int NoOfCopies { get; set; }
         public int? MinPage { get; set; }
         public int? MaxPage { get; set; }
-
+        public string EnvelopeName { get; set; }
+        public string PartNumber { get; set; }
+        public string TrailName { get; set; }
+        public string VendorCode { get; set; }
+        public bool IsFallBack { get; set; }
+        public bool IsPrintReady { get; set; }
+        public TimeSpan? BizdayStartTime { get; set; }
+        public TimeSpan? BizdayEndTime { get; set; }
+        public TimeSpan? SatStartTime { get; set; }
+        public TimeSpan? SatEndTime { get; set; }
+        public TimeSpan? SunStartTime { get; set; }
+        public TimeSpan? SunEndTime { get; set; }
     }
     public class DocTypePageRange
     {
@@ -445,6 +464,7 @@ namespace AM.Services
         public string Status { get; set; }
         public DateTime RequestedOn { get; set; }
         public string RequestedBy { get; set; }
+        public string PBReasons { get; set; }
         public MailPieces MailPieces { get; set; }
         public Users Users { get; set; }
     }
@@ -501,20 +521,30 @@ namespace AM.Services
 
     public class SearchViewModel
     {
+        private readonly DateTime CurrentDateTime = Common.Now;
+        //public DateTime StartDate { get; set; }
+        public int MailPieceId { get; set; }
+        public int MailBatchId { get; set; }
         public string LoanNumber { get; set; }
         public string Status { get; set; }
         public Guid UniqueId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+        public string RcptAddress { get; set; }
         public string City { get; set; }
         public string ZIP { get; set; }
         public string State { get; set; }
+        public string Country { get; set; }
         public DateTime? ReceivedOn { get; set; }
         public DateTime? ShippedOn { get; set; }
+        public DateTime? EsignedOn { get; set; }
         public DateTime? PickedUpOn { get; set; }
         public string TrackingNo { get; set; }
         public string DocType { get; set; }
+        public bool IsEDeliveryEnabled { get; set; }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
+        public DateTime? ExpiryDate { get; set; }
         public DateTime? DueDate { get; set; }
         public string Channel { get; set; }
         public string ShippingMethod { get; set; }
@@ -529,51 +559,124 @@ namespace AM.Services
         public string EnvelopeName { get; set; }
         public DateTime? DeliveryDate { get; set; }
         public string DeliveryStatus { get; set; }
+        public int JobId { get; set; }
+        public string AppCode { get; set; }
+        public string PDFFileName { get; set; }
+        public int RetentionPeriod { get; set; }
+        public int ClientId { get; set; }
+        public string RequestedPdf
+        {
+            get
+            {
+                if (this.PDFFileName.IsNullOrWhiteSpace()) return null;
+
+                return $@"{Config.PnS_PCIRootFolder}/{this.AppCode}/{this.JobId}/PCIRequest/{PDFFileName}";
+            }
+        }
+        public bool IsWithinRetentionPeriod { get; set; }
+        public string ServerIP { get; set; }
     }
 
 
     public class MonthlyReconReportViewModel
     {
-        public Guid UniqueId { get; set; }
+        public string AppCode { get; set; }
         public string BatchName { get; set; }
+        public Guid UniqueId { get; set; }
         public string LoanNumber { get; set; }
-        public string FileName { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Address { get; set; }
         public string City { get; set; }
         public string State { get; set; }
         public string ZIP { get; set; }
-        public string DocType { get; set; }
-        public bool IsEDeliveryRequested { get; set; }
         public string Channel { get; set; }
-        public string PrintLocation { get; set; }
-        public string ShippingMethod { get; set; }
-        public string TrackingNo { get; set; }
-        public int TotalPages { get; set; }
-        public int TotalBlankPages { get; set; }
+        public string DocType { get; set; }
         public DateTime? ReceivedOn { get; set; }
-        //public DateTime? PrintedOn { get; set; }
         public DateTime? ShippedOn { get; set; }
-        //public DateTime? PickedUpOn { get; set; }
+        public DateTime? PulledBackOn { get; set; }
+        public string PrintLocation { get; set; }
         public string Status { get; set; }
-        public string AppCode { get; set; }
-        //public int? JobId { get; set; }
-        //public int? PieceId { get; set; }
-        public string ErrorDesc { get; set; }
-        //public string PdfReceivedPath
-        //{
-        //    get
-        //    {
-        //        if (this.JobId == null || this.PieceId == null) return null;
-        //        return string.Format(@"ReturnPdfs\{0}\{1}\{2}-{3}-{4}_{5}", this.AppCode, this.JobId, this.JobId, this.PieceId, this.MailPieceId, this.FileName);
-        //    }
-        //}
-        public string Inserts { get; set; }
-        public string PrintFileName { get; set; }
+        public string TrackingNo { get; set; }
+        public string FileName { get; set; }
+        public int TotalPages { get; set; }
+        public int TotalSheets { get; set; }
+        public int LetterPageCount { get; set; }
+        public int LegalPageCount { get; set; }
+        public int TotalBlankPages { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
+        public DateTime? ESignedOn { get { if (this.Status == ShippingStatus.eSigned.ToString() && ShippedOn.HasValue) return ShippedOn; return null; } }
+        public string ShippingMethod { get; set; }
+        public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
         public string EnvelopeName { get; set; }
+        public string ErrorDesc { get; set; }
+        public string Inserts { get; set; }
+        public string PrintBatchName { get; set; }
+        public DateTime? SubmittedOn { get; set; }
         public DateTime? DeliveryDate { get; set; }
         public string DeliveryStatus { get; set; }
+        public decimal ShippingCost { get; set; }
+        public string LetterPageNumbers { get; set; }
+        public string LegalPageNumbers { get; set; }
+        public string BlankPageNumbers { get; set; }
+        public List<string> BlankPageNumbersList
+        {
+            get
+            {
+                if (!BlankPageNumbers.IsNullOrWhiteSpace())
+                {
+                    return BlankPageNumbers.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+                }
+                return null;
+            }
+        }
+        public List<string> BlankLetterPages
+        {
+            get
+            {
+                if (BlankPageNumbersList != null)
+                {
+                    if (!LetterPageNumbers.IsNullOrWhiteSpace())
+                    {
+                        var letterPages = LetterPageNumbers.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                        return BlankPageNumbersList.Intersect(letterPages).ToList();
+                    }
+                }
+                return null;
+            }
+        }
+        public List<string> BlankLegalPages
+        {
+            get
+            {
+                if (BlankPageNumbersList != null)
+                {
+                    if (!LegalPageNumbers.IsNullOrWhiteSpace())
+                    {
+                        var legalPages = LegalPageNumbers.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                        return BlankPageNumbersList.Intersect(legalPages).ToList();
+                    }
+                }
+                return null;
+            }
+        }
+
+        public int LetterPagesImpression
+        {
+            get
+            {
+                return LetterPageCount - (BlankLetterPages != null ? BlankLetterPages.Count : 0);
+            }
+        }
+        public int LegalPagesImpression
+        {
+            get
+            {
+                return LegalPageCount - (BlankLegalPages != null ? BlankLegalPages.Count : 0);
+            }
+        }
     }
 
 }

@@ -109,6 +109,7 @@ namespace PCI.Service
     {
         public int PrintTrailBatchId { get; set; }
         public string PrintBatchName { get; set; }
+        public string PrintVendorCode { get; set; }
         public List<string> ReceivedFileList { get; set; }
     }
 
@@ -134,6 +135,7 @@ namespace PCI.Service
         public string Inserts { get; set; }
         public string InsertsPartNos { get; set; }
         public string InsertsIds { get; set; }
+        public string DallasBatchName { get; set; }
         //Extra fields which will be used for generating MRDF Request
         public string InputWeight { get; set; }
         public string Feeder3_Sel { get; set; }
@@ -163,6 +165,8 @@ namespace PCI.Service
         public string CustomerId { get; set; }
         public bool IsForeignAddress { get; set; }
         public string DocumentCode { get; set; }
+        public bool IsChecks { get; set; }
+        public string ChecksPageNumbers { get; set; }
     }
 
     public class DallasBatch
@@ -183,6 +187,7 @@ namespace PCI.Service
         public TimeSpan EndTime { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
+        public bool IsSaturday { get; set; }
     }
 
     public class PrintTrailDetail
@@ -196,12 +201,15 @@ namespace PCI.Service
         public string VendorCode { get; set; }
         public string TrailName { get; set; }
         public bool SimulateTrail { get; set; }
+        public bool IsSinglePdf { get; set; }
+        public bool IsManifestRequired { get; set; }
         public string Protocol { get; set; }
         public string Host { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
         public string ToADEDir { get; set; }
         public string FromADEDir { get; set; }
+        public int ShipperId { get; set; }
     }
 
     public class PrintTrailBatch
@@ -210,6 +218,8 @@ namespace PCI.Service
         public int ShipperId { get; set; }
         public int PrintTrailId { get; set; }
         public string PrintBatchName { get; set; }
+        public bool IsSinglePdf { get; set; }
+        public bool IsManifestRequired { get; set; }
         public bool IsSubmitted { get; set; }
         public DateTime? SubmittedOn { get; set; }
         public bool IsMRDFReceived { get; set; }
@@ -218,6 +228,7 @@ namespace PCI.Service
         public DateTime? SuspendedOn { get; set; }
         public string ValidationErrors { get; set; }
         public Int64? ZipFileSize { get; set; }
+        public string ServerIP { get; set; }
     }
 
     public class EmailChannel
@@ -230,5 +241,11 @@ namespace PCI.Service
         public string Subject { get; set; }
         public string BodyTemplate { get; set; }
         public bool IsBodyHTML { get; set; }
+    }
+
+    public class AMSystemSetting
+    {
+        public string Id { get; set; }
+        public string Value { get; set; }
     }
 }

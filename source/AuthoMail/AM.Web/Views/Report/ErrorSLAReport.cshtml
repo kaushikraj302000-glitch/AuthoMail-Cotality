@@ -19,6 +19,15 @@
     .bootstrap-select {
         width: 205px !important;
     }
+
+    .label.label-Edelivery {
+        background-color: #20c997;
+    }
+
+    .label.label-Esign {
+        background-color: #6f42c1;
+    }
+
 </style>
 <link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 <div class="panel-group">
@@ -92,7 +101,7 @@
             </span>
         </div>
     </div>
-    <div class="panel-body" id="SLABatchList">
+    <div class="panel-body" id="SLABatchList" style="margin-top:10px;">
 
 
     </div>
@@ -104,8 +113,11 @@
             <tr>
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
                 <th>Status</th>
-                <th>Borrower Name</th>
-                <th>City</th>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <th>Borrower Name</th>
+                    <th>City</th>
+                }
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Due Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Shipped Date <span class="fontcapitalize">(Local)</span></th>
@@ -135,15 +147,18 @@
             <tr class="row-small">
                 <td><span>{BusinessIdValue}</span></td>
                 <td><span>{ShippingStatusFormatted}</span></td>
-                <td><span>{FirstName} {LastName}</span></td>
-                <td><span>{City} {State} {ZIP}</span></td>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <td><span>{FirstName} {LastName}</span></td>
+                    <td><span>{City} {State} {ZIP}</span></td>
+                }
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{DueDateFormatted}</span></td>
                 <td><span>{ShippedOnFormatted}</span></td>
                 <td><span>{DocType}</span></td>
                 <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span>{Channel}</span></td>
-                <td><span>{ShippingCarrier} / {ShippingMethod}</span></td>
+                <td><span>{ShippingCarrierOrMethod}</span></td>
                 <td style="display:none;"><span>{TrackingNoFormatted}</span></td>
                 <td><span>{TrackingNo}</span></td>
                 <td><span>{SLAStatus}</span></td>
@@ -300,6 +315,14 @@
                             if (response.Object.model.length > 0) {
                                 var data = FormatObject(response.Object.model);
                                 $("#SLABatchList").html("");
+                                $.each(data, function (index, value) {
+                                    if (value.ShippingCarrier == "E-Delivery") {
+                                        value.ShippingCarrierOrMethod = value.ShippingCarrier;
+                                    }
+                                    else {
+                                        value.ShippingCarrierOrMethod = value.ShippingCarrier + " / " + value.ShippingMethod;
+                                    }
+                                });
                                 //this.ReceivedOnFormatted = moment(this.ReceivedOn).format("MM/DD/YY HH:mm:ss");
                                 BindTemplate(data, "#SLABody", "#SLAbodyContent", "#SLATableContent", "#SLABatchList");
                             }
@@ -364,10 +387,16 @@
                     case "InProgress":
                         status = '<span class="label medium label-blue">' + this.Status + '</span>';
                         break;
+                    case "eDelivered":
+                        status = '<span class="label medium label-Edelivery">' + this.Status + '</span>';
+                        break;
+                    case "eSigned":
+                        status = '<span class="label medium label-Esign">' + this.Status + '</span>';
+                        break;
 
                 }
                 this.ShippingStatusFormatted = status;
-                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested && !this.IsESignRequested ? '<span class="label medium label-success">E-Delivery</span>' : this.IsEDeliveryRequested && this.IsESignRequested ? '<span class="label medium label-success">E-Sign</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             //console.log(Model);
             return Model;

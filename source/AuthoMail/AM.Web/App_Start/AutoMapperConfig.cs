@@ -136,6 +136,9 @@ namespace AM.Web
                    .ForMember(d => d.PrintBatch, o => o.MapFrom(s => s.MRDFRequests != null && s.MRDFRequests.JobId != 0 ? s.MRDFRequests.JobId.ToString() : null))
                    .ForMember(d => d.MailPieceId, o => o.MapFrom(s => s.Id))
                    .ForMember(d => d.MailBatchId, o => o.MapFrom(s => s.MailBatchId));
+
+               cfg.CreateMap<Envelopes, EnvelopesListVM>()
+                   .ForMember(d => d.AlertLevel, o => o.Ignore());
            });
         }
     }

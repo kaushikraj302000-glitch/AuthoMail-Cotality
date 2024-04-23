@@ -30,8 +30,18 @@ namespace AM.Scanner.Controllers
                 //Create HTTP Response.
                 HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.OK);
 
+
+
+                string filePath = string.Empty;
                 //Set the File Path.
-                string filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), fileName);
+                if (fileName.Contains("_16PT"))
+                {
+                    filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "16PT", fileName);
+                }
+                else
+                {
+                    filePath = Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), fileName);
+                }
 
                 //Check whether File exists.
                 if (!File.Exists(filePath))
@@ -62,7 +72,7 @@ namespace AM.Scanner.Controllers
             catch (Exception e)
             {
                 log.Error(e.ToString());
-                return Request.CreateResponse(HttpStatusCode.BadRequest,e.Message);
+                return Request.CreateResponse(HttpStatusCode.BadRequest, e.Message);
             }
         }
 
@@ -76,7 +86,8 @@ namespace AM.Scanner.Controllers
                 {
                     return StatusCode(HttpStatusCode.Unauthorized);
                 }
-                DirectoryInfo d = new DirectoryInfo(Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString()));//Assuming Test is your Folder
+                DirectoryInfo d = new DirectoryInfo(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString());//Assuming Test is your Folder
+                DirectoryInfo largeFontDir = new DirectoryInfo(Path.Combine(ConfigurationManager.AppSettings["DelfusTemplatePath"].ToString(), "16PT"));//Assuming Test is your Folder
                 List<FileDetails> fileDetails = new List<FileDetails>();
                 string[] fileType = { ".doc", ".docx" };
                 FileInfo[] fileInfos = d.GetFiles("*.*").Where(f => fileType.Contains(Path.GetExtension(f.FullName))).ToArray();
@@ -87,7 +98,8 @@ namespace AM.Scanner.Controllers
                         FileName = fileInfo.Name,
                         FileSize = fileInfo.Length > 0 ? fileInfo.Length / 1024 : 0,
                         Status = true,
-                        ModifiedOn = fileInfo.LastWriteTimeUtc
+                        ModifiedOn = fileInfo.LastWriteTimeUtc,
+                        IsLargeTemplateExist = largeFontDir.GetFiles($"{Path.GetFileNameWithoutExtension(fileInfo.Name)}_16PT.*").Any()
                     });
                 }
                 return Ok(fileDetails); //Getting Text files
@@ -149,6 +161,10 @@ namespace AM.Scanner.Controllers
                 if (!Directory.Exists(path))
                 {
                     Directory.CreateDirectory(path);
+                }
+                if (request.Headers["FileName"].Trim().Contains("_16PT"))
+                {
+                    path = Path.Combine(path, "16PT");
                 }
                 request.Files[0].SaveAs(Path.Combine(path, request.Headers["FileName"].Trim()));
                 return Ok("File save successfully.");

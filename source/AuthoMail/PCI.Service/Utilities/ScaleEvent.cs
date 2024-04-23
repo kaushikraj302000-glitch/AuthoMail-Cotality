@@ -90,6 +90,16 @@ namespace PCI.Service
                         wscale = 612f / original.GetWidth();
                         hscale = 1008f / original.GetHeight();
                     }
+                    else if ((o_width < 612f && o_height == 792f) || (o_width > 612f && o_height == 792f))
+                    {
+                        wscale = 612f / original.GetWidth();
+                        hscale = 792f / original.GetHeight();
+                    }
+                    else if ((o_width > 612f && o_height == 1008f) || (o_width < 612f && o_height == 1008f))
+                    {
+                        wscale = 612f / original.GetWidth();
+                        hscale = 1008f / original.GetHeight();
+                    }
                     else
                     {
                         wscale = 1.0f;
@@ -104,6 +114,16 @@ namespace PCI.Service
                         hscale = 792f / original.GetWidth();
                     }
                     else if (o_width > 792f)
+                    {
+                        wscale = 612f / original.GetHeight();
+                        hscale = 1008f / original.GetWidth();
+                    }
+                    else if ((o_height < 612f && o_width == 792f) || (o_height > 612f && o_width == 792f))
+                    {
+                        wscale = 612f / original.GetHeight();
+                        hscale = 1008f / original.GetWidth();
+                    }
+                    else if ((o_height > 612f && o_width == 1008f) || (o_height < 612f && o_width == 1008f))
                     {
                         wscale = 612f / original.GetHeight();
                         hscale = 1008f / original.GetWidth();

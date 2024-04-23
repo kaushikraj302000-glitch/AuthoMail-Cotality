@@ -18,8 +18,8 @@ namespace AM.Services
 {
     public interface IReportService : IDisposable
     {
-        List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
-        List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel);
+        List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel, string shippingStatus);
+        List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, string channel);
         List<MailPieces> GetSummaryControlReport(int clientId, DateTime startDate, DateTime endDate, string channel);
         List<MailPieces> GetSLAMissErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, int? docType, string filterBy);
         List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel);
@@ -33,21 +33,31 @@ namespace AM.Services
         List<SupplyInventoryVM> SupplyInventoryReport(List<string> envelopes);
         MailBatches GetMailBatchDataFromMailBatchId(int mailBatchId);
         List<ReportWizard> GetReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, DateTime? startDate, DateTime? endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo);
-        List<FedExReport> GetFedExData(int[] isPickedUp = null);
+        List<AutoReportWizard> GetAutoReportWizard(DateTime startDate, DateTime endDate);
+        List<TrackingReport> GetFedExData(int[] isPickedUp = null);
         string GetAppcodeByClientid(int clientId);
         List<string> GetMonthlyReconDate(int clientId);
         List<GOSMailPieceData> GetGOSDailyReconReport(DateTime currentDate);
-        List<GOSMailPieceData> GetGOSDataPointReport(DateTime startDate, DateTime endDate);
-        List<FedExReport> GetFedExDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null);
+        List<GOSMailPieceData> GetGOSDataPointReport(DateTime startDate, DateTime endDate, List<string> clientCodes = null);
+        List<TrackingReport> GetFedExDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null, List<string> clientCodes = null);
         List<MailPieces> GetMailPiecesDataBetweenDates(DateTime startDate, DateTime endDate, int clientId);
-        List<USPSeVSReport> GetUSPSeVSDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null);
+        List<TrackingReport> GetUSPSeVSDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null, List<string> clientCodes = null);
         List<MailPieces> GetMailPiecesDataFromPrintBatchId(List<int> printBatchIds);
         List<MailPieces> GetMailPiecesDataFromMailPieceId(List<int> mpIds);
         MemoryStream USAAMTDVolumeReport(DateTime startDate, DateTime endDate);
+        List<PrintVendor> GetActivePrintVendors();
+        List<PrintVendorLocations> GetActivePrintVendorsWithLocation();
+        List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate, List<int> clientId, string status, List<string> shippingMethod);
+        List<EnvelopeInventoryUsage> GetEnvelopesUsageReport(int clientId, int? envelopeId, string printVendorCode, DateTime startDate, DateTime endDate);
+        List<MonthlyReconReportViewModel> GetDuplicateReportByDate(int clientId, DateTime startDate, DateTime endDate, string channel);
+        List<AMPostageData> GetAMPostageData(DateTime startDate, DateTime endDate);
+        void UpdateTrackingInformation();
+        List<ReshipMailPieceViewModel> GetReshipRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, int clientId);
+
     }
     public class ReportService : ServiceBase, IReportService
     {
-        public List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
+        public List<MailPieces> GetDailyDetailOperationsByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel, string shippingStatus)
         {
             string query = "[dbo].[uspweb_DailyDetailOperationsReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
             var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
@@ -63,7 +73,7 @@ namespace AM.Services
                 new
                 {
                     clientId = clientId,
-                    shippingstatus = ShippingStatus.Shipped.ToString(),
+                    shippingstatus = shippingStatus,
                     batchId = batchId,
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
                     startDate = date.HasValue ? (date.Value.ToStartDateTime()).EstToUtc() : date,
@@ -72,7 +82,8 @@ namespace AM.Services
                 ).ToList();
             return data;
         }
-        public List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime? date, int? batchId, string channel)
+
+        public List<MailPieces> GetErrorReportByDateOrBatch(int clientId, DateTime startDate, DateTime endDate, int? batchId, string channel)
         {
             string query = "[dbo].[uspweb_ErrorReport] @clientId, @startDate, @endDate, @batchId, @channel, @shippingStatus";
             var data = db.Query<MailBatches, SFTChannels, Clients, MailPieces, DocTypes, PnSConfigDetail, MailPieces>(query,
@@ -91,8 +102,8 @@ namespace AM.Services
                     shippingstatus = ShippingStatus.Error.ToString(),
                     batchId = batchId,
                     channel = channel.IsNullOrWhiteSpace() ? null : channel,
-                    startDate = date.HasValue ? (date.Value.ToStartDateTime()).EstToUtc() : date,
-                    endDate = date.HasValue ? (date.Value.ToEndDateTime()).EstToUtc() : date
+                    startDate = (startDate.ToStartDateTime()).EstToUtc(),
+                    endDate = (endDate.ToEndDateTime()).EstToUtc()
                 }
                 ).ToList();
             return data;
@@ -157,7 +168,7 @@ namespace AM.Services
         public List<MonthlyReconReportViewModel> GetMonthlyReconReport(int clientId, DateTime startDate, DateTime endDate, string channel)
         {
             string query = "[dbo].[uspweb_MonthlyReconReport] @clientId, @startDate, @endDate, @channel";
-            string appCode = GetAppcodeByClientid(clientId);
+            //string appCode = GetAppcodeByClientid(clientId);
             //if (appCode == "USAA")
             //{
             //    startDate = (startDate.Date + new TimeSpan(20, 00, 01)).EstToUtc();
@@ -192,6 +203,16 @@ namespace AM.Services
             string query = "SELECT Code,Title FROM [Common].[SFTChannels] WHERE IsActive=1 AND Id in (select SFTChannelId from [Common].[ClientSFTChannels] WHERE ClientId=@clientId)";
             var channelList = db.Query<ChannelCodeTitle>(query, new { clientId = clientId }).ToList();
             return channelList;
+        }
+
+        public List<PrintVendor> GetActivePrintVendors()
+        {
+            return db.Query<PrintVendor>("SELECT * FROM Common.PrintVendors WHERE IsActive=1").ToList();
+        }
+
+        public List<PrintVendorLocations> GetActivePrintVendorsWithLocation()
+        {
+            return db.Query<PrintVendorLocations>("SELECT DISTINCT PrintVendorCode,PrintVendorName from Common.ShipperInformation SI INNER JOIN Common.PrintVendors PV ON SI.PrintVendorId = PV.Id WHERE PV.IsActive = 1 ORDER BY SI.PrintVendorName").ToList();
         }
 
         public List<PullBackRequests> GetPullbackRequestReport(int clientId, DateTime startDate, DateTime endDate)
@@ -385,24 +406,75 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             if (!startDate.HasValue && businessFriendlyIdValue.IsNullOrWhiteSpace() && trackingNo.IsNullOrWhiteSpace())
                 throw new Exception("Date filter required.");
 
-            string query = @"SELECT m.Id as MailPieceId,m.BusinessFriendlyIdValue as LoanNumber,m.ShippingStatus as [Status],m.UniqueId,
-	 m.RcptFirstName as FirstName,m.RcptLastName as LastName,m.RcptAddressCity as [City],m.RcptAddressZip as ZIP,m.RcptAddressStreet,
-	 m.RcptAddressState as [State], m.ShippedOn as MailedOn ,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.PrintedOn
-	 ,b.BatchName as BatchId,b.ReceivedOn,m.DocTypeId,m.IsEDeliveryRequested,m.FileName,
-	 d.DocTypeName as DocType,(pcd.ShippingCarrier + '-' + pcd.ShippingServiceType) as ShippingMethod,
-     m.DocumentOrPackageType,m.TotalPages as PagesShipped,m.TotalBlankPages as BlankPages,
-     m.DeliveryStatus,m.DeliveryDate,m.Inserts,
-	 ch.Title as Channel,
-     c.AppCode as ClientCode,
-	 e.EnvelopeName,ptb.PrintBatchName as PrintFileName
-	 FROM  [AM].[MailBatches] b,[Common].[SFTChannels] ch,[Common].[Clients] c,[AM].[MailPieces] m
-	 LEFT OUTER JOIN [Profile].[Users] u ON m.PulledBackRequestedBy=u.Id	 
-	 left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
-	 left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
-	 LEFT OUTER JOIN Common.Envelopes e ON pcd.EnvelopeId=e.Id
-	LEFT OUTER JOIN PnS.MRDFRequest req ON m.UniqueId=req.UniqueId
-	LEFT OUTER JOIN PnS.PrintTrailBatches ptb on req.PrintTrailBatchId=ptb.Id
-	 WHERE m.MailBatchId=b.Id AND b.SFTChannelId=ch.Id AND m.ClientId=c.Id";
+            List<Client> floodClients;
+            List<Client> gosClients;
+            using (IClientService clientSvc = new ClientService())
+            {
+                floodClients = clientSvc.GetClientsByAlias("Flood Integration");
+                gosClients = clientSvc.GetClientsByAlias("GOS-Print Ready");
+            }
+
+            string extraColumns = string.Empty;
+            string extraQuery = string.Empty;
+            string columnList = string.Empty;
+
+            if (floodClients.Select(x => x.Id).Intersect(clientId).Any())
+            {
+                extraColumns = " ,CST.[RequestorName], CST.[PropertyStreetAddress], CST.[PropertyCity], CST.[PropertyState], CST.[PropertyZip], CST.[LoanNumber] AS FloodLoan_Number";
+
+                columnList = "[RequestorName],[PropertyStreetAddress],[PropertyCity],[PropertyState],[PropertyZip],[LoanNumber]";
+            }
+
+
+            if (gosClients.Select(x => x.Id).Intersect(clientId).Any())
+            {
+                extraColumns = extraColumns.IsNullOrWhiteSpace() ? " ,CST.[ProductCode]" : extraColumns + " ,CST.[ProductCode]";
+
+                columnList = columnList.IsNullOrWhiteSpace() ? "[ProductCode]" : columnList + ",[ProductCode]";
+            }
+
+            if (!columnList.IsNullOrWhiteSpace())
+            {
+                extraQuery = $@"
+                    LEFT OUTER JOIN 
+                    (
+	                    SELECT *
+	                    FROM 
+	                    (
+		                    SELECT 
+		                    [MailPieceId],[Key], [Value]
+		                    FROM AM.MailPieceCustomInfo
+	                    ) AS S
+	                    PIVOT
+	                    (
+		                    MAX([Value])
+		                    FOR [Key] IN ({columnList})
+	                    )AS PVT
+                    )CST on CST.MailPieceId=M.Id";
+            }
+
+
+            string query = $@"
+                    SELECT M.Id as MailPieceId, M.BusinessFriendlyIdValue as LoanNumber, M.ShippingStatus as [Status], M.UniqueId,
+                    M.RcptFirstName as FirstName, M.RcptLastName as LastName, M.RcptAddressCity as [City], M.RcptAddressZip as ZIP,
+                    M.RcptAddressStreet, M.RcptAddressState as [State], M.ShippedOn as MailedOn,M.TrackingNo, M.DueDate, M.ErrorCode, M.ErrorDesc,
+                    M.PrintLocation, M.PrintedOn ,B.BatchName as BatchId, B.ReceivedOn, M.DocTypeId, M.IsEDeliveryRequested, M.IsESignRequested, M.FileName,
+                    D.DocTypeName as DocType, (PCD.ShippingCarrier + '-' + PCD.ShippingServiceType) as ShippingMethod, M.DocumentOrPackageType,
+                    M.TotalPages as PagesShipped,M.TotalBlankPages as BlankPages, M.DeliveryStatus, M.DeliveryDate, M.Inserts, CH.Title as Channel,
+                    C.AppCode as ClientCode, E.EnvelopeName, PTB.PrintBatchName as PrintFileName, M.ReturnDeliveryStatus, M.ReturnDeliveryDate,
+                    M.ReturnTrackingNo {extraColumns}
+                    FROM [AM].[MailPieces] M WITH (NOLOCK)
+                    INNER JOIN [AM].[MailBatches] B WITH (NOLOCK) ON M.MailBatchId=B.Id
+                    INNER JOIN [Common].[Clients] C WITH (NOLOCK) ON M.ClientId=C.Id
+                    INNER JOIN [Common].[SFTChannels] CH WITH (NOLOCK) ON B.SFTChannelId=CH.Id
+                    LEFT OUTER JOIN [Profile].[Users] U WITH (NOLOCK) ON M.PulledBackRequestedBy=U.Id
+                    LEFT OUTER JOIN [AM].[DocTypes] D WITH (NOLOCK) ON M.DocTypeId=D.Id 
+                    LEFT OUTER JOIN Common.PnSConfigDetail PCD WITH (NOLOCK) ON M.PnSConfigDetailId = PCD.Id
+                    LEFT OUTER JOIN Common.Envelopes E WITH (NOLOCK) ON PCD.EnvelopeId=E.Id
+                    LEFT OUTER JOIN PnS.MRDFRequest REQ WITH (NOLOCK) ON M.UniqueId=REQ.UniqueId
+                    LEFT OUTER JOIN PnS.PrintTrailBatches PTB WITH (NOLOCK) on REQ.PrintTrailBatchId=PTB.Id
+                    {extraQuery} WHERE 1=1";
+
             DynamicParameters parameter = new DynamicParameters();
             if (clientId != null && clientId.Count > 0)
             {
@@ -461,7 +533,18 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             return data;
         }
 
-        public List<FedExReport> GetFedExData(int[] isPickedUp)
+        public List<AutoReportWizard> GetAutoReportWizard(DateTime startDate, DateTime endDate)
+        {
+            startDate = startDate.ToStartDateTime().EstToUtc();
+            endDate = endDate.ToStartDateTime().EstToUtc();
+            
+            string query = "[dbo].[usp_AutoReportWizard] @startDate, @endDate";
+
+            var data = db.Query<AutoReportWizard>(query,new { startDate, endDate }).ToList();
+            return data;
+        }
+
+        public List<TrackingReport> GetFedExData(int[] isPickedUp)
         {
             isPickedUp = isPickedUp ?? new int[0];
             //Possible values are for isPickedUp parameter is : 1-for today's pickedup records, 0-for today's not pickedup records and default -1 for previous not pickedup records
@@ -476,7 +559,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             if (isPickedUp.Any(i => i == 0) && isPickedUp.Any(i => i == -1))
             {
                 //This will provide previous and today's not picked up records
-                var data = db.Query<FedExReport>(queryPreviousNotPickedUp + " UNION " + queryTodayNotPickedUp, new
+                var data = db.Query<TrackingReport>(queryPreviousNotPickedUp + " UNION " + queryTodayNotPickedUp, new
                 {
                     todayEffectiveDate = Common.EstToday,
                 }).ToList();
@@ -485,7 +568,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             else if (isPickedUp.Any(i => i == 0) && isPickedUp.Any(i => i == 1))
             {
                 //This will provide today's not picked up and picked up records
-                var data = db.Query<FedExReport>(queryTodayNotPickedUp + " UNION " + queryTodayPickedUp, new
+                var data = db.Query<TrackingReport>(queryTodayNotPickedUp + " UNION " + queryTodayPickedUp, new
                 {
                     todayEffectiveDate = Common.EstToday,
                 }).ToList();
@@ -494,7 +577,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             else if (isPickedUp.Any(i => i == 0))
             {
                 //This will provide today's not picked up records
-                var data = db.Query<FedExReport>(queryTodayNotPickedUp, new
+                var data = db.Query<TrackingReport>(queryTodayNotPickedUp, new
                 {
                     todayEffectiveDate = Common.EstToday,
                 }).ToList();
@@ -503,7 +586,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             else if (isPickedUp.Any(i => i == -1))
             {
                 //This will provide today's not picked up records
-                var data = db.Query<FedExReport>(queryPreviousNotPickedUp, new
+                var data = db.Query<TrackingReport>(queryPreviousNotPickedUp, new
                 {
                     todayEffectiveDate = Common.EstToday,
                 }).ToList();
@@ -512,7 +595,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             else
             {
                 //This will provide today's picked up records
-                var data = db.Query<FedExReport>(queryTodayPickedUp, new
+                var data = db.Query<TrackingReport>(queryTodayPickedUp, new
                 {
                     todayEffectiveDate = Common.EstToday,
                 }).ToList();
@@ -546,18 +629,25 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
             return db.Query<GOSMailPieceData>(query, new { EffectiveReceivedOn = currentDate }).ToList();
         }
 
-        public List<GOSMailPieceData> GetGOSDataPointReport(DateTime startDate, DateTime endDate)
+        public List<GOSMailPieceData> GetGOSDataPointReport(DateTime startDate, DateTime endDate, List<string> clientCodes = null)
         {
-            string query = @"With cte AS
+            var filterByAppCode = string.Empty;
+
+            if (clientCodes != null)
+            {
+                filterByAppCode = " AND AppCode IN @AppCodes";
+            }
+
+            string query = $@"With cte AS
                             (
 	                            SELECT P.Id, C.AppCode, B.BatchName, dbo.ufn_UTCToEST(B.ReceivedOn) AS ReceivedOnEst, P.BusinessfriendlyIdValue AS LoanNumber,
 	                            P.DocumentOrPackageType,P.FileName, P.RcptFirstName +' '+ P.RcptLastName AS BorrowerName,P.TrackingNo,P.ShippingStatus,P.TotalPages,  dbo.ufn_UTCToEST(ShippedOn) AS ShippedOnEst,
-	                            P.PrintLocation, P.ErrorDesc, P.DeliveryDate, P.DeliveryStatus, P.ReturnTrackingNo, P.ReturnDeliveryStatus, P.ReturnDeliveryDate, PCD.ShippingCarrier 
+	                            P.PrintLocation, P.ErrorDesc, P.DeliveryDate, P.DeliveryStatus, P.ReturnTrackingNo, P.ReturnDeliveryStatus, P.ReturnDeliveryDate, PCD.ShippingCarrier, PCD.ShippingServiceType 
 	                            FROM AM.MailPieces P 
 	                            INNER JOIN AM.MailBatches B ON P.MailBatchId=B.Id 
 	                            INNER JOIN Common.Clients C ON P.ClientId=C.Id
                                 INNER JOIN Common.PnSConfigDetail PCD ON P.PnSConfigDetailId=PCD.Id
-	                            WHERE B.ClientId IN (SELECT Id FROM Common.Clients WHERE Alias='GOS') 
+	                            WHERE B.ClientId IN (SELECT Id FROM Common.Clients WHERE Alias='GOS' {filterByAppCode}) 
 	                            AND CAST(P.EffectiveReceivedOnEst AS DATE) BETWEEN @StartDate AND @EndDate
                             ), cte2 AS
                             (
@@ -570,7 +660,7 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
 		                            WHERE MailPieceId IN 
 		                            (
 			                            SELECT Id FROM AM.MailPieces 
-			                            WHERE ClientId IN (SELECT Id FROM Common.Clients WHERE Alias='GOS')
+			                            WHERE ClientId IN (SELECT Id FROM Common.Clients WHERE Alias='GOS' {filterByAppCode})
 			                            AND CAST(EffectiveReceivedOnEst AS DATE) BETWEEN @StartDate AND @EndDate
 		                            )
 		                            AND [Key]='ProductCode'
@@ -584,26 +674,33 @@ LEFT OUTER JOIN Common.ShipperInformation S ON ES.ShipperId=S.Id";
                             SELECT * 
                             FROM cte
                             LEFT OUTER JOIN cte2 ON cte.Id=cte2.MailPieceId";
-            return db.Query<GOSMailPieceData>(query, new { StartDate = startDate, EndDate = endDate }).ToList();
+            return db.Query<GOSMailPieceData>(query, new { StartDate = startDate, EndDate = endDate, AppCodes = clientCodes }).ToList();
         }
 
-        public List<FedExReport> GetFedExDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null)
+        public List<TrackingReport> GetFedExDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null, List<string> clientCodes = null)
         {
-            string query = "SELECT * FROM [dbo].[view_FedExData] WHERE DueDate BETWEEN @startDueDate AND @endDueDate AND (ShipmentStatus NOT LIKE '%delivered%' OR ShipmentStatus NOT LIKE '%Delivered%' OR ShipmentStatus IS NULL)";
+            string query = "SELECT * FROM [dbo].[view_FedExData] WHERE DueDate BETWEEN @startDueDate AND @endDueDate AND ((DeliveryStatus NOT LIKE '%delivered%' OR DeliveryStatus NOT LIKE '%Delivered%' OR DeliveryStatus IS NULL) OR (ReturnDeliveryStatus NOT LIKE '%delivered%' OR ReturnDeliveryStatus NOT LIKE '%Delivered%' OR ReturnDeliveryStatus IS NULL))";
 
             if (!alias.IsNullOrWhiteSpace())
             {
                 query += $" AND ClientId IN (SELECT Id FROM Common.Clients WHERE Alias='{alias}')";
             }
 
+            if (clientCodes != null)
+            {
+                query += $" AND ClientId IN (SELECT Id FROM Common.Clients WHERE AppCode IN @AppCodes)";
+            }
+
             //This will provide previous and today's not picked up records
-            var data = db.Query<FedExReport>(query, new
+            var data = db.Query<TrackingReport>(query, new
             {
                 startDueDate = startDueDate.EstToUtc(),
-                endDueDate = endDueDate.EstToUtc()
+                endDueDate = endDueDate.EstToUtc(),
+                AppCodes = clientCodes
             }).ToList();
             return data;
         }
+
         public List<MailPieces> GetMailPiecesDataBetweenDates(DateTime startDate, DateTime endDate, int clientId)
         {
             var mailPieceDictionary = new Dictionary<int, MailPieces>();
@@ -674,20 +771,26 @@ LEFT OUTER JOIN Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
 
         }
 
-        public List<USPSeVSReport> GetUSPSeVSDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null)
+        public List<TrackingReport> GetUSPSeVSDataForTracking(DateTime startDueDate, DateTime endDueDate, string alias = null, List<string> clientCodes = null)
         {
-            string query = "SELECT * FROM [dbo].[view_USPSData] WHERE DueDate BETWEEN @startDueDate AND @endDueDate AND (ShipmentStatus NOT LIKE '%delivered%' OR ShipmentStatus NOT LIKE '%Delivered%' OR ShipmentStatus IS NULL)";
+            string query = "SELECT * FROM [dbo].[view_USPSData] WHERE DueDate BETWEEN @startDueDate AND @endDueDate AND ((DeliveryStatus NOT LIKE '%delivered%' OR DeliveryStatus NOT LIKE '%Delivered%' OR DeliveryStatus IS NULL) OR (ReturnDeliveryStatus NOT LIKE '%delivered%' OR ReturnDeliveryStatus NOT LIKE '%Delivered%' OR ReturnDeliveryStatus IS NULL))";
 
-            if (!query.IsNullOrWhiteSpace())
+            if (!alias.IsNullOrWhiteSpace())
             {
                 query += $" AND ClientId IN (SELECT Id FROM Common.Clients WHERE Alias='{alias}')";
             }
 
+            if (clientCodes != null)
+            {
+                query += $" AND ClientId IN (SELECT Id FROM Common.Clients WHERE AppCode IN @AppCodes)";
+            }
+
             //This will provide previous and today's not picked up records
-            var data = db.Query<USPSeVSReport>(query, new
+            var data = db.Query<TrackingReport>(query, new
             {
                 startDueDate = startDueDate.EstToUtc(),
-                endDueDate = endDueDate.EstToUtc()
+                endDueDate = endDueDate.EstToUtc(),
+                AppCodes = clientCodes
             }).ToList();
             return data;
         }
@@ -753,6 +856,192 @@ left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id LEFT 
                 {
                     MPIds = mpIds
                 }, splitOn: "Id,Id,MailPieceId").Distinct().ToList();
+            return data;
+        }
+
+        public List<MonthlyReconReportViewModel> GetPVReconReport(string pvCode, DateTime startDate, DateTime endDate, List<int> clientIdlst, string status, List<string> shippingMethod)
+        {
+            string query = $@"
+                    SELECT C.AppCode, B.BatchName AS BatchName, P.UniqueId,P.BusinessFriendlyIdValue AS LoanNumber
+                    ,P.RcptFirstName AS [FirstName],P.RcptLastName AS [LastName]
+                    ,P.RcptAddressStreet AS [Address],P.RcptAddressCity AS [City],P.RcptAddressState AS [State],P.RcptAddressZIP AS [ZIP]
+                    ,S.Code AS Channel ,P.DocumentOrPackageType AS [DocType]
+                    ,B.ReceivedOn, P.ShippedOn, P.PulledBackOn, P.PrintLocation
+                    ,P.ShippingStatus AS [Status], P.TrackingNo, P.[FileName]
+                    ,P.TotalPages, P.TotalSheets,ISNULL(MPP.LETTER,0) AS [LetterPageCount],ISNULL(MPP.LEGAL,0) AS [LegalPageCount], P.TotalBlankPages
+                    ,P.IsEDeliveryRequested, IIF(PCD.ShippingCarrier = 'E-Delivery', PCD.ShippingCarrier, PCD.ShippingCarrier + ' / ' +PCD.ShippingServiceType ) AS [ShippingMethod]
+                    ,ISNULL(REPLACE(REPLACE(P.ErrorDesc, CHAR(13), ''), CHAR(10), ''),'') AS ErrorDesc
+                    ,P.Inserts,PT.PrintBatchName, PT.SubmittedOn, P.DeliveryStatus, P.DeliveryDate, P.ShippingCost, E.EnvelopeName
+                    FROM AM.MailPieces P
+                    INNER JOIN AM.DocTypes D ON P.DocTypeId=D.Id 
+                    INNER JOIN Common.PnSConfigDetail PCD ON P.PnSConfigDetailId=PCD.Id
+                    INNER JOIN Common.Clients C ON P.ClientId=C.Id
+                    INNER JOIN AM.MailBatches B ON P.MailBatchId=B.Id
+                    INNER JOIN Common.SFTChannels S ON B.SFTChannelId=S.Id
+                    INNER JOIN PnS.MRDFRequest REQ ON P.UniqueId=REQ.UniqueId
+                    INNER JOIN PnS.PrintTrailBatches PT ON REQ.PrintTrailBatchId=PT.Id
+                    INNER JOIN Common.Envelopes E ON PCD.EnvelopeId=E.Id
+                    INNER JOIN Common.ShipperInformation SI ON P.ShipperId=SI.Id
+                    LEFT OUTER JOIN 
+                    (
+	                    SELECT *
+	                    FROM 
+	                    (
+		                    SELECT 
+		                    [MailPieceId],[PageSize],[PageCount]
+		                    FROM [Common].[MailPiecePageInfo]
+	                    ) AS s
+	                    PIVOT
+	                    (
+		                    MAX([PageCount])
+		                    FOR [PageSize] IN ([LETTER],[LEGAL])
+	                    )AS pvt2
+                    )MPP on MPP.MailPieceId=P.Id
+                    WHERE PT.SubmittedOn BETWEEN @startDate AND @endDate ";
+
+            DynamicParameters parameter = new DynamicParameters();
+            parameter.Add("@startDate", startDate);
+            parameter.Add("@endDate", endDate);
+
+            if (clientIdlst != null && clientIdlst.Count > 0)
+            {
+                query = string.Format("{0} and P.ClientId in @clientId", query);
+                parameter.Add("@clientId", clientIdlst);
+            }
+            if (!status.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} and P.ShippingStatus = @ShippingStatus", query);
+                parameter.Add("@ShippingStatus", status);
+            }
+
+            if (!pvCode.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} and SI.PrintVendorCode = @PVCode", query);
+                parameter.Add("@PVCode", pvCode);
+            }
+
+            if (shippingMethod != null && shippingMethod.Count > 0)
+            {
+                List<string> shipMethod = new List<string>();
+                List<string> shipCarrier = new List<string>();
+                shippingMethod.ForEach(s => shipCarrier.Add(s.Split('-').First()));
+                shippingMethod.ForEach(s => shipMethod.Add(s.Split('-')[1]));
+                query = string.Format("{0} and PCD.ShippingServiceType IN @shippingMethod AND PCD.ShippingCarrier IN @shippingCarrier", query);
+                parameter.Add("@shippingMethod", shipMethod);
+                parameter.Add("@shippingCarrier", shipCarrier);
+            }
+
+            query = string.Format("{0} ORDER BY PT.SubmittedOn", query);
+            var data = db.Query<MonthlyReconReportViewModel>(query, parameter).ToList();
+            return data;
+        }
+
+        public List<EnvelopeInventoryUsage> GetEnvelopesUsageReport(int clientId, int? envelopeId, string printVendorCode, DateTime startDate, DateTime endDate)
+        {
+            string query = @"SELECT E.EnvelopeName,SI.PrintLocation,SI.PrintVendorName,CAST(PTB.SubmittedOn AS DATE) AS SubmittedOn,SUM(EU.Quantity) AS TotalQuantityUsed,SI.PrintVendorCode,
+                ES.CurrentQuantity,ES.ReOrderDuration,E.Id as EnvelopeId
+                FROM PnS.EnvelopeUsage EU
+                INNER JOIN PnS.PrintTrailBatches PTB ON EU.PrintTrailBatchId=PTB.Id
+                INNER JOIN Common.ShipperInformation SI ON PTB.ShipperId=SI.Id
+                INNER JOIN Common.Envelopes E ON EU.EnvelopeId=E.Id
+                INNER JOIN Common.EnvelopeStock ES ON ES.EnvelopeId=E.Id AND ES.ShipperId=SI.Id
+                WHERE CAST(PTB.SubmittedOn AS DATE) between @StartDate AND @EndDate AND SI.PrintVendorCode = ISNULL(@PrintVendorCode,SI.PrintVendorCode) 
+                AND E.Id=ISNULL(@EnvelopeId,E.Id)
+                GROUP BY E.EnvelopeName,SI.PrintLocation,SI.PrintVendorName,CAST(PTB.SubmittedOn AS DATE),ES.CurrentQuantity,ES.ReOrderDuration,SI.PrintVendorCode,E.Id
+                ORDER BY CAST(PTB.SubmittedOn AS DATE),E.EnvelopeName";
+            return db.Query<EnvelopeInventoryUsage>(query, new { EnvelopeId = envelopeId, PrintVendorCode = printVendorCode, StartDate = startDate, EndDate = endDate }).ToList();
+        }
+
+        public List<MonthlyReconReportViewModel> GetDuplicateReportByDate(int clientId, DateTime startDate, DateTime endDate, string channel)
+        {
+            string query = @"SELECT P.Id,P.UniqueId,P.MailBatchId,B.BatchName,B.ReceivedOn,X.BusinessFriendlyIdValue AS LoanNumber
+                            , X.DocumentOrPackageType AS DocType, X.[FileName],X.RcptAddressCity AS City,X.RcptAddressStreet AS Address
+                            , X.RcptAddressState AS State, X.RcptAddressZIP AS Zip,X.RcptFirstName AS FirstName,X.RcptLastName AS LastName
+                            , S.Code AS Channel, PCD.ShippingCarrier, PCD.ShippingServiceType, P.ShippingStatus AS [Status], P.ShippedOn
+                            FROM AM.MailPieces P
+                            INNER JOIN AM.MailBatches B ON P.MailBatchId = B.Id
+                            INNER JOIN Common.SFTChannels S ON B.SFTChannelId=S.Id
+                            INNER JOIN AM.DocTypes D ON D.Id = P.DocTypeId
+                            INNER JOIN Common.PnSConfigDetail PCD ON P.PnSConfigDetailId = PCD.Id
+                            INNER JOIN
+                            (
+                                SELECT RcptFirstName, RcptLastName, RcptAddressStreet, RcptAddressState, RcptAddressCity, RcptAddressZIP, BusinessFriendlyIdValue, [FileName], P.DocumentOrPackageType, COUNT(*) AS  TotalRecords
+                                FROM AM.MailPieces P
+                                INNER JOIN AM.MailBatches B ON P.MailBatchId= B.Id
+                                WHERE P.EffectiveReceivedOnEst BETWEEN @startDate AND @endDate AND P.ClientId = @clientId AND P.ShippingStatus NOT IN ('Error')
+                                GROUP BY P.RcptFirstName,P.RcptLastName,P.RcptAddressStreet,P.RcptAddressState,P.RcptAddressCity,P.RcptAddressZIP,P.BusinessFriendlyIdValue,P.[FileName],P.DocumentOrPackageType
+                                HAVING COUNT(*) > 1
+                            )X ON X.RcptFirstName = P.RcptFirstName AND X.RcptLastName = P.RcptLastName AND X.BusinessFriendlyIdValue = P.BusinessFriendlyIdValue
+                            AND X.DocumentOrPackageType = P.DocumentOrPackageType AND X.FileName = P.FileName AND X.RcptAddressCity = P.RcptAddressCity
+                            AND X.RcptAddressStreet = P.RcptAddressStreet AND X.RcptAddressState=P.RcptAddressState AND X.RcptAddressZIP = P.RcptAddressZIP
+                            WHERE P.EffectiveReceivedOnEst BETWEEN @startDate AND @endDate AND P.ClientId = @clientId AND P.ShippingStatus NOT IN ('Error')
+                            ORDER BY P.RcptFirstName,P.RcptLastName,P.RcptAddressStreet,P.RcptAddressState,P.RcptAddressCity,P.RcptAddressZIP,P.BusinessFriendlyIdValue,P.[FileName],P.DocumentOrPackageType";
+            var data = db.Query<MonthlyReconReportViewModel>(query,
+                new
+                {
+                    clientId = clientId,
+                    channel = channel.IsNullOrWhiteSpace() ? null : channel,
+                    startDate = (startDate.AddDays(-5).ToStartDateTime()).EstToUtc(),
+                    endDate = (endDate.ToEndDateTime()).EstToUtc()
+                }
+                ).ToList();
+            return data;
+        }
+
+        public List<AMPostageData> GetAMPostageData(DateTime startDate, DateTime endDate)
+        {
+            string query = @"SELECT C.AppCode, U.UserId,U.APIRequestedOn,U.BarcodeNumber,U.Postage,US.UserName 
+                             FROM API.USPSeVS U
+                             INNER JOIN Profile.Users US ON U.UserId=US.Id
+                             LEFT OUTER JOIN AM.MailPieces P ON SUBSTRING(U.BarcodeNumber,9,LEN(U.BarcodeNumber)-8) = P.TrackingNo
+							 LEFT OUTER JOIN Common.Clients C ON P.ClientId=C.Id
+                             WHERE U.APIRequestedOn BETWEEN @StartDate AND @EndDate
+                             AND (U.IsAPIError = 0 AND U.IsUSPSError = 0)
+                             ORDER BY U.APIRequestedOn";
+            return db.Query<AMPostageData>(query, new { StartDate = startDate.ToStartDateTime().EstToUtc(), EndDate = endDate.ToEndDateTime().EstToUtc() }).ToList();
+        }
+        public void UpdateTrackingInformation()
+        {
+            db.Execute("usp_UpdateTrackingInfo");
+            return;
+        }
+
+        public List<ReshipMailPieceViewModel> GetReshipRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, int clientId)
+        {
+            string query = @"select m.BusinessFriendlyIdValue as BusinessIdValue,m.UniqueId,m.FileName,(m.RcptFirstName+ ' ' +m.RcptLastName) as Name,
+                            m.RcptAddressStreet as Address,m.TotalPages,m.TotalBlankPages,m.IsPullBackRequested,m.ShippingStatus as Status,m.DueDate,m.TrackingNo,m.ErrorCode,m.ErrorDesc,IsEDeliveryRequested,IsESignRequested,
+                            b.ReceivedOn,
+                            d.DocTypeName as DocType,
+                            c.AppCode,c.RetentionPeriod,c.Id AS ClientId, m.MailBatchId,m.Id AS MailPieceId
+                            from AM.MailPieces m 
+                            inner join AM.MailBatches b on m.MailBatchId=b.Id
+                            inner join Common.Clients c on m.ClientId=c.Id
+                            LEFT OUTER JOIN [Profile].[Users] u on m.[PulledBackRequestedBy]=u.Id 
+                            left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+                            left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
+                            where ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
+
+            DynamicParameters parameter = new DynamicParameters();
+            parameter.Add("@clientId", clientId);
+            if (!string.IsNullOrWhiteSpace(businessFriendlyIdName))
+            {
+                query = string.Format("{0} and m.BusinessFriendlyIdName=@BusinessFriendlyIdName", query);
+                parameter.Add("@BusinessFriendlyIdName", businessFriendlyIdName);
+            }
+            if (!string.IsNullOrWhiteSpace(businessFriendlyIdValue))
+            {
+                query = string.Format("{0} and m.businessFriendlyIdValue=@businessFriendlyIdValue", query);
+                parameter.Add("@businessFriendlyIdValue", businessFriendlyIdValue);
+            }
+            if (docType.HasValue)
+            {
+                query = string.Format("{0} and d.Id = @docTypeId", query);
+                parameter.Add("@docTypeId", docType);
+            }
+            query = string.Format("{0} and b.ReceivedOn BETWEEN @startDate and @endDate order by b.ReceivedOn desc", query);
+            parameter.Add("@startDate", startDate.ToStartDateTime().EstToUtc());
+            parameter.Add("@endDate", endDate.ToEndDateTime().EstToUtc());
+            var data = db.Query<ReshipMailPieceViewModel>(query, parameter).ToList();
             return data;
         }
     }

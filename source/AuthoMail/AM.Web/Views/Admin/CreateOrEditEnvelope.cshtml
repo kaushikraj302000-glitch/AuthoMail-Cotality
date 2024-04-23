@@ -343,6 +343,7 @@
             this.IsBREEnvelope = IsBREEnvelope;
             this.PartNumber = PartNumber;
             this.EnvelopeStockVMs = [];
+            this.EnvelopeStockVMUs = [];
         }
         function EnvelopeStockVM(EnvelopeId, ShipperId, ReceivedQuantity, UnitPrice, ReorderDuration) {
             this.EnvelopeId = parseInt(EnvelopeId);
@@ -359,7 +360,9 @@
             $.each($("#shippertBody").find('tr.newadded'), function (index, value) {
                 envelopes.EnvelopeStockVMs.push(new EnvelopeStockVM($("#Id").val(), $(this).find('[name^=ShipperId]').val().trim(), $(this).find('[name^=ReceivedQuantity]').val().trim(), $(this).find('[name^=UnitPrice]').val().trim(), $(this).find('[name^=ReorderDuration]').val().trim()));
             });
-            
+            $.each($("#shippertBody").find('tr.old'), function (index, value) {
+                envelopes.EnvelopeStockVMUs.push(new EnvelopeStockVM($("#Id").val(), $(this).find('[name^=ShipperId]').val().trim(), $(this).find('[name^=ReceivedQuantity]').val().trim(), $(this).find('[name^=UnitPrice]').val().trim(), $(this).find('[name^=ReorderDuration]').val().trim()));
+            });
             var el = $("#myModal").find(".modal-body");
             el.empty();
             $.ajax({

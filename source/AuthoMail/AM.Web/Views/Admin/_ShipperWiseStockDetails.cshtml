@@ -9,12 +9,12 @@
         <input class="form-control" type="hidden" value="0" name="UnitPrice[@Model.ShipperId]" />
     </td>
     <td>
-        <input class="form-control" disabled style=" width: 55%;color: #565252;" value="@Model.ReceivedQuantity"  />
+        <input class="form-control" name="ReceivedQuantity[@Model.ShipperId]" disabled style=" width: 55%;color: #565252;" value="@Model.ReceivedQuantity"  />
     </td>
     @*<td>@Model.UnitPrice
         </td>*@
 <td>
-    <input class="form-control" disabled style=" width: 55%;color: #565252;" value="@Model.ReorderDuration" />
+    <input class="form-control"  name="ReorderDuration[@Model.ShipperId]" style=" width: 55%;color: #565252;" value="@Model.ReorderDuration" />
 </td>
     <td>
         <span>--</span>

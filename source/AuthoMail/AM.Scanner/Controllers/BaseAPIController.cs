@@ -70,7 +70,7 @@ namespace AM.Scanner.Controllers
         {
             using (new PerfTimerLogger("GetAllBatchForScan[BaseAPIController]: "))
             {
-                var headers = new List<string>() { "Client", "Status", "Day Total" };
+                var headers = new List<string>() { "Client", "Status", "IsBulk", "Day Total" };
 
                 var batchWistCounts = scannerSvc.GetRecentBatchesStats();
                 var dayWiseCounts = scannerSvc.GetScanStats();
@@ -80,6 +80,7 @@ namespace AM.Scanner.Controllers
 
                 var objList = new List<object>();
                 var clientList = new HashSet<string>(System.Web.Configuration.WebConfigurationManager.AppSettings["ClientList"].Split(','));
+                var bulkClientList = new HashSet<string>(System.Web.Configuration.WebConfigurationManager.AppSettings["BulkClientList"].Split(','));
                 var clientWiseBatches = batchWistCounts.Where(m => clientList.Contains(m.AppCode)).GroupBy(s => s.AppCode);
                 foreach (var appCode in clientWiseBatches)
                 {
@@ -108,8 +109,8 @@ namespace AM.Scanner.Controllers
                     }
 
                     values.Add(status);
+                    values.Add(bulkClientList.Contains(appCode.Key).ToString().ToLower());
                     values.Add(dayTotal);
-
                     foreach (var batch in batches)
                     {
                         var b = appCode.SingleOrDefault(a => a.BatchName == batch);

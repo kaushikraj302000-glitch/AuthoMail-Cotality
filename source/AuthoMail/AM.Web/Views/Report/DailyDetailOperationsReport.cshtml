@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "DailyDetailOperationsReport";
+    ViewBag.Title = "Daily Detail Operations Report";
 }
 <link href="~/clui/dist/css/datatablecustom.css" rel="stylesheet" />
 <style>
@@ -14,6 +14,10 @@
     .popover-content {
         word-wrap: break-word;
         color: red;
+    }
+
+    .margin-bottom-15px {
+        margin-bottom: 15px;
     }
 </style>
 <div class="panel-group">
@@ -94,7 +98,7 @@
             </span>
         </div>
     </div>
-    <div class="panel-body" id="dailyMailPieceList"></div>
+    <div class="panel-body" id="dailyMailPieceList" style="margin-top:10px;"></div>
 </div>
 
 <!-- table html template code -->
@@ -118,12 +122,15 @@
                 <th>Inserts</th>
                 <th>Shipment Status</th>
                 <th>Shipping Method</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Recipient Street Address</th>
-                <th>Recipient City</th>
-                <th>Recipient State</th>
-                <th>Recipient Zip</th>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Recipient Street Address</th>
+                    <th>Recipient City</th>
+                    <th>Recipient State</th>
+                    <th>Recipient Zip</th>
+                }
                 <th>Envelope Name</th>
                 <th>Print File Name</th>
                 <th>Delivery Date</th>
@@ -158,12 +165,15 @@
                 <td><span>{Inserts}</span></td>
                 <td><span>{ShipmentStatus}</span></td>
                 <td><span>{ShippingMethod}</span></td>
-                <td><span>{FirstName}</span></td>
-                <td><span>{LastName}</span></td>
-                <td><span>{Address}</span></td>
-                <td><span>{City}</span></td>
-                <td><span>{State}</span></td>
-                <td><span>{ZIP}</span></td>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <td><span>{FirstName}</span></td>
+                    <td><span>{LastName}</span></td>
+                    <td><span>{Address}</span></td>
+                    <td><span>{City}</span></td>
+                    <td><span>{State}</span></td>
+                    <td><span>{ZIP}</span></td>
+                }
                 <td><span>{EnvelopeName}</span></td>
                 <td><span>{PrintFileName}</span></td>
                 <td><span>{DeliveryDateFormatted}</span></td>
@@ -194,7 +204,7 @@
                 'container': 'body'
             });
             var table = $('#sample_2');
-            
+
             var filename = "DailyDetailOperationsReport_" + moment($("#date").val()).format("MMDDYYYY") +"_"+ $("#ClientName").text();
             var title = "Daily Detail Operations Report";
             var oTable = table.dataTable({
@@ -230,7 +240,7 @@
                 {
                     extend: 'csv',
                     text: '<i class="fa fa-file-excel-o fa-2x"></i>',
-                    className: 'btn btn-primary',
+                        className: 'btn btn-primary margin-bottom-15px',
                     filename: filename,
                     title: title,
                     exportOptions: {
@@ -303,7 +313,7 @@
                 this.TrackingNo = trackingNo;
                 this.TrackingNoFormatted = trackingFormatted;
                 //this.TrackingNo == "" ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
-                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested && !this.IsESignRequested ? '<span class="label medium label-success">E-Delivery</span>' : this.IsEDeliveryRequested && this.IsESignRequested ? '<span class="label medium label-success">E-Sign</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
         }

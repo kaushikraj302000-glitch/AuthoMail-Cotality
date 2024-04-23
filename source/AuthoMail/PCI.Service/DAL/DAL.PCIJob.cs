@@ -10,13 +10,14 @@ namespace PCI.Service
 {
     partial class DAL
     {
-        public static List<SubmittedBatches> GetSubmittedBatches(string printVendorCode = "")
+        public static List<SubmittedBatches> GetSubmittedBatches(string serverIP, string printVendorCode = "")
         {
-            var submittedBatches = db.ExecuteDataSet("usp_GetSubmittedBatches", printVendorCode).Tables[0];
+            var submittedBatches = db.ExecuteDataSet("usp_GetSubmittedBatches", serverIP, printVendorCode).Tables[0];
             List<SubmittedBatches> printBatches = submittedBatches.AsEnumerable().Select(x => new SubmittedBatches
             {
                 PrintTrailBatchId = x.Field<int>("PrintTrailBatchId"),
                 PrintBatchName = x.Field<string>("PrintBatchName"),
+                PrintVendorCode = x.Field<string>("PrintVendorCode"),
                 ReceivedFileList = new List<string>()
             }).ToList();
             return printBatches;
@@ -48,9 +49,9 @@ namespace PCI.Service
         //    return amMailPieces;
         //}
 
-        public static List<MailPieceDetail> GetMRDFRequestDataByPrintTrailId(int printTrailId)
+        public static List<MailPieceDetail> GetMRDFRequestDataByPrintTrailId(int printTrailId, string serverIP)
         {
-            var data = db.ExecuteDataSet("usp_GetMRDFRequestDataByPrintTrailId", printTrailId).Tables[0];
+            var data = db.ExecuteDataSet("usp_GetMRDFRequestDataByPrintTrailId", printTrailId, serverIP).Tables[0];
 
             List<MailPieceDetail> mrdfReqs = new List<MailPieceDetail>();
             foreach (DataRow row in data.Rows)
@@ -71,7 +72,7 @@ namespace PCI.Service
                     MailPieceStatus = row.Field<string>("MailPieceStatus"),
                     PDFFileName = row.Field<string>("PDFFileName"),
                     PieceId = row.Field<int>("PieceId"),
-                    TotalPages = row.Field<int>("TotalSheets"),
+                    TotalPages = row.Field<int>("TotalPages"),
                     TotalSheets = row.Field<int>("TotalSheets"),
                     Feeder4_Sel = int.Parse(row.Field<string>("Feeder4_Sel")),
                     UniqueId = row.Field<Guid>("UniqueId"),
@@ -111,7 +112,9 @@ namespace PCI.Service
                     SocialSecNumber = row.Field<string>("SocialSecNumber"),
                     CheckAmount = row.Field<string>("CheckAmount"),
                     PassThru = row.Field<string>("PassThru"),
-                    EndofRecord = row.Field<string>("EndofRecord")
+                    EndofRecord = row.Field<string>("EndofRecord"),
+                    ChecksPageNumbers = row.Field<string>("ChecksPageNumbers"),
+                    IsChecks = row.Field<bool>("IsChecks"),
                 });
             }
 
@@ -120,7 +123,7 @@ namespace PCI.Service
 
         public static int InsertPrintTrailBatchDetail(PrintTrailBatch printTrailBatchDetail)
         {
-            var printTrailBatchId = db.ExecuteSqlScalar<int>(@"INSERT INTO [PnS].[PrintTrailBatches]([PrintBatchName],[ShipperId],[SubmittedOn],[MRDFReceivedOn],[PrintTrailId]) OUTPUT INSERTED.Id VALUES(@p1,@p2,@p3,@p4,@p5)", printTrailBatchDetail.PrintBatchName, printTrailBatchDetail.ShipperId, printTrailBatchDetail.SubmittedOn, printTrailBatchDetail.MRDFReceivedOn, printTrailBatchDetail.PrintTrailId);
+            var printTrailBatchId = db.ExecuteSqlScalar<int>(@"INSERT INTO [PnS].[PrintTrailBatches]([PrintBatchName],[ShipperId],[SubmittedOn],[MRDFReceivedOn],[PrintTrailId],[ServerIP]) OUTPUT INSERTED.Id VALUES(@p1,@p2,@p3,@p4,@p5,@p6)", printTrailBatchDetail.PrintBatchName, printTrailBatchDetail.ShipperId, printTrailBatchDetail.SubmittedOn, printTrailBatchDetail.MRDFReceivedOn, printTrailBatchDetail.PrintTrailId, printTrailBatchDetail.ServerIP);
 
             return printTrailBatchId;
         }
@@ -162,9 +165,9 @@ namespace PCI.Service
             }).SingleOrDefault();
         }
 
-        public static List<PrintTrailBatch> GetNotSubmittedPrintBatchDetailByPrintVendorCode(string pvCode)
+        public static List<PrintTrailBatch> GetNotSubmittedPrintBatchDetailByPrintVendorCode(string pvCode, string serverIP)
         {
-            string sqlQuery = "SELECT PTB.* FROM PnS.PrintTrailBatches PTB INNER JOIN Common.PrintTrails PT ON PTB.PrintTrailId = PT.Id INNER JOIN Common.PrintVendors PV ON PT.PrintVendorId = PV.Id WHERE PTB.IsSubmitted=0 AND PT.PrintVendorCode = '{0}'".Fill(pvCode);
+            string sqlQuery = $"SELECT PTB.*,PT.IsSinglePdf,PT.[IsManifestRequired] FROM PnS.PrintTrailBatches PTB INNER JOIN Common.PrintTrails PT ON PTB.PrintTrailId = PT.Id INNER JOIN Common.PrintVendors PV ON PT.PrintVendorId = PV.Id WHERE PTB.IsSubmitted=0 AND PT.PrintVendorCode = '{pvCode}' AND PTB.ServerIP = '{serverIP}'";
             return db.ExecuteSqlStringAccessor<PrintTrailBatch>(sqlQuery).ToList();
         }
 
@@ -178,6 +181,28 @@ namespace PCI.Service
         public static int UpdateFilePathForDallas(MailPieceDetail mailPiece, string filePath)
         {
             return db.ExecuteSqlNonQuery(@"UPDATE [PnS].[MRDFRequest] SET [FilePath]= @p1 WHERE JobId = @p2 AND PieceId= @p3", filePath, mailPiece.JobId, mailPiece.PieceId);
+        }
+
+        public static int UpdateBulkFilePathForDallas(List<MailPieceDetail> mpDetails, string filePath)
+        {
+            var data = mpDetails.Select(x => new { JobId = x.JobId, PieceId = x.PieceId }).ToList();
+            var jobGroupedData = data.GroupBy(x => x.JobId);
+            foreach (var t in jobGroupedData)
+            {
+                db.ExecuteSqlNonQuery($@"UPDATE [PnS].[MRDFRequest] SET [FilePath]= @p1 WHERE JobId = (@p2) AND PieceId IN ({string.Join(",", t.Select(x => x.PieceId))})", filePath, t.Key);
+            }
+            return 1;
+        }
+
+        public static int UpdateBarcodeNumberForDallas(List<MailPieceDetail> mpDetails, string barcode)
+        {
+            var data = mpDetails.Select(x => new { JobId = x.JobId, PieceId = x.PieceId }).ToList();
+            var jobGroupedData = data.GroupBy(x => x.JobId);
+            foreach (var t in jobGroupedData)
+            {
+                db.ExecuteSqlNonQuery($@"UPDATE [PnS].[MRDFRequest] SET BarcodeNumber=@p1 WHERE JobId = (@p2) AND PieceId IN ({string.Join(",", t.Select(x => x.PieceId))})", barcode, t.Key);
+            }
+            return 1;
         }
     }
 }

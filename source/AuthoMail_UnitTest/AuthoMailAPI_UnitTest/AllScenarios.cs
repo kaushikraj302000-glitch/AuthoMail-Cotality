@@ -1710,7 +1710,7 @@ namespace AuthoMailAPI_UnitTest
             var response = await GenerateLocalResponse(files, mailPiece);
             Assert.AreEqual("Error", response.MailingStatus);
             Assert.AreEqual("Recipient_Details_Missing_Or_Invalid", response.ErrorCode);
-            Assert.AreEqual("Return recipient first name is mandatory.", response.ErrorDesc);
+            Assert.AreEqual("Return recipient first name or organization is mandatory.", response.ErrorDesc);
         }
 
         //[TestMethod]

@@ -10,7 +10,7 @@ using AM.Web.Models;
 using AM.Lib;
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus)]//Todo: For Role "API"
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus + "," + AMRoles.BAOffShore)]//Todo: For Role "API"
     [RoutePrefix("api/chart")]
     public class ChartApiController : ApiController
     {

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Transactions;
 using System.Xml;
@@ -50,6 +49,7 @@ namespace AM.EDelivery
                 this.CreateSigningRoom();
                 this.SendInvitations();
                 this.EDelivered();
+                this.ESigned();
                 this.Expired();
                 this.Declined();
             }
@@ -77,6 +77,10 @@ namespace AM.EDelivery
         /// Take all eDelivered records and generate reports
         /// </summary>
         protected abstract void EDelivered();
+        /// <summary>
+        /// Take all eSigned records and generate reports
+        /// </summary>
+        protected abstract void ESigned();
         /// <summary>
         /// Take all Expired records and generate reports
         /// </summary>
@@ -108,7 +112,7 @@ namespace AM.EDelivery
                     {
                         IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
 
-                        var activityLogs = eDeliveryAPISvc.GetSigningRoomActivityLog(mp.SigningRoomName).Result;
+                        var activityLogs = eDeliveryAPISvc.GetSigningRoomActivityLog(mp.SigningRoomName, mp.ClientId.Value).Result;
 
                         foreach (var actlog in activityLogs)
                         {
@@ -123,6 +127,9 @@ namespace AM.EDelivery
                                 case ActivityStatus.DocumentReviewed:
                                     mp.DocReviewedOn = actlog.UpdatedDate.PstToUtc();
                                     break;
+                                case ActivityStatus.DocumentSigned:
+                                    mp.ESignedOn = actlog.UpdatedDate.PstToUtc();
+                                    break;
                                 case ActivityStatus.DocumentDownloaded:
                                     mp.DocDownloadedOn = actlog.UpdatedDate.PstToUtc();
                                     mp.DownloadedIPAddress = actlog.IPAddress;
@@ -134,7 +141,7 @@ namespace AM.EDelivery
                         using (TransactionScope scope = new TransactionScope())
                         {
 
-                            int i = eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, mp.ConsentAcceptedOn, mp.ConsentDeclinedOn, mp.DocReviewedOn, mp.DocDownloadedOn, mp.ExpiryDate, mp.DownloadedIPAddress);
+                            int i = eDeliverySvc.UpdateEDMailPieceActivityStatus(mp.Id, mp.IsESignRequested, mp.ConsentAcceptedOn, mp.ConsentDeclinedOn, mp.DocReviewedOn, mp.ESignedOn, mp.DocDownloadedOn, mp.ExpiryDate, mp.DownloadedIPAddress);
                             scope.Complete();
                         }
                     }
@@ -149,6 +156,63 @@ namespace AM.EDelivery
             }
 
             log.Debug("EDelivery Check ActivityLogs job queue is started.");
+        }
+        #endregion
+
+
+        #region Download E-Signed Docs
+        public static void DownloadEsignDocs()
+        {
+            log.Debug("EDelivery DownloadEsignDocs job queue is started.");
+
+            using (IEDeliveryService eDeliverySvc = new EDeliveryService())
+            {
+                List<EDMailPiece> eSignedDocList = eDeliverySvc.GetESignedDocList();
+
+                if (eSignedDocList.Count == 0)
+                {
+                    log.Debug("EDelivery DownloadEsignDocs job queue is empty.");
+                    log.Debug("EDelivery DownloadEsignDocs job queue is completed.");
+                    return;
+                }
+
+                foreach (EDMailPiece mp in eSignedDocList)
+                {
+                    try
+                    {
+                        IEDeliveryAPIService eDeliveryAPISvc = new EDeliveryAPIService();
+
+                        //Download Doc Logic
+                        var downloadedDocDetails = eDeliveryAPISvc.DownloadEsignedDocument(mp.SRDocId.Value, mp.ClientId.Value).Result;
+                        if (downloadedDocDetails.HasError)
+                        {
+                            var msg = $"Error occured while downloading EsignDocs of Id {mp.Id} for client {mp.ClientCode} with below error <br/>{downloadedDocDetails.ErrorDesc}";
+                            log.Error(msg);
+                            continue;
+                        }
+
+                        //Save EsignedPdf
+                        string evaultPath = Path.Combine(Config.Common_AuthoMailRootFolder, mp.ClientCode, mp.MailBatchId.ToString(), "EVault");
+
+                        if (!Directory.Exists(evaultPath))
+                            Directory.CreateDirectory(evaultPath);
+
+                        File.WriteAllBytes(Path.Combine(evaultPath, downloadedDocDetails.DocumentName), Convert.FromBase64String(downloadedDocDetails.Document));
+
+                        mp.IsESignedDocDownloaded = true;
+                        eDeliverySvc.UpdateEDMailPieceDetails(mp);
+                    }
+                    catch (Exception ex)
+                    {
+                        var msg = "Error occured while downloading EsignDocs of Id {0} for client {1} with below error <br/>{2}".Fill(mp.Id, mp.ClientCode, ex);
+                        log.Error(msg);
+                        MailUtility.SendUnexpectedExceptionEmail(msg);
+                        continue;
+                    }
+                }
+            }
+
+            log.Debug("EDelivery DownloadEsignDocs job queue is completed.");
         }
         #endregion
 

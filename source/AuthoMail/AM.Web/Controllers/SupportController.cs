@@ -8,15 +8,30 @@ using System.Web.Mvc;
 using AM.Web.Models;
 using AM.Entities;
 using AutoMapper;
+using System.Threading.Tasks;
+using System.Net.Http;
+using DocumentFormat.OpenXml.Drawing;
+using System.Text;
+using System.IO;
+using System.Net.Http.Headers;
+using Newtonsoft.Json;
+using System.Net;
+using Newtonsoft.Json.Linq;
+using AM.Lib;
+using AM.Services.Services;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.BAOffShore)]
     public class SupportController : BaseController
     {
         ISupportReportService supportSvc;
         IChartDataService chartDataSvc;
         IReportService reportSvc;
         IFedExService fedexSvc;
+
         public SupportController(ISupportReportService supportSvc, IChartDataService chartDataSvc, IReportService reportSvc, IFedExService fedexSvc)
         {
             this.supportSvc = supportSvc;
@@ -122,7 +137,7 @@ namespace AM.Web.Controllers
                 return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
             }
         }
-        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.BAOffShore)]
         [HttpGet]
         public ActionResult DelayedBatches()
         {
@@ -181,5 +196,6 @@ namespace AM.Web.Controllers
                 return Json(false, JsonRequestBehavior.AllowGet);
             }
         }
+
     }
 }

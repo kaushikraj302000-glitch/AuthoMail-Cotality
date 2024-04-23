@@ -40,14 +40,6 @@ namespace AM.Services
         public string Message { get; set; }
     }
 
-    public class DocTypeVM
-    {
-        public int Id { get; set; }
-        public int ClientId { get; set; }
-        public string DocTypeCode { get; set; }
-        public string ClientName { get; set; }
-        public string AppCode { get; set; }
-    }
     public class DocTypeCoverLetterVM
     {
         public int DocTypeId { get; set; }
@@ -59,6 +51,7 @@ namespace AM.Services
         public int Id { get; set; }
         public string Name { get; set; }
         public string AppCode { get; set; }
+        public string GroupAlias { get; set; }
         public string NameAppCode
         {
             get

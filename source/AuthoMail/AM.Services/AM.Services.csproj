@@ -75,6 +75,7 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
@@ -86,7 +87,6 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Serialization" />
   </ItemGroup>
@@ -124,7 +124,11 @@
     <Compile Include="Models\AlertPendingBatchesViewModel.cs" />
     <Compile Include="Models\BatchReportInfo.cs" />
     <Compile Include="Models\ChartModels.cs" />
+    <Compile Include="Models\DelfusEdeliveryReport.cs" />
+    <Compile Include="Models\DelfusErrorReport.cs" />
     <Compile Include="Models\DelfusTemplate.cs" />
+    <Compile Include="Models\EsignDocConfig.cs" />
+    <Compile Include="Models\EsignDocDownload.cs" />
     <Compile Include="Models\eVSCancelRequest.cs" />
     <Compile Include="Models\eVSRequest.cs" />
     <Compile Include="Models\eVSCancelResponse.cs" />
@@ -153,6 +157,7 @@
     <Compile Include="Models\AuthoMailSettings.cs" />
     <Compile Include="Models\SupportVM.cs" />
     <Compile Include="Models\USPSAddressVerify.cs" />
+    <Compile Include="Models\USPSLabelCutOffDetail.cs" />
     <Compile Include="Models\USPS\TrackV2\ITrackFieldRequest.cs" />
     <Compile Include="Models\USPS\TrackV2\ITrackResponse.cs" />
     <Compile Include="Models\USPS\TrackV2\TrackFieldRequest.cs" />

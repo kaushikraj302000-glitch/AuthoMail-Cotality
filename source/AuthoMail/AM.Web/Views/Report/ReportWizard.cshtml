@@ -91,14 +91,14 @@
                                 <div class='alert alert-yellow'><div>No business friendly id found!</div></div>
                             }
                         </div>
-                        <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="DocType">Document Type</label>
                                 @Html.DropDownList("DocType", ViewBag.DocType as SelectList, htmlAttributes: new { @class = "selectpicker", @multiple = "multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Document Type" })
                             </div>
 
                         </div>
-                        <div class="col-md-@(ViewBag.BusinessId.Count > 1?"4":"3")">
+                        <div class="col-md-2">
                             <div class="form-group">
                                 <label for="Status">Status</label>
                                 <select class="selectpicker" id="Status" data-live-search="true" data-live-search-placeholder="Search Status">
@@ -110,11 +110,12 @@
                                     <option value="Error">Error</option>
                                     <option value="Shipped">Shipped</option>
                                     <option value="eDelivered">eDelivered</option>
+                                    <option value="eSigned">eSigned</option>
                                 </select>
                             </div>
 
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="form-group">
                                 <label for="Channel">Channel</label>
                                 @Html.Action("_Channel", "Common")
@@ -153,14 +154,13 @@
                                 </select>
                             </div>
                         </div>
-                        @if (User.IsInRole(AM.Entities.AMRoles.Admin))
+                        @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA) || User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                         {
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="ClientId">Clients</label>
                                     @Html.DropDownList("ClientId", ViewBag.ClientId as IEnumerable<SelectListItem>, htmlAttributes: new { @class = "selectpicker", @multiple = "multiple", @data_live_search = "true", @data_live_search_placeholder = "Search Client" })
                                 </div>
-
                             </div>
                         }
                         else
@@ -180,13 +180,13 @@
                             </div>
                         </div>
                         @*<div class="col-md-1" style=" margin-left: -2%;">
-                            <div class="form-group ">
-                                <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                                <button type="button" id="resetFilter" title="Reset" class="btn btn-transparent-blue">
-                                    <i class="fa fa-undo"></i>
-                                </button>
-                            </div>
-                        </div>*@
+                                <div class="form-group ">
+                                    <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                    <button type="button" id="resetFilter" title="Reset" class="btn btn-transparent-blue">
+                                        <i class="fa fa-undo"></i>
+                                    </button>
+                                </div>
+                            </div>*@
                     </div>
                 </form>
 
@@ -196,15 +196,15 @@
 
 </div>
 @*<div class="panel panel-default">
-    <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
-    <div class="panel-heading" id="searchHeader">
-        <div class="panel-title">
-            Report Wizard : <span class="normaltext" id="headerdate"></span>
+        <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
+        <div class="panel-heading" id="searchHeader">
+            <div class="panel-title">
+                Report Wizard : <span class="normaltext" id="headerdate"></span>
 
+            </div>
         </div>
-    </div>
-    <div class="panel-body" id="searchMailPieceList"></div>
-</div>*@
+        <div class="panel-body" id="searchMailPieceList"></div>
+    </div>*@
 <!--Search table html template code -->
 <div id="SearchTableContent" style="display:none">
     <table class="table table-responsive" style="overflow-x:scroll">
@@ -231,7 +231,7 @@
                 <th>Print Location</th>
                 <th>Pages Shipped</th>
                 @*<th class="ErrorCode">Error Code</th>
-        <th class="ErrorText">Error Text</th>*@
+                    <th class="ErrorText">Error Text</th>*@
             </tr>
         </thead>
         <tbody id="SearchbodyContent"></tbody>
@@ -262,7 +262,7 @@
                 <td><span>{PrintLocation}</span></td>
                 <td><span>{PagesShipped}</span></td>
                 @*<td>{ErrorCode}</td>
-        <td>{ErrorDesc}</td>*@
+                    <td>{ErrorDesc}</td>*@
             </tr>
         </tbody>
     </table>
@@ -797,7 +797,7 @@
                 }
                 this.TrackingNoFormatted = trackingNo;
                 //this.TrackingNo == null ? "--" : '<button id="' + this.TrackingNo + '" class="btn btn-transparent-blue btn-sm" onclick="GetTrackingInfo(\'' + this.TrackingNo + '\',\'' + this.ShippingMethod + '\')"><i class="fa faspinner"></i> ' + this.TrackingNo + '</button>';
-                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested && !this.IsESignRequested ? '<span class="label medium label-success">E-Delivery</span>' : this.IsEDeliveryRequested && this.IsESignRequested ? '<span class="label medium label-success">E-Sign</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
         }
@@ -952,12 +952,12 @@
                 startDate = "";
                 endDate = "";
             }
-           
-           
-           
+
+
+
             var shippingMethod = $('#ShippingMethod').val() == null ? [] : $('#ShippingMethod').val();
             var clientId = $("#ClientId").val();
-            
+
             $.ajax({
                 type: "POST",
                 url: baseUrl + "Report/_DownloadReportWizard",
@@ -991,7 +991,7 @@
                             });
                         }
                     } else {
-                        
+
                             window.clui.globalAlert({
                                 message: response.ErrorMessage,
                                 alertType: 'red',

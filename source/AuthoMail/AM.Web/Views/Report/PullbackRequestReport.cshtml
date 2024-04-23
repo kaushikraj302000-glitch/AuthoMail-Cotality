@@ -49,7 +49,7 @@
                 </div>
 
                 <div class="col-md-1">
-                    <div class="form-group ">
+                    <div class="form-group " style="margin-top: 27px;">
                         <label for="filterData"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
                         <button type="button" id="filterData" class="btn btn-primary" style=" padding-top: 6%;">
                             <span class="sr-only">Filter</span>
@@ -69,7 +69,7 @@
             Pullback Request Details: <span class="normaltext" id="headerdate"></span>
         </div>
     </div>
-    <div class="panel-body" id="pullbackList">
+    <div class="panel-body" id="pullbackList" style="margin-top: 10px;">
 
 
     </div>
@@ -79,11 +79,13 @@
     <table class="table table-responsive" style="overflow-x:scroll">
         <thead>
             <tr>
+                <th>Piece Id</th>
                 <th>Batch Id</th>
                 <th>@Html.Action("GetHeadingForBusinessId", "Common")</th>
                 <th>Status</th>
                 <th>Requested On <span class="fontcapitalize">(Local)</span></th>
                 <th>Requested By</th>
+                <th>PullBack Reason</th>
             </tr>
         </thead>
         <tbody id="pullbodyContent"></tbody>
@@ -93,13 +95,13 @@
     <table>
         <tbody id="pullBody">
             <tr>
-
+                <td><span>{MailPieces.Id}</span></td>
                 <td><span>{MailPieces.MailBatches.ClientBatchId}</span></td>
                 <td><span>{MailPieces.BusinessFriendlyIdValue}</span></td>
                 <td><span>{Status}</span></td>
                 <td><span>{RequestedOnFormatted}</span></td>
                 <td><span>{Users.DisplayName}</span></td>
-
+                <td><span>{PBReasons}</span></td>
             </tr>
         </tbody>
     </table>

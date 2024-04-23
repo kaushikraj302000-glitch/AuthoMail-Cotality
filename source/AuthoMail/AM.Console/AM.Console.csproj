@@ -82,6 +82,7 @@
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -92,6 +93,7 @@
     <Compile Include="AlaskaChannel.cs" />
     <Compile Include="AlaskaSchema.cs" />
     <Compile Include="AMCChannel.cs" />
+    <Compile Include="TDBankChannel.cs" />
     <Compile Include="IChannel.cs" />
     <Compile Include="PAMSchemaChannel.cs" />
     <Compile Include="CalcStdPrepStartTime.cs" />
@@ -145,6 +147,12 @@
     <None Include="CustomTemplates\CAPONE\2845768_REP.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="CustomTemplates\CAPONE\Generic_NS.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CustomTemplates\CAPONE\Generic_REP.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="CustomTemplates\HOMEPOINTFLOOD\Generic_NS.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -155,6 +163,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="CustomTemplates\MTBANK\2813735_REP.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CustomTemplates\TDBANK\30DaysFollowUpLetter.docx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="CustomTemplates\TDBANK\LienLetter.docx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="log4net.config">
@@ -207,6 +221,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="HTMLTemplates\DuplicateNotification.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="HTMLTemplates\ErrorSubScribed.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

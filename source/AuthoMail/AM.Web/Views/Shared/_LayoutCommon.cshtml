@@ -38,7 +38,7 @@
                     <ul class="nav navbar-nav navbar-right">
 
                         <li>@Html.ActionLink("Home", "Index", "Home")</li>
-                        @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA))
+                        @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA) || User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                         {
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Clients <span class="caret"></span></a>
@@ -47,7 +47,13 @@
                         }
 
                         <li>@Html.ActionLink("Search", "Search", "Home")</li>
-                        <li>@Html.ActionLink("Request Pullback ", "PullBack", "RequestPullBack")</li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Manage Loans<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li>@Html.ActionLink("Request Pullback ", "PullBack", "RequestPullBack")</li>
+                                @*<li>@Html.ActionLink("Single Loan Entry", "SingleLoanEntry", "Support")</li>*@
+                            </ul>
+                        </li>
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
                             <ul class="dropdown-menu">
@@ -58,24 +64,22 @@
                                 <li>@Html.ActionLink("Errors Report - SLA", "ErrorSLAReport", "Report")</li>
                                 <li>@Html.ActionLink("Monthly Recon Report", "MonthlyReconReport", "Report")</li>
                                 <li>@Html.ActionLink("Pullback Request Report", "PullbackRequestReport", "Report")</li>
-
+                                <li>@Html.ActionLink("Duplicate Report", "DuplicateReport", "Report")</li>
                             </ul>
                         </li>
                         @Html.Partial("_LoginPartial")
                     </ul>
                     <i class="fa fa-times"></i>
-
-
                 </div>
             }
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container-fluid">
         @RenderBody()
         <footer>
             <div>
-                2018 Copyright CoreLogic. All Rights Reserved.
+                2021 Copyright CoreLogic. All Rights Reserved.
             </div>
             <div>
                 <ol>
@@ -86,7 +90,7 @@
             </div>
         </footer>
     </div>
-  
+
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/cljs")
@@ -97,12 +101,12 @@
     <script>
         var baseUrl = '@Url.Content("~/")';
         $(document).ready(function () {
-           
+
             init();
 
         });
 
-       
+
         $(document).ajaxSuccess(function (event, xhr, settings) {
             //console.log("Server Result:" + cnt++);
             //console.log(xhr.responseText);

@@ -106,6 +106,15 @@ namespace PCI.Service
             return Convert;
         }
 
+        public static bool IsSaturday(this DateTime date)
+        {
+            if(date.DayOfWeek==DayOfWeek.Saturday)
+            {
+                return true;
+            }
+            return false;
+        }
+
         public static void CreateDirectoryIfNotExist(this string dirPath)
         {
             if (!dirPath.IsNullOrWhiteSpace())

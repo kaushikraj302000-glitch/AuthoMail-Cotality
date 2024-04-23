@@ -46,10 +46,17 @@ namespace AM.Services
         bool CheckForDuplicateMailPieceUniqueId(Guid mpUniqueId);
         List<DallasNotificationMap> GetDallasNotificationMaps();
         CustomTemplate GetCustomTemplateByDocTypeId(int docTypeId, string communityCode);
+        CustomTemplate GetCustomTemplateByCommunityCode(string communityCode);
         ShipperInformation GetShipperInformation(int shipperId);
         ShipperInformation GetShipperInformationByPrintLocation(string printLocation, int printTrailId);
         Task<int> UpdateBatchPipeLineStatusByMailPieceId(Guid mailPieceId, string pipeLineStatus, DateTime timestamp);
         string GetEnvelopeCodeByEnvelopeId(int envelopeId);
+        List<string> GetInsertDataByDocTypeId(int docTypeId);
+
+        int GetDallasBatchCounts(int? mpId = 0);
+        List<PackagesHoldInfo> GetPackagesHoldInfo();
+        List<USPSLabelCutOffDetail> GetUSPSLabelCutOffDetails();
+        List<USPSCredentialInfo> GetUSPSCredentialDetails();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -59,10 +66,10 @@ namespace AM.Services
             string query;
             if (pipeLineStatus == BatchPipelineStatus.SubmittedToEDelivery)//System will move pipelinestatus to SubmittedToEDelivery to exclude it from regular print and ship process.
             {
-                query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, ValidatedOn = @timestamp WHERE Id = @batchId";
+                query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, ValidatedOn = @timestamp, AcknowledgedOn = @timestamp, SubmittedToEDeliveryOn = @timestamp  WHERE Id = @batchId";
             }
             else
-                query = "UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {0}On = @timestamp WHERE Id = @batchId".Fill(pipeLineStatus);
+                query = $"UPDATE [AM].[MailBatches] SET PipelineStatus = @pipelineStatus, {pipeLineStatus}On = @timestamp WHERE Id = @batchId";
 
             return await db.ExecuteAsync(query, new { pipeLineStatus = pipeLineStatus, timestamp = timestamp, batchId = batchId });
         }
@@ -468,6 +475,7 @@ namespace AM.Services
             mailPiece.StdSubmissionTime = GetStandardSubmissionTime(client.AppCode, printVendorDetails.VendorCode, receivedOn, GetSweepTimings());
             mailPiece.MaxSubmissionTime = GetMaximumSubmissionTime(docType, mailPiece.EffectiveReceivedOnEst.Value);
             mailPiece.EnvelopeName = GetEnvelopeName(mailPiece.PnSConfigDetailId.Value);
+            mailPiece.UsedEnvelopeId = docType.EnvelopeId;
         }
 
         private string GetEnvelopeName(int pnsConfigDetailId)
@@ -475,6 +483,7 @@ namespace AM.Services
             string query = "SELECT EnvelopeName FROM Common.Envelopes E INNER JOIN Common.PnSConfigDetail P ON P.EnvelopeId=E.Id WHERE P.Id=@pnsConfigDetailId";
             return db.ExecuteScalar<string>(query, new { pnsConfigDetailId });
         }
+
         public int GetReportingSequence()
         {
             string query = "SELECT NEXT VALUE FOR dbo.ReportingSequence";
@@ -501,6 +510,13 @@ namespace AM.Services
             return db.QuerySingleOrDefault<CustomTemplate>(query, new { DocTypeId = docTypeId, CommunityCode = communityCode });
         }
 
+        public CustomTemplate GetCustomTemplateByCommunityCode(string communityCode)
+        {
+            string query = "SELECT * FROM [AM].[CustomTemplates] WHERE CommunityCode = @CommunityCode";
+
+            return db.QuerySingleOrDefault<CustomTemplate>(query, new { CommunityCode = communityCode });
+        }
+
         public ShipperInformation GetShipperInformation(int shipperId)
         {
             string query = "SELECT * FROM Common.ShipperInformation WHERE Id=@ShipperId";
@@ -521,9 +537,48 @@ namespace AM.Services
 
             return db.ExecuteAsync(query, new { pipeLineStatus, timestamp, mailPieceId });
         }
+
         public string GetEnvelopeCodeByEnvelopeId(int envelopeId)
         {
             return db.QuerySingle<string>("SELECT EnvelopeName FROM Common.Envelopes WHERE Id=@EnvelopeId", new { EnvelopeId = envelopeId });
+        }
+
+        public int GetDallasBatchCounts(int? mpId = 0)
+        {
+            string query = @"SELECT COUNT(*) FROM AM.MailPieces P WITH (NOLOCK)
+                                INNER JOIN AM.MailBatches B WITH (NOLOCK) ON P.MailBatchId = B.Id
+								INNER JOIN Common.PrintTrails PT WITH (NOLOCK) ON P.PrintTrailId = PT.Id
+                                WHERE PT.PrintVendorCode = 'CL_DALLAS'
+                                AND B.ReceivedOn BETWEEN @StartDate AND @EndDate AND P.ShippingStatus IN('InProgress','Shipped')
+								AND ISNULL(P.Id,0)<>ISNULL(@MailPieceId,0)";
+
+            return db.ExecuteScalar<int>(query, new { StartDate = Common.EstToday.ToStartDateTime().EstToUtc(), EndDate = Common.EstToday.ToEndDateTime().EstToUtc(), MailPieceId = mpId });
+        }
+
+        public List<PackagesHoldInfo> GetPackagesHoldInfo()
+        {
+            string query = "SELECT C.AppCode AS ClientCode,H.* FROM [AM].[PackagesHoldInfo] H INNER JOIN Common.Clients C ON H.ClientId = C.Id";
+
+            return db.Query<PackagesHoldInfo>(query).ToList();
+        }
+
+        public List<string> GetInsertDataByDocTypeId(int docTypeId)
+        {
+            return db.Query<string>("SELECT E.EnvelopeName FROM AM.DocTypeInserts DI INNER JOIN Common.Envelopes E ON E.Id=DI.BREEnvelopeId WHERE DI.DocTypeId = @DocTypeId", new { DocTypeId = docTypeId }).ToList();
+        }
+
+        public List<USPSLabelCutOffDetail> GetUSPSLabelCutOffDetails()
+        {
+            string query = "SELECT * FROM [API].[USPSLabelCutOffDetails]";
+
+            return db.Query<USPSLabelCutOffDetail>(query).ToList();
+        }
+
+        public List<USPSCredentialInfo> GetUSPSCredentialDetails()
+        {
+            string query = "SELECT AccountNumber AS UserId, WebAuthenticationPassword AS PassKey , WebAuthenticationKey AS PrintLocation FROM [AM].[ShippingAccounts] WHERE ShippingCarrier = 'USPS'";
+
+            return db.Query<USPSCredentialInfo>(query).ToList();
         }
     }
 }

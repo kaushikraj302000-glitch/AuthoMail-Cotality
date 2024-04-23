@@ -75,6 +75,31 @@ namespace AM.Console
                         System.Console.WriteLine("Update UpdateSFTChannels Completed");
                         return;
                     }
+                    else if (args[0] == "ProcessHeldPackages")
+                    {
+                        System.Console.WriteLine("Update Batch Status To Acknowledged From Hold Status Start");
+
+                        using (ICommonService commonSvc = new CommonService())
+                        {
+                            var holdPackageInfos = commonSvc.GetPackagesHoldInfo();
+
+                            if (holdPackageInfos.Count > 0)
+                            {
+                                var currentHoldPackagesInfo = holdPackageInfos.Where(x => x.ProcessOn == Common.EstToday);
+
+                                foreach (var holdInfo in currentHoldPackagesInfo)
+                                {
+                                    using (IMailBatchService mailBatchSvc = new MailBatchService())
+                                    {
+                                        mailBatchSvc.UpdateHoldBatchesInfo(holdInfo.ClientId, holdInfo.HoldOn);
+                                    }
+                                }
+                            }
+                        }
+
+                        System.Console.WriteLine("Update Batch Status To Acknowledged From Hold Status Completed");
+                        return;
+                    }
                     else if (args[0] == "CustomReports")
                     {
                         using (IReportService reportSvc = new ReportService())
@@ -91,7 +116,7 @@ namespace AM.Console
                             //string deliveryReportPath = Path.Combine(@"D:\", deliveryReportFileName);
 
                             //File.WriteAllText(deliveryReportPath, responseReport);
-                            var readIds = File.ReadAllLines(@"C:\Users\sagar.g\Desktop\MailPieceIds.txt").Select(r => int.Parse(r)).ToList();
+                            var readIds = File.ReadAllLines(@"D:\MailPieceIds.txt").Select(r => int.Parse(r)).ToList();
                             List<MailPieces> mailPieces = reportSvc.GetMailPiecesDataFromMailPieceId(readIds);
 
                             var erroredRecords = mailPieces.Where(p => p.ShippingStatus == ShippingStatus.Error.ToString()).ToList();
@@ -146,6 +171,10 @@ namespace AM.Console
                     else if (args[0] == "PurgeDBRecords")
                     {
                         Purging.PurgeDBRecords();
+                    }
+                    else if (args[0] == "PurgeArchiveFiles")
+                    {
+                        Purging.PurgeArchiveFiles(args[1]);
                     }
                     else
                     {

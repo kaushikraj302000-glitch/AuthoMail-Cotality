@@ -14,6 +14,7 @@ namespace AM.Services
         Task<IEnumerable<ClientIdNameVM>> GetClientDomainByDomainName(string domainName);
         Task<IEnumerable<ClientIdNameVM>> GetClientDomainForCL();
         Task<IEnumerable<ClientIdNameVM>> GetAppCodeByUserIdORall(string userId);
+        Task<IEnumerable<ClientIdNameVM>> GetAppCodeByClientDomain(string clientDomain);
         Task InsertClientIdAndUserId(ClientUserMapping clientUserMapping);
         Task<IEnumerable<ClientUserMapping>> ApproveOrDeclinedClientsForUser(string userId, List<int> approveclientIds, string modifiedById, bool isCLUser);
         Task<IEnumerable<ClientUserMapping>> GetClientDomainByUserId(string userId);
@@ -36,7 +37,7 @@ namespace AM.Services
                     ModifiedOn = now,
                     ModifiedById = modifiedById,
                     Status = ClientUserMappingStatusTypes.Pending,
-                    UserId=userId
+                    UserId = userId
                 };
                 for (int i = 0; i < approveclientIds.Count; i++)
                 {
@@ -90,7 +91,7 @@ where UserId=@userId";
         }
         public async Task<IEnumerable<ClientIdNameVM>> GetClientDomainByDomainName(string domainName)
         {
-            string sql = @"SELECT c.Id,c.Name,c.AppCode FROM Common.ClientDomains cd
+            string sql = @"SELECT c.Id,c.Name,c.AppCode,c.GroupAlias FROM Common.ClientDomains cd
 inner join Common.Clients c on cd.ClientId=c.Id
 where AllowedDomain=@domainName order by c.Name";
             var output = await db.QueryAsync<ClientIdNameVM>(sql, new { domainName = domainName });
@@ -99,7 +100,7 @@ where AllowedDomain=@domainName order by c.Name";
 
         public async Task<IEnumerable<ClientIdNameVM>> GetClientDomainForCL()
         {
-            string sql = @"SELECT distinct c.Id,c.Name,c.AppCode FROM Common.Clients c
+            string sql = @"SELECT distinct c.Id,c.Name,c.AppCode,c.GroupAlias FROM Common.Clients c
 order by c.Name";
             var output = await db.QueryAsync<ClientIdNameVM>(sql);
             return output;
@@ -132,14 +133,28 @@ values(@ClientId,@UserId,@Status,@CreatedOn,@ModifiedOn,@ModifiedById)";
         {
             if (userId == null)
             {
-                string sql = @"SELECT Id, Name, AppCode from Common.Clients where IsAMActive=1 order by Name";
+                string sql = @"SELECT Id, Name, AppCode, GroupAlias from Common.Clients where IsAMActive=1 order by Name";
                 return await db.QueryAsync<ClientIdNameVM>(sql);
             }
             else
             {
-                string sql = @"SELECT Id, Name, AppCode from Common.Clients where IsAMActive=1 and Id in(
+                string sql = @"SELECT Id, Name, AppCode, GroupAlias from Common.Clients where IsAMActive=1 and Id in(
 select ClientId from Common.ClientUserMapping where UserId=@userId) order by Name";
                 return await db.QueryAsync<ClientIdNameVM>(sql, new { userId = userId });
+            }
+        }
+
+        public async Task<IEnumerable<ClientIdNameVM>> GetAppCodeByClientDomain(string clientDomain)
+        {
+            if (clientDomain == null)
+            {
+                string sql = @"SELECT Id, Name, AppCode, GroupAlias from Common.Clients where IsAMActive=1 order by Name";
+                return await db.QueryAsync<ClientIdNameVM>(sql);
+            }
+            else
+            {
+                string sql = @"SELECT Id, Name, AppCode, GroupAlias from Common.Clients where IsAMActive=1 and Id in(select ClientId from Common.ClientDomains WHERE AllowedDomain =@Domain) order by Name";
+                return await db.QueryAsync<ClientIdNameVM>(sql, new { Domain = clientDomain });
             }
         }
 
@@ -150,8 +165,8 @@ select ClientId from Common.ClientUserMapping where UserId=@userId) order by Nam
             {
                 try
                 {
-                    var BAClientRoleId = await db.QueryAsync<string>("select Id from Profile.Roles where Name=@ba or Name=@client", new { ba = AMRoles.BA, client = AMRoles.Client }, transaction: t);
-                    if (isCLUser && role == AMRoles.BA)
+                    var BAClientRoleId = await db.QueryAsync<string>("select Id from Profile.Roles where Name=@ba or Name=@baOffShore or Name=@client", new { ba = AMRoles.BA, baOffShore = AMRoles.BAOffShore, client = AMRoles.Client }, transaction: t);
+                    if (isCLUser && (role == AMRoles.BA || role == AMRoles.BAOffShore))
                     {
                         string sql = "delete from Common.ClientUserMapping where UserId=@userId";
                         await db.ExecuteAsync(sql, new { userId = user.Id }, transaction: t);
@@ -160,7 +175,7 @@ select ClientId from Common.ClientUserMapping where UserId=@userId) order by Nam
                         await db.ExecuteAsync(sql, new { userId = user.Id, roles = BAClientRoleId }, transaction: t);
 
                         sql = @"insert into Profile.UserRoles (UserId,RoleId) values(@userId,(select Id from Profile.Roles where Name=@roleName))";
-                        await db.ExecuteAsync(sql, new { userId = user.Id, roleName = AMRoles.BA }, transaction: t);
+                        await db.ExecuteAsync(sql, new { userId = user.Id, roleName = role }, transaction: t);
                     }
                     else
                     {

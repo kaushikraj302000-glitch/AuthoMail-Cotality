@@ -1,10 +1,13 @@
 ﻿using AM.Entities;
 using AM.Lib;
 using AM.Services.Services;
+using AM.USPSLib.TrackV2;
+using Dapper;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Asn1.Ocsp;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,7 +32,11 @@ namespace AM.Services
         List<MailAPIResponse> GenerateMailAPIResponse(List<BatchResponse> batchResponses);
         string GeneralJsonReport(string mpUniqueId);
         Task<HttpResponseMessage> SendAPIResponse(HttpClient httpClient, string responseURL, IEnumerable<MailAPIResponse> responseReport);
+        Task<HttpResponseMessage> SendAPIResponseMC(HttpClient httpClient, string responseURL, string apiKey, MailAPIResponse response);
         string GeneralXMLReport(List<MailPieces> mailPieces, string clientCode);
+        string GeneralXMLBatchErrorReport(MailBatchDTO mailBatch, string clientCode);
+        void USPSTrackingCall(List<TrackingReport> mailPieces, bool isReturnTracking);
+        void USPSTrackingData(List<TrackingReport> mailPieces, bool isReturnTracking);
     }
 
     public class GeneralService : ServiceBase, IGeneralService
@@ -148,7 +155,7 @@ namespace AM.Services
                 mbResponse.MailPiecesReport.Add(new MailPieceReport() { BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackageType = mp.DocumentOrPackageType, ErrorCode = mp.ErrorCode, ErrorDesc = mp.ErrorDesc, FileName = mp.FileName, Id = mp.UniqueId, Postage = mp.ShippingCost, MailingStatus = mp.ShippingStatus.ParseEnum<MailingStatus>(), TrackingNumber = mp.TrackingNo, PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue, ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue, TotalSheets = mp.TotalPages, WeightMeasured = mp.Weight.HasValue ? mp.Weight.Value : 0 });
             }
 
-            var serializedString = XmlUtil.Serialize<MailBatchResponse>(mbResponse);
+            var serializedString = XmlUtil.SerializeUTF8<MailBatchResponse>(mbResponse);
 
             return serializedString;
         }
@@ -159,15 +166,31 @@ namespace AM.Services
             {
                 Id = mailBatch.UniqueId,
                 ClientBatchId = mailBatch.ClientBatchId,
-                ClientCode = clientCode,
+                ClientCode = clientCode
             };
 
             foreach (MailPieces mp in mailPieces)
             {
-                mbResponse.MailPiecesReport.Add(new MailPieceReport() { BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackageType = mp.DocumentOrPackageType, ErrorCode = mp.ErrorCode, ErrorDesc = mp.ErrorDesc, FileName = mp.FileName, Id = mp.UniqueId, Postage = mp.ShippingCost, MailingStatus = mp.ShippingStatus.ParseEnum<MailingStatus>(), TrackingNumber = mp.TrackingNo, PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue, ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue, TotalSheets = mp.TotalPages, WeightMeasured = mp.Weight.HasValue ? mp.Weight.Value : 0 });
+                mbResponse.MailPiecesReport.Add(new MailPieceReport() { BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackageType = mp.DocumentOrPackageType, ErrorCode = mp.ErrorCode, ErrorDesc = mp.ErrorDesc, FileName = mp.FileName, Id = mp.UniqueId, Postage = mp.ShippingCost, MailingStatus = mp.ShippingStatus.ParseEnum<MailingStatus>(), TrackingNumber = mp.TrackingNo, PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue, ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue, TotalSheets = mp.TotalSheets, WeightMeasured = mp.Weight.HasValue ? mp.Weight.Value : 0 });
             }
 
-            var serializedString = XmlUtil.Serialize<MailBatchResponse>(mbResponse);
+            var serializedString = XmlUtil.SerializeUTF8<MailBatchResponse>(mbResponse);
+
+            return serializedString;
+        }
+
+        public string GeneralXMLBatchErrorReport(MailBatchDTO mailBatch, string clientCode)
+        {
+            MailBatchResponse mbResponse = new MailBatchResponse()
+            {
+                Id = mailBatch.UniqueId,
+                ClientBatchId = mailBatch.ClientBatchId,
+                ClientCode = clientCode,
+                BatchName = mailBatch.BatchName,
+                ErrorDescription = mailBatch.ValidationErrors
+            };
+
+            var serializedString = XmlUtil.SerializeUTF8<MailBatchResponse>(mbResponse);
 
             return serializedString;
         }
@@ -187,7 +210,7 @@ namespace AM.Services
                 mbResponse.MailPiecesReport.Add(new MailPieceReport() { BusinessFriendlyIdName = mp.BusinessFriendlyIdName, BusinessFriendlyIdValue = mp.BusinessFriendlyIdValue, DocumentOrPackageType = mp.DocumentOrPackageType, ErrorCode = mp.ErrorCode, ErrorDesc = mp.ErrorDesc, FileName = mp.FileName, Id = mp.UniqueId, Postage = mp.ShippingCost, MailingStatus = mp.ShippingStatus.ParseEnum<MailingStatus>(), TrackingNumber = mp.TrackingNo, PulledBackOn = mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value : DateTime.MinValue, ShippedOn = mp.ShippedOn.HasValue ? mp.ShippedOn.Value : DateTime.MinValue, TotalSheets = mp.TotalPages, WeightMeasured = mp.Weight.HasValue ? mp.Weight.Value : 0 });
             }
 
-            var serializedString = XmlUtil.Serialize<MailBatchResponse>(mbResponse);
+            var serializedString = XmlUtil.SerializeUTF8<MailBatchResponse>(mbResponse);
 
             return serializedString;
         }
@@ -196,6 +219,7 @@ namespace AM.Services
         {
             using (IMailPieceService mailPieceService = new MailPieceService())
             {
+                // BatchResponse mailpieceResponse = mailPieceService.GetMailPieceDetailsByMailPieceUniqueIdTest(mpUniqueId);
                 BatchResponse batchResponse = mailPieceService.GetMailPieceDetailsByMailPieceUniqueId(mpUniqueId);
 
                 if (batchResponse == null)
@@ -242,6 +266,7 @@ namespace AM.Services
 
         public MailAPIResponse GenerateMailAPIResponse(BatchResponse batchResponse)
         {
+            List<APIMetaData> customInfos = batchResponse.MailPieceCustomInfo == null || batchResponse.MailPieceCustomInfo.Any(x => x == null) ? null : batchResponse.MailPieceCustomInfo.Select(r => new APIMetaData() { Key = r.Key, Value = r.Value }).Where(r => !r.Key.StartsWith("AM:")).ToList();
             MailAPIResponse response = new MailAPIResponse()
             {
                 Id = batchResponse.UniqueId,
@@ -278,6 +303,7 @@ namespace AM.Services
                         Country = batchResponse.RcptAddressCountry
                     }
                 },
+                CustomInfo = customInfos,
                 MailingStatus = batchResponse.ShippingStatus,
                 ErrorCode = batchResponse.ErrorCode,
                 ErrorDesc = batchResponse.ErrorDesc,
@@ -316,6 +342,24 @@ namespace AM.Services
             return httpClient.PostAsync(responseURL, content);
         }
 
+        public async Task<HttpResponseMessage> SendAPIResponseMC(HttpClient httpClient, string responseURL, string apiKey, MailAPIResponse response)
+        {
+            JsonSerializerSettings dateFormatSettings = new JsonSerializerSettings
+            {
+                DateFormatHandling = DateFormatHandling.IsoDateFormat
+            };
+
+            string json = JsonConvert.SerializeObject(response, dateFormatSettings);
+
+            string hashdata = XmlUtil.ComputHash(apiKey, json);
+
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            content.Headers.Clear();
+            content.Headers.Add("X-API-Signature", hashdata);
+            return await httpClient.PostAsync(responseURL, content);
+        }
 
         public async static Task<string> GetToken()
         {
@@ -351,6 +395,123 @@ namespace AM.Services
             catch (Exception ex)
             {
                 return ex.ToString();
+            }
+        }
+
+        public void USPSTrackingCall(List<TrackingReport> mailPieces, bool isReturnTracking)
+        {
+            int maxTrackRequest = 35;
+
+            string systemUserId = string.Empty;
+
+            using (ICommonService commonSvc = new CommonService())
+            {
+                systemUserId = commonSvc.GetSystemUserId();
+            }
+
+            var trackBatches = mailPieces.ChunkBy(maxTrackRequest);
+
+            Parallel.ForEach(trackBatches, new ParallelOptions { MaxDegreeOfParallelism = 8 }, (batches) =>
+            {
+                using (IUSPSService uspsSvc = new USPSService())
+                {
+                    TrackFieldAPIRequest trackFieldRequest = new TrackFieldAPIRequest()
+                    {
+                        TrackID = batches.Select(x => new TrackID() { ID = isReturnTracking ? x.ReturnTrackingNo : x.TrackingNo }).ToList()
+                    };
+
+                    var trackingInfos = uspsSvc.GetTrackingDetailsAsync(systemUserId, trackFieldRequest).Result;
+
+                    if (trackingInfos.HasError)
+                    {
+                        return;
+                    }
+
+                    using (IMailPieceService mailPieceSvc = new MailPieceService())
+                    {
+                        foreach (var trackInfo in trackingInfos.TrackInfo)
+                        {
+                            if (trackInfo == null || trackInfo.TrackSummary == null)
+                            {
+                                continue;
+                            }
+                            var shipmentDateTimeEst = (trackInfo.TrackSummary.EventDate + " " + trackInfo.TrackSummary.EventTime).Trim().AnyFormatToDateTime();
+
+                            var shipmentDateTimeUTC = shipmentDateTimeEst.HasValue ? (DateTime?)shipmentDateTimeEst.Value.EstToUtc() : null;
+
+                            var shipmentStatus = $"{trackInfo.TrackSummary.Event} on {shipmentDateTimeUTC} UTC at ({trackInfo.TrackSummary.EventCity},{trackInfo.TrackSummary.EventState})";
+
+                            try
+                            {
+                                mailPieceSvc.UpdateMailPieceShipmentStatusFromTrackingNo(shipmentStatus, trackInfo.ID, Common.Now, trackInfo.TrackSummary.Event, shipmentDateTimeUTC, isReturnTracking);
+                            }
+                            catch (Exception)
+                            {
+                                //Handle Error to do not break out queue.
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        public void USPSTrackingData(List<TrackingReport> mailPieces, bool isReturnTracking)
+        {
+            int maxTrackRequest = 35;
+
+            string systemUserId = string.Empty;
+
+            using (ICommonService commonSvc = new CommonService())
+            {
+                systemUserId = commonSvc.GetSystemUserId();
+            }
+
+            var trackBatches = mailPieces.ChunkBy(maxTrackRequest);
+            ConcurrentBag<TrackingDump> trackingResponses = new ConcurrentBag<TrackingDump>();
+            var jobRunTime = Common.Now;
+            Parallel.ForEach(trackBatches, new ParallelOptions { MaxDegreeOfParallelism = 8 }, (batches) =>
+            {
+                using (IUSPSService uspsSvc = new USPSService())
+                {
+                    TrackFieldAPIRequest trackFieldRequest = new TrackFieldAPIRequest()
+                    {
+                        TrackID = batches.Select(x => new TrackID() { ID = isReturnTracking ? x.ReturnTrackingNo : x.TrackingNo }).ToList()
+                    };
+
+                    var trackingInfos = uspsSvc.GetTrackingDetailsAsync(systemUserId, trackFieldRequest).Result;
+
+                    if (trackingInfos.HasError)
+                    {
+                        return;
+                    }
+
+                    foreach (var trackInfo in trackingInfos.TrackInfo)
+                    {
+                        if (trackInfo == null || trackInfo.TrackSummary == null)
+                        {
+                            continue;
+                        }
+                        var shipmentDateTimeEst = (trackInfo.TrackSummary.EventDate + " " + trackInfo.TrackSummary.EventTime).Trim().AnyFormatToDateTime();
+
+                        var shipmentDateTimeUTC = shipmentDateTimeEst.HasValue ? (DateTime?)shipmentDateTimeEst.Value.EstToUtc() : null;
+
+                        var shipmentStatus = $"{trackInfo.TrackSummary.Event} on {shipmentDateTimeUTC} UTC at ({trackInfo.TrackSummary.EventCity},{trackInfo.TrackSummary.EventState})";
+
+                        trackingResponses.Add(new TrackingDump() { TrackingNo = trackInfo.ID, IsReturnTracking = isReturnTracking, DeliveryDate = shipmentDateTimeUTC, DeliveryStatus = trackInfo.TrackSummary.Event, ShipmentStatus = shipmentStatus, ShipmentStatusUpdatedOn = jobRunTime, ShippingCarrier = "USPS" });
+                    }
+                }
+            });
+
+            if (trackingResponses != null)
+            {
+                try
+                {
+                    db.QuerySingleOrDefault<int>("[dbo].[usp_InsertTrackingDump] @TrackingDump", new { TrackingDump = trackingResponses.ToList().ToDataTable() }, commandType: System.Data.CommandType.StoredProcedure);
+                }
+                catch (Exception)
+                {
+                    return;
+                }
             }
         }
     }

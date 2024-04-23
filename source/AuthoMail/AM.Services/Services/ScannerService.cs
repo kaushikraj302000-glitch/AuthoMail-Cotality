@@ -2,6 +2,7 @@
 using Dapper;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -19,6 +20,8 @@ namespace AM.Services
         List<ScanedDocument> GetScanReportData(string clientCode, string barcodeValue, string loanNumber, string printOnFrom, string printOnTo, string shippedOnFrom, string shippedOnTo);
         List<PendingScanning> GetPendingScanning(string clientCode);
         USPSScanDetails RegisterUSPSScan(int mailPieceId, string trackingNo, string clientCode);
+        List<RegisterScanDetails> RegisterBulkScan(string barcode, string clientCode, string username, string machineName, string batchName);
+        MailPieceDetails GetDocumentInfo(int mailPieceId);
     }
     public class ScannerService : ServiceBase, IScannerService
     {
@@ -49,7 +52,22 @@ namespace AM.Services
                 throw e;
             }
         }
-
+        public List<RegisterScanDetails> RegisterBulkScan(string barcode, string clientCode, string username, string machineName, string batchName)
+        {
+            try
+            {
+                var estToday = DateTime.UtcNow.UtcToEst().Date;
+                string query = string.Format("{0} @barcode, @clientCode, @operatorid, @machineid, @batchName, @estDate", "SP_BulkRegisterScan");
+                var registerScanDetails = db.Query<RegisterScanDetails>(query, new { barcode = barcode, clientCode = clientCode, operatorid = username, machineid = machineName, batchName = batchName, estDate = estToday }).ToList();
+                db.Dispose();
+                return registerScanDetails;
+            }
+            catch (Exception e)
+            {
+                log.Error(e.Message.ToString());
+                throw e;
+            }
+        }
         public Dictionary<string, ScanDetails> GetScanStats()
         {
             try
@@ -177,6 +195,22 @@ namespace AM.Services
                 db.Dispose();
                 return registerScanData;
 
+            }
+            catch (Exception e)
+            {
+                log.Error(e.Message.ToString());
+                throw e;
+            }
+        }
+
+        public MailPieceDetails GetDocumentInfo(int mailPieceId)
+        {
+
+            try
+            {
+                var registerScanData = db.QuerySingleOrDefault<MailPieceDetails>(@"SELECT P.Id,P.FileName,B.ServerIP,C.AppCode,REQ.JobId FROM AM.MailPieces P INNER JOIN AM.MailBatches B ON B.Id=P.MailBatchId INNER JOIN PnS.MRDFRequest REQ ON REQ.UniqueId=P.UniqueId INNER JOIN Common.Clients C ON C.Id=B.ClientId WHERE P.Id=@MailPieceID", new { MailPieceID = mailPieceId });
+                db.Dispose();
+                return registerScanData;
             }
             catch (Exception e)
             {

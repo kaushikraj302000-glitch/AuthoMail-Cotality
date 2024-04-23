@@ -11,45 +11,79 @@ namespace AM.Services
 {
     public interface IDocTypeService : IDisposable
     {
+        DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName);
+
         DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount);
 
         DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, DateTime estReceivedOn);
+        DocType GetIntlDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, DateTime estReceivedOn);
 
         DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, string shippingCarrier, string shippingServiceType);
-        DocType GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, DateTime estReceivedOn, string shippingCarrier, string shippingServiceType);
+        DocType GetIntlDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, string shippingCarrier, string shippingServiceType);
+        DocType GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, DateTime estReceivedOn, string shippingCarrier, string shippingServiceType, int? mpId = 0);
         DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId);
+        DocType GetIntlDocTypeById(int docTypeId, int pnsConfigDetailId);
         List<PnSConfigDetailCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId);
         List<PnSConfigDetailCoverLetter> GetDocumentRearLetterTemplates(int pnSConfigDetailId);
         DocType GetDocTypeWithMaximumCutOffTimeByClientId(int clientId);
         bool AllowInsertsOnlyDocumentType(int clientId, string docType);
+        List<DocTypeReport> GetDocTypeList();
     }
 
     public class DocTypeService : ServiceBase, IDocTypeService
     {
+        public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName)
+        {
+            string query = "SELECT * FROM [AM].[DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND D.IsActive = 1";
+
+            return db.QueryFirstOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName });
+        }
         public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount)
         {
-            string query = "SELECT * FROM [dbo].[v_DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + (CASE WHEN PrintFormat='Simplex' THEN @PageCount ELSE (@PageCount / 2 + @PageCount % 2) END)) BETWEEN D.MinPage AND D.MaxPage AND D.IsFallBack = 0 AND D.IsActive = 1";
+            string query = "SELECT * FROM [dbo].[v_DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + (CASE WHEN PrintFormat='Simplex' OR PrintFormat='Simplex_Color' THEN @PageCount ELSE (@PageCount / 2 + @PageCount % 2) END)) BETWEEN D.MinPage AND D.MaxPage AND D.IsFallBack = 0 AND D.IsActive = 1";
 
             return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount });
         }
 
         public DocType GetDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, string shippingCarrier, string shippingServiceType)
         {
-            string query = "SELECT * FROM [dbo].[v_DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + (CASE WHEN PrintFormat='Simplex' THEN @PageCount ELSE (@PageCount / 2 + @PageCount % 2) END)) BETWEEN D.MinPage AND D.MaxPage AND D.IsActive = 1 AND D.ShippingCarrier=@ShippingCarrier AND D.ShippingServiceType=@ShippingServiceType".Fill(pageCount);
+            string query = "SELECT * FROM [dbo].[v_DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + (CASE WHEN PrintFormat='Simplex' OR PrintFormat='Simplex_Color' THEN @PageCount ELSE (@PageCount / 2 + @PageCount % 2) END)) BETWEEN D.MinPage AND D.MaxPage AND D.IsActive = 1 AND D.ShippingCarrier=@ShippingCarrier AND D.ShippingServiceType=@ShippingServiceType".Fill(pageCount);
 
             return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType });
         }
-
-        public DocType GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, DateTime estReceivedOn, string shippingCarrier, string shippingServiceType)
+        public DocType GetIntlDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, string shippingCarrier, string shippingServiceType)
         {
-            string query = "SELECT D.* FROM [dbo].[v_DocTypes] D WHERE D.ClientId=@ClientId AND D.Id=@DocTypeId AND D.IsActive=1 AND D.IsFallBack=1 AND D.ShippingCarrier=@ShippingCarrier AND D.ShippingServiceType=@ShippingServiceType";
+            string query = "SELECT * FROM [dbo].[v_IntlDocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + (CASE WHEN PrintFormat='Simplex' OR PrintFormat='Simplex_Color' THEN @PageCount ELSE (@PageCount / 2 + @PageCount % 2) END)) BETWEEN D.MinPage AND D.MaxPage AND D.IsActive = 1 AND D.ShippingCarrier=@ShippingCarrier AND D.ShippingServiceType=@ShippingServiceType".Fill(pageCount);
 
-            var docTypeList = db.Query<DocType>(query, new { ClientId = clientId, DocTypeId = docTypeId, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType }).ToList();
+            return db.QuerySingleOrDefault<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType });
+        }
+        public DocType GetFallBackDocTypeByPnSConfigId(int clientId, int docTypeId, DateTime estReceivedOn, string shippingCarrier, string shippingServiceType, int? mpId = 0)
+        {
+            using (ICommonService commonSvc = new CommonService())
+            {
+                string query = "SELECT D.* FROM [dbo].[v_DocTypes] D WHERE D.ClientId=@ClientId AND D.Id=@DocTypeId AND D.IsActive=1 AND D.IsFallBack=1 AND D.ShippingCarrier=@ShippingCarrier AND D.ShippingServiceType=@ShippingServiceType";
 
-            if (docTypeList.Count == 0)
+                var docTypeList = db.Query<DocType>(query, new { ClientId = clientId, DocTypeId = docTypeId, ShippingCarrier = shippingCarrier, ShippingServiceType = shippingServiceType }).ToList();
+
+                if (docTypeList.Count == 0)
+                    return null;
+
+                var lstDocType = GetDocTypeByDocTypeName(clientId, docTypeList, estReceivedOn);
+
+                if (lstDocType.Count == 1)
+                    return lstDocType.SingleOrDefault();
+
+                if (lstDocType.Count > 1)
+                {
+                    if (lstDocType.Any(x => x.PrintVendorCode == "CL_DALLAS") && commonSvc.GetDallasBatchCounts(mpId) <= Config.Common_DallasVolumeCap)
+                    {
+                        return lstDocType.SingleOrDefault(d => d.PrintVendorCode == "CL_DALLAS");
+                    }
+
+                    return lstDocType.SingleOrDefault(d => d.PrintVendorCode != "CL_DALLAS");
+                }
                 return null;
-
-            return GetDocTypeByDocTypeName(clientId, docTypeList, estReceivedOn);
+            }
         }
 
         public DocType GetDocTypeById(int docTypeId, int pnsConfigDetailId)
@@ -58,7 +92,12 @@ namespace AM.Services
 
             return db.QuerySingleOrDefault<DocType>(query, new { DocTypeId = docTypeId, PnsConfigDetailId = pnsConfigDetailId });
         }
+        public DocType GetIntlDocTypeById(int docTypeId, int pnsConfigDetailId)
+        {
+            string query = "SELECT D.* FROM [dbo].[v_IntlDocTypes] D WHERE D.Id=@DocTypeId AND D.PnSConfigDetailId=@PnSConfigDetailId AND D.IsActive=1";
 
+            return db.QuerySingleOrDefault<DocType>(query, new { DocTypeId = docTypeId, PnsConfigDetailId = pnsConfigDetailId });
+        }
         public List<PnSConfigDetailCoverLetter> GetDocumentCoverLetterTemplates(int pnSConfigDetailId)
         {
             string query = "SELECT * FROM [Common].[PnSConfigDetailCoverLetters] WHERE PnSConfigDetailId=@PnSConfigDetailId AND SeqId<=100 ORDER BY SeqId";
@@ -84,18 +123,61 @@ namespace AM.Services
         {
             using (ICommonService commonSvc = new CommonService())
             {
-                string query = "SELECT * FROM [dbo].[v_DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + (CASE WHEN PrintFormat='Simplex' THEN @PageCount ELSE (@PageCount / 2 + @PageCount % 2) END)) BETWEEN D.MinPage AND D.MaxPage AND D.IsFallBack = 0 AND D.IsActive = 1";
+                string query = "SELECT * FROM [dbo].[v_DocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + (CASE WHEN PrintFormat='Simplex' OR PrintFormat='Simplex_Color' THEN @PageCount ELSE (@PageCount / 2 + @PageCount % 2) END)) BETWEEN D.MinPage AND D.MaxPage AND D.IsFallBack = 0 AND D.IsActive = 1";
 
                 var docTypeList = db.Query<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount }).ToList();
 
                 if (docTypeList.Count == 0)
                     return null;
 
-                return GetDocTypeByDocTypeName(clientId, docTypeList, estReceivedOn);
+                var lstDocType = GetDocTypeByDocTypeName(clientId, docTypeList, estReceivedOn);
+
+                if (lstDocType.Count == 1)
+                    return lstDocType.SingleOrDefault();
+
+                if (lstDocType.Count > 1)
+                {
+                    if (lstDocType.Any(x => x.PrintVendorCode == "CL_DALLAS") && commonSvc.GetDallasBatchCounts() < Config.Common_DallasVolumeCap)
+                    {
+                        return lstDocType.SingleOrDefault(d => d.PrintVendorCode == "CL_DALLAS");
+                    }
+
+                    return lstDocType.SingleOrDefault(d => d.PrintVendorCode != "CL_DALLAS");
+                }
+
+                return null;
             }
         }
+        public DocType GetIntlDocTypeByDocTypeName(int clientId, string documentOrPackageName, int pageCount, DateTime estReceivedOn)
+        {
+            using (ICommonService commonSvc = new CommonService())
+            {
+                string query = "SELECT * FROM [dbo].[v_IntlDocTypes] D WHERE D.DocTypeName = @DocumentOrPackageName AND D.ClientId = @ClientId AND (1 - D.IsPrintReady + (CASE WHEN PrintFormat='Simplex' OR PrintFormat='Simplex_Color' THEN @PageCount ELSE (@PageCount / 2 + @PageCount % 2) END)) BETWEEN D.MinPage AND D.MaxPage AND D.IsFallBack = 0 AND D.IsActive = 1";
 
-        private DocType GetDocTypeByDocTypeName(int clientId, List<DocType> docTypeList, DateTime estReceivedOn)
+                var docTypeList = db.Query<DocType>(query, new { ClientId = clientId, DocumentOrPackageName = documentOrPackageName, PageCount = pageCount }).ToList();
+
+                if (docTypeList.Count == 0)
+                    return null;
+
+                var lstDocType = GetDocTypeByDocTypeName(clientId, docTypeList, estReceivedOn);
+
+                if (lstDocType.Count == 1)
+                    return lstDocType.SingleOrDefault();
+
+                if (lstDocType.Count > 1)
+                {
+                    if (lstDocType.Any(x => x.PrintVendorCode == "CL_DALLAS") && commonSvc.GetDallasBatchCounts() < Config.Common_DallasVolumeCap)
+                    {
+                        return lstDocType.SingleOrDefault(d => d.PrintVendorCode == "CL_DALLAS");
+                    }
+
+                    return lstDocType.SingleOrDefault(d => d.PrintVendorCode != "CL_DALLAS");
+                }
+
+                return null;
+            }
+        }
+        private List<DocType> GetDocTypeByDocTypeName(int clientId, List<DocType> docTypeList, DateTime estReceivedOn)
         {
             var estReceivedOnDate = estReceivedOn.Date;
             bool isSatWorkDay = true;
@@ -144,14 +226,14 @@ namespace AM.Services
 
                 dayOfWeek = estReceivedOn.DayOfWeek;
 
-                DocType maxCutOffDocType = null;
+                List<DocType> maxCutOffDocType = new List<DocType>();
 
                 if (dayOfWeek == DayOfWeek.Sunday)
-                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + dt.SunStartTime && estReceivedOn <= estReceivedOnDate + dt.SunEndTime).First();
+                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + dt.SunStartTime && estReceivedOn <= estReceivedOnDate + dt.SunEndTime).ToList();
                 else if (dayOfWeek == DayOfWeek.Saturday)
-                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + dt.SatStartTime && estReceivedOn <= estReceivedOnDate + dt.SatEndTime).First();
+                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + dt.SatStartTime && estReceivedOn <= estReceivedOnDate + dt.SatEndTime).ToList();
                 else
-                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + dt.BizdayStartTime && estReceivedOn <= estReceivedOnDate + dt.BizdayEndTime).First();
+                    maxCutOffDocType = docTypeList.Where(dt => estReceivedOn >= estReceivedOnDate + dt.BizdayStartTime && estReceivedOn <= estReceivedOnDate + dt.BizdayEndTime).ToList();
 
                 return maxCutOffDocType;
             }
@@ -162,6 +244,19 @@ namespace AM.Services
             string query = "SELECT AllowInsertsOnly FROM AM.DocTypes WHERE ClientId=@clientId AND IsActive=1 AND DocTypeName=@docType";
 
             return db.QuerySingleOrDefault<bool>(query, new { clientId, docType });
+        }
+
+        public List<DocTypeReport> GetDocTypeList()
+        {
+            string query = @"SELECT D.*,C.AppCode,E.EnvelopeName,E.PartNumber AS EnvelopePartNumber, BREName =STUFF((SELECT DISTINCT '|'+ CAST([EnvelopeName] AS VARCHAR(MAX)) FROM Common.Envelopes E INNER JOIN AM.DocTypeInserts DI ON DI.BREEnvelopeId=E.Id WHERE DI.DocTypeId = D.Id FOR XMl PATH('')),1,1,''), BREPartNumber =STUFF((SELECT DISTINCT '|'+ CAST([PartNumber] AS VARCHAR(MAX)) FROM Common.Envelopes E INNER JOIN AM.DocTypeInserts DI ON DI.BREEnvelopeId=E.Id WHERE DI.DocTypeId = D.Id FOR XMl PATH('')),1,1,''),
+                PT.TrailName AS PrintTrailName, PV.VendorCode AS PrintVendor
+                FROM [dbo].[v_DocTypes] D 
+                LEFT OUTER JOIN Common.Clients C ON D.ClientId=C.Id
+                LEFT OUTER JOIN Common.Envelopes E ON D.EnvelopeId=E.Id
+                LEFT OUTER JOIN Common.PrintTrails PT ON D.PrintTrailId=PT.Id
+                LEFT OUTER JOIN Common.PrintVendors PV ON PT.PrintVendorId=PV.Id
+                WHERE C.Id>0 ORDER BY C.AppCode";
+            return db.Query<DocTypeReport>(query).ToList();
         }
     }
 }

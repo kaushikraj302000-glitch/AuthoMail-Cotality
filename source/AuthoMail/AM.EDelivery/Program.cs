@@ -38,6 +38,10 @@ namespace AM.EDelivery
             {
                 EDChannel.CheckActivityLogs();
             }
+            else if (args[0] == "DOCDOWNLOAD")
+            {
+                EDChannel.DownloadEsignDocs(); 
+            }
         }
     }
 }

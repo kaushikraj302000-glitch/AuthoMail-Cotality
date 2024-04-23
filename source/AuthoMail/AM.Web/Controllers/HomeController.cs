@@ -18,7 +18,7 @@ using System.IO;
 
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus)]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus + "," + AMRoles.BAOffShore)]
     [RoutePrefix("AuthoMailHealth")]
     public class HomeController : BaseController
     {
@@ -56,7 +56,7 @@ namespace AM.Web.Controllers
                 }
                 else if (model.Count == 1)
                 {
-                    var data = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate, endDate, User.Identity.GetClientId().Value);
+                    var data = pullBackSvc.GetPullBackRequestList(BusinessFriendlyIdName, BusinessFriendlyIdValue, null, startDate, endDate, null, User.Identity.GetClientId().Value, null);
                     //var data = Mapper.Map<List<MailPieceViewModel>>(pullbackRequestData);
                     return Json(JsonResponseFactory.SuccessResponse(new { model = data.OrderBy(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
                 }
@@ -87,7 +87,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId, string mailPieceId, List<string> errorCode)
+        public ActionResult _GetSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string mailPieceUniqueId, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId, string mailPieceId, List<string> errorCode)
         {
             try
             {
@@ -95,8 +95,17 @@ namespace AM.Web.Controllers
                 int? batchMailPieceId = mailPieceId.IsNullOrWhiteSpace() ? (int?)null : Convert.ToInt32(mailPieceId);
                 var exactStartDate = receivedOnStart != string.Empty ? DateTime.ParseExact(receivedOnStart, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
                 var exactEndDate = receivedOnEnd != string.Empty ? DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
-                var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode, false, batchMailPieceId);
+                var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, mailPieceUniqueId, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode, false, batchMailPieceId);
+                //ViewBag.ShippingCarrier = data.Value.
 
+
+                if (data.Key != 0 && data.Value != null)
+                {
+                    data.Value.ForEach(a =>
+                    {
+                        a.IsWithinRetentionPeriod = CheckWithinRetentionPeriod(a.RetentionPeriod, Common.Now, a.ReceivedOn.Value, a.ClientId);
+                    });
+                }
                 //var model = Mapper.Map<List<SearchViewModel>>(data);
 
                 return Json(JsonResponseFactory.SuccessResponse(new { model = data }), JsonRequestBehavior.AllowGet);
@@ -107,8 +116,34 @@ namespace AM.Web.Controllers
             }
         }
 
+        private bool CheckWithinRetentionPeriod(int retentionDays, DateTime now, DateTime receivedOn, int clientId)
+        {
+            int days = retentionDays;
+            DateTime startDate = now;
+            do
+            {
+                startDate = startDate.AddDays(-1);
+                days -= IsBusinessDay(startDate, Config.GetHolidaysByClientId(clientId), false, false) ? 1 : 0;
+            } while (0 != days);
+
+            return startDate < receivedOn;
+        }
+        private static bool IsBusinessDay(DateTime date, List<Holiday> holidays, bool isSatWorkDay, bool isSunWorkDay)
+        {
+            if (holidays.Select(c => c.HolidayDate).Contains(date.Date))
+                return false;
+
+            if (date.DayOfWeek == DayOfWeek.Saturday)
+                return isSatWorkDay;
+
+            if (date.DayOfWeek == DayOfWeek.Sunday)
+                return isSunWorkDay;
+
+            return true;
+        }
+
         [HttpPost]
-        public ActionResult _DownloadSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId, string mailPieceId, List<string> errorCode, int timezoneOffset, string clientName)
+        public ActionResult _DownloadSearchData(string BusinessFriendlyIdName, string BusinessFriendlyIdValue, string mailPieceUniqueId, string receivedOnStart, string receivedOnEnd, string status, string channel, List<int> docType, string trackingNumber, string clientBatchId, string batchId, string mailPieceId, List<string> errorCode, int timezoneOffset, string clientName)
         {
             try
             {
@@ -116,7 +151,7 @@ namespace AM.Web.Controllers
                 int? batchMailPieceId = mailPieceId.IsNullOrWhiteSpace() ? (int?)null : Convert.ToInt32(mailPieceId);
                 var exactStartDate = receivedOnStart != string.Empty ? DateTime.ParseExact(receivedOnStart, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
                 var exactEndDate = receivedOnEnd != string.Empty ? DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
-                var model = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode, true, batchMailPieceId);
+                var model = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, mailPieceUniqueId, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode, true, batchMailPieceId);
                 if (model.Value == null)
                 {
                     return Json(JsonResponseFactory.ErrorResponse(model.Key.ToString()), JsonRequestBehavior.AllowGet);
@@ -127,12 +162,32 @@ namespace AM.Web.Controllers
                 model.Value.ForEach(m =>
                 {
                     m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
-                    m.ShippedOn = m.ShippedOn.HasValue ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : m.ShippedOn;
+                    m.EsignedOn = m.Status == "eSigned" ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : m.EsignedOn;
+                    m.ShippedOn = m.Status != "eSigned" && m.ShippedOn.HasValue ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : (DateTime?)null;
                     m.PickedUpOn = m.PickedUpOn.HasValue ? m.PickedUpOn.Value.AddMinutes(-timezoneOffset) : m.PickedUpOn;
                     m.DueDate = m.DueDate.HasValue ? m.DueDate.Value.AddMinutes(-timezoneOffset) : m.DueDate;
                     m.ShipmentStatusUpdatedOn = m.ShipmentStatusUpdatedOn.HasValue ? m.ShipmentStatusUpdatedOn.Value.AddMinutes(-timezoneOffset) : m.ShipmentStatusUpdatedOn;
+                    m.IsESignRequested = m.ExpiryDate.HasValue ? true : false;
                 });
                 var dataTable = ExcelHelper.ToDataTable<SearchViewModel>(model.Value);
+
+
+                List<string> edeliveryColumnsToDelete = new List<string>() { "IsEDeliveryEnabled", "ExpiryDate" };
+                foreach (var column in edeliveryColumnsToDelete)
+                    dataTable.Columns.Remove(column);
+
+
+                if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    List<string> columnsToDelete = new List<string>() { "FirstName", "LastName", "City", "ZIP", "State", "RequestedPdf" };
+                    foreach (var column in columnsToDelete)
+                        dataTable.Columns.Remove(column);
+                }
+
+                if (dataTable.Columns.Contains("LoanNumber") && !BusinessFriendlyIdName.IsNullOrWhiteSpace())
+                {
+                    dataTable.Columns["LoanNumber"].ColumnName = BusinessFriendlyIdName;
+                }
 
                 var memoryStream = ExcelHelper.ExportDataSet(dataTable);
                 memoryStream.Seek(0, SeekOrigin.Begin);

@@ -36,7 +36,7 @@
                     <div class="application-name">
                         <h1 style="line-height:50px;">
                             @Html.ActionLink("AuthoMail", "Index", "Home", new { area = "" }, new { @class = "text-white ", @id = "mainlink" }) <span style="font-size:15px !important;" id="ClientName"></span>
-                            @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA))
+                            @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA) || User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                             {
                                 <span id="AMStatusNotification"></span>
                             }
@@ -54,12 +54,8 @@
                     <ul class="nav navbar-nav navbar-right">
 
                         <li>@Html.ActionLink("Home", "Index", "Home")</li>
-                        @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA) || User.IsInRole(AM.Entities.AMRoles.Client))
+                        @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA) || User.IsInRole(AM.Entities.AMRoles.Client) || User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                         {
-                            @*<li class="dropdown">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Clients <span class="caret"></span></a>
-                                    <ul class="dropdown-menu" id="clientmenu"></ul>
-                                </li>*@
                             <li>
                                 <a href="#" id="clientmenu">Clients</a>
                             </li>
@@ -67,7 +63,21 @@
 
 
                         <li>@Html.ActionLink("Search", "Search", "Home")</li>
-                        <li>@Html.ActionLink(" Pullback ", "PullBack", "RequestPullBack")</li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Manage Loans<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li>@Html.ActionLink("Request Pullback ", "PullBack", "RequestPullBack")</li>
+                                @if (User.IsInRole(AM.Entities.AMRoles.Admin))
+                                {
+                                    <li>@Html.ActionLink("Request Reship ", "ReshipPackage", "Common")</li>
+                                }
+                                @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.EVault))
+                                {
+                                    <li>@Html.ActionLink("E-Vault", "EVaultPackages", "EVault")</li>
+                                }
+                                <li>@Html.ActionLink("Single Package Entry", "SingleLoanEntry", "Common")</li>
+                            </ul>
+                        </li>
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Reports <span class="caret"></span></a>
                             <ul class="dropdown-menu">
@@ -78,12 +88,14 @@
                                 <li>@Html.ActionLink("SLA Report", "ErrorSLAReport", "Report")</li>
                                 <li>@Html.ActionLink("Monthly Recon Report", "MonthlyReconReport", "Report")</li>
                                 <li>@Html.ActionLink("Pullback Request Report", "PullbackRequestReport", "Report")</li>
+                                <li>@Html.ActionLink("Report Wizard", "ReportWizard", "Report")</li>
+                                <li>@Html.ActionLink("Duplicate Report", "DuplicateReport", "Report")</li>
                                 @if (User.IsInRole(AM.Entities.AMRoles.Admin) || User.IsInRole(AM.Entities.AMRoles.BA))
                                 {
+                                    <li>@Html.ActionLink("Print Vendor Recon Report", "PVReconReport", "Report")</li>
                                     <li>@Html.ActionLink("Supply Inventory Report", "SupplyInventoryReport", "Report")</li>
+                                    <li>@Html.ActionLink("Inventory Usage Report", "EnvelopesUsageReport", "Report")</li>
                                 }
-                                <li>@Html.ActionLink("Report Wizard", "ReportWizard", "Report")</li>
-
                             </ul>
                         </li>
                         @if (User.IsInRole(AM.Entities.AMRoles.Delfus))
@@ -105,9 +117,7 @@
                                         <li>@Html.ActionLink("Manage Document Type", "ManageDocumentTypes", "Admin")</li>
                                         <li>@Html.ActionLink("Assign User Manager", "AssignUserManagerDetails", "Admin")</li>
                                         <li>@Html.ActionLink("Manage Clients", "ManageClients", "Admin")</li>
-                                        <li>@Html.ActionLink("Manage Envelope", "ManageEnvelopes", "Admin")</li>
-                                        <li>@Html.ActionLink("Manage Envelopes Inventory", "ManageEnvelopesInventory", "Admin")</li>
-                                        <li>@Html.ActionLink("Envelopes Stock", "ManageEnvelopesInventoryStock", "Admin")</li>
+                                        <li>@Html.ActionLink("Manage Inventory", "ManageEnvelopes", "Admin")</li>
                                         <li>@Html.ActionLink("Manage Print Trails", "ManagePrintTrails", "Admin")</li>
                                         <li>@Html.ActionLink("Manage Delfus Template", "Templates", "DelfusTemplate")</li>
                                     }
@@ -139,11 +149,11 @@
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container-fluid">
         @RenderBody()
         <footer>
             <div>
-                2018 Copyright CoreLogic. All Rights Reserved.
+                2021 Copyright CoreLogic. All Rights Reserved.
             </div>
             <div>
                 <ol>

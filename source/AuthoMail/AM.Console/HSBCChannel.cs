@@ -46,6 +46,12 @@ namespace AM.Console
         {
             log.Debug("Enumerate Batches job queue for HSBC is started.");
 
+            if (SFTChannel.ServerIP.IsNullOrWhiteSpace() || Config.Common_ServerIP != SFTChannel.ServerIP)
+            {
+                log.Debug("System cannot process HSBC channel on this server.");
+                return;
+            }
+
             List<string> xmlFileNames = new List<string>();
 
             Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.NoBatch);
@@ -74,7 +80,7 @@ namespace AM.Console
                 mailBatch.ClientBatchId = batchName;
                 mailBatch.UniqueId = Guid.NewGuid();
                 mailBatch.Priority = Priority.Medium.ToString();
-
+                mailBatch.ServerIP = Config.Common_ServerIP;
                 //Insert New Batch Entry
                 mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
 
@@ -307,7 +313,7 @@ namespace AM.Console
                                 }
 
                                 //Document Or Package Type validation
-                                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount);
+                                var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, mailBatch.ReceivedOn.Value);
 
                                 if (docType != null)
                                     mailPieceDTO.DocTypeId = docType.Id;
@@ -435,7 +441,7 @@ namespace AM.Console
 
                     commonSvc.UpdateBatchValidationStatus(mbi.MailBatch.Id, mbi.MailBatch.ValidationStatus, mbi.MailBatch.ValidationErrors);
                 }
-                Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
+                Channel.CalculateDueDateAndPrintLocation(client, mailBatch, mailPieceData);
                 commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now);
             }
         }

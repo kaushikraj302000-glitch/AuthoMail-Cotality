@@ -1,9 +1,12 @@
 ﻿using iTextSharp.text;
 using iTextSharp.text.pdf;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -133,6 +136,22 @@ namespace PCI.Service
         public static float GetHeight(this PdfArray size)
         {
             return size.GetAsNumber(3).FloatValue - size.GetAsNumber(1).FloatValue;
+        }
+
+        public static void GenerateBarcodeManifest(string apiUrl, string templatePath, string coversheetPath, dynamic manifestData)
+        {
+            dynamic mergeRequest = new ExpandoObject();
+            mergeRequest.Settings = new { MailMergeOptions = "RemoveEmptyParagraphs", OutputDocType = "pdf", Template = Convert.ToBase64String(File.ReadAllBytes(templatePath)) };
+            mergeRequest.Data = manifestData;
+            mergeRequest.TransformData = null;
+            using (var client = new HttpClient())
+            {
+                var stringContent = new StringContent(JsonConvert.SerializeObject(mergeRequest), Encoding.UTF8, "application/json");
+                HttpResponseMessage httpResponse = client.PostAsync(apiUrl, stringContent).Result;
+                var responseString = httpResponse.Content.ReadAsStringAsync().Result;
+                var resObj = JsonConvert.DeserializeObject<dynamic>(responseString);
+                File.WriteAllBytes(coversheetPath, Convert.FromBase64String(resObj.documentData.Value));
+            }
         }
     }
 }

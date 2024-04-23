@@ -16,7 +16,7 @@
     <ModelCollation>1033,CI</ModelCollation>
     <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
     <DeployToDatabase>True</DeployToDatabase>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <TargetLanguage>CS</TargetLanguage>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <SqlServerVerification>False</SqlServerVerification>
@@ -24,6 +24,7 @@
     <TargetDatabaseSet>True</TargetDatabaseSet>
     <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
     <DefaultFilegroup>PRIMARY</DefaultFilegroup>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -234,6 +235,23 @@
     <Build Include="API\Tables\AMRequestLogs.sql" />
     <Build Include="dbo\Views\view_USPSData.sql" />
     <Build Include="AM\Tables\FloodClientMapping.sql" />
+    <Build Include="Common\Tables\DallasPostages.sql" />
+    <Build Include="Common\Tables\DallasBatchTimings.sql" />
+    <Build Include="dbo\Stored Procedures\SP_BulkRegisterScan.sql" />
+    <Build Include="Common\Tables\UserShipAccMapping.sql" />
+    <Build Include="API\Tables\FedEx.sql" />
+    <Build Include="dbo\Stored Procedures\usp_InsertTrackingDump.sql" />
+    <Build Include="dbo\User Defined Types\udt_TrackingDump.sql" />
+    <Build Include="dbo\Stored Procedures\usp_UpdateTrackingInfo.sql" />
+    <Build Include="AM\Tables\TrackingDump.sql" />
+    <Build Include="dbo\Stored Procedures\usp_ScanDummyDataByPrintTrailBatchIdForDallas.sql" />
+    <Build Include="AM\Tables\PackagesHoldInfo.sql" />
+    <Build Include="AM\Tables\EsignDocConfig.sql" />
+    <Build Include="API\Tables\APICredentials.sql" />
+    <Build Include="dbo\Views\v_IntlDocTypes.sql" />
+    <Build Include="AM\Tables\DocTypeInserts.sql" />
+    <Build Include="API\Tables\USPSLabelCutOffDetails.sql" />
+    <Build Include="AM\Tables\SPELogs.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="AM.Database.refactorlog" />

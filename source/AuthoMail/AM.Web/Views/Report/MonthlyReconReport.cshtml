@@ -21,7 +21,6 @@
         </div>
         <div id="metaItem1" class="panel-collapse collapse in">
             <div class="panel-body">
-
                 <div class="col-md-3">
                     <div class="form-group">
                         <label for="dp4">Select Date (EST)</label>
@@ -32,6 +31,7 @@
                                 <option value="@item">@item</option>
                             }
                         </select>
+                        <input type="hidden" value="@ViewBag.BusinessId" id="businessIdentifierName" />
                     </div>
 
                 </div>
@@ -56,15 +56,15 @@
 
 </div>
 @*<div class="panel panel-default" >
-    <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
-    <div class="panel-heading" id="monthlyHeader">
-        <div class="panel-title">
-            Monthly Recon Details: <span class="normaltext" id="headerdate"></span>
+        <div class='alert alert-blue text-center' id="loading" style="display:none"><span> Loading... </span></div>
+        <div class="panel-heading" id="monthlyHeader">
+            <div class="panel-title">
+                Monthly Recon Details: <span class="normaltext" id="headerdate"></span>
+            </div>
         </div>
-    </div>
-    <div class="panel-body" id="monthlyList">
-    </div>
-</div>*@
+        <div class="panel-body" id="monthlyList">
+        </div>
+    </div>*@
 <!-- table html template code -->
 <div id="monthlyTableContent" style="display:none">
     <table class="table table-responsive" style="overflow-x:scroll">
@@ -76,12 +76,15 @@
                 <th>Document Type</th>
                 <th>Delivery Type</th>
                 <th class="notprint">Shipped Document</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Recipient Street Address</th>
-                <th>Recipient City</th>
-                <th>Recipient State</th>
-                <th>Recipient Zip</th>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Recipient Street Address</th>
+                    <th>Recipient City</th>
+                    <th>Recipient State</th>
+                    <th>Recipient Zip</th>
+                }
                 <th>Received Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Printed Date <span class="fontcapitalize">(Local)</span></th>
                 <th>Mailed Date <span class="fontcapitalize">(Local)</span></th>
@@ -106,12 +109,15 @@
                 <td><span>{DocType}</span></td>
                 <td><span>{IsEDeliveryRequested}</span></td>
                 <td><span data-toggle="tooltip" data-container="body" data-placement="top" title="{message}">{ReturnPdf}</span></td>
-                <td><span>{FirstName}</span></td>
-                <td><span>{LastName}</span></td>
-                <td><span>{Address}</span></td>
-                <td><span>{City}</span></td>
-                <td><span>{State}</span></td>
-                <td><span>{ZIP}</span></td>
+                @if (!User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    <td><span>{FirstName}</span></td>
+                    <td><span>{LastName}</span></td>
+                    <td><span>{Address}</span></td>
+                    <td><span>{City}</span></td>
+                    <td><span>{State}</span></td>
+                    <td><span>{ZIP}</span></td>
+                }
                 <td><span>{ReceivedOnFormatted}</span></td>
                 <td><span>{PrintedOnFormatted}</span></td>
                 <td><span>{MailedOnFormatted}</span></td>
@@ -206,7 +212,7 @@
                 this.MailedOnFormatted = this.ShippedOn == null ? "--" : moment(this.ShippedOn).format("MM/DD/YY HH:mm:ss");
                 this.message = this.PdfReceivedPath == null ? "File not received." : "View / Download";
                 this.ReturnPdf = this.PdfReceivedPath == null ? "<i class='fa fa-file-pdf-o' disabled='true' style='cursor:not-allowed;'></i>" : "<a href='/" + this.PdfReceivedPath + "'  target='_blank'><i class='fa fa-file-pdf-o' style='color:red'></i></a>";
-                this.IsEDeliveryRequested = this.IsEDeliveryRequested ? '<span class="label medium label-success">E-Delivery</span>' : '<span class="label medium label-blue">P&S</span>';
+                this.IsEDeliveryRequested = this.IsEDeliveryRequested && !this.IsESignRequested ? '<span class="label medium label-success">E-Delivery</span>' : this.IsEDeliveryRequested && this.IsESignRequested ? '<span class="label medium label-success">E-Sign</span>' : '<span class="label medium label-blue">P&S</span>';
             });
             return Model;
         }
@@ -268,9 +274,10 @@
         }
         $("#filterData").click(function () {
             var selectedData = $("#dates").val().split('-');
+            var buid = $("#businessIdentifierName").val().trim();
             var startDate = moment(selectedData[0].trim()).format("MM/DD/YY");
             var endDate = moment(selectedData[1].trim()).format("MM/DD/YY");
-            var url = baseUrl + "Report/DownloadMonthlyReconReport?startDate=<startDate>&endDate=<endDate>&channel=<channel>&fileName=<fileName>&timezoneOffset=<timezoneOffset>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#Channel").val()).replace("<fileName>", "MonthlyReconReport").replace("<timezoneOffset>",new Date().getTimezoneOffset());
+            var url = baseUrl + "Report/DownloadMonthlyReconReport?startDate=<startDate>&endDate=<endDate>&channel=<channel>&fileName=<fileName>&timezoneOffset=<timezoneOffset>&buId=<buid>".replace("<startDate>", startDate).replace("<endDate>", endDate).replace("<channel>", $("#Channel").val()).replace("<fileName>", "MonthlyReconReport").replace("<timezoneOffset>", new Date().getTimezoneOffset()).replace("<buid>", buid);
             window.location = url;
             //FilterData();
         });

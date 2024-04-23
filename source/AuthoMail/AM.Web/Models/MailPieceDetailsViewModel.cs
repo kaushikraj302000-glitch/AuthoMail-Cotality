@@ -47,6 +47,8 @@ namespace AM.Web.Models
             }
         }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
+        public DateTime? ExpiryDate { get; set; }
         public int TotalPages { get; set; }
         public int TotalSheets { get; set; }
         public int TotalBlankPages { get; set; }
@@ -61,6 +63,7 @@ namespace AM.Web.Models
         public string RcptAddressCity { get; set; }
         public string RcptAddressState { get; set; }
         public string RcptAddressZIP { get; set; }
+        public string RcptAddressCountry { get; set; }
         public string CoRcptName { get; set; }
         public string CoRcptPhone { get; set; }
         public string CoRcptOrganization { get; set; }
@@ -69,6 +72,7 @@ namespace AM.Web.Models
         public string RetRcptAddressCity { get; set; }
         public string RetRcptAddressState { get; set; }
         public string RetRcptAddressZIP { get; set; }
+        public string RcptEmailId { get; set; }
         public string PrintLocation { get; set; }
         public string PrintBatch { get; set; }
         public string PrintFileName { get; set; }

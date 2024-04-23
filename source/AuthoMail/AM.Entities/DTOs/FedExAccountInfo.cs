@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AM.Lib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,6 +30,16 @@ namespace AM.Entities
         public int HolidayGroupId { get; set; }
     }
 
+    public class PackagesHoldInfo
+    {
+        public int Id { get; set; }
+        public int ClientId { get; set; }
+        public string ClientCode { get; set; }
+        public string DocumentOrPackageType { get; set; }
+        public DateTime HoldOn { get; set; }
+        public DateTime ProcessOn { get; set; }
+    }
+
     public class FedExPickedPackagesDetail
     {
         public DateTime PickedTimeStamp { get; set; }
@@ -42,5 +53,23 @@ namespace AM.Entities
     {
         public string TrackingNo { get; set; }
         public MailPieceDTO mailPiece { get; set; }
+    }
+
+    public class EDeliveryStatusInfoModel
+    {
+        public string StepName { get; set; }
+        public string StepTimeStamp { get; set; }
+        public DateTime? StepProcessingTimeStamp
+        {
+            get
+            {
+                if (StepName.Contains("On") && !StepTimeStamp.IsNullOrWhiteSpace())
+                {
+                    return DateTime.Parse(StepTimeStamp);
+                }
+                else
+                    return null;
+            }
+        }
     }
 }

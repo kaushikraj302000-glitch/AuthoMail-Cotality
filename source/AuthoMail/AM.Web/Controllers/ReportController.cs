@@ -12,7 +12,7 @@ using AutoMapper;
 using System.IO;
 namespace AM.Web.Controllers
 {
-    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus)]
+    [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus + "," + AMRoles.BAOffShore)]
     public class ReportController : BaseController
     {
         IHomeService homeSvc;
@@ -62,6 +62,7 @@ namespace AM.Web.Controllers
         public ActionResult MonthlyReconReport()
         {
             ViewBag.dateList = repoSvc.GetMonthlyReconDate(User.Identity.GetClientId().Value);
+            ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value).FirstOrDefault();
             return View();
         }
         [HttpPost]
@@ -76,7 +77,7 @@ namespace AM.Web.Controllers
 
         }
 
-        public ActionResult DownloadMonthlyReconReport(string startDate, string endDate, string channel, string fileName, int timezoneOffset)
+        public ActionResult DownloadMonthlyReconReport(string startDate, string endDate, string channel, string fileName, int timezoneOffset, string buId)
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
@@ -86,8 +87,34 @@ namespace AM.Web.Controllers
             {
                 m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
                 m.ShippedOn = m.ShippedOn.HasValue ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : m.ShippedOn;
+                m.SubmittedOn = m.SubmittedOn.HasValue ? m.SubmittedOn.Value.AddMinutes(-timezoneOffset) : m.SubmittedOn;
+                m.PulledBackOn = m.PulledBackOn.HasValue ? m.PulledBackOn.Value.AddMinutes(-timezoneOffset) : m.PulledBackOn;
+                m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
             });
             var dataTable = ExcelHelper.ToDataTable<MonthlyReconReportViewModel>(model);
+
+            dataTable.Columns.Remove("BlankPageNumbersList");
+            dataTable.Columns.Remove("LetterPageNumbers");
+            dataTable.Columns.Remove("LegalPageNumbers");
+            dataTable.Columns.Remove("BlankLetterPages");
+            dataTable.Columns.Remove("BlankLegalPages");
+            dataTable.AcceptChanges();
+
+
+            if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+            {
+                List<string> columnsToDelete = new List<string>() { "FirstName", "LastName", "Address", "City", "ZIP", "State" };
+                foreach (var column in columnsToDelete)
+                    dataTable.Columns.Remove(column);
+            }
+
+            if (!buId.IsNullOrWhiteSpace())
+            {
+                dataTable.Columns["LoanNumber"].ColumnName = buId;
+                dataTable.AcceptChanges();
+            }
+
+
             var memoryStream = ExcelHelper.ExportDataSet(dataTable);
             memoryStream.Seek(0, SeekOrigin.Begin);
 
@@ -102,12 +129,13 @@ namespace AM.Web.Controllers
             return View();
         }
         [HttpPost]
-        public ActionResult _GetErrorsReport(string date, string channel)
+        public ActionResult _GetErrorsReport(string startDate, string endDate, string channel)
         {
             try
             {
-                var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-                var data = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
+                var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                var data = repoSvc.GetErrorReportByDateOrBatch(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, null, channel);
                 var reportViewModel = GetBatchNameAndTime(data);
                 var model = Mapper.Map<List<ErrorReportViewModel>>(data);
                 return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
@@ -144,7 +172,7 @@ namespace AM.Web.Controllers
             try
             {
                 var exactDate = DateTime.ParseExact(date, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
-                var data = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel);
+                var data = repoSvc.GetDailyDetailOperationsByDateOrBatch(User.Identity.GetClientId().Value, exactDate, null, channel, ShippingStatus.Shipped.ToString());
                 var reportViewModel = GetBatchNameAndTime(data);
                 var model = Mapper.Map<List<DailyDetailReportViewModel>>(data);
                 return Json(JsonResponseFactory.SuccessResponse(new { BatchList = reportViewModel, model = model.OrderByDescending(s => s.ReceivedOn) }), JsonRequestBehavior.AllowGet);
@@ -171,13 +199,13 @@ namespace AM.Web.Controllers
             var model = repoSvc.GetPullbackRequestReport(User.Identity.GetClientId().Value, exactStartDate, exactEndDate);
             return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.RequestedOn) }), JsonRequestBehavior.AllowGet);
         }
-        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA )]
+        [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.BAOffShore)]
         public ActionResult SupplyInventoryReport()
         {
             ViewBag.Envelopes = new SelectList(invSvc.GetEnvelopes(), "Id", "EnvelopeName");
             return View();
         }
-        [HttpPost, Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA)]
+        [HttpPost, Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.BAOffShore)]
         public ActionResult _SupplyInventoryReport(List<string> envelopes)
         {
             var model = repoSvc.SupplyInventoryReport(envelopes);
@@ -188,7 +216,7 @@ namespace AM.Web.Controllers
         {
             ViewBag.BusinessId = homeSvc.GetBusinessFriendlyIdNameByclientId(User.Identity.GetClientId().Value);
             ViewBag.DocType = new SelectList(homeSvc.GetDocTypeList(User.Identity.GetClientId().Value), "Id", "DocTypeName");
-            if (User.IsInRole(AMRoles.Admin))
+            if (User.IsInRole(AMRoles.Admin) || User.IsInRole(AMRoles.BA) || User.IsInRole(AMRoles.BAOffShore))
             {
                 var list = new List<SelectListItem>();
                 var clientGroup = homeSvc.GetAllActiveClient().GroupBy(s => s.GroupAlias);
@@ -238,8 +266,44 @@ namespace AM.Web.Controllers
                     m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
                     m.PrintedOn = m.PrintedOn.HasValue ? m.PrintedOn.Value.AddMinutes(-timezoneOffset) : m.PrintedOn;
                     m.MailedOn = m.MailedOn.HasValue ? m.MailedOn.Value.AddMinutes(-timezoneOffset) : m.MailedOn;
+                    m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
+                    m.ReturnDeliveryDate = m.ReturnDeliveryDate.HasValue ? m.ReturnDeliveryDate.Value.AddMinutes(-timezoneOffset) : m.ReturnDeliveryDate;
                 });
                 var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
+
+                if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+                {
+                    List<string> columnsToDelete = new List<string>() { "FirstName", "LastName", "RcptAddressStreet", "City", "ZIP", "State" };
+                    foreach (var column in columnsToDelete)
+                        dataTable.Columns.Remove(column);
+                }
+
+                List<Client> floodClients;
+                List<Client> gosClients;
+                using (IClientService clientSvc = new ClientService())
+                {
+                    floodClients = clientSvc.GetClientsByAlias("Flood Integration");
+                    gosClients = clientSvc.GetClientsByAlias("GOS-Print Ready");
+                }
+                if (!floodClients.Select(x => x.Id).Intersect(clientId).Any())
+                {
+                    dataTable.Columns.Remove("RequestorName");
+                    dataTable.Columns.Remove("PropertyStreetAddress");
+                    dataTable.Columns.Remove("PropertyCity");
+                    dataTable.Columns.Remove("PropertyState");
+                    dataTable.Columns.Remove("PropertyZip");
+                }
+
+                if (!gosClients.Select(x => x.Id).Intersect(clientId).Any())
+                {
+                    dataTable.Columns.Remove("ProductCode");
+                }
+
+                if (dataTable.Columns.Contains("LoanNumber") && !businessFriendlyIdName.IsNullOrWhiteSpace())
+                {
+                    dataTable.Columns["LoanNumber"].ColumnName = businessFriendlyIdName;
+                }
+
                 var memoryStream = ExcelHelper.ExportDataSet(dataTable);
                 memoryStream.Seek(0, SeekOrigin.Begin);
 
@@ -276,6 +340,110 @@ namespace AM.Web.Controllers
                 return new EmptyResult();
             }
 
+        }
+
+        public ActionResult PVReconReport()
+        {
+            if (User.IsInRole(AMRoles.Admin))
+            {
+                var list = new List<SelectListItem>();
+                var clientGroup = homeSvc.GetAllActiveClient().GroupBy(s => s.GroupAlias);
+                foreach (var group in clientGroup)
+                {
+                    var groupName = new SelectListGroup { Name = group.Key };
+                    foreach (var value in group)
+                    {
+                        SelectListItem item = new SelectListItem { Text = value.Name, Value = value.Id.ToString(), Group = groupName };
+                        list.Add(item);
+                    }
+                }
+                ViewBag.ClientId = list;
+            }
+            else
+            {
+                ViewBag.ClientId = User.Identity.GetClientId();
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult _DownloadPVReconReport(string printVendorCode, string startDate, string endDate, string fileName, int timezoneOffset, List<int> clientIds, string status, List<string> shippingMethods)
+        {
+            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToStartDateTime().EstToUtc();
+            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToEndDateTime().EstToUtc();
+            var data = repoSvc.GetPVReconReport(printVendorCode, exactStartDate, exactEndDate, clientIds, status, shippingMethods);
+            var model = Mapper.Map<List<MonthlyReconReportViewModel>>(data);
+            model.ForEach(m =>
+            {
+                m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
+                m.ShippedOn = m.ShippedOn.HasValue ? m.ShippedOn.Value.AddMinutes(-timezoneOffset) : m.ShippedOn;
+                m.SubmittedOn = m.SubmittedOn.HasValue ? m.SubmittedOn.Value.AddMinutes(-timezoneOffset) : m.SubmittedOn;
+                m.PulledBackOn = m.PulledBackOn.HasValue ? m.PulledBackOn.Value.AddMinutes(-timezoneOffset) : m.PulledBackOn;
+                m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
+            });
+            var dataTable = ExcelHelper.ToDataTable<MonthlyReconReportViewModel>(model);
+            if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))
+            {
+                List<string> columnsToDelete = new List<string>() { "FirstName", "LastName", "Address", "City", "ZIP", "State" };
+                foreach (var column in columnsToDelete)
+                    dataTable.Columns.Remove(column);
+            }
+            var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            string fileGuid = Guid.NewGuid().ToString();
+            TempData[fileGuid] = memoryStream.ToArray();
+
+            return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = $"PVReconReport_{exactStartDate.ToString("MMddyyyy")}_To_{exactEndDate.ToString("MMddyyyy")}.xlsx" } }), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult DownloadPVReconReport(string fileGuid, string fileName)
+        {
+            if (TempData[fileGuid] != null)
+            {
+                byte[] data = TempData[fileGuid] as byte[];
+                return File(data, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            else
+            {
+                return new EmptyResult();
+            }
+
+        }
+        public ActionResult EnvelopesUsageReport()
+        {
+            ViewBag.Envelopes = new SelectList(invSvc.GetEnvelopes(), "Id", "EnvelopeName");
+            return View();
+        }
+        [HttpPost]
+        public ActionResult _GetEnvelopesUsageReport(int? envelopeId, string printVendorCode, string startDate, string endDate)
+        {
+            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+            var model = repoSvc.GetEnvelopesUsageReport(User.Identity.GetClientId().Value, envelopeId, printVendorCode, exactStartDate, exactEndDate);
+            return Json(JsonResponseFactory.SuccessResponse(new { model = model.OrderByDescending(s => s.SubmittedOn) }), JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult DuplicateReport()
+        {
+            return View();
+        }
+        [HttpPost]
+        public ActionResult _GetDuplicateReport(string startDate, string endDate, string channel)
+        {
+            try
+            {
+                var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces);
+                var data = repoSvc.GetDuplicateReportByDate(User.Identity.GetClientId().Value, exactStartDate, exactEndDate, channel);
+                var model = Mapper.Map<List<MonthlyReconReportViewModel>>(data);
+                return Json(JsonResponseFactory.SuccessResponse(new { model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.ToString()), JsonRequestBehavior.AllowGet);
+            }
         }
     }
 }

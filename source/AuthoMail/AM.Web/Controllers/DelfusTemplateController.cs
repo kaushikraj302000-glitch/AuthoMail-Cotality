@@ -26,6 +26,8 @@ namespace AM.Web.Controllers
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public DelfusTemplateController(IDelfusTemplateService delfusTemplateSvc)
         {
+            Aspose.Words.License license = new Aspose.Words.License();
+            license.SetLicense("Aspose.Words.lic");
             this.delfusTemplateSvc = delfusTemplateSvc;
         }
         // GET: Template
@@ -42,15 +44,25 @@ namespace AM.Web.Controllers
         [HttpPost]
         public async Task<ActionResult> SaveDelfusTemplates(HttpPostedFileBase template)
         {
-            
+
             try
             {
                 log.Info("Delfus save template");
                 IEnumerable<string> mastermergeList = await delfusTemplateSvc.GetDelfusMergeList();
+                var largeFontCoupon = System.IO.File.ReadAllBytes(Server.MapPath("/Template/LargeFontCoupon.docx"));
                 TemplateValidation validation = new TemplateValidation();
-                byte[] fileData =await GetByteArrayFromFile(template);
+                byte[] fileData = await GetByteArrayFromFile(template);
                 log.Info("Delfus GetByteArrayFromFile");
-                TemplateValidationInfo validationInfo = validation.VerifyTemplate(fileData, mastermergeList.ToList());
+                TemplateValidationInfo validationInfo;
+                if (template.FileName.Contains("_16PT"))
+                {
+                    validationInfo = validation.VerifyTemplate(fileData, mastermergeList.ToList());
+                }
+                else
+                {
+                    validationInfo = validation.VerifyTemplate(fileData, mastermergeList.ToList(), largeFontCoupon);
+                }
+
                 string error = string.Empty;
                 string[] fileType = { ".doc", ".docx" };
                 log.Info("Delfus VerifyTemplate");
@@ -58,7 +70,7 @@ namespace AM.Web.Controllers
                 {
                     error = "Selected file type is not supported.";
                 }
-                if (Path.GetFileNameWithoutExtension(template.FileName).Length != 10)
+                if (Path.GetFileNameWithoutExtension(template.FileName).Length != 10 && !template.FileName.Contains("_16PT"))
                 {
                     string newline = error.Length > 0 ? " " : "";
                     error += $"{newline}Invalid template name. (template name should have 10 characters)";
@@ -73,7 +85,7 @@ namespace AM.Web.Controllers
                     string newline = error.Length > 0 ? " " : "";
                     error += $"{newline}This template has below merge field(s) which does not exist in Vendor file. ({string.Join(", ", validationInfo.NewMergeFields)}).";
                 }
-                log.Info("Delfus error check"+ error);
+                log.Info("Delfus error check" + error);
                 if (!string.IsNullOrEmpty(error))
                 {
                     await delfusTemplateSvc.SaveTemplate(
@@ -98,6 +110,15 @@ namespace AM.Web.Controllers
                 log.Info("Delfus IsTemplateExists");
                 var uploadResult = await UploadFileToServer(template.FileName, fileData, uploadURL);
                 log.Info("Delfus UploadFileToServer");
+
+                if (validationInfo.Doc16PT != null)
+                {
+                    var fileExt = Path.GetExtension(template.FileName);
+                    var newFileName = $"{Path.GetFileNameWithoutExtension(template.FileName)}_16PT{fileExt}";
+                    log.Info("Delfus Large Upload File Upload Started");
+                    var largeUploadResult = await UploadFileToServer(newFileName, validationInfo.Doc16PT, uploadURL);
+                    log.Info("Delfus Large Upload File Upload Completed");
+                }
 
                 if (uploadResult.Key)
                 {
@@ -128,7 +149,7 @@ namespace AM.Web.Controllers
                              Reason = uploadResult.Value
                          }
                          );
-                    log.Info("Delfus Error"+ string.Join(",",error));
+                    log.Info("Delfus Error" + string.Join(",", error));
                 }
                 return Json(JsonResponseFactory.ErrorResponse(errors));
 
@@ -140,7 +161,7 @@ namespace AM.Web.Controllers
                 var frame = st.GetFrame(0);
                 // Get the line number from the stack frame
                 var line = frame.GetFileLineNumber();
-                log.Error(+line+":"+ e.ToString());
+                log.Error(+line + ":" + e.ToString());
                 return Json(JsonResponseFactory.ErrorResponse(e.Message));
             }
             //HttpPostedFileBase template = templates.FirstOrDefault();

@@ -20,6 +20,8 @@ namespace AM.Scanner.Common
             Environment = ConfigurationManager.AppSettings["Environment"].Trim();
             SP_RegisterUSPSScan = ConfigurationManager.AppSettings["RegisterUSPSScan"].Trim();
             SP_GetScannedMailPieces = ConfigurationManager.AppSettings["GetScannedMailPieces"].Trim();
+            AMRootPath = ConfigurationManager.AppSettings["AMRootPath"].Trim();
+            PCIRootPath = ConfigurationManager.AppSettings["PCIRootPath"].Trim();
         }
         public static string Environment { get; set; }
 
@@ -32,6 +34,7 @@ namespace AM.Scanner.Common
         public static string SP_GetRecentBatchesStats { get; set; }
         public static string SP_GetPendingScanning { get; set; }
         public static string SP_GetScannedMailPieces { get; set; }
-
+        public static string AMRootPath { get; set; }
+        public static string PCIRootPath { get; set; }
     }
 }

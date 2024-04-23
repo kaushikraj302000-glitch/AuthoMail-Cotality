@@ -11,6 +11,7 @@ using AM.Lib;
 using System.ComponentModel;
 using AM.Entities;
 using System.Text.RegularExpressions;
+using System.Net;
 
 namespace AM.Services
 {
@@ -30,8 +31,12 @@ namespace AM.Services
 
         public static int Common_ProcessingBufferTime { get; private set; }
         public static string Common_FedExTrackingAccountCode { get; private set; }
+        public static string Common_FedExTokenUrl { get; set; }
+        public static string Common_FedExShippingLabelUrl { get; set; }
         public static string Common_FedExTrackingUrl { get; private set; }
         public static string Common_ErrorSubscribedEmailSubject { get; private set; }
+        public static string Common_DuplicateEmailSubject { get; private set; }
+        public static string Common_DuplicateEmailTemplate { get; private set; }
         public static string Common_ErrorSubscribedEmailCc { get; private set; }
         public static string Common_ErrorSubscribedEmailTemplate { get; private set; }
         public static string Common_LandscapeUSPSLabels { get; private set; }
@@ -39,6 +44,10 @@ namespace AM.Services
         public static string Common_AMTrash { get; set; }
         public static string Common_PnSTrash { get; set; }
         public static string Common_BlankPage { get; private set; }
+        public static string Common_ServerIP { get; private set; }
+        public static int Common_DallasVolumeCap { get; private set; }
+        public static string Core_ChecksKey { get; set; }
+        public static string Core_NonChecksKey { get; set; }
 
         public static List<Holiday> GetHolidaysByClientId(int clientId)
         {
@@ -65,6 +74,7 @@ namespace AM.Services
         public static string Monitor_Exception_Email_To { get; private set; }
         public static string Monitor_Exception_Email_Cc { get; private set; }
         public static string Monitor_CustomTemplateFolder { get; private set; }
+        public static List<PackagesHoldInfo> Monitor_PackagesHoldInfo { get; private set; }
 
         //Core
         public static string Core_PnS_SFT_RootDir { get; private set; }
@@ -230,6 +240,7 @@ namespace AM.Services
         public static string E_API_SigningRoomActivityLogSearchURL { get; set; }
         public static string E_API_SigningRoomSummaryURL { get; set; }
         public static string E_API_DeleteSigningRoomURL { get; set; }
+        public static string E_API_DownloadEsignedDocURL { get; set; }
 
         #endregion
 
@@ -242,18 +253,11 @@ namespace AM.Services
         public static int Web_API_AlertElapsedMinute { get; set; }
         [Description("Inventory Buffer Stock Percentage")]
         public static int Common_InventoryBufferStockDays { get; set; }
+        [Description("For Single Loan Entry")]
+        public static int Web_SubmissionSFTChannelId { get; set; }
         #endregion Support
 
-        #region EllieMae_API
-
-        public static string EllieMae_UserId { get; set; }
-        public static string EllieMae_UserPass { get; set; }
-        public static string EllieMae_GrantType { get; set; }
-        public static string EllieMae_Scope { get; set; }
-        public static string EllieMae_BaseURL { get; set; }
-        public static string EllieMae_TokenUrl { get; set; }
-        public static string EllieMae_UploadResponseURL { get; set; }
-        public static int EllieMae_MaxResponseCount { get; set; }
+        #region API
         public static string MailRequestAPI_FilesDownloadPath { get; set; }
         public static int MailRequestAPI_MaxRequestSize { get; set; }
         public static int MailRequestAPI_MaxRetries { get; set; }
@@ -278,6 +282,36 @@ namespace AM.Services
 
         #endregion             
 
+        #region Web Pdf File API Url
+        [Description("Web Pdf File API Url")]
+        public static string Web_Pdf_API_Url { get; private set; }
+        [Description("Web Reship File API Url")]
+        public static string Web_Reship_API_Url { get; private set; }
+        #endregion
+
+        #region CLAuth API
+
+        public static bool CLAuth_EnabledAxisAuthentication { get; private set; }
+        [Description("CLAuth API Username")]
+        public static string CLAuth_Username { get; private set; }
+        [Description("CLAuth API Password")]
+        public static string CLAuth_Password { get; private set; }
+        [Description("CLAuth API Token Url")]
+        public static string CLAuth_TokenUrl { get; private set; }
+        [Description("CLAuth API Get User Url")]
+        public static string CLAuth_UserDetailsUrl { get; private set; }
+        [Description("CLAuth API Organization Id")]
+        public static string CLAuth_OrganizationId { get; private set; }
+
+        #endregion
+
+        #region Web USPS Location
+
+        public static string Web_API_USPS_AccountsByPrintLocations { get; set; }
+        public static List<USPSLabelCutOffDetail> USPSLabelCutOffDetails { get; private set; }
+        public static List<USPSCredentialInfo> USPSCredentialDetails { get; private set; }
+
+        #endregion
 
         private static List<string> errors;
         static Config()
@@ -290,7 +324,13 @@ namespace AM.Services
                 Common_FederalHolidays = commonSvc.GetFederalHolidayList();
                 clientGroupMap = commonSvc.GetClientHolidayGroup();
                 groupHolidays = commonSvc.GetHolidayList();
+                Monitor_PackagesHoldInfo = commonSvc.GetPackagesHoldInfo();
+                USPSLabelCutOffDetails = commonSvc.GetUSPSLabelCutOffDetails();
+                USPSCredentialDetails = commonSvc.GetUSPSCredentialDetails();
             }
+
+            IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+            Common_ServerIP = ipHostInfo.AddressList[0].ToString();
         }
 
         private static void InitializeProperties<T>()

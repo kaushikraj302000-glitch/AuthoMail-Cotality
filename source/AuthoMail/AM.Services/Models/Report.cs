@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AM.Entities;
 using AM.Lib;
+using iTextSharp.text;
 
 namespace AM.Services
 {
@@ -73,6 +76,8 @@ namespace AM.Services
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
         public bool IsBRE { get; set; }
+        public string EnvelopeName { get; set; }
+        public string Inserts { get; set; }
     }
 
     public class GOSMailPieceData
@@ -88,15 +93,18 @@ namespace AM.Services
         public int TotalPages { get; set; }
         public string ProductCode { get; set; }
         public string ShippingCarrier { get; set; }
+        public string ShippingServiceType { get; set; }
         public string ShippingStatus { get; set; }
         public string ShipmentStatus { get; set; }
         public string DeliveryStatus { get; set; }
+        public string ConvertedDeliveryStatus { get; set; }
         public DateTime? DeliveryDate { get; set; }
         public DateTime? ShippedOnEst { get; set; }
         public string PrintLocation { get; set; }
         public string ErrorDesc { get; set; }
         public string ReturnTrackingNo { get; set; }
         public string ReturnDeliveryStatus { get; set; }
+        public string ConvertedReturnDeliveryStatus { get; set; }
         public DateTime? ReturnDeliveryDate { get; set; }
         public string ReturnShippingCarrier
         {
@@ -104,13 +112,37 @@ namespace AM.Services
             {
                 if (!string.IsNullOrWhiteSpace(ReturnTrackingNo))
                 {
-                    if (ReturnTrackingNo.StartsWith("7") || ReturnTrackingNo.StartsWith("3"))
+                    if (ReturnTrackingNo.StartsWith("7") || ReturnTrackingNo.StartsWith("3") || ReturnTrackingNo.StartsWith("2"))
                     {
                         return "FedEx";
                     }
                     else
                     {
                         return "USPS";
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        public string ReturnShippingServiceType
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(ReturnTrackingNo))
+                {
+                    if (ReturnTrackingNo.StartsWith("7") || ReturnTrackingNo.StartsWith("3") || ReturnTrackingNo.StartsWith("2"))
+                    {
+                        return "PRIORITY_OVERNIGHT";
+                    }
+                    else if (ReturnTrackingNo.StartsWith("0"))
+                    {
+                        return "FIRSTCLASS";
+                    }
+                    else
+                    {
+                        return "PRIORITY";
                     }
                 }
 
@@ -130,6 +162,15 @@ namespace AM.Services
             }
         }
     }
+
+    public class AMPostageData
+    {
+        public string AppCode { get; set; }
+        public DateTime APIRequestedOn { get; set; }
+        public string BarcodeNumber { get; set; }
+        public string UserName { get; set; }
+        public decimal Postage { get; set; }
+    }
     public class ReportWizard
     {
         public int MailPieceId { get; set; }
@@ -137,6 +178,7 @@ namespace AM.Services
         public string Channel { get; set; }
         public string DocumentOrPackageType { get; set; }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
         //public string BusinessIdName { get; set; }
         //public string BusinessIdValue { get; set; }
         public string LoanNumber { get; set; }
@@ -144,6 +186,7 @@ namespace AM.Services
         public DateTime? ReceivedOn { get; set; }
         public DateTime? PrintedOn { get; set; }
         public DateTime? MailedOn { get; set; }
+        public DateTime? ESignedOn { get { if (Status == ShippingStatus.eSigned.ToString() && MailedOn.HasValue) return MailedOn; return null; } }
         public string FileName { get; set; }
         public string ClientCode { get; set; }
         public string ShippingMethod { get; set; }
@@ -162,5 +205,53 @@ namespace AM.Services
         public string EnvelopeName { get; set; }
         public DateTime? DeliveryDate { get; set; }
         public string DeliveryStatus { get; set; }
+        public string ReturnTrackingNo { get; set; }
+        public DateTime? ReturnDeliveryDate { get; set; }
+        public string ReturnDeliveryStatus { get; set; }
+        public string ProductCode { get; set; }
+        public string RequestorName { get; set; }
+        public string PropertyStreetAddress { get; set; }
+        public string PropertyCity { get; set; }
+        public string PropertyState { get; set; }
+        public string PropertyZip { get; set; }
+        public string FloodLoan_Number { get; set; }
+        public string ErrorCode { get; set; }
+        public string ErrorDesc { get; set; }
+    }
+
+    public class AutoReportWizard
+    {
+        //Client Code Batch Name  Received On(Est)   Borrower First Name Borrower Last Name  Document Type
+        //Shipping Method Shipped On(Est) Tracking No Total Pages Total Sheets    Shipping Status Error Desc
+
+//      Channel
+        [Column("Client Code")]
+        public string AppCode { get; set; }
+        [Column("Batch Name")]
+        public string BatchName { get; set; }
+        [Column("Received On(Est)")]
+        public DateTime? ReceivedOn { get; set; }
+        [Column("Channel")]
+        public string Code { get; set; }
+        [Column("Borrower First Name")]
+        public string RcptFirstName { get; set; }
+        [Column("Borrower Last Name")]
+        public string RcptLastName { get; set; }
+        [Column("Document Type")]
+        public string DocumentOrPackageType { get; set; }
+        [Column("Total Pages")]
+        public int TotalPages { get; set; }
+        [Column("Total Sheets")]
+        public int TotalSheets { get; set; }
+        [Column("Shipped On(Est)")]
+        public DateTime? ShippedOn { get; set; }
+        [Column("Error Desc")]
+        public string ErrorDesc { get; set; }
+        [Column("Tracking No")]
+        public string TrackingNo { get; set; }
+        [Column("Shipping Status")]
+        public string ShippingStatus { get; set; }
+        [Column("Shipping Method")]
+        public string ShippingMethod { get; set; }
     }
 }

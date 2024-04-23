@@ -171,7 +171,7 @@ namespace PCI.Service
             if (printResponse.PackageReports.Count == 0)
                 return;
             //NOTE : System will ignore all the RJ codes from the response file which starts from IV_ OR RJ_.
-            var packageReports = printResponse.PackageReports.Except(printResponse.PackageReports.Where(mp => mp.PrintStatus == PrintStatus.Error && (mp.ErrorCode.Contains("IV_") || mp.ErrorCode.Contains("RJ_"))));
+            var packageReports = printResponse.PackageReports.Where(mp => mp.PrintStatus != PrintStatus.Error);
             foreach (var res in packageReports)
             {
                 int pieceId = GetRequestPieceId(printResponse.JobId, res.PieceId);
@@ -180,7 +180,7 @@ namespace PCI.Service
 
                 sql = @"INSERT INTO PnS.MRDFResponse (JobId,PieceId,ProcessingTimeStamp,Disposition,PostageMetered,WeightMeasured,TotalSheets,PDFFileName) VALUES (@p1,@p2,@p3,@p4,@p5,@p6,@p7,@p8)";
 
-                db.ExecuteSqlNonQuery(sql, printResponse.JobId, pieceId, res.PrintStatus == PrintStatus.Shipped ? Common.EstToUtc(res.ShippedOn) : res.PrintStatus == PrintStatus.PulledBack ? Common.EstToUtc(res.PulledBackOn) : DateTime.MinValue, res.PrintStatus == PrintStatus.Shipped ? '5' : res.PrintStatus == PrintStatus.PulledBack ? '4' : '7', res.Postage, res.WeightMeasured, res.TotalSheets, res.FileName);
+                db.ExecuteSqlNonQuery(sql, printResponse.JobId, pieceId, res.PrintStatus == PrintStatus.Shipped ? (DateTime?)Common.EstToUtc(res.ShippedOn) : res.PrintStatus == PrintStatus.PulledBack ? (DateTime?)Common.EstToUtc(res.PulledBackOn) : null, res.PrintStatus == PrintStatus.Shipped ? '5' : res.PrintStatus == PrintStatus.PulledBack ? '4' : '7', res.Postage, res.WeightMeasured, res.TotalSheets, res.FileName);
             }
         }
         public static int GetRequestPieceId(int printTrailBatchId, int mailPieceId)
@@ -191,7 +191,10 @@ namespace PCI.Service
         {
             foreach (var pieceId in resPieceIds)
             {
-                var res = printVendorResponseData.Single(row => row.Field<int>("PieceId") == pieceId);
+                var res = printVendorResponseData.SingleOrDefault(row => row.Field<int>("PieceId") == pieceId);
+
+                if (res == null)
+                    continue;
 
                 string errorUpdate = res.Field<string>("Disposition").Trim() == "7" ?
                     ", ErrId=7, ErrDesc='System was unable to print or ship this mailpiece. It has to be resent after necessary amendments.'" : "";
@@ -202,6 +205,14 @@ namespace PCI.Service
                     res.Field<int>("JobId"),
                     res.Field<int>("PieceId"));
             }
+        }
+
+        public static void DeleteMRDFResponse(int reqPieceId, int printTrailBatchId)
+        {
+            //delete it from MRDFResponse
+            var deleteSql = "DELETE FROM [PnS].[MRDFResponse] WHERE JobId=@p1 AND PieceId=@p2";
+
+            db.ExecuteSqlNonQuery(deleteSql, printTrailBatchId, reqPieceId);
         }
 
         public static void UpdateMRDFReceivedForAllResReceivedBatch()
@@ -288,6 +299,37 @@ namespace PCI.Service
             }
         }
 
+        public static void InsertPageSizeWisePageCounts(List<DocumentPageSizes> pageSizewiseCounts, Guid mailPieceIdentifier)
+        {
+            if (pageSizewiseCounts == null || pageSizewiseCounts.Count == 0)
+            {
+                return;
+            }
+
+            var grpPageSize = pageSizewiseCounts.GroupBy(x => x.PageSize);
+
+            var lstBypageSize = grpPageSize.Select(x => new { PageSize = x.Key, TotalPages = x.Sum(t => t.TotalPages), PageNumbers = string.Join(",", x.Select(p => p.PageNumbers)) });
+
+            string getQuery = @"SELECT Id FROM [AM].[MailPieces] WHERE UniqueId=@p1";
+            var mailPieceId = db.ExecuteSqlScalar<int?>(getQuery, mailPieceIdentifier);
+            if (mailPieceId.HasValue)
+            {
+                foreach (var pageCount in lstBypageSize)
+                {
+                    //try to delete if any record then try to insert
+                    var sqlDelete = @"IF EXISTS (SELECT 1 FROM [Common].[MailPiecePageInfo] Where MailPieceId=@p1 AND PageSize=@p2) 
+                                    BEGIN 
+                                        DELETE FROM [Common].[MailPiecePageInfo] Where MailPieceId=@p1 AND PageSize=@p2
+                                    END";
+
+                    db.ExecuteSqlNonQuery(sqlDelete, mailPieceId.Value, pageCount.PageSize);
+
+                    var sqlInsert = @"INSERT INTO [Common].[MailPiecePageInfo]([MailPieceId],[PageSize],[PageCount],[PageNumbers]) VALUES(@p1,@p2,@p3,@p4)";
+                    db.ExecuteSqlNonQuery(sqlInsert, mailPieceId.Value, pageCount.PageSize, pageCount.TotalPages, pageCount.PageNumbers);
+                }
+            }
+        }
+
         public static DataTable GetPullBackRequestDataByJobId(int jobId)
         {
             var ds = db.ExecuteDataSet("usp_GetPullBackRequestDataByJobId", jobId);
@@ -303,6 +345,11 @@ namespace PCI.Service
         public static DataTable GetMRDFResponseDummyDataByPrintTrailBatchId(int printTrailBatchId)//To Get All Values define "ALL", Records without pdf level errors use "INTERNAL"
         {
             return db.ExecuteDataSet("usp_GetMRDFResponseDummyDataByPrintTrailBatchId", printTrailBatchId).Tables[0];
+        }
+
+        public static int ScanDummyDataByPrintTrailBatchIdForDallas(int printTrailBatchId)//To Get All Values define "ALL", Records without pdf level errors use "INTERNAL"
+        {
+            return db.ExecuteNonQuery("usp_ScanDummyDataByPrintTrailBatchIdForDallas", printTrailBatchId);
         }
 
         public static DataTable GetMRDFRequestDataByPrintTrailBatchId(int printTrailBatchId, string mailPieceStatus = "ALL")//To Get All Values define "ALL", Records without pdf level errors use "INTERNAL"
@@ -337,7 +384,7 @@ namespace PCI.Service
                     MailPieceStatus = row.Field<string>("MailPieceStatus"),
                     PDFFileName = row.Field<string>("PDFFileName"),
                     PieceId = row.Field<int>("PieceId"),
-                    TotalPages = row.Field<int>("TotalSheets"),
+                    TotalPages = row.Field<int>("TotalPages"),
                     TotalSheets = row.Field<int>("TotalSheets"),
                     Feeder4_Sel = int.Parse(row.Field<string>("Feeder4_Sel")),
                     UniqueId = row.Field<Guid>("UniqueId"),
@@ -356,7 +403,7 @@ namespace PCI.Service
                     Inserts = row.Field<string>("Inserts"),
                     InsertsPartNos = row.Field<string>("InsertsPartNos"),
                     InsertsIds = row.Field<string>("InsertsIds"),
-                    DocumentCode =row.Field<string>("DocumentCode"),
+                    DocumentCode = row.Field<string>("DocumentCode"),
                     //Extra Properties to map for MRDF Request
                     InputWeight = row.Field<string>("InputWeight"),
                     Feeder3_Sel = row.Field<string>("Feeder3_Sel"),
@@ -382,7 +429,9 @@ namespace PCI.Service
                     SocialSecNumber = row.Field<string>("SocialSecNumber"),
                     CheckAmount = row.Field<string>("CheckAmount"),
                     PassThru = row.Field<string>("PassThru"),
-                    EndofRecord = row.Field<string>("EndofRecord")
+                    EndofRecord = row.Field<string>("EndofRecord"),
+                    ChecksPageNumbers = row.Field<string>("ChecksPageNumbers"),
+                    IsChecks = row.Field<bool>("IsChecks"),
                 });
             }
 

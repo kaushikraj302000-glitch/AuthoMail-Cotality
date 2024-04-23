@@ -36,6 +36,12 @@ namespace AM.Console
         {
             log.Debug("Enumerate Batches job queue for " + SFTChannel.Code + " is started.");
 
+            if (SFTChannel.ServerIP.IsNullOrWhiteSpace() || Config.Common_ServerIP != SFTChannel.ServerIP)
+            {
+                log.Debug("System cannot process DELFUS channel on this server.");
+                return;
+            }
+
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
             sftSite.Connect();
 
@@ -175,7 +181,8 @@ namespace AM.Console
                     UniqueId = mbRequest.Id == null ? Guid.NewGuid() : mbRequest.Id,
                     Priority = mbRequest.Priority.ToString(),
                     DocumentOrPackageType = mbRequest.DocumentOrPackageType.IsNullOrWhiteSpace() ? null : mbRequest.DocumentOrPackageType,
-                    ClientBatchId = mbRequest.ClientBatchId == null ? batchName : mbRequest.ClientBatchId
+                    ClientBatchId = mbRequest.ClientBatchId == null ? batchName : mbRequest.ClientBatchId,
+                    ServerIP = Config.Common_ServerIP
                 };
 
                 //AM Mail Batch Custom Info
@@ -294,6 +301,7 @@ namespace AM.Console
             mailBatch.BatchName = batchName;
             mailBatch.ClientBatchId = batchName;
             mailBatch.Priority = Priority.Low.ToString();
+            mailBatch.ServerIP = Config.Common_ServerIP;
             mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
             commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, receivedOn).Wait();
             mailBatchSvc.MarkMailBatchAsInvalid(mailBatch.Id, errorMessage).Wait();
@@ -551,6 +559,12 @@ namespace AM.Console
                                 mailPieceDTO.ShippingStatus = ShippingStatus.Error.ToString();
                                 mailPieceSvc.InsertBatchMailPieceDetails(mailPieceDTO, mailPieceCustomInfo);
                             }
+
+                            if (ex.Number == -2)
+                            {
+                                //If Timeout exception occured while processing batch then we are re-processing whole batch completly and breaking out from foreach loop.
+                                break;
+                            }
                         }
                     }
 
@@ -587,7 +601,8 @@ namespace AM.Console
                     {
                         throw new Exception("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceList.Count, totalNodes));
                     }
-                    Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceList);
+
+                    Channel.CalculateDueDateAndPrintLocation(client, mailBatch, mailPieceList);
 
                     if (mailPieceList.All(mp => mp.IsEDeliveryRequested && mp.ShippingStatus != ShippingStatus.Error.ToString()))
                     {
@@ -688,8 +703,9 @@ namespace AM.Console
             FileInfo fileInfo = new FileInfo(localFilePath);
             mailPieceDTO.PDFFileSize = (fileInfo.Length / 1024);
 
+            bool isCountryUS = mailPieceDTO.RcptAddressCountry.IsCountryUS();
             //Document Or Package Type validation
-            var docType = docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst());
+            var docType = !isCountryUS ? docTypeSvc.GetIntlDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst()) : docTypeSvc.GetDocTypeByDocTypeName(mailPieceDTO.ClientId, mailPieceDTO.DocumentOrPackageType, pageCount, mbi.MailBatch.ReceivedOn.Value.UtcToEst());
 
             if (docType != null)
             {
@@ -700,7 +716,7 @@ namespace AM.Console
 
             if (docType == null)
             {
-                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = "Either the specified document or package type '{0}' is not configured or no matching print configuration found for page count ({1}).".Fill(mailPieceDTO.DocumentOrPackageType, mailPieceDTO.TotalPages) };
+                return new MailPieceValidationResult() { Code = OutComeCodes.Invalid_PackageType, ErrorMessage = $"Either the specified document or package type '{mailPieceDTO.DocumentOrPackageType}' is not configured  {(isCountryUS == false ? "for international mailing" : "")} or no matching print configuration found for page count ({pageCount})." };
             }
             else if (pageCount == blankPageNos.Count())
             {

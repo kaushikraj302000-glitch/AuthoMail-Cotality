@@ -33,7 +33,9 @@ namespace AM.Lib
 
         public static string ToTitleCase(this string value)
         {
-            return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value.ToLower());
+            if (!value.IsNullOrWhiteSpace())
+                return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(value.ToLower());
+            return null;
         }
 
         public static string ToCsvString(this string value)
@@ -135,7 +137,7 @@ namespace AM.Lib
 
         public static string AnyFormatToDateTimeString(this string date)
         {
-            string[] formats = { "MMMM dd, yyyy", "dd-MMM-yyyy HH:mm:ss", "dd-MMM-yyyy hh:mm:ss", "MM-dd-yyyy HH:mm:ss", "MM-dd-yyyy hh:mm:ss", "MM-dd-yyyy", "MMMM dd, yyyy h:mm tt", "MMMM dd, yyyy H:mm tt" };
+            string[] formats = { "MMMM d, yyyy", "MMMM dd, yyyy", "dd-MMM-yyyy HH:mm:ss", "dd-MMM-yyyy hh:mm:ss", "MM-dd-yyyy HH:mm:ss", "MM-dd-yyyy hh:mm:ss", "MM-dd-yyyy", "MMMM dd, yyyy h:mm tt", "MMMM dd, yyyy H:mm tt", "dd-MMM-yy", "M/dd/yyyy hh:mm" };
 
             DateTime dateValue;
             if (DateTime.TryParseExact(date, formats, new CultureInfo("en-US"), DateTimeStyles.None, out dateValue))
@@ -146,7 +148,7 @@ namespace AM.Lib
 
         public static DateTime? AnyFormatToDateTime(this string date)
         {
-            string[] formats = { "MMMM dd, yyyy", "dd-MMM-yyyy HH:mm:ss", "dd-MMM-yyyy hh:mm:ss", "MM-dd-yyyy HH:mm:ss", "MM-dd-yyyy hh:mm:ss", "MM-dd-yyyy", "MMMM dd, yyyy h:mm tt", "MMMM dd, yyyy H:mm tt", "MMMM d, yyyy", "MMMM d, yyyy h:mm tt" };
+            string[] formats = { "MMMM dd, yyyy", "dd-MMM-yyyy HH:mm:ss", "dd-MMM-yyyy hh:mm:ss", "MM-dd-yyyy HH:mm:ss", "MM-dd-yyyy hh:mm:ss", "MM-dd-yyyy", "MMMM dd, yyyy h:mm tt", "MMMM dd, yyyy H:mm tt", "MMMM d, yyyy", "MMMM d, yyyy h:mm tt", "dd-MMM-yy", "M/dd/yyyy hh:mm" };
 
             DateTime dateValue;
             if (DateTime.TryParseExact(date, formats, new CultureInfo("en-US"), DateTimeStyles.None, out dateValue))
@@ -201,6 +203,62 @@ namespace AM.Lib
                 throw;
             }
         }
+
+        public static List<T> FromDataTable<T>(this DataTable dt)
+        {
+            List<T> data = new List<T>();
+            foreach (DataRow row in dt.Rows)
+            {
+                T item = GetItem<T>(row);
+                data.Add(item);
+            }
+            return data;
+        }
+        public static T GetItem<T>(DataRow dr)
+        {
+            Type temp = typeof(T);
+            T obj = Activator.CreateInstance<T>();
+
+            foreach (DataColumn column in dr.Table.Columns)
+            {
+                foreach (PropertyInfo prop in temp.GetProperties())
+                {
+                    var clname = prop.Name;
+
+                    var displayName = (DisplayNameAttribute)prop.GetCustomAttribute(typeof(DisplayNameAttribute), true);
+                    if (displayName != null)
+                    {
+                        clname = displayName.DisplayName;
+                    }
+
+                    if (clname == column.ColumnName)
+                    {
+                        if (prop.PropertyType.IsValueType && Nullable.GetUnderlyingType(prop.PropertyType) != null)
+                        // if property is nullable, underlying nullable type will eval as true.
+                        {
+                            if (dr[column.ColumnName] == null || dr[column.ColumnName] == DBNull.Value || dr[column.ColumnName] == "")
+                            {
+                                prop.SetValue(obj, null, null);
+                            }
+                            else
+                                prop.SetValue(obj, Convert.ChangeType(dr[column.ColumnName], Nullable.GetUnderlyingType(prop.PropertyType)), null);
+                        }
+                        else if (prop.PropertyType.IsValueType)
+                        {
+                            prop.SetValue(obj, Convert.ChangeType(dr[column.ColumnName], prop.PropertyType), null);
+                        }
+                        else
+                        {
+                            prop.SetValue(obj, dr[column.ColumnName], null);
+                        }
+                    }
+                    else
+                        continue;
+                }
+            }
+            return obj;
+        }
+
 
         public static string RemoveCSVStringFormat(this string str)
         {
@@ -346,6 +404,20 @@ namespace AM.Lib
         public static bool IsCountryUS(this string value)
         {
             return value.IsNullOrWhiteSpace() || (!value.IsNullOrWhiteSpace() && (value.Contains("USA") || value.Contains("US") || value.Contains("The United States of America") || value.Contains("United States of America") || value.Contains("United States")));
+        }
+
+        public static int WordCount(this string value)
+        {
+            char[] delimiters = new char[] { ' ', '\r', '\n' };
+            return value.Split(delimiters, StringSplitOptions.RemoveEmptyEntries).Length;
+        }
+
+        public static IEnumerable<IEnumerable<T>> ChunkBy<T>(this IEnumerable<T> source, int chunkSize)
+        {
+            return source
+                .Select((x, i) => new { Index = i, Value = x })
+                .GroupBy(x => x.Index / chunkSize)
+                .Select(x => x.Select(v => v.Value));
         }
 
     }

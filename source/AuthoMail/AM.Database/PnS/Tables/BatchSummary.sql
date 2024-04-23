@@ -37,6 +37,7 @@
     [PrintLocation]      VARCHAR (255)    NULL,
     [PrintTrailId]       INT              NULL,
     [PnSConfigDetailId]  INT              NULL,
+    [ServerIP] VARCHAR(50) NULL, 
     CONSTRAINT [PK_BatchSummary] PRIMARY KEY CLUSTERED ([PrintBatch] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_BatchSummary_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
     CONSTRAINT [FK_BatchSummary_DocTypes] FOREIGN KEY ([DocTypeId]) REFERENCES [AM].[DocTypes] ([Id]),

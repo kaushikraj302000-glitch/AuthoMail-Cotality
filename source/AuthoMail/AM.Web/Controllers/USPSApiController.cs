@@ -26,21 +26,22 @@ namespace AM.Web.Controllers
 
         [Route("verify")]
         [HttpPost]
-        public async Task<VerifierAddressResponse> VerifyAddress([FromBody]VerifierAddressRequest addressRequest)
+        public async Task<VerifierAddressResponse> VerifyAddress([FromBody] VerifierAddressRequest addressRequest)
         {
             return await uspsSvc.VerifyAddressAsync(User.Identity.GetUserId(), addressRequest).ConfigureAwait(false);
         }
 
         [Route("eVS")]
         [HttpPost]
-        public async Task<eVSLabelResponse> RequesteVSLabel([FromBody]eVSLabelRequest request)
+        public async Task<eVSLabelResponse> RequesteVSLabel([FromBody] eVSLabelRequest request)
         {
-            return await uspsSvc.RequesteVSLabelAsync(User.Identity.GetUserId(), request).ConfigureAwait(false);
+            //We are passing UspsUserID as "api" to fetch the account details of API user based on Cut-off
+            return await uspsSvc.RequesteVSLabelAsync(User.Identity.GetUserId(), request, new USPSCredentialInfo() { PrintLocation = "api" }).ConfigureAwait(false);
         }
 
         [Route("eVSCancel")]
         [HttpPost]
-        public async Task<eVSCancelLabelResponse> RequesteVSLabel([FromBody]eVSCancelLabelRequest request)
+        public async Task<eVSCancelLabelResponse> RequesteVSLabel([FromBody] eVSCancelLabelRequest request)
         {
             return await uspsSvc.RequesteVSCancelLabelAsync(User.Identity.GetUserId(), request).ConfigureAwait(false);
         }

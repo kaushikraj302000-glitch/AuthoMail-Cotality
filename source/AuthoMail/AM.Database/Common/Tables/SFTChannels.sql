@@ -16,6 +16,7 @@
     [APIResponseURL]      VARCHAR (255)  NULL,
     [APIMaxResponseCount] INT            NULL,
     [APITokenHeaders]     VARCHAR (2048) NULL,
+    [ServerIP] VARCHAR(50) NULL, 
     CONSTRAINT [PK_SFTChannel] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [UQ_SFTChannel] UNIQUE NONCLUSTERED ([Code] ASC)
 );

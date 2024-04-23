@@ -29,6 +29,7 @@ using DELFUS.TemplateImporter;
 using AM.Lib;
 using System.Net.Mail;
 using AM.Services.Models;
+using AutoMapper;
 //using Microsoft.Ajax.Utilities;
 
 namespace AM.Web.Controllers
@@ -42,8 +43,10 @@ namespace AM.Web.Controllers
         IConfigService confSvc;
         IInventoryService inventorySvc;
         IProjectRequestService projectRequestSvc;
+        IDocTypeService docTypeSvc;
+
         private readonly IClientPermissionService clientPermissionSvc;
-        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc, IProjectRequestService projectRequestSvc, IClientPermissionService clientPermissionSvc)
+        public AdminController(AMUserManager userManager, ISupportService supportSvc, IHomeService homeSvc, IConfigService confSvc, IInventoryService inventorySvc, IProjectRequestService projectRequestSvc, IClientPermissionService clientPermissionSvc, IDocTypeService docTypeSvc)
         {
             UserManager = userManager;
             this.supportSvc = supportSvc;
@@ -52,6 +55,7 @@ namespace AM.Web.Controllers
             this.inventorySvc = inventorySvc;
             this.projectRequestSvc = projectRequestSvc;
             this.clientPermissionSvc = clientPermissionSvc;
+            this.docTypeSvc = docTypeSvc;
         }
         // GET: Admin
         #region SignUp Request
@@ -73,9 +77,15 @@ namespace AM.Web.Controllers
             }
             bool IsCL = CLAuthentication.HasCorelogicAccount(user.Email);
             var roles = new List<string> { AMRoles.Client };
-            if (IsCL) roles.Add(AMRoles.BA);
+            if (IsCL)
+            {
+                roles.Add(AMRoles.BA);
+                roles.Add(AMRoles.BAOffShore);
+            }
 
-            var appCodes = await clientPermissionSvc.GetAppCodeByUserIdORall(IsCL ? null : userId);
+            var domain = user.Email.Split('@')[1];
+
+            var appCodes = await clientPermissionSvc.GetAppCodeByClientDomain(IsCL ? null : domain);
 
             var data = new
             {
@@ -98,7 +108,11 @@ namespace AM.Web.Controllers
             }
             bool IsCL = CLAuthentication.HasCorelogicAccount(user.Email);
             var roles = new List<string> { AMRoles.Client };
-            if (IsCL) roles.Add(AMRoles.BA);
+            if (IsCL)
+            {
+                roles.Add(AMRoles.BA);
+                roles.Add(AMRoles.BAOffShore);
+            }
 
             //var appCodes = await clientPermissionSvc.GetAppCodeByUserIdORall(IsCL ? null : userId);
             var domainAppCode = IsCL ? await clientPermissionSvc.GetClientDomainForCL() : await clientPermissionSvc.GetClientDomainByDomainName(new MailAddress(user.Email).Host);
@@ -109,7 +123,7 @@ namespace AM.Web.Controllers
                 roles = roles,
                 isCL = IsCL,
                 domainAppCode = domainAppCode,
-                userRole = userRole.Where(u => u == AMRoles.BA || u == AMRoles.Client).FirstOrDefault(),
+                userRole = userRole.Where(u => u == AMRoles.BA || u == AMRoles.Client || u == AMRoles.BAOffShore).FirstOrDefault(),
                 approveAppCode = approveAppCode
             };
             return Json(JsonResponseFactory.SuccessResponse(data), JsonRequestBehavior.AllowGet);
@@ -148,12 +162,13 @@ namespace AM.Web.Controllers
                 var user = await UserManager.FindByIdAsync(userId);
                 var model = new KeyValuePair<bool, string>();
                 string partiallyApproveRequest = null;
+                if (!role.IsNullOrWhiteSpace() && !(role.Equals(AMRoles.BA, StringComparison.CurrentCultureIgnoreCase) || role.Equals(AMRoles.Client, StringComparison.CurrentCultureIgnoreCase) || (role.Equals(AMRoles.BAOffShore, StringComparison.CurrentCultureIgnoreCase))))
+                {
+                    return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
+                }
                 if (role == AMRoles.Client && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (!(role.Equals(AMRoles.BA, StringComparison.CurrentCultureIgnoreCase) || role.Equals(AMRoles.Client, StringComparison.CurrentCultureIgnoreCase)))
-                    {
-                        return Json(JsonResponseFactory.ErrorResponse("Please select valid Role."), JsonRequestBehavior.AllowGet);
-                    }
+
                     if (clientIds == null || clientIds.Count == 0)
                     {
                         return Json(JsonResponseFactory.ErrorResponse("Please select AppCode(s)."), JsonRequestBehavior.AllowGet);
@@ -162,6 +177,7 @@ namespace AM.Web.Controllers
                     if (CLAuthentication.HasCorelogicAccount(user.Email))
                     {
                         await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BAOffShore);
                         await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
                         await UserManager.AddToRoleAsync(userId, AMRoles.Client);
                     }
@@ -183,13 +199,26 @@ namespace AM.Web.Controllers
                         model = new KeyValuePair<bool, string>(true, "Sign up request approved successfully for all AppCode(s).");
                     }
                 }
+                else if (role == AMRoles.BA && status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    if (status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase) && CLAuthentication.HasCorelogicAccount(user.Email))
+                    {
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BAOffShore);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
+                        await UserManager.AddToRoleAsync(userId, AMRoles.BA);
+                    }
+                    model = supportSvc.UpdateUsersRequestSignUp(userId, status, User.Identity.GetUserId());
+                }
                 else
                 {
                     if (status.Equals(AMUserStatus.Approved, StringComparison.CurrentCultureIgnoreCase) && CLAuthentication.HasCorelogicAccount(user.Email))
                     {
                         await UserManager.RemoveFromRoleAsync(userId, AMRoles.BA);
+                        await UserManager.RemoveFromRoleAsync(userId, AMRoles.BAOffShore);
                         await UserManager.RemoveFromRoleAsync(userId, AMRoles.Client);
-                        await UserManager.AddToRoleAsync(userId, AMRoles.BA);
+                        await UserManager.AddToRoleAsync(userId, AMRoles.BAOffShore);
+
                     }
                     model = supportSvc.UpdateUsersRequestSignUp(userId, status, User.Identity.GetUserId());
                 }
@@ -892,8 +921,36 @@ namespace AM.Web.Controllers
             //ViewBag.EnvelopedropDown = inventorySvc.GetEnvelopes().Where(s => !s.IsBREEnvelope).Select(s => new SelectListItem() { Text = s.EnvelopeName, Value = s.Id.ToString(), Selected = clientDocTypes.DocTypes.BREEnvelopeId == s.Id }).ToList();
         }
 
-        #endregion
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult _DownloadDocTypeLists()
+        {
+            try
+            {
+                var result = docTypeSvc.GetDocTypeList();
 
+                var dataTable = ExcelHelper.ToDataTable<DocTypeReport>(result);
+                var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                string fileGuid = Guid.NewGuid().ToString();
+
+                string fileName = $"DocTypeList_{DateTime.UtcNow.ToString("MMddyyyy")}.xlsx";
+
+                return File(memoryStream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+        }
+        #endregion
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult _PrintConfigurationByPnSConfigId(int pnsConfigId, string documentType)
+        {
+            ViewBag.PnSConfigId = pnsConfigId;
+            ViewBag.DocumentType = documentType;
+            return PartialView(supportSvc.GetPnSConfigDetailsByPnSConfigId(pnsConfigId));
+        }
         #region PrintTrailMaps
         [Authorize(Roles = AMRoles.Admin), HttpGet]
         public ActionResult PrintTrailMapByDocId(int id)
@@ -1166,8 +1223,12 @@ namespace AM.Web.Controllers
         {
             try
             {
-                var model = inventorySvc.GetEnvelopes().OrderBy(e => e.Order);
-
+                var model = Mapper.Map<List<EnvelopesListVM>>(inventorySvc.GetEnvelopes().OrderBy(e => e.Order));
+                var envelopeInvStockCalc = inventorySvc.GetEnvelopeInventoryStockCalculation();
+                model.ForEach(s =>
+                {
+                    s.AlertLevel = envelopeInvStockCalc.Where(e => e.EnvelopeId == s.Id).Max(e => e.AlertLevel);
+                });
                 return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)
@@ -1237,6 +1298,57 @@ namespace AM.Web.Controllers
             return Json(inventorySvc.IsPartNumberExists(id, partNumber), JsonRequestBehavior.AllowGet);
             // return Json(true, JsonRequestBehavior.AllowGet);
         }
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult TransferEnvelopeQuantity(int envelopeId, string envelopeName)
+        {
+            ViewBag.EnvelopeId = envelopeId;
+            ViewBag.EnvelopeName = envelopeName;
+            ViewBag.Shippers = new SelectList(inventorySvc.ShipperByEnvelopeId(envelopeId), "Id", "Name");
+            return PartialView("_TransferEnvelopeQuantity");
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult GetQuantityByShipperAndEnvelope(int envelopeId, int shipperId)
+        {
+            var model = inventorySvc.GetQuantityByShipperAndEnvelope(envelopeId, shipperId);
+            model = model.HasValue ? model.Value : 0;
+            return Json(model, JsonRequestBehavior.AllowGet);
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult TransferEnvelopeInventory(EnvelopeTransferInventory envelopeTransferInventory)
+        {
+            try
+            {
+                envelopeTransferInventory.TransferredBy = User.Identity.GetUserId();
+                envelopeTransferInventory.TransferredOn = DateTime.UtcNow;
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.TransferEnvelopeInventory(envelopeTransferInventory)), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        [Authorize(Roles = AMRoles.Admin), HttpPost]
+        public ActionResult EnvelopeStockAndAlertByEnvelopeId(int envelopeId, string envelopeName)
+        {
+            ViewBag.EnvelopeName = envelopeName;
+            var model = inventorySvc.GetEnvelopeInventoryStockCalculation(envelopeId);
+            return PartialView("_EnvelopeStockAndAlertDetails", model);
+        }
+        [Authorize(Roles = AMRoles.Admin), HttpGet]
+        public ActionResult ToggleEnvelopeTrackingById(int envelopeId, bool isTracking)
+        {
+            try
+            {
+                return Json(JsonResponseFactory.SuccessResponse(inventorySvc.ToggleEnvelopeTrackingById(envelopeId, isTracking, User.Identity.GetUserId())), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message), JsonRequestBehavior.AllowGet);
+            }
+
+        }
         #endregion
 
         #region Manage Envelopes Inventory
@@ -1252,6 +1364,22 @@ namespace AM.Web.Controllers
                 var model = inventorySvc.GetLast3MonthsInventoryEnvelopes();
 
                 return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception e)
+            {
+                return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
+            }
+
+        }
+        [HttpPost]
+        public ActionResult GetInventoryByEnvelopeId(int id, string envelopeName)
+        {
+            try
+            {
+                ViewBag.Name = envelopeName;
+                var model = inventorySvc.GetLast3MonthsInventoryByEnvelopeId(id);
+
+                return PartialView("_EnvelopeStockHistory", model);
             }
             catch (Exception e)
             {

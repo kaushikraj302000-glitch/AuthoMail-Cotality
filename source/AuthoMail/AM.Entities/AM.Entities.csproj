@@ -53,6 +53,7 @@
     <Compile Include="DTOs\Client.cs" />
     <Compile Include="DTOs\DocType.cs" />
     <Compile Include="DTOs\FedExAccountInfo.cs" />
+    <Compile Include="DTOs\TDBankData.cs" />
     <Compile Include="EllieMaeResponse.cs" />
     <Compile Include="GeneralModels.cs" />
     <Compile Include="IdentityModels\IdentityModel.cs" />

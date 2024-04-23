@@ -47,6 +47,12 @@ namespace AM.Console
         {
             log.Debug("Enumerate Batches job queue for Alaska is started.");
 
+            if (SFTChannel.ServerIP.IsNullOrWhiteSpace() || Config.Common_ServerIP != SFTChannel.ServerIP)
+            {
+                log.Debug("System cannot process Alaska channel on this server.");
+                return;
+            }
+
             Deliverable deliverable = commonSvc.GetDeliverableByReportType(client.Id, ReportTypes.NoBatch);
 
             SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
@@ -73,6 +79,12 @@ namespace AM.Console
                     string shortBatchName = batchName.Replace("PSManifest", "");
                     string documentOrPackageType = shortBatchName.Substring(0, shortBatchName.IndexOf("["));
 
+                    DateTime lastModifiedTime = Common.Now;
+                    if (channelType == ChannelType.Trigger)
+                    {
+                        lastModifiedTime = sftSite.LastModifiedTimeOfFile(xmlFilePath);
+                    }
+
                     MailBatchDTO mailBatch = new MailBatchDTO
                     {
                         ClientId = client.Id,
@@ -81,22 +93,14 @@ namespace AM.Console
                         ClientBatchId = batchName,
                         UniqueId = Guid.NewGuid(),
                         Priority = Priority.Medium.ToString(),
-                        DocumentOrPackageType = documentOrPackageType
+                        DocumentOrPackageType = documentOrPackageType,
+                        PipelineStatus = BatchPipelineStatus.Received,
+                        BatchStatus = BatchStatus.InProgress.ToString(),
+                        ReceivedOn = lastModifiedTime,
+                        ServerIP = Config.Common_ServerIP
                     };
 
-                    //Insert New Batch Entry
                     mailBatch.Id = mailBatchSvc.InsertBatchDetails(mailBatch);
-
-                    DateTime lastModifiedTime = Common.Now;
-                    if (channelType == ChannelType.Trigger)
-                    {
-                        lastModifiedTime = sftSite.LastModifiedTimeOfFile(xmlFilePath);
-                    }
-
-                    //Update Pipeline Status of Batch Received
-                    commonSvc.UpdateBatchPipeLineStatus(mailBatch.Id, BatchPipelineStatus.Received, lastModifiedTime).Wait();
-
-                    commonSvc.UpdateBatchStatus(mailBatch.Id, BatchStatus.InProgress.ToString()).Wait();
                 }
                 catch (Exception ex)
                 {
@@ -298,8 +302,8 @@ namespace AM.Console
                             else
                             {
                                 mailPieceDTO.IsReturnInfoSpecified = true;
-                                mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = node.ReturnInfo.Address.Line1;
-                                mailPieceDTO.RetRcptAddrOptionalLine2AboveStreet = node.ReturnInfo.Address.Line2;
+                                mailPieceDTO.RetRcptFirstName = node.ReturnInfo.Address.Line1;
+                                mailPieceDTO.RetRcptAddrOptionalLine1AboveStreet = node.ReturnInfo.Address.Line2;
                                 mailPieceDTO.RetRcptAddressStreet = node.ReturnInfo.Address.Line3;
                                 mailPieceDTO.RetRcptAddressCity = node.ReturnInfo.Address.City;
                                 mailPieceDTO.RetRcptAddressState = node.ReturnInfo.Address.State;
@@ -483,7 +487,7 @@ namespace AM.Console
                         throw new Exception("Mail pieces count and received xml count is mismatched for Batch-Id : {0}<br/>".Fill(mailBatch.Id) + "Mail Piece count is {0} and received xml nodes count is {1}".Fill(mailPieceData.Count, totalNodes));
                     }
 
-                    Channel.CalculateDueDateAndPrintLocation(mailBatch, mailPieceData);
+                    Channel.CalculateDueDateAndPrintLocation(client, mailBatch, mailPieceData);
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Validated, Common.Now).Wait();
                 }

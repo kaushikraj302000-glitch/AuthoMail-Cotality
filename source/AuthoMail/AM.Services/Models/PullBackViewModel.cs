@@ -10,6 +10,7 @@ namespace AM.Services
     public class PullBackViewModel
     {
         public Guid MailPieceUniqueId { get; set; }
+        public int ClientId { get; set; }
         public int? PrintTrailBatchId { get; set; }
         public int PrintBatch { get; set; }
         public string TrackingNo { get; set; }
@@ -62,6 +63,7 @@ namespace AM.Services
         public string TrackingNo { get; set; }
         public string DocType { get; set; }
         public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
         public string DisplayDocType
         {
             get
@@ -72,5 +74,40 @@ namespace AM.Services
         }
         public string ErrorCode { get; set; }
         public string ErrorDesc { get; set; }
+    }
+
+    public class ReshipMailPieceViewModel
+    {
+        public string BusinessIdValue { get; set; }
+        public Guid UniqueId { get; set; }
+        public string AppCode { get; set; }
+        public string FileName { get; set; }
+        public string Name { get; set; }
+        public string Address { get; set; }
+        public int TotalPages { get; set; }
+        public int TotalBlankPages { get; set; }
+        public bool IsPullBackRequested { get; set; }
+        public string Status { get; set; }
+        public DateTime? ReceivedOn { get; set; }
+        public DateTime? DueDate { get; set; }
+        public string TrackingNo { get; set; }
+        public string DocType { get; set; }
+        public bool IsEDeliveryRequested { get; set; }
+        public bool IsESignRequested { get; set; }
+        public string DisplayDocType
+        {
+            get
+            {
+                if (this.DocType.IsNullOrWhiteSpace()) return "-";
+                return this.DocType.Split('|').First();
+            }
+        }
+        public string ErrorCode { get; set; }
+        public string ErrorDesc { get; set; }
+        public bool IsWithinRetentionPeriod { get; set; }
+        public int RetentionPeriod { get; set; }
+        public int ClientId { get; set; }
+        public int MailBatchId { get; set; }
+        public int MailPieceId { get; set; }
     }
 }

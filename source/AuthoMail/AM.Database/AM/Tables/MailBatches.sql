@@ -51,6 +51,12 @@
     [RetRcptAddressState]                 VARCHAR (255)    NULL,
     [RetRcptAddressZIP]                   VARCHAR (255)    NULL,
     [RetRcptAddressCountry]               VARCHAR (255)    NULL,
+    [IsReshippedBatch] BIT NULL, 
+    [IsHeld]                      AS               (case when [HeldOn] IS NULL then (0) else (1) end),
+    [HeldOn] DATETIME NULL, 
+    [IsSubmittedToEDelivery]               AS               (case when [SubmittedToEDeliveryOn] IS NULL then (0) else (1) end),
+    [SubmittedToEDeliveryOn]               DATETIME         NULL,
+    [ServerIP] VARCHAR(50) NULL, 
     CONSTRAINT [PK_Batch] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 70),
     CONSTRAINT [FK_MailBatches_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),
     CONSTRAINT [FK_MailBatches_SFTChannel] FOREIGN KEY ([SFTChannelId]) REFERENCES [Common].[SFTChannels] ([Id])
@@ -140,4 +146,16 @@ CREATE UNIQUE NONCLUSTERED INDEX [IX_MailBatches_UniqueId]
 GO
 CREATE NONCLUSTERED INDEX [IX_MailBatches_ValidatedOn]
     ON [AM].[MailBatches]([ValidatedOn] ASC) WITH (FILLFACTOR = 70);
+GO
 
+CREATE NONCLUSTERED INDEX [IX_MailBatches_PipelineSFTChannelIdDownloadedOn]
+    ON [AM].[MailBatches]([PipelineStatus] ASC, [SFTChannelId] ASC, [IsDownloaded] ASC, [IsValidated] ASC);
+GO
+
+CREATE NONCLUSTERED INDEX [IX_MailBatches_PipelineSFTChannelIdValidatedOn]
+    ON [AM].[MailBatches]([PipelineStatus] ASC, [SFTChannelId] ASC, [IsValidated] ASC, [IsAcknowledged] ASC);
+GO
+
+CREATE NONCLUSTERED INDEX [IX_MailBatches_HeldOn]
+    ON [AM].[MailBatches]([HeldOn] ASC) WITH (FILLFACTOR = 70);
+GO

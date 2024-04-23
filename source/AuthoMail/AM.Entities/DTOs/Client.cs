@@ -19,6 +19,13 @@ namespace AM.Entities
         public bool IsReqBlankPageValidation { get; set; }
         public bool IsEncrypted { get; set; }
         public int RetentionPeriod { get; set; }
+        public string GroupAlias { get; set; }
+        public string Contact1Email { get; set; }
+        public string Contact2Email { get; set; }
+        public bool IsResponseRequired { get; set; }
+        public bool IsHardAddrValidationRequired { get; set; }
+        public bool IsRejectDupRecord { get; set; }
+        public bool IsEDeliveryEnabled { get; set; }
     }
 
     public class ClientSFTChannel
@@ -44,6 +51,7 @@ namespace AM.Entities
         public string APIResponseURL { get; set; }
         public int APIMaxResponseCount { get; set; }
         public string APITokenHeaders { get; set; }
+        public string ServerIP { get; set; }
         public Dictionary<string, string> GetHeaders()
         {
             return APITokenHeaders

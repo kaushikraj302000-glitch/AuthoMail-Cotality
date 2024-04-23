@@ -10,7 +10,8 @@ CREATE PROCEDURE [dbo].[usp_InsertPullBackRequestsData]
 	@ClientId int,
 	@Status varchar(255),
 	@RequestedOn datetime,
-	@RequestedBy nvarchar(128)
+	@RequestedBy nvarchar(128),
+    @PBReasons nvarchar(2048)
 AS
 BEGIN
 
@@ -26,6 +27,7 @@ SELECT @MailBatchId = AMM.MailBatchId,@MailPieceId = AMM.Id FROM  AM.MailPieces 
            ,[Status]
            ,[RequestedOn]
            ,[RequestedBy]
+           ,[PBReasons]
 		   )
      VALUES
            (@MailBatchId
@@ -35,5 +37,6 @@ SELECT @MailBatchId = AMM.MailBatchId,@MailPieceId = AMM.Id FROM  AM.MailPieces 
            ,@Status
            ,@RequestedOn
            ,@RequestedBy
+           ,@PBReasons
 		   )
 END

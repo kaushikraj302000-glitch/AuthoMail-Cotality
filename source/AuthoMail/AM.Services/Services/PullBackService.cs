@@ -16,11 +16,11 @@ namespace AM.Services
         List<PullBackViewModel> GetMailPieceData(List<string> mpIds);
         List<PullBackRequestForm> GetPullBackData(List<string> mpIds);
         int UpdatePullBackRequestedOn(string mpId, string userId, string status);
-        int InsertPullBackRequestData(string mpId, int clientId, string status, string userId);
+        int InsertPullBackRequestData(string mpId, int clientId, string status, string userId, string pbReasons);
         int UpdateAMBatchStatus(string mpId);
         int UpdateUSPSApiCancelErrorDesc(string mpId);
         string GetPnSBatchPipelineStatusByPrintBatchId(int printBatchId);
-        List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, int clientId);
+        List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, string channel, int clientId, string batchName);
         List<QuickPullBackResponse> GetQuickPullBackResponseFromBusinessFriendlyValue(string businessFriendlyIdName, string businessFriendlyIdValue, int clientId);
         List<QuickPullBackResponse> GetQuickPullBackResponse(List<string> mailPieceIds, int clientId);
         bool GeneratePullBackForm(List<PullBackRequestForm> pullBackData);
@@ -29,7 +29,7 @@ namespace AM.Services
     {
         public List<PullBackViewModel> GetMailPieceData(List<string> mpIds)
         {
-            string qry = string.Format(@"SELECT AMMP.MailBatchId,AMMP.[UniqueId] as MailPieceUniqueId,PM.PrintTrailBatchId,PB.PrintBatch,AMMP.TrackingNo,pcd.ShippingServiceType,AMMB.PipelineStatus AS AMBatchPipelineStatus,PB.PipelineStatus AS PnSBatchPipelineStatus,AMMP.ShippingStatus AS AMMailPieceStatus,PM.MailPieceStatus AS PnSMailPieceStatus,AMMP.PrintLocation,AMMP.ErrorDesc AS AMErrorDescription,PM.ErrDesc AS PnSErrorDescription,PLBT.PCIBatchPrepEnd,AMMP.IsEDeliveryRequested,EDMP.SigningRoomId,EDMP.SigningRoomName,EDMP.IsInvitationSent,AMMP.IsPullBackRequested,AMMP.PullBackRequestedOn,AMMP.IsPulledBack,AMMP.PulledBackOn,PU.UserName FROM AM.MailPieces AMMP LEFT OUTER JOIN AM.EDeliveryMailPieces EDMP ON AMMP.UniqueId = EDMP.UniqueId LEFT OUTER JOIN PnS.MRDFRequest PM ON AMMP.[UniqueId] = PM.UniqueId  
+            string qry = string.Format(@"SELECT AMMP.MailBatchId,AMMP.[UniqueId] as MailPieceUniqueId, AMMP.ClientId, PM.PrintTrailBatchId,PB.PrintBatch,AMMP.TrackingNo,pcd.ShippingServiceType,AMMB.PipelineStatus AS AMBatchPipelineStatus,PB.PipelineStatus AS PnSBatchPipelineStatus,AMMP.ShippingStatus AS AMMailPieceStatus,PM.MailPieceStatus AS PnSMailPieceStatus,AMMP.PrintLocation,AMMP.ErrorDesc AS AMErrorDescription,PM.ErrDesc AS PnSErrorDescription,PLBT.PCIBatchPrepEnd,AMMP.IsEDeliveryRequested,EDMP.SigningRoomId,EDMP.SigningRoomName,EDMP.IsInvitationSent,AMMP.IsPullBackRequested,AMMP.PullBackRequestedOn,AMMP.IsPulledBack,AMMP.PulledBackOn,PU.UserName FROM AM.MailPieces AMMP LEFT OUTER JOIN AM.EDeliveryMailPieces EDMP ON AMMP.UniqueId = EDMP.UniqueId LEFT OUTER JOIN PnS.MRDFRequest PM ON AMMP.[UniqueId] = PM.UniqueId  
               left outer join [AM].[DocTypes] d ON AMMP.DocTypeId=d.Id 
               left outer JOIN Common.PnSConfigDetail pcd ON AMMP.PnSConfigDetailId = pcd.Id
               INNER JOIN AM.MailBatches AMMB ON AMMB.Id = AMMP.MailBatchId LEFT OUTER JOIN PnS.BatchSummary PB ON PB.PrintBatch = PM.JobId LEFT OUTER JOIN PnS.LogBatchTimeLine PLBT ON PLBT.BatchId = PB.PrintBatch LEFT OUTER JOIN[Profile].Users PU ON PU.Id = AMMP.PulledBackRequestedBy  WHERE AMMP.[UniqueId] IN @mailPieceIds");
@@ -72,9 +72,9 @@ namespace AM.Services
             return data;
         }
 
-        public int InsertPullBackRequestData(string mpId, int clientId, string status, string userId)
+        public int InsertPullBackRequestData(string mpId, int clientId, string status, string userId, string pbReason)
         {
-            return db.Execute("[dbo].[usp_InsertPullBackRequestsData]", new { @MailPieceUniqueId = mpId, @ClientId = clientId, @Status = status, @RequestedOn = DateTime.UtcNow, @RequestedBy = string.IsNullOrEmpty(userId) ? DBNull.Value.ToString() : userId }, commandType: CommandType.StoredProcedure);
+            return db.Execute("[dbo].[usp_InsertPullBackRequestsData]", new { @MailPieceUniqueId = mpId, @ClientId = clientId, @Status = status, @RequestedOn = DateTime.UtcNow, @RequestedBy = string.IsNullOrEmpty(userId) ? DBNull.Value.ToString() : userId, @PBReasons = pbReason }, commandType: CommandType.StoredProcedure);
         }
 
         public int UpdateAMBatchStatus(string mpId)
@@ -88,20 +88,21 @@ namespace AM.Services
         }
 
         //public List<MailPieces> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, string docType, DateTime startDate, DateTime endDate, int clientId)
-        public List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, int clientId)
+        public List<MailPieceViewModel> GetPullBackRequestList(string businessFriendlyIdName, string businessFriendlyIdValue, int? docType, DateTime startDate, DateTime endDate, string channel, int clientId, string batchName)
         {
             string query = @"select m.BusinessFriendlyIdValue as BusinessIdValue,m.UniqueId,m.FileName,(m.RcptFirstName+ ' ' +m.RcptLastName) as Name,
-m.RcptAddressStreet as Address,m.TotalPages,m.TotalBlankPages,m.IsPullBackRequested,m.ShippingStatus as Status,m.DueDate,m.TrackingNo,m.ErrorCode,m.ErrorDesc,IsEDeliveryRequested,
-b.ReceivedOn,
-d.DocTypeName as DocType,
-c.AppCode 
-from AM.MailPieces m 
-inner join AM.MailBatches b on m.MailBatchId=b.Id
-inner join Common.Clients c on m.ClientId=c.Id
-LEFT OUTER JOIN [Profile].[Users] u on m.[PulledBackRequestedBy]=u.Id 
-left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
-left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
-where ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
+                            m.RcptAddressStreet as Address,m.TotalPages,m.TotalBlankPages,m.IsPullBackRequested,m.ShippingStatus as Status,m.DueDate,m.TrackingNo,m.ErrorCode,m.ErrorDesc,IsEDeliveryRequested,IsESignRequested,
+                            b.ReceivedOn,
+                            d.DocTypeName as DocType,
+                            c.AppCode 
+                            from AM.MailPieces m 
+                            inner join AM.MailBatches b on m.MailBatchId=b.Id
+                            inner join Common.Clients c on m.ClientId=c.Id
+                            LEFT OUTER JOIN Common.SFTChannels s on b.SFTChannelId=s.Id
+                            LEFT OUTER JOIN [Profile].[Users] u on m.[PulledBackRequestedBy]=u.Id 
+                            left outer join [AM].[DocTypes] d ON m.DocTypeId=d.Id 
+                            left outer join Common.PnSConfigDetail pcd ON m.PnSConfigDetailId = pcd.Id
+                            where m.ShippingStatus<>'Error' AND ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
 
             DynamicParameters parameter = new DynamicParameters();
             parameter.Add("@clientId", clientId);
@@ -115,10 +116,22 @@ where ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
                 query = string.Format("{0} and m.businessFriendlyIdValue=@businessFriendlyIdValue", query);
                 parameter.Add("@businessFriendlyIdValue", businessFriendlyIdValue);
             }
+
+            if (!batchName.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} and b.BatchName=@batchName", query);
+                parameter.Add("@batchName", batchName);
+            }
+
             if (docType.HasValue)
             {
-                query = string.Format("{0} and d.DocTypeName like @docType", query);
-                parameter.Add("@docType", $"{docType}|%");
+                query = string.Format("{0} and d.Id = @docTypeId", query);
+                parameter.Add("@docTypeId", docType);
+            }
+            if (!channel.IsNullOrWhiteSpace())
+            {
+                query = string.Format("{0} and s.Code = @sftChannelId", query);
+                parameter.Add("@sftChannelId", channel);
             }
             query = string.Format("{0} and b.ReceivedOn BETWEEN @startDate and @endDate order by b.ReceivedOn desc", query);
             parameter.Add("@startDate", startDate.ToStartDateTime().EstToUtc());
@@ -152,7 +165,7 @@ where ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
                         DateTime eastern = TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, Config.Web_API_PB_ClientTimeZone);
                         dataForPullBackForm.Add("RequestDateTime", eastern.ToString());
                         dataForPullBackForm.Add("FileName", string.Format("{0} {1}", item.PrintFileName, item.SubmittedOn == null ? string.Empty : item.SubmittedOn.Value.ToString("MM/dd/yy")));
-                        dataForPullBackForm.Add("JobNumber", item.PrintBatch.ToString());                        
+                        dataForPullBackForm.Add("JobNumber", item.PrintBatch.ToString());
                         dataForPullBackForm.Add("PackagesToPull", string.Format("{0}", item.PieceId.ToString()));
                         dataForPullBackForm.Add("Coordinator", string.Format("AuthoMail, ADE"));
                         dataForPullBackForm.Add("PkgInstruction", string.Empty);
@@ -164,7 +177,7 @@ where ((m.MailBatchId=b.Id and m.ClientId=c.Id) and b.ClientId=@clientId) ";
                         //Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, outputPdfPath);
                         if (item.VendorCode == "PCI")
                         {
-                            Helper.MailMerge(System.Web.Hosting.HostingEnvironment.MapPath(Config.Web_API_PB_PullBackForm_PCI), dataForPullBackForm, ref output); 
+                            Helper.MailMerge(System.Web.Hosting.HostingEnvironment.MapPath(Config.Web_API_PB_PullBackForm_PCI), dataForPullBackForm, ref output);
                         }
                         else if (item.VendorCode == "NORDIS")
                         {
