@@ -5,17 +5,9 @@ using System.Web;
 
 namespace AM.Web.Models
 {
-    public class AxisUsers
-    {
-        public AxisUsers()
-        {
-            this.users = new List<CLUser>();
-        }   
-        public List<CLUser> users { get; set; }
-    }
     public class CLUser
     {
-        public long id { get; set; }
+        public string id { get; set; }
         public string emailAddress { get; set; }
         public bool enabled { get; set; }
         public string firstName { get; set; }
