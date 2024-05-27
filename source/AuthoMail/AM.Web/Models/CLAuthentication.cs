@@ -43,13 +43,20 @@ namespace AM.Web.Models
                 HttpResponseMessage httpResponse = await httpClient.GetAsync(url);
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    var response = await httpResponse.Content.ReadAsStringAsync();
-
-                    var userInfo = JsonConvert.DeserializeObject<CLUser>(response);
-
-                    if (userInfo != null && userInfo.applicationCode.Contains("AUTHOMAIL"))
+                    if (Config.Common_Environment != "Prod")
                     {
                         return new KeyValuePair<bool, string>(true, "Valid user");
+                    }
+                    else
+                    {
+                        var response = await httpResponse.Content.ReadAsStringAsync();
+
+                        var userInfo = JsonConvert.DeserializeObject<CLUser>(response);
+
+                        if (userInfo != null && userInfo.applicationCode.Contains("AUTHOMAIL"))
+                        {
+                            return new KeyValuePair<bool, string>(true, "Valid user");
+                        }
                     }
                     return new KeyValuePair<bool, string>(false, "Not valid user");
                 }

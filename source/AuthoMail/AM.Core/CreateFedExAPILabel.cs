@@ -349,7 +349,7 @@ namespace AM.Core
                     PackageSpecialServices = new PackageSpecialServices()
                     {
                         SpecialServiceTypes = new List<string>() { "SIGNATURE_OPTION" },
-                        SignatureOptionType = SignatureOptionType.INDIRECT
+                        SignatureOptionType = SignatureOptionType.NO_SIGNATURE_REQUIRED
                     }
                 }
             };
