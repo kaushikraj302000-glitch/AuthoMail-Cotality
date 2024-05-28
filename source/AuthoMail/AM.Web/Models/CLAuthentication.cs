@@ -33,21 +33,30 @@ namespace AM.Web.Models
 
         public static async Task<KeyValuePair<bool, string>> IsValidCLUser(string username)
         {
+            var completeEmailId = $"{username.ToLower()}@corelogic.com";
             string token = await GenerateToken();
             using (HttpClient httpClient = new HttpClient())
             {
                 System.Net.ServicePointManager.SecurityProtocol |= System.Net.SecurityProtocolType.Tls11 | System.Net.SecurityProtocolType.Tls12;
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-                string url = $"{Config.CLAuth_UserDetailsUrl}".Replace("{OrganizationId}", Config.CLAuth_OrganizationId);
+                string url = $"{Config.CLAuth_UserDetailsUrl}".Replace("{OrganizationId}", Config.CLAuth_OrganizationId).Replace("{UserName}", completeEmailId);
                 HttpResponseMessage httpResponse = await httpClient.GetAsync(url);
                 if (httpResponse.IsSuccessStatusCode)
                 {
-                    var response = await httpResponse.Content.ReadAsStringAsync();
-                    var usersList = JsonConvert.DeserializeObject<AxisUsers>(response);
-                    if (usersList != null && usersList.users.Count() > 0)
+                    if (Config.Common_Environment != "Prod")
                     {
-                        if (usersList.users.Any(x => x.username.ToLower() == $"{username.ToLower()}@corelogic.com"))
+                        return new KeyValuePair<bool, string>(true, "Valid user");
+                    }
+                    else
+                    {
+                        var response = await httpResponse.Content.ReadAsStringAsync();
+
+                        var userInfo = JsonConvert.DeserializeObject<CLUser>(response);
+
+                        if (userInfo != null && userInfo.applicationCode.Contains("AUTHOMAIL"))
+                        {
                             return new KeyValuePair<bool, string>(true, "Valid user");
+                        }
                     }
                     return new KeyValuePair<bool, string>(false, "Not valid user");
                 }

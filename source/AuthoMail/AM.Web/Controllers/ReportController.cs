@@ -292,6 +292,7 @@ namespace AM.Web.Controllers
                     dataTable.Columns.Remove("PropertyCity");
                     dataTable.Columns.Remove("PropertyState");
                     dataTable.Columns.Remove("PropertyZip");
+                    dataTable.Columns.Remove("Flood_Determination_Date");
                 }
 
                 if (!gosClients.Select(x => x.Id).Intersect(clientId).Any())

@@ -66,6 +66,8 @@ namespace AM.Core
                             httpResponseMessage = await httpClient.PostAsync(Config.Common_FedExShippingLabelUrl, content);
                             if (httpResponseMessage.StatusCode == HttpStatusCode.OK)
                             {
+                                responseString = await httpResponseMessage.Content.ReadAsStringAsync();
+                                fedExResponse = JsonConvert.DeserializeObject<FedExResponse>(responseString);
                                 GenerateShipmentLabel(fedExResponse, mbi, ref response);
                                 return response;
                             }
@@ -347,7 +349,7 @@ namespace AM.Core
                     PackageSpecialServices = new PackageSpecialServices()
                     {
                         SpecialServiceTypes = new List<string>() { "SIGNATURE_OPTION" },
-                        SignatureOptionType = SignatureOptionType.INDIRECT
+                        SignatureOptionType = SignatureOptionType.NO_SIGNATURE_REQUIRED
                     }
                 }
             };
