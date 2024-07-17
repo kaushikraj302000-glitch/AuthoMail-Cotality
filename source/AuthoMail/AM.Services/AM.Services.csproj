@@ -72,6 +72,9 @@
     <Reference Include="NPOI.OpenXmlFormats, Version=2.4.1.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
       <HintPath>..\packages\NPOI.2.4.1\lib\net45\NPOI.OpenXmlFormats.dll</HintPath>
     </Reference>
+    <Reference Include="RestSharp, Version=106.15.0.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
+      <HintPath>..\packages\RestSharp.106.15.0\lib\net452\RestSharp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
@@ -201,6 +204,8 @@
     <Compile Include="Services\SupportService.cs" />
     <Compile Include="Services\USPSService.cs" />
     <Compile Include="Services\USPSService.eVS.cs" />
+    <Compile Include="Services\USPS\USPSENUMV3.cs" />
+    <Compile Include="Services\USPS\USPSV3.cs" />
     <Compile Include="Services\USPS\USPSService.TrackV2.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\Config.cs" />
@@ -231,6 +236,7 @@
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\FedExTrackShipmentService\TrackServiceDefinitions.wsdl" />
+    <Compile Include="Services\USPSService.eVSV3.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
