@@ -272,7 +272,7 @@ namespace AM.Console
 
                     var emResponseIds = ellieMaeResponses.Select(x => x.Id);
                     var takenRequestIds = responseBatch.Select(x => x.Id);
-                    var reportedIds = takenRequestIds.ToHashSet();
+                    var reportedIds = takenRequestIds;
                     var notReceivedInEM = takenRequestIds.Except(emResponseIds).ToList();
                     var notContainInAM = emResponseIds.Except(takenRequestIds).ToList();
                     if (notContainInAM.Count > 0 || notContainInAM.Count > 0)

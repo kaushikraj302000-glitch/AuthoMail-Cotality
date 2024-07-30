@@ -22,7 +22,7 @@ namespace AM.Entities.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -70,7 +70,7 @@ namespace AM.Entities.Properties {
         ///      &lt;!--&lt;xs:element minOccurs=&quot;1&quot; maxOccurs=&quot;1&quot; name=&quot;ShippingInfo&quot; type=&quot;tns:ShippingInfo&quot; /&gt;--&gt;
         ///      &lt;xs:element minOccurs=&quot;0&quot; maxOccurs= [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string MailingRequest {
+        public static string MailingRequest {
             get {
                 return ResourceManager.GetString("MailingRequest", resourceCulture);
             }

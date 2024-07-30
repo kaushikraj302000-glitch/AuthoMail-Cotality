@@ -50,7 +50,7 @@ namespace AM.Web.Controllers
 
         static MailRequestController()
         {
-            schemas.Add(null, XmlReader.Create(new StringReader(Entities.Properties.Resources.MailingRequest)));
+            schemas.Add(null, XmlReader.Create(new StringReader(AM.Entities.Properties.Resources.MailingRequest)));
         }
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
