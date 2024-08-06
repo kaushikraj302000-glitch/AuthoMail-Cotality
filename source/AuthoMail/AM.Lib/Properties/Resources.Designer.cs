@@ -97,7 +97,16 @@ namespace AM.Lib.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to -----BEGIN PGP PRIVATE KEY BLOCK-----
+        ///Version: BCPG C# v1.8.6.0
+        ///
+        ///lQPGBF9JJTEDCACMOFlRAvY3zbjQxoKJPFaI0Jb+GSg8sLfBw8HfekJdM0ULZsqE
+        ///nqjKgaGC28BeyQixc/wxoUcb0tq6054YzdAryfqq4oH28afpgS6em6LqcKfDT0pA
+        ///UkEcfFaJ0b2O3o+kLNa4I7HrY/cyyG4tGw/wjLSgd7uscsRUoF6TQ/O61Pyf8Y+b
+        ///o1PJPl+sz7MXu4Lsg3Do0L9om8g4O6Piv79JFbaznqeQKfqblF5UXRHOXvPZQiEK
+        ///LTybKtV0onMIulGzvfZugDA/rHBfxIYCCcMRsVwQuTU8+D2/mNs29LyTX9paV+gj
+        ///m1W8DUe1M1o+V8Wo4fWEryWXILrpvet0yu1hABEBAAH+CQMC0ylbUptajjtga/B5
+        ///KSlkF7f3bkEJIzm3za2MG4ZQEn1kBmkaeOBCkZf/30jYvvZ9 [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string PGP_Private_Key_Stage {
             get {

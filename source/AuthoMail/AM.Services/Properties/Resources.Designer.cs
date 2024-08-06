@@ -19,7 +19,7 @@ namespace AM.Services.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -61,7 +61,10 @@ namespace AM.Services.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to TRUNCATE TABLE [Common].[SystemSettings]
+        ///
+        ///INSERT INTO Common.SystemSettings (Id, DataType, Value, Description, IsSystem, DefaultValue, ModifiedBy, ModifiedOn) VALUES (&apos;CLAuth_EnabledAxisAuthentication&apos;, &apos;Boolean&apos;, &apos;false&apos;, &apos;Enable Axis Authentication&apos;, 0, &apos;1&apos;, (select Id From Profile.Users where UserName=&apos;system@milestonetechnoconsulting.com&apos;), GetDate())
+        ///INSERT INTO Common.SystemSettings (Id, DataType, Value, Description, IsSystem, DefaultValue, ModifiedBy, ModifiedOn) VALUES (&apos;CLAuth_OrganizationId&apos;, &apos; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string SeedAMSeetings {
             get {

@@ -19,7 +19,7 @@ namespace AM.Console.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -67,9 +67,9 @@ namespace AM.Console.Properties {
         ///  &lt;xs:complexType name=&quot;MailPiece&quot;&gt;
         ///    &lt;xs:all&gt;
         ///      &lt;xs:element minOccurs=&quot;1&quot; maxOccurs=&quot;1&quot; name=&quot;DocumentOrPackage&quot; type=&quot;DocumentOrPackage&quot; /&gt;
+        ///      &lt;xs:element minOccurs=&quot;0&quot; maxOccurs=&quot;1&quot; name=&quot;eDelivery&quot; type=&quot;eDelivery&quot; /&gt;
         ///      &lt;xs:element minOccurs=&quot;0&quot; maxOccurs=&quot;1&quot; name=&quot;RecipientInfo&quot; type=&quot;RecipientInfo&quot; /&gt;
-        ///      &lt;xs:element minOccurs=&quot;0&quot; maxOccurs=&quot;1&quot; name=&quot;ReturnInfo&quot; type=&quot;ReturnInfo&quot; /&gt;
-        ///    [rest of string was truncated]&quot;;.
+        ///      [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string AMMailPieceSchema {
             get {
@@ -98,11 +98,11 @@ namespace AM.Console.Properties {
         ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
         ///&lt;xs:schema xmlns:tns=&quot;http://schemas.corelogic.com/ade/authomail/v1.18.0&quot; elementFormDefault=&quot;qualified&quot; targetNamespace=&quot;http://schemas.corelogic.com/ade/authomail/v1.18.0&quot; xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
         ///
-        ///  &lt;xs:element name=&quot;MailBatch&quot; type=&quot;tns:MailBatch&quot; /&gt;
-        ///  &lt;xs:complexType name=&quot;MailBatch&quot;&gt;
-        ///    &lt;xs:all&gt;
-        ///      &lt;!--&lt;xs:element minOccurs=&quot;1&quot; maxOccurs=&quot;1&quot; name=&quot;ShippingInfo&quot; type=&quot;tns:ShippingInfo&quot; /&gt;--&gt;
-        ///      &lt;xs:element minOccurs=&quot;0&quot; maxOccurs= [rest of string was truncated]&quot;;.
+        ///	&lt;xs:element name=&quot;MailBatch&quot; type=&quot;tns:MailBatch&quot; /&gt;
+        ///	&lt;xs:complexType name=&quot;MailBatch&quot;&gt;
+        ///		&lt;xs:all&gt;
+        ///			&lt;!--&lt;xs:element minOccurs=&quot;1&quot; maxOccurs=&quot;1&quot; name=&quot;ShippingInfo&quot; type=&quot;tns:ShippingInfo&quot; /&gt;--&gt;
+        ///			&lt;xs:element minOccurs=&quot;0&quot; maxOccurs=&quot;1&quot; name=&quot; [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string MailingRequest {
             get {
