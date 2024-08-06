@@ -202,22 +202,22 @@ namespace AM.Services.V3
             // Convert the byte array to a Base64 string
             string base64String = string.Empty;
 
-            using (FileStream fileStream = new FileStream($@"C:\Users\dchhatriwala\Downloads\{file.FileName}", FileMode.Create))
+            //using (FileStream fileStream = new FileStream($@"C:\Users\dchhatriwala\Downloads\{file.FileName}", FileMode.Create))
+            //{
+            using (var reader = new StreamReader(file.Data))
             {
-                using (var reader = new StreamReader(file.Data))
-                {
-                    // Read and decode the base64 encoded content
+                // Read and decode the base64 encoded content
 
-                    base64String = reader.ReadToEnd();
+                base64String = reader.ReadToEnd();
 
-                    var decodedContent = Convert.FromBase64String(base64String);
+                //var decodedContent = Convert.FromBase64String(base64String);
 
-                    // Write the decoded content to disk
-                    var writer = new BinaryWriter(fileStream);
-                    writer.Write(decodedContent, 0, decodedContent.Length);
-                    writer.Close();
-                }
+                // Write the decoded content to disk
+                //var writer = new BinaryWriter(fileStream);
+                //writer.Write(decodedContent, 0, decodedContent.Length);
+                //writer.Close();
             }
+            //}
 
             return base64String;
         }

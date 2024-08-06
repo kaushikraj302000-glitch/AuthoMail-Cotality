@@ -21,7 +21,7 @@ namespace AM.Services
         {
             try
             {
-                if (bool.Parse(ConfigurationManager.AppSettings["UseUSPSAPI"].ToString()))
+                if (bool.Parse(ConfigurationManager.AppSettings["UseUSPSV3API"].ToString()))
                 {
                     return await this.RequesteVSLabelAPIAsync(userId, request, uspsUserInfo);
                 }
