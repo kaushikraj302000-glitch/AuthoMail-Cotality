@@ -357,8 +357,9 @@ namespace AM.Services
 
                         if (isUSPSError)
                         {
-                            var err = responseXML.Deserialize<Error>();
-                            eVSresponse = new eVSResponse { Error = new USPSError() { Number = err.code, Description = err.message } };
+                            Error err = responseV3.Error;
+
+                            eVSresponse = new eVSResponse { Error = new USPSError() { Number = err.code, Description = err.message, Source = JsonConvert.SerializeObject(err.errors) } };
                         }
                     }
                     catch (Exception ex)
