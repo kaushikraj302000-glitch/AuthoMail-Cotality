@@ -76,7 +76,7 @@ namespace AM.Services
 
                         if (dayOfWeek == DayOfWeek.Saturday)
                         {
-                            uspsCutOffDetail = Config.USPSLabelCutOffDetails.SingleOrDefault(u => u.SatStartTime >= estTime.TimeOfDay && u.SatEndTime <= estTime.TimeOfDay);
+                            uspsCutOffDetail = Config.USPSLabelCutOffDetails.SingleOrDefault(u => estTime.TimeOfDay >= u.SatStartTime && estTime.TimeOfDay <= u.SatEndTime);
                         }
                         else
                         {
@@ -268,7 +268,7 @@ namespace AM.Services
 
                     if (dayOfWeek == DayOfWeek.Saturday)
                     {
-                        uspsCutOffDetail = Config.USPSLabelCutOffDetails.SingleOrDefault(u => u.SatStartTime >= estTime.TimeOfDay && u.SatEndTime <= estTime.TimeOfDay);
+                        uspsCutOffDetail = Config.USPSLabelCutOffDetails.SingleOrDefault(u => estTime.TimeOfDay >= u.SatStartTime && estTime.TimeOfDay <= u.SatEndTime);
                     }
                     else
                     {
