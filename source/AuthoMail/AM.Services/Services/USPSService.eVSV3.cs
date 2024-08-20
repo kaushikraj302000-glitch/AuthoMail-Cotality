@@ -5,6 +5,7 @@ using RestSharp;
 using RestSharp.Authenticators;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -29,7 +30,9 @@ namespace AM.Services.V3
 
         public USPSAPIClient(string apiKey, string apiKeySecret)
         {
-            baseUSPSURL = "https://api-cat.usps.com";
+            var apiUrl = ConfigurationManager.AppSettings["USPSAPIUrl"].ToString();
+            //baseUSPSURL = "https://api-cat.usps.com";
+            baseUSPSURL = apiUrl;
 
             var options = new RestClientOptions(baseUSPSURL)
             {
@@ -107,7 +110,7 @@ namespace AM.Services.V3
                 try
                 {
                     // Execute request and handle response
-                    var resp = await _client.ExecuteAsync(request);
+                    var resp = await _client.ExecuteAsync(request).ConfigureAwait(false);
 
                     if (!resp.IsSuccessful)
                     {
@@ -165,7 +168,7 @@ namespace AM.Services.V3
                     }
                     else
                     {
-                        var err = JsonConvert.DeserializeObject<AddressErrorResponseV3>(resp.Content.Replace(@"\", @"\\"));
+                        var err = JsonConvert.DeserializeObject<AddressErrorResponseV3>(resp.Content?.Replace(@"\", @"\\"));
                         response.Error = err.error;
                     }
                 }
@@ -289,42 +292,49 @@ namespace AM.Services.V3
 
                 //var requestJson = new USPSTokenRequest { ClientId = "6oZjA4lgwGPfJCHSeHpnxitxupQ1qGi0", ClientPassword = "Kp1Alu4oHV9G6WB6" };
 
-                var options = new RestClientOptions(_baseUrl)
+                try
                 {
-                    Authenticator = new HttpBasicAuthenticator(_clientId, _clientSecret),
-                };
+                    var options = new RestClientOptions(_baseUrl)
+                    {
+                        Authenticator = new HttpBasicAuthenticator(_clientId, _clientSecret),
+                    };
 
-                using (var client = new RestClient(options))
+                    using (var client = new RestClient(options))
+                    {
+                        if (this._baseUrl.StartsWith("https", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+                        }
+
+                        var requestJson = new USPSTokenRequest { client_id = _clientId, client_secret = _clientSecret, grant_type = "client_credentials" };
+
+                        var request = new RestRequest("oauth2/v3/token", Method.Post);
+                        request.AddHeader("Content-Type", "application/json");
+
+                        request.AddJsonBody(requestJson);
+
+                        //var json = JsonConvert.SerializeObject(requestJson);
+
+                        //request.AddJsonBody(json);
+
+                        response = await client.PostAsync<USPSTokenResponse>(request).ConfigureAwait(false);
+
+                        //if (resp != null && resp.IsSuccessful)
+                        //{
+                        //    response = JsonConvert.DeserializeObject<USPSTokenResponse>(resp.Content);
+                        //}
+
+                        if (response != null)
+                        {
+                            int expires_in = Convert.ToInt32(response.expires_in);
+                            DateTime tokenLife = DateTime.Now.AddSeconds(expires_in);
+                            expiredTime = tokenLife;
+                        }
+                    }
+                }
+                catch (Exception ex)
                 {
-                    if (this._baseUrl.StartsWith("https", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
-                    }
-
-                    var requestJson = new USPSTokenRequest { client_id = _clientId, client_secret = _clientSecret };
-
-                    var request = new RestRequest("oauth2/v3/token", Method.Post);
-                    request.AddHeader("Content-Type", "application/json");
-
-                    request.AddJsonBody(requestJson);
-
-                    //var json = JsonConvert.SerializeObject(requestJson);
-
-                    //request.AddJsonBody(json);
-
-                    response = await client.PostAsync<USPSTokenResponse>(request).ConfigureAwait(false);
-
-                    //if (resp != null && resp.IsSuccessful)
-                    //{
-                    //    response = JsonConvert.DeserializeObject<USPSTokenResponse>(resp.Content);
-                    //}
-
-                    if (response != null)
-                    {
-                        int expires_in = Convert.ToInt32(response.expires_in);
-                        DateTime tokenLife = DateTime.Now.AddSeconds(expires_in);
-                        expiredTime = tokenLife;
-                    }
+                    var m = ex.ToString();
                 }
 
                 return $"{response?.token_type} {response?.access_token}";
@@ -333,13 +343,38 @@ namespace AM.Services.V3
     }
     public class IgnoreNullResolver : DefaultContractResolver
     {
+        //protected override JsonProperty CreateProperty(System.Reflection.MemberInfo member, MemberSerialization memberSerialization)
+        //{
+        //    JsonProperty property = base.CreateProperty(member, memberSerialization);
+        //    property.ShouldSerialize = instance =>
+        //    {
+        //        return property.PropertyType.IsValueType ? true : instance != null;
+        //    };
+        //    return property;
+        //}
+
         protected override JsonProperty CreateProperty(System.Reflection.MemberInfo member, MemberSerialization memberSerialization)
         {
             JsonProperty property = base.CreateProperty(member, memberSerialization);
-            property.ShouldSerialize = instance =>
+
+            if (property.PropertyType == typeof(string))
             {
-                return property.PropertyType.IsValueType ? true : instance != null;
-            };
+                property.ShouldSerialize = instance =>
+                {
+                    var value = property.ValueProvider.GetValue(instance) as string;
+                    return !string.IsNullOrWhiteSpace(value);
+                };
+            }
+            else if (typeof(System.Collections.IEnumerable).IsAssignableFrom(property.PropertyType) &&
+                     property.PropertyType != typeof(string))
+            {
+                property.ShouldSerialize = instance =>
+                {
+                    var value = property.ValueProvider.GetValue(instance) as System.Collections.IEnumerable;
+                    return value != null && value.GetEnumerator().MoveNext();
+                };
+            }
+
             return property;
         }
     }

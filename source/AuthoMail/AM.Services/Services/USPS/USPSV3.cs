@@ -32,47 +32,50 @@ namespace AM.Services.V3
 
         public eVSRequestV3(AM.USPSLib.eVSLabelRequest eVSLabelRequest)
         {
-            this.imageInfo = new ImageInfo { imageType = eVSLabelRequest.ImageType.Value, labelType = eVSLabelRequest.LabelParameters.Size.Value, shipInfo = eVSLabelRequest.ShipInfo, receiptOption = eVSLabelRequest.ReceiptOption.Value, suppressPostage = true, suppressMailDate = true, returnLabel = eVSLabelRequest.ReturnCommitments };
+            this.imageInfo = new ImageInfo { imageType = eVSLabelRequest.ImageType.Value, labelType = eVSLabelRequest.LabelParameters.Size.Value, shipInfo = eVSLabelRequest.ShipInfo, receiptOption = eVSLabelRequest.ReceiptOption ?? ReceiptOption.None, suppressPostage = true, suppressMailDate = true, returnLabel = eVSLabelRequest.ReturnCommitments };
 
-            this.toAddress = new ToAddress { streetAddress = eVSLabelRequest.ToStreetAddress, secondaryAddress = eVSLabelRequest.ToAptOrSuiteorOther, city = eVSLabelRequest.ToCity, state = eVSLabelRequest.ToState, ZIPCode = eVSLabelRequest.ToZip5, ZIPPlus4 = eVSLabelRequest.ToZip4, firm = eVSLabelRequest.ToFirm, email = eVSLabelRequest.ToContactEmail, phone = eVSLabelRequest.ToPhone, firstName = eVSLabelRequest.ToName, ignoreBadAddress = true, parcelLockerDelivery = false, holdForPickup = false };
+            this.toAddress = new ToAddress { streetAddress = eVSLabelRequest.ToStreetAddress, secondaryAddress = eVSLabelRequest.ToAptOrSuiteorOther, city = eVSLabelRequest.ToCity, state = eVSLabelRequest.ToState, ZIPCode = eVSLabelRequest.ToZip5, ZIPPlus4 = eVSLabelRequest.ToZip4, firm = eVSLabelRequest.ToFirm, email = eVSLabelRequest.ToContactEmail, phone = eVSLabelRequest.ToPhone, firstName = eVSLabelRequest.ToName, ignoreBadAddress = false, parcelLockerDelivery = false, holdForPickup = false };
 
-            this.fromAddress = new FromAddress { streetAddress = eVSLabelRequest.FromStreetAddress, secondaryAddress = eVSLabelRequest.FromAptOrSuiteorOther, city = eVSLabelRequest.FromCity, state = eVSLabelRequest.FromState, ZIPCode = eVSLabelRequest.FromZip5, ZIPPlus4 = eVSLabelRequest.FromZip4, firm = eVSLabelRequest.FromFirm, email = eVSLabelRequest.SenderEMail, phone = eVSLabelRequest.FromPhone, firstName = eVSLabelRequest.FromName, ignoreBadAddress = true };
+            this.fromAddress = new FromAddress { streetAddress = eVSLabelRequest.FromStreetAddress, secondaryAddress = eVSLabelRequest.FromAptOrSuiteorOther, city = eVSLabelRequest.FromCity, state = eVSLabelRequest.FromState, ZIPCode = eVSLabelRequest.FromZip5, ZIPPlus4 = eVSLabelRequest.FromZip4, firm = eVSLabelRequest.FromFirm, email = eVSLabelRequest.SenderEMail, phone = eVSLabelRequest.FromPhone, firstName = eVSLabelRequest.FromName, ignoreBadAddress = false };
 
-            this.senderAddress = new SenderAddress { streetAddress = eVSLabelRequest.FromStreetAddress, secondaryAddress = eVSLabelRequest.FromAptOrSuiteorOther, city = eVSLabelRequest.FromCity, state = eVSLabelRequest.FromState, ZIPCode = eVSLabelRequest.FromZip5, ZIPPlus4 = eVSLabelRequest.FromZip4, firm = eVSLabelRequest.FromFirm, email = eVSLabelRequest.SenderEMail, phone = eVSLabelRequest.FromPhone, firstName = eVSLabelRequest.SenderName, ignoreBadAddress = true };
+            this.senderAddress = new SenderAddress { streetAddress = eVSLabelRequest.FromStreetAddress, secondaryAddress = eVSLabelRequest.FromAptOrSuiteorOther, city = eVSLabelRequest.FromCity, state = eVSLabelRequest.FromState, ZIPCode = eVSLabelRequest.FromZip5, ZIPPlus4 = eVSLabelRequest.FromZip4, firm = eVSLabelRequest.FromFirm, email = eVSLabelRequest.SenderEMail, phone = eVSLabelRequest.FromPhone, firstName = eVSLabelRequest.SenderName, ignoreBadAddress = false };
 
-            this.returnAddress = new ReturnAddress { streetAddress = eVSLabelRequest.FromStreetAddress, secondaryAddress = eVSLabelRequest.FromAptOrSuiteorOther, city = eVSLabelRequest.FromCity, state = eVSLabelRequest.FromState, ZIPCode = eVSLabelRequest.FromZip5, ZIPPlus4 = eVSLabelRequest.FromZip4, firm = eVSLabelRequest.FromFirm, email = eVSLabelRequest.SenderEMail, phone = eVSLabelRequest.FromPhone, firstName = eVSLabelRequest.SenderName, ignoreBadAddress = true };
+            this.returnAddress = new ReturnAddress { streetAddress = eVSLabelRequest.FromStreetAddress, secondaryAddress = eVSLabelRequest.FromAptOrSuiteorOther, city = eVSLabelRequest.FromCity, state = eVSLabelRequest.FromState, ZIPCode = eVSLabelRequest.FromZip5, ZIPPlus4 = eVSLabelRequest.FromZip4, firm = eVSLabelRequest.FromFirm, email = eVSLabelRequest.SenderEMail, phone = eVSLabelRequest.FromPhone, firstName = eVSLabelRequest.SenderName, ignoreBadAddress = false };
 
             int weightValue = 0;
             int.TryParse(eVSLabelRequest.WeightInOunces, out weightValue);
 
-            this.packageDescription = new PackageDescription { weight = weightValue, length = eVSLabelRequest.Length, width = eVSLabelRequest.Width, height = eVSLabelRequest.Height, girth = 0, mailClass = eVSLabelRequest.ServiceType, processingCategory = eVSLabelRequest.Machinable, destinationEntryFacilityType = eVSLabelRequest.DestinationEntryFacilityType, mailingDate = eVSLabelRequest.ShipDate?.ToShortDateString(), carrierRelease = eVSLabelRequest.CarrierRelease, packageOptions = new PackageOptions { nonDeliveryOption = eVSLabelRequest?.eVSCustomsFormsData?.NonDeliveryOption, contentType = eVSLabelRequest.Content.ContentType }, extraServices = eVSLabelRequest.ExtraServices };
+            this.packageDescription = new PackageDescription { weight = weightValue, length = eVSLabelRequest.Length ?? 12.5m, width = eVSLabelRequest.Width ?? 9.5m, height = eVSLabelRequest.Height ?? 0.1m, /*girth = 0.0m,*/ mailClass = eVSLabelRequest.ServiceType, processingCategory = eVSLabelRequest.Machinable, destinationEntryFacilityType = eVSLabelRequest.DestinationEntryFacilityType ?? DestinationEntryFacilityType.None, mailingDate = eVSLabelRequest.ShipDate?.ToString("yyyy-MM-dd"), carrierRelease = eVSLabelRequest.CarrierRelease, packageOptions = new PackageOptions { nonDeliveryOption = eVSLabelRequest?.eVSCustomsFormsData?.NonDeliveryOption, contentType = eVSLabelRequest.Content?.ContentType }, extraServices = eVSLabelRequest.ExtraServices ?? new List<ExtraServiceType> { ExtraServiceType.USPS_Tracking_Electronic }, rateIndicator = RateIndicator.Flat_Rate_Envelope };
 
-            this.customsForm = new CustomsForm
+            if (eVSLabelRequest?.eVSCustomsFormsData != null)
             {
-                contentComments = eVSLabelRequest?.eVSCustomsFormsData?.ContentComments,
-                restrictionType = eVSLabelRequest?.eVSCustomsFormsData?.RestrictionType,
-                restrictionComments = eVSLabelRequest?.eVSCustomsFormsData?.RestrictionComments,
-                AESITN = eVSLabelRequest?.eVSCustomsFormsData?.AESITN,
-                invoiceNumber = eVSLabelRequest?.eVSCustomsFormsData?.InvoiceNumber,
-                licenseNumber = eVSLabelRequest?.eVSCustomsFormsData?.LicenseNumber,
-                certificateNumber = eVSLabelRequest?.eVSCustomsFormsData?.CertificateNumber,
-                customsContentType = eVSLabelRequest?.eVSCustomsFormsData?.CustomsContentType,
-                importersReference = eVSLabelRequest?.eVSCustomsFormsData?.ImportersReference,
-                importersContact = eVSLabelRequest?.eVSCustomsFormsData?.ImportersContact,
-                exportersReference = eVSLabelRequest?.eVSCustomsFormsData?.ExportersReference,
-                exportersContact = eVSLabelRequest?.eVSCustomsFormsData?.ExportersContact,
-                contents = eVSLabelRequest?.eVSCustomsFormsData?.ShippingContents?.Select(s => new Content
+                this.customsForm = new CustomsForm
                 {
-                    itemDescription = s.Description,
-                    itemQuantity = s.Quantity,
-                    itemValue = s.Value,
-                    itemTotalValue = s.Value,
-                    itemWeight = (s.NetPounds + s.NetOunces),
-                    itemTotalWeight = (s.NetPounds + s.NetOunces),
-                    HSTariffNumber = s.HSTariffNumber,
-                    countryofOrigin = s.CountryOfOrigin
-                }).ToList()
-            };
+                    contentComments = eVSLabelRequest?.eVSCustomsFormsData?.ContentComments,
+                    restrictionType = eVSLabelRequest?.eVSCustomsFormsData?.RestrictionType,
+                    restrictionComments = eVSLabelRequest?.eVSCustomsFormsData?.RestrictionComments,
+                    AESITN = eVSLabelRequest?.eVSCustomsFormsData?.AESITN,
+                    invoiceNumber = eVSLabelRequest?.eVSCustomsFormsData?.InvoiceNumber,
+                    licenseNumber = eVSLabelRequest?.eVSCustomsFormsData?.LicenseNumber,
+                    certificateNumber = eVSLabelRequest?.eVSCustomsFormsData?.CertificateNumber,
+                    customsContentType = eVSLabelRequest?.eVSCustomsFormsData?.CustomsContentType,
+                    importersReference = eVSLabelRequest?.eVSCustomsFormsData?.ImportersReference,
+                    importersContact = eVSLabelRequest?.eVSCustomsFormsData?.ImportersContact,
+                    exportersReference = eVSLabelRequest?.eVSCustomsFormsData?.ExportersReference,
+                    exportersContact = eVSLabelRequest?.eVSCustomsFormsData?.ExportersContact,
+                    contents = eVSLabelRequest?.eVSCustomsFormsData?.ShippingContents?.Select(s => new Content
+                    {
+                        itemDescription = s.Description,
+                        itemQuantity = s.Quantity,
+                        itemValue = s.Value,
+                        itemTotalValue = s.Value,
+                        itemWeight = (s.NetPounds + s.NetOunces),
+                        itemTotalWeight = (s.NetPounds + s.NetOunces),
+                        HSTariffNumber = s.HSTariffNumber,
+                        countryofOrigin = s.CountryOfOrigin
+                    }).ToList()
+                };
+            }
         }
     }
 
