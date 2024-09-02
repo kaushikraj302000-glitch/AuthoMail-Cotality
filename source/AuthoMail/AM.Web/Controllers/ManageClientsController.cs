@@ -19,7 +19,7 @@ namespace AM.Web.Controllers
         }
         // GET: ManageClients
 
-        
+
 
         public ActionResult SignUpRequest()
         {
@@ -28,7 +28,7 @@ namespace AM.Web.Controllers
 
         public ActionResult GetSingUpRequestedList()
         {
-            var model = supportSvc.GetUsersRequestSignUp();
+            var model = supportSvc.GetUsersRequestSignUp("");
             return Json(JsonResponseFactory.SuccessResponse(new { model = model }), JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
@@ -36,7 +36,7 @@ namespace AM.Web.Controllers
         {
             try
             {
-                var model = supportSvc.UpdateUsersRequestSignUp(userId, status);
+                var model = supportSvc.UpdateUsersRequestSignUp("1", userId, status);
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)

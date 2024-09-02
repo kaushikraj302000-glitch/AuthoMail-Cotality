@@ -20,6 +20,7 @@ using System.Dynamic;
 using Newtonsoft.Json;
 using System.Text;
 using System.Net;
+using Microsoft.AspNet.SignalR.Hosting;
 
 namespace AM.Web.Controllers
 {
@@ -35,6 +36,8 @@ namespace AM.Web.Controllers
         IDocTypeService docTypeSvc;
         IMailPieceService mailpieceSvc;
         ICommonService commonSvc;
+        IScannerService scannerSvc;
+
         private AMSignInManager _signInManager;
         private AMUserManager _userManager;
         //private readonly IClientPermissionService clientPermissionSvc;
@@ -49,6 +52,7 @@ namespace AM.Web.Controllers
             this.commonSvc = commonSvc;
             UserManager = userManager;
             SignInManager = signInManager;
+            this.scannerSvc = new ScannerService();
             //this.clientPermissionSvc = clientPermissionSvc;
         }
         public AMUserManager UserManager
@@ -170,29 +174,55 @@ namespace AM.Web.Controllers
         //}
 
         [HttpGet]
-        public async Task<ActionResult> DownloadPdf(int mpId, string fileName, string serverIP)
+        public async Task<ActionResult> DownloadPdf(string uniqueId)
         {
             try
             {
-                HttpClient client = new HttpClient();
-                client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
-                HttpResponseMessage response = new HttpResponseMessage();
-                response = await client.GetAsync($@"{Config.Web_Pdf_API_Url.Replace("ServerIP", serverIP)}\DownloadPdf?fileId={mpId}");
-                if (response.IsSuccessStatusCode)
+                //HttpClient client = new HttpClient();
+                //client.DefaultRequestHeaders.Add("Id", "5b189031-eecc-42d7-8b6d-b531caf1036e");
+                //HttpResponseMessage response = new HttpResponseMessage();
+                //var route = $@"http://localhost:17005/api/PdfAPI/DownloadPdf?fileId={mpId}";
+                //response = await client.GetAsync(route);
+                //if (response.IsSuccessStatusCode)
+                //{
+                //    var stream = await response.Content.ReadAsByteArrayAsync();
+                //    var pdfFileName = Path.GetFileName(fileName);
+                //    return File(stream, "application/pdf", pdfFileName);
+                //}
+                //else
+                //{
+                //    return Json(JsonResponseFactory.ErrorResponse("File not found."));
+                //}
+
+                var fileInfo = scannerSvc.GetDocumentInfo(uniqueId);
+
+                if (fileInfo == null)
                 {
-                    var stream = await response.Content.ReadAsByteArrayAsync();
-                    var pdfFileName = Path.GetFileName(fileName);
-                    return File(stream, "application/pdf", pdfFileName);
+                    //Throw 404 (Not Found) exception if File not found.
+
+                    return Json(JsonResponseFactory.ErrorResponse("File not found."), JsonRequestBehavior.AllowGet);
                 }
-                else
+
+                var fileName = $"{fileInfo.Id}_{fileInfo.FileName}";
+
+                var filePath = Path.Combine(Config.PnS_PCIRootFolder, fileInfo.AppCode, fileInfo.JobId.ToString(), "PCIRequest", fileName);
+
+                log.Debug($"File Path : {filePath} ");
+                //Check whether File exists.
+                if (!System.IO.File.Exists(filePath))
                 {
-                    return Json(JsonResponseFactory.ErrorResponse("File not found."));
+                    //Throw 404 (Not Found) exception if File not found.
+                    return Json(JsonResponseFactory.ErrorResponse("File not found."), JsonRequestBehavior.AllowGet);
                 }
+
+                //Read the File into a Byte Array.
+                byte[] bytes = System.IO.File.ReadAllBytes(filePath);
+                return File(bytes, "application/pdf", fileName);
             }
             catch (Exception ex)
             {
                 log.Error(ex.ToString());
-                return Json(JsonResponseFactory.ErrorResponse(ex.Message));
+                return Json(JsonResponseFactory.ErrorResponse(ex.Message), JsonRequestBehavior.AllowGet);
             }
         }
 
