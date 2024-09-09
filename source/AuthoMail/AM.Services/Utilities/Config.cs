@@ -329,8 +329,23 @@ namespace AM.Services
                 USPSCredentialDetails = commonSvc.GetUSPSCredentialDetails();
             }
 
+            string ipv4Pattern = @"^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+             25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+             25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+             25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$";
             IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-            Common_ServerIP = ipHostInfo.AddressList[0].ToString();
+
+            foreach (var ip in ipHostInfo.AddressList)
+            {
+                var isValid = Regex.IsMatch(ip.ToString(), ipv4Pattern);
+
+                if (isValid)
+                {
+                    Common_ServerIP = ip.ToString();
+                    break;
+                }
+            }
+
         }
 
         private static void InitializeProperties<T>()

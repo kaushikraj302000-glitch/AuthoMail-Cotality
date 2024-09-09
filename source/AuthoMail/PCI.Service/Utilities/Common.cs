@@ -12,6 +12,7 @@ using PCI.Service;
 using System.Data;
 using log4net;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace PCI.Service
 {
@@ -168,9 +169,24 @@ namespace PCI.Service
                 DocGenAPIUrl = sysSettings["Common_DocGen_API"];
                 ManifestTemplatePath = sysSettings["PnS_ManifestTemplatePath"];
 
+                string ipv4Pattern = @"^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+                25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+                25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+                25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$";
+                 IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
 
-                IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-                ServerIP = ipHostInfo.AddressList[0].ToString();
+                foreach (var ip in ipHostInfo.AddressList)
+                {
+                    var isValid = Regex.IsMatch(ip.ToString(), ipv4Pattern);
+
+                    if (isValid)
+                    {
+                        ServerIP = ip.ToString();
+                        break;
+                    }
+                }
+
+                
             }
             catch (Exception ex)
             {
