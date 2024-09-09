@@ -53,7 +53,7 @@ namespace AM.Console
                 return;
             }
 
-            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000, SFTChannel.Port);
             sftSite.Connect();
 
             List<string> triggerFilePaths = GetTriggerFilePaths(sftSite);
@@ -349,7 +349,7 @@ namespace AM.Console
 
             var mailBatchSFTChannel = clientSvc.GetSFTChannelDetailsBySFTChannelId(mailBatch.SFTChannelId).Result;
 
-            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(mailBatchSFTChannel.Protocol), mailBatchSFTChannel.Host, mailBatchSFTChannel.UserName, mailBatchSFTChannel.Password, 300000);
+            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(mailBatchSFTChannel.Protocol), mailBatchSFTChannel.Host, mailBatchSFTChannel.UserName, mailBatchSFTChannel.Password, 300000, mailBatchSFTChannel.Port);
             sftSite.Connect();
 
             sftSite.UploadFile(invalidBatchPath, remoteFilePath);
@@ -1050,7 +1050,7 @@ namespace AM.Console
                 string errorGoFilePath = Path.Combine(mbi.AMResponsePath, errorGoFileName);
                 string ftpErrorGoUploadPath = Path.Combine(deliverable.UploadPath, errorGoFileName);
 
-                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000);
+                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(SFTChannel.Protocol), SFTChannel.Host, SFTChannel.UserName, SFTChannel.Password, 300000, SFTChannel.Port);
                 sftSite.Connect();
 
                 var ftpUploadPath = Path.Combine(deliverable.UploadPath, errorReportFileName);

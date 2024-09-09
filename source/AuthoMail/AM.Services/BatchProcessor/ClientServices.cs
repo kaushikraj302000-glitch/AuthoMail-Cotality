@@ -64,7 +64,7 @@ namespace AM.Services
 
         public async Task<SFTChannel> GetSFTChannelDetailsBySFTChannelId(int sftChannelId)
         {
-            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction, APITokenURL, APIResponseURL, APIMaxResponseCount, APITokenHeaders, ServerIP FROM [Common].[SFTChannels] WHERE Id=@sftChannelId AND IsActive=1";
+            string query = "SELECT Id, Code, Description, Title, Protocol, Port, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction, APITokenURL, APIResponseURL, APIMaxResponseCount, APITokenHeaders, ServerIP FROM [Common].[SFTChannels] WHERE Id=@sftChannelId AND IsActive=1";
 
             var data = await db.QuerySingleOrDefaultAsync<SFTChannel>(query, new { sftChannelId = sftChannelId });
             return data;
@@ -72,7 +72,7 @@ namespace AM.Services
 
         public async Task<List<SFTChannel>> GetSFTChannelDetailsByServerIP(string serverIP)
         {
-            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction, APITokenURL, APIResponseURL, APIMaxResponseCount, APITokenHeaders, ServerIP FROM [Common].[SFTChannels] WHERE ServerIP=@ServerIP AND IsActive=1";
+            string query = "SELECT Id, Code, Description, Title, Protocol, Port, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction, APITokenURL, APIResponseURL, APIMaxResponseCount, APITokenHeaders, ServerIP FROM [Common].[SFTChannels] WHERE ServerIP=@ServerIP AND IsActive=1";
 
             var data = await db.QueryAsync<SFTChannel>(query, new { ServerIP = serverIP });
             return data.ToList();
@@ -80,7 +80,7 @@ namespace AM.Services
 
         public SFTChannel GetSFTChannelDetailsBySFTChannelCode(string sftChannelCode)
         {
-            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction, APITokenURL, APIResponseURL, APIMaxResponseCount, APITokenHeaders, ServerIP FROM [Common].[SFTChannels] WHERE Code=@sftChannelCode AND IsActive=1";
+            string query = "SELECT Id, Code, Description, Title, Protocol, Port, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction, APITokenURL, APIResponseURL, APIMaxResponseCount, APITokenHeaders, ServerIP FROM [Common].[SFTChannels] WHERE Code=@sftChannelCode AND IsActive=1";
 
             var data = db.QuerySingleOrDefault<SFTChannel>(query, new { sftChannelCode = sftChannelCode });
             return data;
@@ -108,7 +108,7 @@ namespace AM.Services
 
         public List<SFTChannel> GetUncSFTChannelDetails()
         {
-            string query = "SELECT Id, Code, Description, Title, Protocol, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction, APITokenURL, APIResponseURL, APIMaxResponseCount, APITokenHeaders, ServerIP FROM [Common].[SFTChannels] WHERE Protocol = 'unc' AND PostDownloadAction ='Archive' AND CODE IN ('PENFED_Prod', 'GOS_Prod', 'FLOODINTEGRATION_Prod', 'BECU_Prod', 'DELFUS_Prod', 'API_ELLIEMAE_Prod', 'WEBREQUEST_Prod', 'API_AMC_Prod', 'DOCSOL_Prod', 'FAM_Prod', 'ORACLEINVOICES_Prod')";
+            string query = "SELECT Id, Code, Description, Title, Protocol, Port, Host, UserName, Password, ToADEDir, FromADEDir, ArchiveDir, PostDownloadAction, APITokenURL, APIResponseURL, APIMaxResponseCount, APITokenHeaders, ServerIP FROM [Common].[SFTChannels] WHERE Protocol = 'unc' AND PostDownloadAction ='Archive' AND CODE IN ('PENFED_Prod', 'GOS_Prod', 'FLOODINTEGRATION_Prod', 'BECU_Prod', 'DELFUS_Prod', 'API_ELLIEMAE_Prod', 'WEBREQUEST_Prod', 'API_AMC_Prod', 'DOCSOL_Prod', 'FAM_Prod', 'ORACLEINVOICES_Prod')";
 
             var data = db.Query<SFTChannel>(query).ToList();
             return data;

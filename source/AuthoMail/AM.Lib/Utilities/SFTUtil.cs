@@ -15,7 +15,7 @@ namespace AM.Lib
     {
         private NetworkCredential Credentials { get; set; }
 
-        public SFTUtil(SFT_ProtocolType protocol, string hostURL, string username, string password, int keepAliveInterval)
+        public SFTUtil(SFT_ProtocolType protocol, string hostURL, string username, string password, int keepAliveInterval, int? port = null)
         {
             Protocol = protocol;
             HostURL = hostURL;
@@ -23,6 +23,7 @@ namespace AM.Lib
             Password = password;
             Credentials = new NetworkCredential(username, password);
             KeepAliveInterval = keepAliveInterval;
+            Port = port;
         }
 
         public SFT_ProtocolType Protocol { get; private set; }
@@ -30,6 +31,7 @@ namespace AM.Lib
         public string Username { get; private set; }
         public string Password { get; private set; }
         public int KeepAliveInterval { get; set; }
+        public int? Port { get; set; }
 
         private string GetUrl(string givenUrl)
         {
@@ -123,7 +125,11 @@ namespace AM.Lib
             }
             else
             {
-                SFTP_Client = new SftpClient(HostURL, Username, Password);
+                if (Port.HasValue)
+                    SFTP_Client = new SftpClient(HostURL, Port.Value, Username, Password);
+                else
+                    SFTP_Client = new SftpClient(HostURL, Username, Password);
+
                 SFTP_Client.KeepAliveInterval = TimeSpan.FromSeconds(KeepAliveInterval);
                 SFTP_Client.ConnectionInfo.Timeout = TimeSpan.FromSeconds(KeepAliveInterval);
 
@@ -354,7 +360,7 @@ namespace AM.Lib
                 {
                     SFTP_Client.Connect();
                 }
-
+                
                 if (SFTP_Client.Get(GetUrl(remoteFilePath)).IsRegularFile)
                 {
                     Stream localFileStrm = File.Create(localFilePath);
@@ -683,7 +689,7 @@ namespace AM.Lib
                     SFTP_Client.Disconnect();
                 }
             }
-        }        
+        }
 
         public void Disconnect()
         {

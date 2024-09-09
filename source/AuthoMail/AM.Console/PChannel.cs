@@ -368,7 +368,7 @@ namespace AM.Console
                         {
                             try
                             {
-                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
+                                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000, sftChannelDetails.Port);
                                 sftSite.Connect();
 
                                 //TODO: Remove switch case after proper logic implementation of deliverables
@@ -417,7 +417,7 @@ namespace AM.Console
 
                 var reportPreppedBatches = mailBatchSvc.GetReportPreppedPrintBatchDetails(sftChannelDetails.Id, Config.Common_ServerIP);
 
-                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000);
+                SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannelDetails.Protocol), sftChannelDetails.Host, sftChannelDetails.UserName, sftChannelDetails.Password, 300000, sftChannelDetails.Port);
                 sftSite.Connect();
 
                 foreach (var preppedPrintBatch in reportPreppedBatches)

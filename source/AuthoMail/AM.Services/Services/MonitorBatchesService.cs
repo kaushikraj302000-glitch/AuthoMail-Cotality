@@ -210,7 +210,7 @@ where BS.IsSubmitted = 1 and MP.SLADays < 0 and BS.IsReportedBack = 0 and BS.Pip
             {
                 sftChannel = clientSvc.GetSFTChannelDetailsBySFTChannelCode("AMC_" + Config.Common_Environment);
             }
-            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000);
+            SFTUtil sftSite = new SFTUtil(Common.GetProtocolType(sftChannel.Protocol), sftChannel.Host, sftChannel.UserName, sftChannel.Password, 300000, sftChannel.Port);
             sftSite.Connect();
 
             triggerFilePaths = GetTriggerFilePaths(sftSite, sftChannel.ToADEDir);
