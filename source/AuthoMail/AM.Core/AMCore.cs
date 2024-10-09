@@ -412,6 +412,28 @@ namespace AM.Core
                                         mailPiece.ShippingCost = response.PostageCost;
                                         #endregion
                                     }
+                                    else
+                                    {
+                                        if (!string.IsNullOrEmpty(coverLetterTemplatePath))
+                                        {
+                                            response = doc.GenerateFrontBarcodeCoverLetter(coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                            if (response.HasError)
+                                            {
+                                                mailPiece.ErrorCode = OutComeCodes.Unknown_Error;
+                                                mailPiece.TotalPages = 0;
+                                                mailPiece.ShippingStatus = ShippingStatus.Error.ToString();
+                                                mailPiece.ErrorDesc = response.ExceptionDetail;
+                                                mailPiece.DueDate = null;
+                                                mailPiece.PrintLocation = null;
+                                                mailPiece.PrintTrailId = null;
+                                                mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
+                                                continue;
+                                            }
+
+                                            mailPiece.TrackingNo = mailPiece.Id.ToString();
+                                            coverLetterPdfPaths.Add(response.CoverLetterPath);
+                                        }
+                                    }
                                     // Shipping Service Type is First Class or  client is print ready then we don't need to do anything.
                                 }
                                 else if (docType.ShippingCarrier == Carrier.FedEx.ToString())
