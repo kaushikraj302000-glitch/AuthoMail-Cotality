@@ -416,7 +416,17 @@ namespace AM.Core
                                     {
                                         if (!string.IsNullOrEmpty(coverLetterTemplatePath))
                                         {
-                                            response = doc.GenerateFrontBarcodeCoverLetter(coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                            if (Path.GetExtension(coverLetterTemplatePath) == ".docx")
+                                            {
+                                                var coversheetData = mailPieceSvc.GetCoversheetData(mailPieceId);
+                                                //Call ASPOSE API For Generating IMB Cover Letter
+                                                response = doc.GenerateCoverLetterDocx(client.AppCode, coverLetterTemplatePath, mbi.PnSRequestPath, coversheetData);
+                                            }
+                                            else
+                                            {
+                                                response = doc.GenerateFrontBarcodeCoverLetter(coverLetterTemplatePath, mbi.PnSRequestPath, mailPieceData);
+                                            }
+
                                             if (response.HasError)
                                             {
                                                 mailPiece.ErrorCode = OutComeCodes.Unknown_Error;

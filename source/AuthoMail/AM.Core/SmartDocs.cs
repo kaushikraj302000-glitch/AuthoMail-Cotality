@@ -141,6 +141,35 @@ namespace AM.Core
             #endregion
         }
 
+        public SmartDocResponse GenerateCoverLetterDocx(string appCode, string coverTemplatePDFPath, string outputDir, dynamic coversheetData)
+        {
+            appCode = Config.Common_Environment == Env.Prod ? appCode : "TEST";
+
+            SmartDocResponse response = new SmartDocResponse();
+
+            string coverLetterPDFPath = Path.Combine(outputDir, string.Format("CoverLetter_{0}.pdf", coversheetData.MailPieceId));
+
+            #region Generate Cover Letter
+            try
+            {
+                string base64Path = Path.Combine(Config.Core_Base64Folder);
+                PdfUtil.GenerateCoverSheet(Config.Core_CoversheetAPI, coverTemplatePDFPath, base64Path, coverLetterPDFPath, coversheetData);
+
+                response.CoverLetterPath = coverLetterPDFPath;
+            }
+            catch (Exception ex)
+            {
+                var msg = $"Error occured while generating cover letter for MailPiece-Id : {coversheetData.MailPieceId}";
+                log.Error(msg, ex);
+                response.HasError = true;
+                response.ExceptionDetail = msg;
+                return response;
+            }
+            return response;
+
+            #endregion
+        }
+
         public SmartDocResponse GenerateeVSPriorityExpressCoverLetter(string sysUserId, string outputDir, string mailPieceId, eVSLabelRequest eVSReq, string envelopeName, USPSCredentialInfo uspsUserId, bool isReturnLabel = false)
         {
             SmartDocResponse response = new SmartDocResponse();
