@@ -213,7 +213,7 @@ namespace PCI.Service
 
             if (File.Exists(immediateErrorReportPath))
             {
-                string ieReportRemoteDirPath = "{0}/{1}".Fill(sftChannel.ToADEDir, appCode);
+                string ieReportRemoteDirPath = Path.Combine(sftChannel.ToADEDir, Common.ServerIP, appCode, Path.GetFileName(immediateErrorReportPath));
                 UploadFileOnSFTSite(immediateErrorReportPath, ieReportRemoteDirPath, Common.Remove_ImmediateErrFiles, sftSite);
                 UploadFileOnSFTSite(sftTriggerFilePath, ieReportRemoteDirPath, Common.Remove_ImmediateErrFiles, sftSite);
 
@@ -233,7 +233,7 @@ namespace PCI.Service
             var sw = new Stopwatch();
             sw.Start();
 
-            sftSite.UploadFile(localFilePath, string.Format("{0}/{1}", remoteDirPath, Path.GetFileName(localFilePath)), removeLocalFileAfterUpload, false);
+            sftSite.UploadFile(localFilePath, remoteDirPath, removeLocalFileAfterUpload, false);
 
             sw.Stop();
             var time = sw.Elapsed;
