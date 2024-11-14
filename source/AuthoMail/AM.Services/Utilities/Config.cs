@@ -329,6 +329,12 @@ namespace AM.Services
                 USPSCredentialDetails = commonSvc.GetUSPSCredentialDetails();
             }
 
+            string docGenServerIP = Environment.GetEnvironmentVariable("SD_IP");
+            if (!docGenServerIP.IsNullOrWhiteSpace())
+            {
+                Common_DocGen_API = Common_DocGen_API.Replace("{DocGenServerIP}", docGenServerIP);
+            }
+
             string ipv4Pattern = @"^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
              25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
              25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
