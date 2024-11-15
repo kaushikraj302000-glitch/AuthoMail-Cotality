@@ -333,6 +333,7 @@ namespace AM.Services
             if (!docGenServerIP.IsNullOrWhiteSpace())
             {
                 Common_DocGen_API = Common_DocGen_API.Replace("{DocGenServerIP}", docGenServerIP);
+                Core_CoversheetAPI = Core_CoversheetAPI.Replace("{DocGenServerIP}", docGenServerIP);
             }
 
             string ipv4Pattern = @"^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
