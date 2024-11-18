@@ -233,7 +233,7 @@ namespace PCI.Service
             var sw = new Stopwatch();
             sw.Start();
 
-            sftSite.UploadFile(localFilePath, remoteDirPath, removeLocalFileAfterUpload, false);
+            sftSite.UploadFile(localFilePath, Path.Combine(remoteDirPath, Path.GetFileName(localFilePath)), removeLocalFileAfterUpload, false);
 
             sw.Stop();
             var time = sw.Elapsed;
