@@ -177,11 +177,11 @@ namespace AM.Services
                         //Helper.MailMerge(Config.API_PB_PullBackFormTemplatePath, dataForPullBackForm, outputPdfPath);
                         if (item.VendorCode == "PCI")
                         {
-                            Helper.MailMerge(System.Web.Hosting.HostingEnvironment.MapPath(Config.Web_API_PB_PullBackForm_PCI), dataForPullBackForm, ref output);
+                            Helper.MailMerge(Config.Web_API_PB_PullBackForm_PCI, dataForPullBackForm, ref output);
                         }
                         else if (item.VendorCode == "NORDIS")
                         {
-                            Helper.MailMerge(System.Web.Hosting.HostingEnvironment.MapPath(Config.Web_API_PB_PullBackForm_NORDIS), dataForPullBackForm, ref output);
+                            Helper.MailMerge(Config.Web_API_PB_PullBackForm_NORDIS, dataForPullBackForm, ref output);
                         }
                         bool isEmailSent = SendEmailWithPullBackForm(output, attachmentPdfName, item.VendorCode);
                     }
