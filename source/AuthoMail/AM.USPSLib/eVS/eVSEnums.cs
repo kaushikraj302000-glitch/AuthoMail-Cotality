@@ -1221,6 +1221,10 @@ namespace AM.USPSLib
         [JsonProperty("920")]
         USPS_Tracking_Electronic = 920,
 
+        [XmlEnum("155")]
+        [JsonProperty("155")]
+        USPS_Tracking_Electronic_Old = 155,
+
         [XmlEnum( "921")]
         [JsonProperty("921")]
         Signature_Confirmation = 921,
