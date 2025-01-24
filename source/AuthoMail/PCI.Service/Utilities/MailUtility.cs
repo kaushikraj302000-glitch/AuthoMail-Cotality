@@ -168,6 +168,35 @@ namespace PCI.Service
             return isEmailSent;
         }
 
+        public static bool SendUnexpectedNotificationEmailInernal(string errorMsg)
+        {
+            bool isEmailSent = false;
+
+            try
+            {
+                using (MailMessage msg = new MailMessage())
+                {
+                    msg.IsBodyHtml = true;
+                    msg.To.Add(Common.UnexpectedEmailInternal_ToEmail);
+                    msg.Subject = Common.UnexpectedEmail_Subject;
+                    msg.Priority = MailPriority.High;
+
+                    msg.Body = errorMsg;
+                    Common.Email_SMTPClient.Send(msg);
+
+                    isEmailSent = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error("Error occured while sending batch submitted notification to internal team", ex);
+            }
+
+            return isEmailSent;
+        }
+
+
+
         public static bool SendSFTConnectionIssueNotificationEmail(string errorMsg, string pvCode)
         {
             bool isEmailSent = false;

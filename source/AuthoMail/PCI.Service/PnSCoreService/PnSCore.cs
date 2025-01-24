@@ -185,7 +185,14 @@ namespace PCI.Service
                 {
                     var msg = "Unexpected error occured in PrepPCIJobs()";
                     log.Error(msg, ex);
-                    MailUtility.SendUnexpectedNotificationEmail(msg + ex.Message);
+                    if (ex.Message.Contains("Cannot insert duplicate key row in object 'PnS.MRDFRequest' with unique index 'IX_MRDFRequest_UniqueId'."))
+                    {
+                        MailUtility.SendUnexpectedNotificationEmailInernal(msg + ex.Message);
+                    }
+                    else
+                    {
+                        MailUtility.SendUnexpectedNotificationEmail(msg + ex.Message);
+                    }
                 }
             }
             log.Debug("Completed preparing PCI jobs");
