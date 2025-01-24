@@ -187,7 +187,7 @@ namespace PCI.Service
                     log.Error(msg, ex);
                     if (ex.Message.Contains("Cannot insert duplicate key row in object 'PnS.MRDFRequest' with unique index 'IX_MRDFRequest_UniqueId'."))
                     {
-                        MailUtility.SendUnexpectedNotificationEmailInernal(msg + ex.Message);
+                        MailUtility.SendUnexpectedNotificationEmailInternal(msg + ex.Message);
                     }
                     else
                     {

@@ -168,7 +168,7 @@ namespace PCI.Service
             return isEmailSent;
         }
 
-        public static bool SendUnexpectedNotificationEmailInernal(string errorMsg)
+        public static bool SendUnexpectedNotificationEmailInternal(string errorMsg)
         {
             bool isEmailSent = false;
 
