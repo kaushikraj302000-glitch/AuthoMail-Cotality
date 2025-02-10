@@ -10,6 +10,13 @@ using System.Globalization;
 using AM.Lib;
 using AutoMapper;
 using System.IO;
+using log4net;
+using Newtonsoft.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.AspNet.Identity;
+using Microsoft.Owin;
+using AM.Web;
 namespace AM.Web.Controllers
 {
     [Authorize(Roles = AMRoles.Admin + "," + AMRoles.BA + "," + AMRoles.Client + "," + AMRoles.ClientUserManager + "," + AMRoles.CoreLogicUserManager + "," + AMRoles.PnSOperator + "," + AMRoles.Delfus + "," + AMRoles.BAOffShore)]
@@ -18,11 +25,16 @@ namespace AM.Web.Controllers
         IHomeService homeSvc;
         IReportService repoSvc;
         IInventoryService invSvc;
-        public ReportController(IHomeService homeSvc, IReportService repoSvc, IInventoryService invSvc)
+        private readonly AMUserManager userManager;
+
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
+        public ReportController(IHomeService homeSvc, IReportService repoSvc, IInventoryService invSvc, AMUserManager userManager)
         {
             this.homeSvc = homeSvc;
             this.repoSvc = repoSvc;
             this.invSvc = invSvc;
+            this.userManager = userManager;
         }
         public ActionResult SummaryControlReport()
         {
@@ -253,14 +265,15 @@ namespace AM.Web.Controllers
             }
         }
         [HttpPost]
-        public ActionResult _DownloadReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, string startDate, string endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo, int timezoneOffset)
+        public async Task<ActionResult> _DownloadReportWizard(List<int> clientId, string businessFriendlyIdName, string businessFriendlyIdValue, string startDate, string endDate, List<int> docType, string status, string channel, List<string> shippingMethod, string trackingNo, int timezoneOffset)
         {
             try
             {
                 var exactStartDate = startDate != string.Empty ? DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
                 var exactEndDate = endDate != string.Empty ? DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
+                
                 var result = repoSvc.GetReportWizard(clientId, businessFriendlyIdName, businessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, shippingMethod, trackingNo);
-
+                
                 result.ForEach(m =>
                 {
                     m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
@@ -268,9 +281,9 @@ namespace AM.Web.Controllers
                     m.MailedOn = m.MailedOn.HasValue ? m.MailedOn.Value.AddMinutes(-timezoneOffset) : m.MailedOn;
                     m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
                     m.ReturnDeliveryDate = m.ReturnDeliveryDate.HasValue ? m.ReturnDeliveryDate.Value.AddMinutes(-timezoneOffset) : m.ReturnDeliveryDate;
-                });
+                });               
                 var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
-
+                         
                 if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                 {
                     List<string> columnsToDelete = new List<string>() { "FirstName", "LastName", "RcptAddressStreet", "City", "ZIP", "State" };
@@ -306,7 +319,10 @@ namespace AM.Web.Controllers
                 }
 
                 var memoryStream = ExcelHelper.ExportDataSet(dataTable);
+                log.Info("Excel file generated successfully.");
                 memoryStream.Seek(0, SeekOrigin.Begin);
+                log.Info("Generated report size: " + memoryStream.Length);
+
 
                 string fileGuid = Guid.NewGuid().ToString();
                 TempData[fileGuid] = memoryStream.ToArray();
@@ -322,10 +338,27 @@ namespace AM.Web.Controllers
                     fileName = string.Join("_", fileNameArray);
                 }
                 fileName = string.Format("{0}.xlsx", fileName);
-                return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = fileName } }), JsonRequestBehavior.AllowGet);
+                var attachmentData = TempData[fileGuid] as byte[];
+
+                var userId = User.Identity.GetUserId();
+                var user = await userManager.FindByIdAsync(userId);
+                var userEmail = user.Email;
+
+                if (attachmentData != null)
+                {
+                    string to = userEmail;
+                    string subject = "Report Generated Through Report Wizard"; 
+                    string body = "Please find the generated report attached."; 
+
+                    await InternalEmail.SendMail(to,subject, body, attachmentData, fileName);
+                }
+
+                return Json(new { Success = true, message = "Report generated and emailed successfully." });
+
             }
             catch (Exception e)
             {
+                log.Error("Error in generating report: " + e.Message, e);
                 return Json(JsonResponseFactory.ErrorResponse(e.Message.ToString()), JsonRequestBehavior.AllowGet);
             }
         }

@@ -13,6 +13,8 @@ using AM.Entities;
 using AM.Services;
 using Microsoft.Owin.Security.DataProtection;
 using System.Net.Mail;
+using System.IO;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace AM.Web
 {
@@ -57,6 +59,47 @@ namespace AM.Web
                 await sc.SendMailAsync(msg);
             }
         }
+
+        public static async Task SendMail(string to, string subject, string body, byte[] attachmentData, string fileName)
+        {
+            string tempFilePath = Path.Combine(Path.GetTempPath(), fileName);
+
+            try
+            {
+                File.WriteAllBytes(tempFilePath, attachmentData);
+
+                using (MailMessage msg = new MailMessage())
+                {
+
+                    msg.IsBodyHtml = true;
+                    msg.To.Add(to);
+                    msg.Subject = subject;
+                    msg.Body = string.Format("{0}", body);
+
+                    Attachment attachment = new Attachment(tempFilePath);
+                    msg.Attachments.Add(attachment);
+
+                    using (SmtpClient sc = new SmtpClient())
+                    {
+                        await sc.SendMailAsync(msg);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("An error occurred while sending the email", ex); ;
+            }
+            finally
+            {
+                if (File.Exists(tempFilePath))
+                {
+                    File.Delete(tempFilePath);
+                }
+            }
+        }
+
+
+
     }
 
     public class AMUserStore : UserStore<ProfileUser>

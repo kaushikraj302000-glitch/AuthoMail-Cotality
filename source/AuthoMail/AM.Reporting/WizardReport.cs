@@ -19,7 +19,7 @@ namespace AM.Reporting
 {
     class WizardReport
     {
-        private static ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         internal static void GenerateWizardReport()
         {

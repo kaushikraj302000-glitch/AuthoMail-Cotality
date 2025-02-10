@@ -26,6 +26,9 @@ namespace AM.Web
             var builder = new ContainerBuilder();
             var config = GlobalConfiguration.Configuration;
 
+            log4net.Config.XmlConfigurator.Configure();
+            var log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+            
             builder.RegisterControllers(typeof(MvcApplication).Assembly);
             //Register WebAPi Controllers
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());

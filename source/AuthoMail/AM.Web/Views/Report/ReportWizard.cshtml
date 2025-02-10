@@ -575,7 +575,7 @@
     @Styles.Render("~/bundles/datatablescss")
     @Scripts.Render("~/bundles/datatables")
 
-    <script type="text/javascript">
+<script type="text/javascript">
         $(document).ready(function () {
             //window.clui.dateTimePickerInit();
             var dateTemplate = '<div class="daterangepicker dropdown-menu">' + '<div class="calendar left">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="calendar right">' + '<div class="calendar-table"></div>' + '</div>' + '<div class="ranges">' + '<div class="range_inputs">' + '<button class="applyBtn" disabled="disabled" type="button"></button> ' + '<button class="cancelBtn" type="button"></button>' + '</div>' + '</div>' + '</div>';
@@ -953,8 +953,6 @@
                 endDate = "";
             }
 
-
-
             var shippingMethod = $('#ShippingMethod').val() == null ? [] : $('#ShippingMethod').val();
             var clientId = $("#ClientId").val();
 
@@ -976,23 +974,15 @@
                 }),
                 contentType: "application/json; charset=utf-8",
                 success: function (response) {
-                    //console.log(response);
                     if (response.Success) {
-                        if (response.Object != null) {
-
-                            window.location = baseUrl + 'Report/DownloadReportWizard?fileGuid=' + response.Object.model.FileGuid
-                          + '&filename=' + response.Object.model.FileName;
-                        }
-                        else {
-                            window.clui.globalAlert({
-                                message: "@AM.Services.Config.Web_Msg_NoRecordFound",
-                                alertType: 'red',
-                                timeout: 5000
-                            });
-                        }
-                    } else {
-
-                            window.clui.globalAlert({
+                        window.clui.globalAlert({
+                            message: "Report generated and emailed successfully.",
+                            alertType: 'green',
+                            timeout: 5000
+                        });
+                    }  
+                    else {
+                        window.clui.globalAlert({
                                 message: response.ErrorMessage,
                                 alertType: 'red',
                                 timeout: 5000
@@ -1000,7 +990,7 @@
                     }
                 },
                 error: function (xhr, ajaxOptions, thrownError) {
-                    window.clui.globalAlert({
+                   window.clui.globalAlert({
                         message: "@AM.Services.Config.Web_Msg_Ajax_CommonError",
                         alertType: 'red',
                         timeout: 5000
@@ -1022,7 +1012,7 @@
             $('.selectpicker').selectpicker('refresh');
             $("#receivedOn").val("");
         });
-    </script>
+</script>
 }
 
 
