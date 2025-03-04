@@ -133,13 +133,25 @@ namespace AM.Reporting
 
             foreach (var mp in monthlyReconReportViewModels)
             {
-                var line = String.Join(",", "TAXCOM", mp.BatchName, mp.UniqueId, mp.LoanNumber, mp.FirstName.ToCsvString(), mp.LastName.ToCsvString(), mp.Address.ToCsvString(), mp.City, mp.State, mp.ZIP, "", mp.Channel, mp.DocType, mp.ReceivedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), mp.ShippedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), "", mp.PulledBackOn, mp.PrintLocation, mp.Status, mp.TrackingNo, mp.FileName, "", "", mp.TotalPages, mp.TotalSheets, mp.LetterPageCount, mp.LegalPageCount, mp.TotalBlankPages, "False", mp.ShippingMethod, mp.ShippingCarrier, mp.ShippingServiceType, mp.EnvelopeName, mp.ErrorDesc, mp.Inserts, mp.PrintBatchName, mp.SubmittedOn, mp.DeliveryDate, mp.DeliveryStatus, mp.ShippingCost, mp.BlankPageNumbers, mp.LetterPagesImpression, mp.LegalPagesImpression);
+                var line = String.Join(",", "TAXCOM", mp.BatchName, mp.UniqueId, mp.LoanNumber, mp.FirstName.ToCsvString(), mp.LastName.ToCsvString(), mp.Address.ToCsvString(), mp.City, mp.State, mp.ZIP, "", mp.Channel, mp.DocType,
+                mp.ReceivedOn.HasValue ? mp.ReceivedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss") : "N/A",
+                mp.ShippedOn.HasValue ? mp.ShippedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss") : "N/A",
+                "", mp.PulledBackOn.HasValue ? mp.PulledBackOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss") : "N/A", mp.PrintLocation, mp.Status, mp.TrackingNo, mp.FileName, "", "",
+                mp.TotalPages, mp.TotalSheets, mp.LetterPageCount, mp.LegalPageCount, mp.TotalBlankPages, "False", mp.ShippingMethod, mp.ShippingCarrier, mp.ShippingServiceType, mp.EnvelopeName, mp.ErrorDesc, mp.Inserts,
+                mp.PrintBatchName, mp.SubmittedOn, mp.DeliveryDate, mp.DeliveryStatus, mp.ShippingCost, mp.BlankPageNumbers, mp.LetterPagesImpression, mp.LegalPagesImpression);
+
                 reconReport.AppendLine(line);
             }
 
             foreach (var mp in taxcomEdeliveryReportData)
             {
-                var line = String.Join(",", "TAXCOM", mp.BatchName, "", mp.RD_LOAN_ID, mp.RD_BRRW_FRST_NM.ToCsvString(), mp.RD_BRRW_LAST_NM.ToCsvString(), mp.RD_BRRW_ADDR1_TXT.ToCsvString(), mp.RD_BRRW_CITY_NM, mp.RD_BRRW_STATE_ABBR, mp.RD_BRRW_ZIP_CD, mp.RD_DLVR_EMAIL_ADDR_TXT, "", mp.DocumentType, mp.DownloadedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss"), "", mp.EDeliveryStatus == "DELIVERED" && mp.EDeliveryStatusDate.HasValue ? mp.EDeliveryStatusDate.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss") : null, "", "", !mp.Disqualifyreason.IsNullOrEmpty() || mp.EDeliveryStatus == "BOUNCED" ? "Error" : mp.EDeliveryStatus, "", mp.PdfFileName, mp.RD_CUST_ID, mp.RD_TMPLT_CD, "0", "0", "0", "0", "0", mp.IsEDeliveryRecord, "EDelivery", "", "", "", mp.EDeliveryStatus == "BOUNCED" && mp.RecordStatus != "Disqualified" ? "BOUNCED" : mp.Disqualifyreason.ToCsvString(), "", "", mp.SubmittedDate, "", "", "", "", "", "");
+                var line = String.Join(",", "TAXCOM", mp.BatchName, "", mp.RD_LOAN_ID, mp.RD_BRRW_FRST_NM.ToCsvString(), mp.RD_BRRW_LAST_NM.ToCsvString(), mp.RD_BRRW_ADDR1_TXT.ToCsvString(), mp.RD_BRRW_CITY_NM,
+                mp.RD_BRRW_STATE_ABBR, mp.RD_BRRW_ZIP_CD, mp.RD_DLVR_EMAIL_ADDR_TXT, "", mp.DocumentType,
+                mp.DownloadedOn.HasValue ? mp.DownloadedOn.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss") : "N/A",
+                "", mp.EDeliveryStatus == "DELIVERED" && mp.EDeliveryStatusDate.HasValue ? mp.EDeliveryStatusDate.Value.UtcToEst().ToString("yyyy-MM-dd hh:mm:ss") : "N/A", "", "",
+                !mp.Disqualifyreason.IsNullOrEmpty() || mp.EDeliveryStatus == "BOUNCED" ? "Error" : mp.EDeliveryStatus, "", mp.PdfFileName, mp.RD_CUST_ID, mp.RD_TMPLT_CD, "0", "0", "0", "0", "0", mp.IsEDeliveryRecord,
+                "EDelivery", "", "", "", mp.EDeliveryStatus == "BOUNCED" && mp.RecordStatus != "Disqualified" ? "BOUNCED" : mp.Disqualifyreason.ToCsvString(), "", "", mp.SubmittedDate, "", "", "", "", "", "");
+
                 reconReport.AppendLine(line);
             }
 
