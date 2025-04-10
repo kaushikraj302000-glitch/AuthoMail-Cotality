@@ -1856,7 +1856,7 @@ namespace AM.Core
                     docType = docTypeSvc.GetDocTypeById(docTypePnSConfig.DocTypeId, docTypePnSConfig.PnSConfigDetailId);
                 }
 
-                var filteredMailPiecesDocTypeWise = validMailPieces.Where(c => c.DocTypeId == docTypePnSConfig.DocTypeId && c.PnSConfigDetailId == docTypePnSConfig.PnSConfigDetailId).ToList();
+                var filteredMailPiecesDocTypeWise = validMailPieces.Where(c => c.DocTypeId == docTypePnSConfig.DocTypeId && c.PnSConfigDetailId == docTypePnSConfig.PnSConfigDetailId && c.RcptAddressCountry == docTypePnSConfig.RcptAddressCountry).ToList();
 
                 #region QC Request Logic
                 if (docType.QCPercent > 0)
