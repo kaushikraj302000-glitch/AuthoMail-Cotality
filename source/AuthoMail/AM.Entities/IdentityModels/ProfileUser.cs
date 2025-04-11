@@ -43,7 +43,7 @@ namespace AM.Entities
             var claim = ((ClaimsIdentity)identity).FindFirst("IsCoreLogicUser");
             if (claim == null || claim.Value.IsNullOrWhiteSpace()) return false;
             var mailAddress = new MailAddress(claim.Value);
-            return mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase) ? true : false;
+            return mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase) || mailAddress.Host.Equals("cotality.com", StringComparison.CurrentCultureIgnoreCase) ? true : false;
         }
         public static string DisplayName(this IIdentity identity)
         {

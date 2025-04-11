@@ -108,8 +108,6 @@ namespace AM.Web.Controllers
         {
             try
             {
-
-                model.UserName = model.UserName.Contains("@") ? model.UserName : model.UserName + "@corelogic.com";
                 var mailAddress = new MailAddress(model.UserName);
                 if (mailAddress.Host.Equals("us.hsbc.com", StringComparison.CurrentCultureIgnoreCase) || mailAddress.Host.Equals("hsbc.com.mx", StringComparison.CurrentCultureIgnoreCase))
                 {
@@ -138,13 +136,7 @@ namespace AM.Web.Controllers
                 if (!ModelState.IsValid)
                 {
                     return View(model);
-                }
-                bool isCoreLogicUser = false;
-
-                if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    model.UserName = mailAddress.User;
-                }
+                }                
 
                 var user = UserManager.FindByName(model.UserName);
                 if (user == null)
@@ -153,10 +145,12 @@ namespace AM.Web.Controllers
                     return View(model);
                 }
 
+                bool isCoreLogicUser = false;
                 if (user.Email != null && user.Email != "")
                 {
                     isCoreLogicUser = CLAuthentication.HasCorelogicAccount(user.Email);
                 }
+
                 if (isCoreLogicUser)
                 {
                     if (Config.CLAuth_EnabledAxisAuthentication)
@@ -175,6 +169,7 @@ namespace AM.Web.Controllers
                         ModelState.AddModelError("", hasLogin.Value);
                         return View(model);
                     }
+
                     await SignInManager.SignInAsync(user, false, model.RememberMe);
                     if (!user.EmailConfirmed)
                     {
@@ -190,6 +185,7 @@ namespace AM.Web.Controllers
                     UpdateLoginTime(user.Id);
                     return RedirectToLocal(returnUrl);
                 }
+
                 var result = await SignInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, shouldLockout: true);
                 switch (result)
                 {
@@ -444,36 +440,14 @@ namespace AM.Web.Controllers
 
                             StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
                             string emails = string.Empty;
-                            if (Config.Common_Environment == Env.Prod)
-                            {
-                                sb.Replace("{{url}}", "https://authomail.corelogic.com");
-                                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
-                            }
-                            else if (Config.Common_Environment == Env.QA)
-                            {
-                                sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
-                                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
-                            }
-                            else if (Config.Common_Environment == Env.Performance)
-                            {
-                                sb.Replace("{{url}}", "https://authomailperftest.corelogic.com");
-                                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
-                            }
-                            else if (Config.Common_Environment == Env.Stage)
-                            {
-                                sb.Replace("{{url}}", "https://authomailkittest.corelogic.com");
-                                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
-                            }
-                            else
-                            {
-                                string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("SignUpRequest", "Admin"));
-                                sb.Replace("{{url}}", url);
-                                emails = Config.Web_RegistrationDefaultEmails;
-                            }
+
+                            sb.Replace("{{url}}", Config.Common_WebUrl);
+                            emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+
                             sb.Replace("{{email}}", user.Email);
 
                             //Send email to specified admin for new registration request
-                            await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in authomail.", sb.ToString());
+                            await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in AuthoMail.", sb.ToString());
                             //Send email to client to waiting for approval
                             sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\WaitForApproval.html")));
                             sb.Replace("{{name}}", user.FirstName);
@@ -556,30 +530,11 @@ namespace AM.Web.Controllers
                             //sb.Replace("{{email}}", user.Email);
 
                             var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code }, protocol: Request.Url.Scheme);
-                            if (Config.Common_Environment == Env.Prod)
-                            {
-                                var u = new Uri(callbackUrl);
-                                string str = string.Format("{0}://{1}", u.Scheme, u.Host);
-                                callbackUrl = callbackUrl.Replace(str, "https://authomail.corelogic.com");
-                            }
-                            else if (Config.Common_Environment == Env.QA)
-                            {
-                                var u = new Uri(callbackUrl);
-                                string str = string.Format("{0}://{1}", u.Scheme, u.Host);
-                                callbackUrl = callbackUrl.Replace(str, "https://authomailuat.corelogic.com");
-                            }
-                            else if (Config.Common_Environment == Env.Performance)
-                            {
-                                var u = new Uri(callbackUrl);
-                                string str = string.Format("{0}://{1}", u.Scheme, u.Host);
-                                callbackUrl = callbackUrl.Replace(str, "https://authomailperftest.corelogic.com");
-                            }
-                            else if (Config.Common_Environment == Env.Stage)
-                            {
-                                var u = new Uri(callbackUrl);
-                                string str = string.Format("{0}://{1}", u.Scheme, u.Host);
-                                callbackUrl = callbackUrl.Replace(str, "https://authomailkittest.corelogic.com");
-                            }
+
+                            var u = new Uri(callbackUrl);
+                            string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                            callbackUrl = callbackUrl.Replace(str, Config.Common_WebUrl);
+
                             sb.Replace("{{action_url}}", callbackUrl);
                             UserManager.AddToRole(user.Id, AMRoles.Client);
                             await UserManager.SendEmailAsync(user.Id, "Confirm your account", sb.ToString());
@@ -612,30 +567,11 @@ namespace AM.Web.Controllers
                 sb.Replace("{{name}}", user.FirstName);
 
                 var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code }, protocol: Request.Url.Scheme);
-                if (Config.Common_Environment == Env.Prod)
-                {
-                    var u = new Uri(callbackUrl);
-                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
-                    callbackUrl = callbackUrl.Replace(str, "https://authomail.corelogic.com");
-                }
-                else if (Config.Common_Environment == Env.QA)
-                {
-                    var u = new Uri(callbackUrl);
-                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
-                    callbackUrl = callbackUrl.Replace(str, "https://authomailuat.corelogic.com");
-                }
-                else if (Config.Common_Environment == Env.Performance)
-                {
-                    var u = new Uri(callbackUrl);
-                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
-                    callbackUrl = callbackUrl.Replace(str, "https://authomailperftest.corelogic.com");
-                }
-                else if (Config.Common_Environment == Env.Stage)
-                {
-                    var u = new Uri(callbackUrl);
-                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
-                    callbackUrl = callbackUrl.Replace(str, "https://authomailkittest.corelogic.com");
-                }
+
+                var u = new Uri(callbackUrl);
+                string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                callbackUrl = callbackUrl.Replace(str, Config.Common_WebUrl);
+
                 sb.Replace("{{action_url}}", callbackUrl);
                 await UserManager.SendEmailAsync(user.Id, "Confirm your account", sb.ToString());
                 return Json(true, JsonRequestBehavior.AllowGet);
@@ -655,7 +591,7 @@ namespace AM.Web.Controllers
                 var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ErrorInAM.html")));
                 sb.Replace("{{action}}", "Account/ConfirmEmail");
                 sb.Replace("{{error}}", string.Join(",", "UserId or Code not found."));
-                await InternalEmail.SendMail(Config.Web_RegistrationDefaultEmails, null, Config.Web_RegistrationBCCEmails, "Error in authomail.", sb.ToString());
+                await InternalEmail.SendMail(Config.Web_RegistrationDefaultEmails, null, Config.Web_RegistrationBCCEmails, "Error in AuthoMail.", sb.ToString());
                 ViewBag.Success = false;
                 ViewBag.Message = "User or Code invalid";
                 return View();
@@ -706,36 +642,14 @@ namespace AM.Web.Controllers
         {
             var sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\RegistrationInAuthoMail.html")));
             string emails;
-            if (Config.Common_Environment == Env.Prod)
-            {
-                sb.Replace("{{url}}", "https://authomail.corelogic.com");
-                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
-            }
-            else if (Config.Common_Environment == Env.QA)
-            {
-                sb.Replace("{{url}}", "https://authomailuat.corelogic.com");
-                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
-            }
-            else if (Config.Common_Environment == Env.Performance)
-            {
-                sb.Replace("{{url}}", "https://authomailperftest.corelogic.com");
-                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
-            }
-            else if (Config.Common_Environment == Env.Stage)
-            {
-                sb.Replace("{{url}}", "https://authomailkittest.corelogic.com");
-                emails = supportSvc.GetEmailsFromClientDomain(user.Email);
-            }
-            else
-            {
-                string url = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("SignUpRequest", "Admin"));
-                sb.Replace("{{url}}", url);
-                emails = Config.Web_RegistrationDefaultEmails;
-            }
+
+            sb.Replace("{{url}}", Config.Common_WebUrl);
+            emails = supportSvc.GetEmailsFromClientDomain(user.Email);
+
             sb.Replace("{{email}}", user.Email);
 
             //Send email to specified client admin for new registration request.
-            await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in authomail.", sb.ToString());
+            await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in AuthoMail.", sb.ToString());
             //Send email to client for waiting for approval of registration
             sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\WaitForApproval.html")));
             sb.Replace("{{name}}", user.FirstName);
@@ -806,7 +720,7 @@ namespace AM.Web.Controllers
             if (ModelState.IsValid)
             {
                 MailAddress mAdd = new MailAddress(model.Email);
-                if (mAdd.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
+                if (CLAuthentication.HasCorelogicAccount(model.Email))
                 {
                     ModelState.AddModelError("", "AuthoMail uses LDAP authentication for CoreLogic users. In other words, approved CoreLogic users may use their windows username and password to log on. Since AuthoMail does not own your windows account, it doesn't provide a way to change password. You may use traditional ways to change your password such as 'Ctrl + Alt + Del' on your computer OR <a href='https://pwm.corelogic.com' target='_blank'>https://pwm.corelogic.com.</a>");
                     return View(model);
@@ -822,40 +736,16 @@ namespace AM.Web.Controllers
                     ModelState.AddModelError("", "Email is not confirmed or account is not yet approved.");
                     return View(model);
                 }
-                //if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)) || user.Status.Equals(AMUserStatus.Open, StringComparison.CurrentCultureIgnoreCase))
-                //{
-                //    // Don't reveal that the user does not exist or is not confirmed
-                //    return View("ForgotPasswordConfirmation");
-                //}
 
                 // Send an email with this link
                 string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
 
                 var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code }, protocol: Request.Url.Scheme);
-                if (Config.Common_Environment == Env.Prod)
-                {
-                    var u = new Uri(callbackUrl);
-                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
-                    callbackUrl = callbackUrl.Replace(str, "https://authomail.corelogic.com");
-                }
-                else if (Config.Common_Environment == Env.QA)
-                {
-                    var u = new Uri(callbackUrl);
-                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
-                    callbackUrl = callbackUrl.Replace(str, "https://authomailuat.corelogic.com");
-                }
-                else if (Config.Common_Environment == Env.Performance)
-                {
-                    var u = new Uri(callbackUrl);
-                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
-                    callbackUrl = callbackUrl.Replace(str, "https://authomailperftest.corelogic.com");
-                }
-                else if (Config.Common_Environment == Env.Stage)
-                {
-                    var u = new Uri(callbackUrl);
-                    string str = string.Format("{0}://{1}", u.Scheme, u.Host);
-                    callbackUrl = callbackUrl.Replace(str, "https://authomailkittest.corelogic.com");
-                }
+
+                var u = new Uri(callbackUrl);
+                string str = string.Format("{0}://{1}", u.Scheme, u.Host);
+                callbackUrl = callbackUrl.Replace(str, Config.Common_WebUrl);
+
                 StringBuilder sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\ForgotPassword.html")));
                 sb.Replace("{{name}}", user.FirstName);
                 sb.Replace("{{action_url}}", callbackUrl);

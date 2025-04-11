@@ -14,7 +14,7 @@ namespace AM.Scanner
         {
             if (String.IsNullOrWhiteSpace(Email)) return false;
             var mailAddress = new MailAddress(Email);
-            if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase)) return true;
+            if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase) || mailAddress.Host.Equals("cotality.com", StringComparison.CurrentCultureIgnoreCase)) return true;
             return false;
         }
         public static KeyValuePair<bool, string> LdapLogin(string userName, string password)

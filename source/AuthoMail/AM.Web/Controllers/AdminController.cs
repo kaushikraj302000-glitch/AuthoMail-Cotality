@@ -236,28 +236,8 @@ namespace AM.Web.Controllers
                 {
                     sb.Replace("{{PartiallyApproveRequestTableData}}", partiallyApproveRequest);
                 }
-                string AuthoMailURL = "";
-                if (Config.Common_Environment == Env.Prod)
-                {
-                    AuthoMailURL = "https://authomail.corelogic.com";
-                }
-                else if (Config.Common_Environment == Env.QA)
-                {
-                    AuthoMailURL = "https://authomailuat.corelogic.com";
-                }
-                else if (Config.Common_Environment == Env.Performance)
-                {
-                    AuthoMailURL = "https://authomailperftest.corelogic.com";
-                }
-                else if (Config.Common_Environment == Env.Stage)
-                {
-                    AuthoMailURL = "https://authomailkittest.corelogic.com";
-                }
-                else
-                {
-                    AuthoMailURL = Request.Url.ToString().Replace(Request.RawUrl.ToString(), Url.Action("Login", "Account"));
-                }
-                sb.Replace("{{AuthoMailURL}}", AuthoMailURL);
+
+                sb.Replace("{{AuthoMailURL}}", Config.Common_WebUrl);
                 string emails = supportSvc.GetEmailsFromClientDomain(user.Email);
                 await InternalEmail.SendMail(user.Email, null, emails, status.Equals(AMUserStatus.Approved) ? "AuthoMail registration request approved." : "AuthoMail registration request rejected.", sb.ToString());
 

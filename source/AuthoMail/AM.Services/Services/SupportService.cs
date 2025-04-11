@@ -610,7 +610,7 @@ where cd.Id=@Id";
 
 
                 string roleId =
-                (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
+                (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase)|| mailAddress.Host.Equals("cotality.com", StringComparison.CurrentCultureIgnoreCase))
                 ?
                      roles.Single(r => r.Name == AMRoles.CoreLogicUserManager).Id
                 :

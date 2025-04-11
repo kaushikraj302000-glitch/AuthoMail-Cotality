@@ -20,15 +20,26 @@ namespace AM.Web.Models
         {
             if (Email.IsNullOrWhiteSpace()) return false;
             var mailAddress = new MailAddress(Email);
-            if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase)) return true;
+            if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase) || mailAddress.Host.Equals("cotality.com", StringComparison.CurrentCultureIgnoreCase)) return true;
             return false;
         }
         public static KeyValuePair<bool, string> LdapLogin(string userName, string password)
         {
-            if (userName.IndexOf('@') != -1) userName = userName.Split('@').First();
-            string adPath = string.Format("LDAP://infosolco.net");
-            LdapAuthentication auth = new LdapAuthentication(adPath);
-            return auth.IsAuthenticated("isc", userName, password);
+            var mailAddress = new MailAddress(userName);
+            if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
+            {
+                if (userName.IndexOf('@') != -1) userName = userName.Split('@').First();
+                string adPath = string.Format("LDAP://infosolco.net");
+                LdapAuthentication auth = new LdapAuthentication(adPath);
+                return auth.IsAuthenticated("isc", userName, password);
+            }
+            else
+            {
+                if (userName.IndexOf('@') != -1) userName = userName.Split('@').First();
+                string adPath = string.Format("LDAP://infosolco.net");
+                LdapAuthentication auth = new LdapAuthentication(adPath);
+                return auth.IsAuthenticated("isc", userName, password);
+            }            
         }
 
         public static async Task<KeyValuePair<bool, string>> IsValidCLUser(string username)
@@ -129,7 +140,7 @@ namespace AM.Web.Models
                 }
 
                 _filterAttribute = (String)result.Properties["cn"][0];
-                string userData = string.Format("{0}|{1}|{2}", (string)result.Properties["givenName"][0], (string)result.Properties["sn"][0], (string)result.Properties["displayName"][0]);
+                string userData = string.Format("{0}|{1}|{2}", (string)result.Properties["givenName"][0], result.Properties.Contains("sn") ? (string)result.Properties["sn"]?[0] : "", (string)result.Properties["displayName"][0]);
                 return new KeyValuePair<bool, string>(true, userData);
             }
             catch (COMException ec)
@@ -159,7 +170,7 @@ namespace AM.Web.Models
                 Email = mailAddress.Address;
                 Host = mailAddress.Host;
                 User = mailAddress.User;
-                IsCoreLogic = mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase);
+                IsCoreLogic =CLAuthentication.HasCorelogicAccount(email);
                 IsValid = true;
             }
             catch (Exception)
