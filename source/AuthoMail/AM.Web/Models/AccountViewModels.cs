@@ -51,7 +51,7 @@ namespace AM.Web.Models
     public class LoginViewModel
     {
         [Required]
-        [Display(Name = "User Name")]
+        [Display(Name = "User Email")]
         public string UserName { get; set; }
 
         [Required]

@@ -109,7 +109,7 @@ namespace AM.Web.Controllers
             try
             {
                 var mailAddress = new MailAddress(model.UserName);
-                if (mailAddress.Host.Equals("us.hsbc.com", StringComparison.CurrentCultureIgnoreCase) || mailAddress.Host.Equals("hsbc.com.mx", StringComparison.CurrentCultureIgnoreCase))
+                    if (mailAddress.Host.Equals("us.hsbc.com", StringComparison.CurrentCultureIgnoreCase) || mailAddress.Host.Equals("hsbc.com.mx", StringComparison.CurrentCultureIgnoreCase))
                 {
                     string clientIP = GetIp();
                     IPNetwork ipnetwork;
@@ -138,7 +138,7 @@ namespace AM.Web.Controllers
                     return View(model);
                 }                
 
-                var user = UserManager.FindByName(model.UserName);
+                var user = UserManager.FindByEmail(model.UserName);
                 if (user == null)
                 {
                     ModelState.AddModelError("", Config.Web_Msg_Login_InvalidUserName);
