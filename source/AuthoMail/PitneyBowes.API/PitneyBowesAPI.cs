@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.IO;
 
-public class Program
+public class PitneyBowesAPI
 {
     static async Task Main()
     {
@@ -41,7 +41,7 @@ public class Program
 </PierbridgeShipRequest>
 ";
 
-        //Need to use this code while integrating the dll.
+        //Use this code while integrating the dll.
         //Console.WriteLine("Enter XML payload (end with an empty line):");
 
         //StringBuilder sb = new StringBuilder();
