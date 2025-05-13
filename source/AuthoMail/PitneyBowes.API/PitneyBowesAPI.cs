@@ -9,7 +9,7 @@ public class PitneyBowesAPI
 {
     static async Task Main()
     {
-        var url = "https://corelogicxb002.sendproenterprise.com/Logistics%20Server/xmlservice.aspx?apikey=0RHS0IPMRRGA9MHYLQBXEFYVG";
+        var url = "https://corelogicxb002.sendproenterprise.com/Logistics%20Server/xmlservice.aspx?apikey=UEB3YKN97IE1MSCP1EDXJ1I4L";
 
         //Test xml
         string xmlPayload = @"<?xml version=""1.0"" encoding=""UTF-8""?>
@@ -64,29 +64,29 @@ public class PitneyBowesAPI
                 HttpResponseMessage response = await client.PostAsync(url, content);
                 string responseContent = await response.Content.ReadAsStringAsync();
 
-                Console.WriteLine("Response Status: " + response.StatusCode);
+                Console.WriteLine("Response : " + responseContent);
 
                 // Parse XML
-                var xDoc = XDocument.Parse(responseContent);
-                var contentElement = xDoc.Root.Element("Content");
+                //var xDoc = XDocument.Parse(responseContent);
+                //var contentElement = xDoc.Root.Element("Content");
 
-                if (contentElement != null)
-                {
-                    string base64String = contentElement.Value;
+                //if (contentElement != null)
+                //{
+                //    string base64String = contentElement.Value;
 
-                    // Convert Base64 to byte[]
-                    byte[] pdfBytes = Convert.FromBase64String(base64String);
+                //    // Convert Base64 to byte[]
+                //    byte[] pdfBytes = Convert.FromBase64String(base64String);
 
-                    // Save to file
-                    string filePath = "output.pdf";
-                    File.WriteAllBytes(filePath, pdfBytes);
+                //    // Save to file
+                //    string filePath = "output.pdf";
+                //    File.WriteAllBytes(filePath, pdfBytes);
 
-                    Console.WriteLine("PDF saved to: " + Path.GetFullPath(filePath));
-                }
-                else
-                {
-                    Console.WriteLine("Content element not found in response.");
-                }
+                //    Console.WriteLine("PDF saved to: " + Path.GetFullPath(filePath));
+                //}
+                //else
+                //{
+                //    Console.WriteLine("Content element not found in response.");
+                //}
             }
             catch (Exception ex)
             {
