@@ -7,4 +7,14 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="App.config">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+
 </Project>
