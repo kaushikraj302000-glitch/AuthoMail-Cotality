@@ -1,17 +1,31 @@
 ﻿using System;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using System.IO;
+using System.Xml.Serialization;
+using PitneyBowes.API; // Make sure to match your actual namespace
 
-public class PitneyBowesAPI
+class Program
 {
-    static async Task Main()
+    static async Task Main(string[] args)
+    {
+        var response = await CallShippingAPI();
+
+        if (response != null)
+        {
+            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(response, Newtonsoft.Json.Formatting.Indented));
+        }
+        else
+        {
+            Console.WriteLine("Failed to retrieve response from API.");
+        }
+    }
+
+    public static async Task<PierbridgeShipResponse> CallShippingAPI()
     {
         var url = "https://corelogicxb002.sendproenterprise.com/Logistics%20Server/xmlservice.aspx?apikey=UEB3YKN97IE1MSCP1EDXJ1I4L";
 
-        //Test xml
         string xmlPayload = @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <PierbridgeShipRequest>
     <Carrier>106</Carrier>
@@ -38,22 +52,7 @@ public class PitneyBowesAPI
         </Package>
     </Packages>
     <UserName>blackbox</UserName>
-</PierbridgeShipRequest>
-";
-
-        //Use this code while integrating the dll.
-        //Console.WriteLine("Enter XML payload (end with an empty line):");
-
-        //StringBuilder sb = new StringBuilder();
-        //string line;
-        //while (!string.IsNullOrWhiteSpace(line = Console.ReadLine()))
-        //{
-        //    sb.AppendLine(line);
-        //}
-
-        //string xmlPayload = sb.ToString();
-
-
+</PierbridgeShipRequest>";
 
         using (var client = new HttpClient())
         {
@@ -61,37 +60,25 @@ public class PitneyBowesAPI
 
             try
             {
-                HttpResponseMessage response = await client.PostAsync(url, content);
-                string responseContent = await response.Content.ReadAsStringAsync();
+                var response = await client.PostAsync(url, content);
+                var xmlResponse = await response.Content.ReadAsStringAsync();
 
-                Console.WriteLine("Response : " + responseContent);
-
-                // Parse XML
-                //var xDoc = XDocument.Parse(responseContent);
-                //var contentElement = xDoc.Root.Element("Content");
-
-                //if (contentElement != null)
-                //{
-                //    string base64String = contentElement.Value;
-
-                //    // Convert Base64 to byte[]
-                //    byte[] pdfBytes = Convert.FromBase64String(base64String);
-
-                //    // Save to file
-                //    string filePath = "output.pdf";
-                //    File.WriteAllBytes(filePath, pdfBytes);
-
-                //    Console.WriteLine("PDF saved to: " + Path.GetFullPath(filePath));
-                //}
-                //else
-                //{
-                //    Console.WriteLine("Content element not found in response.");
-                //}
+                return DeserializeXml<PierbridgeShipResponse>(xmlResponse);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error occurred: " + ex.Message);
+                Console.WriteLine("Error: " + ex.Message);
+                return null;
             }
+        }
+    }
+
+    public static T DeserializeXml<T>(string xml)
+    {
+        var serializer = new XmlSerializer(typeof(T));
+        using (var reader = new StringReader(xml))
+        {
+            return (T)serializer.Deserialize(reader);
         }
     }
 }
