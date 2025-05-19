@@ -271,9 +271,9 @@ namespace AM.Web.Controllers
             {
                 var exactStartDate = startDate != string.Empty ? DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
                 var exactEndDate = endDate != string.Empty ? DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
-                
+
                 var result = repoSvc.GetReportWizard(clientId, businessFriendlyIdName, businessFriendlyIdValue, exactStartDate, exactEndDate, docType, status, channel, shippingMethod, trackingNo);
-                
+
                 result.ForEach(m =>
                 {
                     m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
@@ -281,9 +281,9 @@ namespace AM.Web.Controllers
                     m.MailedOn = m.MailedOn.HasValue ? m.MailedOn.Value.AddMinutes(-timezoneOffset) : m.MailedOn;
                     m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
                     m.ReturnDeliveryDate = m.ReturnDeliveryDate.HasValue ? m.ReturnDeliveryDate.Value.AddMinutes(-timezoneOffset) : m.ReturnDeliveryDate;
-                });               
+                });
                 var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
-                         
+
                 if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))
                 {
                     List<string> columnsToDelete = new List<string>() { "FirstName", "LastName", "RcptAddressStreet", "City", "ZIP", "State" };
@@ -347,7 +347,7 @@ namespace AM.Web.Controllers
                 if (attachmentData != null)
                 {
                     string to = userEmail;
-                    string subject = "Report Generated Through Report Wizard"; 
+                    string subject = $"{Config.Common_Environment} : Report Generated Through Report Wizard"; 
                     string body = "Please find the generated report attached."; 
 
                     await InternalEmail.SendMail(to,subject, body, attachmentData, fileName);

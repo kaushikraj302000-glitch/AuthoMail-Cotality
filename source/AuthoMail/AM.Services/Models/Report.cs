@@ -177,13 +177,16 @@ namespace AM.Services
         public string BatchId { get; set; }
         public string Channel { get; set; }
         public string DocumentOrPackageType { get; set; }
-        public bool IsEDeliveryRequested { get; set; }
-        public bool IsESignRequested { get; set; }
+        //public bool IsEDeliveryRequested { get; set; }
+        //public bool IsESignRequested { get; set; }
         //public string BusinessIdName { get; set; }
         //public string BusinessIdValue { get; set; }
         public string LoanNumber { get; set; }
         public string TrackingNo { get; set; }
         public DateTime? ReceivedOn { get; set; }
+        public DateTime? DueDate { get; set; }
+        public string MissedSLAReason { get; set; }
+        public int? SLADays { get; set; } 
         public DateTime? PrintedOn { get; set; }
         public DateTime? MailedOn { get; set; }
         public DateTime? ESignedOn { get { if (Status == ShippingStatus.eSigned.ToString() && MailedOn.HasValue) return MailedOn; return null; } }
