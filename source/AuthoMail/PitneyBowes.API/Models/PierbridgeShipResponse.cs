@@ -5,6 +5,7 @@ using System.Collections.Generic;
 [XmlRoot("PierbridgeShipResponse")]
 public class PierbridgeShipResponse
 {
+    public string Error { get; set; }
     public string CommitmentLevel { get; set; }
 
     [XmlArray("Rates")]

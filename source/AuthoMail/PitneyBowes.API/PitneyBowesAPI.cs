@@ -63,7 +63,10 @@ class Program
                 var response = await client.PostAsync(url, content);
                 var xmlResponse = await response.Content.ReadAsStringAsync();
 
-                return DeserializeXml<PierbridgeShipResponse>(xmlResponse);
+                var res = DeserializeXml<PierbridgeShipResponse>(xmlResponse);
+                if (res.Status.Code == 0)
+                    res.Error = res.Status.Description;
+                return res;
             }
             catch (Exception ex)
             {
