@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Xml.Serialization;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 
 [XmlRoot("PierbridgeShipResponse")]
 public class PierbridgeShipResponse

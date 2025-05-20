@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net.Http;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -22,7 +23,7 @@ class Program
         }
     }
 
-    public static async Task<PierbridgeShipResponse> CallShippingAPI()
+    public static async Task<dynamic> CallShippingAPI()
     {
         var url = "https://corelogicxb002.sendproenterprise.com/Logistics%20Server/xmlservice.aspx?apikey=UEB3YKN97IE1MSCP1EDXJ1I4L";
 
@@ -52,7 +53,7 @@ class Program
         </Package>
     </Packages>
     <UserName>blackbox</UserName>
-</PierbridgeShipRequest>";
+</PierbridgeShipbRequest>";
 
         using (var client = new HttpClient())
         {
@@ -62,6 +63,10 @@ class Program
             {
                 var response = await client.PostAsync(url, content);
                 var xmlResponse = await response.Content.ReadAsStringAsync();
+                if (xmlResponse.Contains("PierbridgeErrorResponse"))
+                {
+                    return DeserializeXml<PierbridgeErrorResponse>(xmlResponse);
+                }
 
                 var res = DeserializeXml<PierbridgeShipResponse>(xmlResponse);
                 if (res.Status.Code == 0)
