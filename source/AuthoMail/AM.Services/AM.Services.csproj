@@ -224,6 +224,7 @@
     <Compile Include="Services\InventoryService.cs" />
     <Compile Include="Services\MonitorBatchesService.cs" />
     <Compile Include="Services\MRDFResponseService.cs" />
+    <Compile Include="Services\USPSPBService.cs" />
     <Compile Include="Services\PnSAPIService.cs" />
     <Compile Include="Services\ProjectRequestService.cs" />
     <Compile Include="Services\PullBackService.cs" />
@@ -235,6 +236,8 @@
     <Compile Include="Services\SupportService.cs" />
     <Compile Include="Services\USPSService.cs" />
     <Compile Include="Services\USPSService.eVS.cs" />
+    <Compile Include="Services\USPS\PierbridgeShipRequest.cs" />
+    <Compile Include="Services\USPS\PierbridgeShipResponse.cs" />
     <Compile Include="Services\USPS\USPSENUMV3.cs" />
     <Compile Include="Services\USPS\USPSV3.cs" />
     <Compile Include="Services\USPS\USPSService.TrackV2.cs" />
