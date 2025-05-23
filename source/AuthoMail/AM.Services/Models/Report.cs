@@ -186,10 +186,10 @@ namespace AM.Services
         public DateTime? ReceivedOn { get; set; }
         public DateTime? DueDate { get; set; }
         public string MissedSLAReason { get; set; }
-        public int? SLADays { get; set; } 
+        //public int? SLADays { get; set; } 
         public DateTime? PrintedOn { get; set; }
         public DateTime? MailedOn { get; set; }
-        public DateTime? ESignedOn { get { if (Status == ShippingStatus.eSigned.ToString() && MailedOn.HasValue) return MailedOn; return null; } }
+        //public DateTime? ESignedOn { get { if (Status == ShippingStatus.eSigned.ToString() && MailedOn.HasValue) return MailedOn; return null; } }
         public string FileName { get; set; }
         public string ClientCode { get; set; }
         public string ShippingMethod { get; set; }
