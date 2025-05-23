@@ -402,7 +402,7 @@ namespace AM.Web.Controllers
         }
 
         [HttpPost]
-        public ActionResult _DownloadPVReconReport(string printVendorCode, string startDate, string endDate, string fileName, int timezoneOffset, List<int> clientIds, string status, List<string> shippingMethods)
+        public async Task<ActionResult> _DownloadPVReconReport(string printVendorCode, string startDate, string endDate, string fileName, int timezoneOffset, List<int> clientIds, string status, List<string> shippingMethods)
         {
             var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToStartDateTime().EstToUtc();
             var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToEndDateTime().EstToUtc();
@@ -429,7 +429,35 @@ namespace AM.Web.Controllers
             string fileGuid = Guid.NewGuid().ToString();
             TempData[fileGuid] = memoryStream.ToArray();
 
-            return Json(JsonResponseFactory.SuccessResponse(new { model = new { FileGuid = fileGuid, FileName = $"PVReconReport_{exactStartDate.ToString("MMddyyyy")}_To_{exactEndDate.ToString("MMddyyyy")}.xlsx" } }), JsonRequestBehavior.AllowGet);
+            if (!startDate.IsNullOrWhiteSpace())
+            {
+                string[] fileNameArray = { "PrintVendorRecon Report", exactStartDate.ToString("MMddyyyy"), "To", exactEndDate.ToString("MMddyyyy") };
+                fileName = string.Join("_", fileNameArray);
+            }
+            else
+            {
+                string[] fileNameArray = { "PrintVendorRecon Report", DateTime.UtcNow.AddMinutes(-timezoneOffset).ToString("MMddyyyy") };
+                fileName = string.Join("_", fileNameArray);
+            }
+
+
+            fileName = string.Format("{0}.xlsx", fileName);
+            var attachmentData = TempData[fileGuid] as byte[];
+
+            var userId = User.Identity.GetUserId();
+            var user = await userManager.FindByIdAsync(userId);
+            var userEmail = user.Email;
+
+            if (attachmentData != null)
+            {
+                string to = userEmail;
+                string subject = $"{Config.Common_Environment} : Print Vendor Recon report generated";
+                string body = "Please find the generated report attached.";
+
+                await InternalEmail.SendMail(to, subject, body, attachmentData, fileName);
+            }
+
+            return Json(new { Success = true, message = "Report generated and emailed successfully." });
         }
 
         public ActionResult DownloadPVReconReport(string fileGuid, string fileName)

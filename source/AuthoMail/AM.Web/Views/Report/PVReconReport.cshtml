@@ -108,7 +108,7 @@
 <!-- end table template code -->
 @section Scripts{
     @Scripts.Render("~/bundles/datatables")
-    <script>
+<script>
         $(document).ready(function () {
             window.clui.dateTimePickerInit();
             window.clui.tooltipInit();
@@ -135,18 +135,11 @@
                 success: function (response) {
                     //console.log(response);
                     if (response.Success) {
-                        if (response.Object != null) {
-
-                            window.location = baseUrl + 'Report/DownloadPVReconReport?fileGuid=' + response.Object.model.FileGuid
-                          + '&filename=' + response.Object.model.FileName;
-                        }
-                        else {
-                            window.clui.globalAlert({
-                                message: "@AM.Services.Config.Web_Msg_NoRecordFound",
-                                alertType: 'red',
-                                timeout: 5000
-                            });
-                        }
+                         window.clui.globalAlert({
+                             message: "Report generated and emailed successfully.",
+                             alertType: 'green',
+                             timeout: 5000
+                        });
                     } else {
 
                             window.clui.globalAlert({
@@ -168,5 +161,5 @@
             });
 
         });
-    </script>
+</script>
 }
