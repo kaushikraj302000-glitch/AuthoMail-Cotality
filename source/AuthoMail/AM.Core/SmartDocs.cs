@@ -242,6 +242,7 @@ namespace AM.Core
             using (PdfWriter writer = PdfWriter.GetInstance(document, new FileStream(newCoverLetterPath, FileMode.Create)))
             {
                 document.Open();
+                PdfReader.unethicalreading = true;
                 PdfContentByte cb = writer.DirectContent;
                 for (int pageNumber = 1; pageNumber <= reader.NumberOfPages; pageNumber++)
                 {
