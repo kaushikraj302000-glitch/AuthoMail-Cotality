@@ -683,17 +683,81 @@ namespace AM.Console
                             CommunityName = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityName")?.Value
                         };
 
-                        objFloodRequest.Settings = new
-                        {
-                            MailMergeOptions = "RemoveEmptyParagraphs",
-                            ReportEngineOptions = "RemoveEmptyParagraphs",
-                            OutputDocType = "pdf",
-                            Template = base64Template
-                        };
+                        //objFloodRequest.Settings = new
+                        //{
+                        //    MailMergeOptions = "RemoveEmptyParagraphs",
+                        //    ReportEngineOptions = "RemoveEmptyParagraphs",
+                        //    OutputDocType = "pdf",
+                        //    Template = base64Template
+                        //};
+
+                        objFloodRequest.Settings = new ExpandoObject();
+                        objFloodRequest.Settings.MailMergeOptions = "RemoveEmptyParagraphs";
+                        objFloodRequest.Settings.ReportEngineOptions = "RemoveEmptyParagraphs";
+                        objFloodRequest.Settings.OutputDocType = "pdf";
+                        objFloodRequest.Settings.Template = base64Template;
+
 
                         objFloodRequest.TransformData = null;
 
-                        GenerateDoc(objFloodRequest, mp.DocumentOrPackage.Name, mbi).Wait();
+                        //TODO: Return File Path from below method
+                        var finalPdfPath = GenerateDoc(objFloodRequest, mp.DocumentOrPackage.Name, mbi).GetAwaiter().GetResult();
+
+                        if (string.IsNullOrWhiteSpace(finalPdfPath))
+                        {
+                            log.Error($"Initial document generation failed for MailPiece ID: {mp.Id}");
+                            return;
+                        }
+
+                        var state = mp.RecipientInfo?.Address?.State?.Trim()?.ToUpperInvariant();
+                        log.Debug($"state : {state}");
+                        log.Debug($"finalPDf path {finalPdfPath}");
+                        if (state == "MA" || state == "NY")
+                        {
+                            var key = $"{docType.Id}_{state}";
+                            var templateName = Config.GetCustomTemplate(key);
+
+                            log.Debug($"key {key}");
+                            log.Debug($"templateName {templateName}");
+                            if (string.IsNullOrWhiteSpace(templateName))
+                            {
+                                log.Warn($"No custom template found for DocType {docType.Id} and state {state}");
+                                return;
+                            }
+
+                            try
+                            {
+                                var templatePath = Path.Combine(Config.Monitor_CustomTemplateFolder, client.AppCode, templateName);
+                                log.Debug($"temmplatePath {templatePath}");
+                                if (!File.Exists(templatePath))
+                                {
+                                    log.Error($"Custom template file does not exist at path: {templatePath}");
+                                    return;
+                                }
+
+                                var base64TemplateVaule = Convert.ToBase64String(File.ReadAllBytes(templatePath));
+                                objFloodRequest.Settings.Template = base64TemplateVaule;
+
+                                var fileNameOnly = Path.GetFileName(finalPdfPath); // preserve original name
+                                log.Debug($"filenamonly {fileNameOnly}");
+                                var regeneratedPath = GenerateDoc(objFloodRequest, fileNameOnly, mbi).Result;
+
+                                if (!string.IsNullOrWhiteSpace(regeneratedPath))
+                                {
+                                    log.Info("PDF overwritten for state {0} using template {1}".Fill(state, templateName));
+                                    finalPdfPath = regeneratedPath;
+                                }
+                                else
+                                {
+                                    log.Error($"Failed to regenerate PDF for state {state}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                log.Error($"Exception while regenerating PDF for state {state}: {ex.Message}", ex);
+                            }
+                        }
+
                     }
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now).Wait();
@@ -710,7 +774,7 @@ namespace AM.Console
             log.Debug("Download job queue is completed.");
         }
 
-        private async Task GenerateDoc(dynamic objFloodRequest, string pdfFileName, MailBatchInfo batchInfo)
+        private async Task<string> GenerateDoc(dynamic objFloodRequest, string pdfFileName, MailBatchInfo batchInfo)
         {
             using (var httpClient = new HttpClient())
             using (var stringContent = new StringContent(JsonConvert.SerializeObject(objFloodRequest), Encoding.UTF8, "application/json"))
@@ -720,12 +784,13 @@ namespace AM.Console
                 if (!httpResponse.IsSuccessStatusCode || httpResponse.StatusCode != HttpStatusCode.OK)
                 {
                     //await _commonService.UpdateLienDisqualifyReason(lienRecord.Id, responseString);
-                    return;
+                    return null;
                 }
                 var docGenResponse = JsonConvert.DeserializeObject<DocGenResponse>(responseString);
                 string finalPdfPath = Path.Combine(batchInfo.AMRequestPath, pdfFileName);
 
                 File.WriteAllBytes(finalPdfPath, docGenResponse.DocumentData);
+                return finalPdfPath;
             }
         }
 
