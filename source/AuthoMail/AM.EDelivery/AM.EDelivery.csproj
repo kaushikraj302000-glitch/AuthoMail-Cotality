@@ -62,6 +62,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="configs\DEV_Config\EDelivery\AM.EDelivery.exe.config" />
+    <None Include="configs\DEV_Config\EDelivery\log4net.config" />
+    <None Include="configs\DRG_Config\EDelivery\AM.EDelivery.exe.config" />
+    <None Include="configs\DRG_Config\EDelivery\log4net.config" />
+    <None Include="configs\REG_Config\EDelivery\AM.EDelivery.exe.config" />
+    <None Include="configs\REG_Config\EDelivery\log4net.config" />
+    <None Include="configs\UAT_Config\EDelivery\AM.EDelivery.exe.config" />
+    <None Include="configs\UAT_Config\EDelivery\log4net.config" />
     <None Include="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
