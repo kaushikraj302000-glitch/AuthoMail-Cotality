@@ -95,6 +95,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="configs\DEV_Config\Reporting\AM.Reporting.exe.config" />
+    <None Include="configs\DEV_Config\Reporting\log4net.config" />
+    <None Include="configs\DRG_Config\Reporting\AM.Reporting.exe.config" />
+    <None Include="configs\DRG_Config\Reporting\log4net.config" />
+    <None Include="configs\REG_Config\Reporting\AM.Reporting.exe.config" />
+    <None Include="configs\REG_Config\Reporting\log4net.config" />
+    <None Include="configs\UAT_Config\Reporting\AM.Reporting.exe.config" />
+    <None Include="configs\UAT_Config\Reporting\log4net.config" />
     <None Include="log4net.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
