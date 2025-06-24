@@ -49,6 +49,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="configs\DEV_Config\Monitor\AM.Console.exe.config" />
+    <None Include="configs\DEV_Config\Monitor\log4net.config" />
+    <None Include="configs\DRG_Config\Monitor\AM.Console.exe.config" />
+    <None Include="configs\DRG_Config\Monitor\log4net.config" />
+    <None Include="configs\REG_Config\Monitor\AM.Console.exe.config" />
+    <None Include="configs\REG_Config\Monitor\log4net.config" />
+    <None Include="configs\UAT_Config\Monitor\AM.Console.exe.config" />
+    <None Include="configs\UAT_Config\Monitor\log4net.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="HTMLTemplates\MonitorEmailSubmitTemp.html" />
