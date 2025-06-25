@@ -28,6 +28,7 @@ namespace AM.Services
                     //if (fieldPositions == null || fieldPositions.Count <= 0) throw new ApplicationException("Error locating field");
                     //AcroFields.FieldPosition fieldPosition = fieldPositions[0];
                     //fieldPosition.position.Left = Utilities.InchesToPoints(5.88f);
+                    form.SetFieldProperty(model.Key, "setmultiline", true, null);
                     form.SetField(model.Key, model.Value);
 
                 }
