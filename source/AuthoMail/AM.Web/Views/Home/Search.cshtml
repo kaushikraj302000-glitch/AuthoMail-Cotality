@@ -1224,9 +1224,9 @@
                     //console.log(response);
                     if (response.Success) {
                         if (response.Object != null) {
-
-                            window.location = baseUrl + 'Home/DownloadSearch?fileGuid=' + response.Object.model.FileGuid
-                          + '&filename=' + response.Object.model.FileName;
+                              const fileName = encodeURIComponent(response.Object.model.FileName);
+                              window.location = baseUrl + 'Home/DownloadSearch?fileGuid=' + response.Object.model.FileGuid
+                            + '&filename=' + fileName;
                         }
                         else {
                             window.clui.globalAlert({

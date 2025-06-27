@@ -21,7 +21,7 @@
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
-    <Use64BitIISExpress />
+    <Use64BitIISExpress>true</Use64BitIISExpress>
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -456,6 +456,12 @@
     <Content Include="fonts\USPSIMBSTANDARD.TTF" />
     <Content Include="fonts\VERDANA.TTF" />
     <Content Include="fonts\ZapfDingbats.ttf" />
+    <Content Include="configs\DEV_Config\AuthoMailWeb\Aspose.Words.lic" />
+    <Content Include="configs\DEV_Config\AuthoMailWeb\Web.config" />
+    <Content Include="configs\DRG_Config\AuthoMailWeb\Web.config" />
+    <Content Include="configs\REG_Config\AuthoMailWeb\Web.config" />
+    <Content Include="configs\UAT_Config\AuthoMailWeb\Aspose.Words.lic" />
+    <Content Include="configs\UAT_Config\AuthoMailWeb\Web.config" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />

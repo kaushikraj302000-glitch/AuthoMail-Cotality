@@ -161,7 +161,7 @@ namespace AM.Services
 
                     uspsInputXML = request.Serialize();
 
-                    payload = new FormUrlEncodedContent(new[] 
+                    payload = new FormUrlEncodedContent(new[]
                         {
                             new KeyValuePair<string, string>("API",Config.Web_API_USPS_VerifyAPIName),
                             //new KeyValuePair<string, string>("API","Verify"),
@@ -169,7 +169,8 @@ namespace AM.Services
                         });
 
                     //var payloadResult = await payload.ReadAsStringAsync().ConfigureAwait(false);
-                    var uspsReq = httpClient.PostAsync(url, payload);
+                    //Todo disable code for not check address
+                    //var uspsReq = httpClient.PostAsync(url, payload);
 
 
                     if (Config.Web_API_USPS_IsDbLoggingEnabled)
@@ -180,17 +181,22 @@ namespace AM.Services
 
                     try
                     {
-                        var response = await uspsReq.ConfigureAwait(false);
-                        uspsResponseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                        isGenericUSPSError = !uspsResponseString.Contains("AddressValidateResponse");
+                        //Todo disable code for not check address
+                        //var response = await uspsReq.ConfigureAwait(false);
+                        //uspsResponseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                        //isGenericUSPSError = !uspsResponseString.Contains("AddressValidateResponse");
+
+                        //Todo disable code for not check address
+                        isGenericUSPSError = true;
 
                         if (isGenericUSPSError)
                         {
-                            var uspsError = uspsResponseString.Deserialize<USPSError>();
+                            //var uspsError = uspsResponseString.Deserialize<USPSError>();
 
                             addresses.ForEach(add =>
                             {
-                                add.Error = uspsError;
+                                add.Error = new USPSError { Description = "Disabled service for address verify", Source = "CLSVC" };// uspsError;
                             });
                         }
                     }
@@ -223,7 +229,7 @@ namespace AM.Services
                 {
                     var uspsRequestLogAwait = await uspsRequestLog.ConfigureAwait(false);
 
-                    uspsResponseLog = db.ExecuteAsync("Update [API].[USPS] set USPSResponse = @USPSResponse , USPSResponseOn = @USPSResponseOn, IsUSPSError = @IsUSPSError, IsAPIError = @IsAPIError where Id = @Id", new { USPSResponse = uspsResponseString, USPSResponseOn = Common.Now, IsUSPSError = isGenericUSPSError, IsAPIError = false, Id = logId });
+                    uspsResponseLog = db.ExecuteAsync("Update [API].[USPS] set USPSResponse = @USPSResponse , USPSResponseOn = @USPSResponseOn, IsUSPSError = @IsUSPSError, IsAPIError = @IsAPIError where Id = @Id", new { USPSResponse = uspsResponseString ?? "Disabled service for address verify", USPSResponseOn = Common.Now, IsUSPSError = isGenericUSPSError, IsAPIError = false, Id = logId });
                 }
 
                 if (isGenericUSPSError)
