@@ -632,142 +632,145 @@ namespace AM.Console
                 try
                 {
                     Client client = clientSvc.GetClientById(mailBatch.ClientId);
-
                     MailBatchInfo mbi = new MailBatchInfo(mailBatch, client, Config.Common_AuthoMailRootFolder);
-
                     var xmlFilePath = Directory.EnumerateFiles(mbi.AMRequestPath, "*.xml").SingleOrDefault();
 
                     if (string.IsNullOrWhiteSpace(xmlFilePath))
                     {
                         log.Error("File does not exist");
-                        MailUtility.SendUnexpectedExceptionEmail("No xml found for generating pdf for Batch Id {0} and client name : {1}".Fill(mbi.MailBatch.Id, client.AppCode));
+                        MailUtility.SendUnexpectedExceptionEmail($"No xml found for generating pdf for Batch Id {mbi.MailBatch.Id} and client name : {client.AppCode}");
                         continue;
                     }
-
                     var mbData = File.ReadAllText(xmlFilePath).Deserialize<MailBatch>();
 
                     foreach (var mp in mbData.MailPieces)
                     {
+                        log.Debug(mp.RecipientInfo?.Recipient.FirstName);
+                        log.Debug(mp.RecipientInfo?.Address.OptionalLine1AboveStreet);
                         bool isCountryUS = mp.RecipientInfo.Address.Country.IsCountryUS();
-                        DocType docType = !isCountryUS ? docTypeSvc.GetIntlDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0, mailBatch.ReceivedOn.Value.UtcToEst()) : docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0, mailBatch.ReceivedOn.Value.UtcToEst());
+                        DocType docType = !isCountryUS
+                            ? docTypeSvc.GetIntlDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0, mailBatch.ReceivedOn.Value.UtcToEst())
+                            : docTypeSvc.GetDocTypeByDocTypeName(mailBatch.ClientId, mp.DocumentOrPackageType, 0, mailBatch.ReceivedOn.Value.UtcToEst());
 
-                        CustomTemplate customTemplate = commonSvc.GetCustomTemplateByDocTypeId(docType.Id, mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityCode").Value);
-                        var printReadyTemplatePath = Path.Combine(mbi.AMRequestPath, mp.DocumentOrPackage.Name);
+                        CustomTemplate customTemplate = commonSvc.GetCustomTemplateByDocTypeId(docType.Id, mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityCode")?.Value);
+                        var templateFilePath = Path.Combine(Config.Monitor_CustomTemplateFolder, client.AppCode, customTemplate?.CustomTemplatePath ?? "");
 
-                        if (customTemplate == null)
+                        if (customTemplate == null || !File.Exists(templateFilePath))
                         {
-                            log.Error("No Template found");
+                            log.Error($"No valid template found for MailPiece ID: {mp.Id}");
                             continue;
                         }
 
-                        var templateFilePath = Path.Combine(Config.Monitor_CustomTemplateFolder, client.AppCode, customTemplate.CustomTemplatePath);
                         var base64Template = Convert.ToBase64String(File.ReadAllBytes(templateFilePath));
                         dynamic objFloodRequest = new ExpandoObject();
+
                         objFloodRequest.Data = new
                         {
-                            BorrowerFullName = mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.FirstName, mp.RecipientInfo.Recipient.LastName).Trim() : "" : "",
-                            BorrowerFullNameReverse = mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}, {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).FormattedName() : "" : "",
-                            BorrFName = mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}".Fill(mp.RecipientInfo.Recipient.FirstName).Trim() : "" : "",
-                            BorrLName = mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}".Fill(mp.RecipientInfo.Recipient.LastName).Trim() : "" : "",
-                            BorrStreetAddress = mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.Street).Trim() : "" : "",
-                            BorrCity = mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.City).Trim() : "" : "",
-                            BorrState = mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.State).Trim() : "" : "",
-                            BorrZip = mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.Zip).Trim() : "" : "",
-                            LoanNumber = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "LoanNumber").Value.IsNullOrWhiteSpace() ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "LoanNumber").Value,
-                            PropStreetAddress = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value,
-                            PropCity = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity")?.Value,
-                            PropState = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState")?.Value,
-                            PropZip = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyZip")?.Value,
-                            DocumentDate = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "DocumentDate")?.Value,
-                            NoticeDate = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "NoticeDate")?.Value,
-                            CommunityName = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityName")?.Value
+                            BorrowerFullName = mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0} {1}".Fill(mp.RecipientInfo.Recipient.FirstName, mp.RecipientInfo.Recipient.LastName).TrimIfNotNull() : "" : "",
+                            BorrowerFullNameReverse = mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}, {1}".Fill(mp.RecipientInfo.Recipient.LastName, mp.RecipientInfo.Recipient.FirstName).FormattedName().TrimIfNotNull() : "" : "",
+                            BorrFName = mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}".Fill(mp.RecipientInfo.Recipient.FirstName).TrimIfNotNull() : "" : "",
+                            BorrLName = mp.RecipientInfo != null ? mp.RecipientInfo.Recipient != null ? "{0}".Fill(mp.RecipientInfo.Recipient.LastName).TrimIfNotNull() : "" : "",
+                            BorrStreetAddress = mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.Street).TrimIfNotNull() : "" : "",
+                            BorrCity = mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.City).TrimIfNotNull() : "" : "",
+                            BorrState = mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.State).TrimIfNotNull() : "" : "",
+                            BorrZip = mp.RecipientInfo != null ? mp.RecipientInfo.Address != null ? "{0}".Fill(mp.RecipientInfo.Address.Zip).TrimIfNotNull() : "" : "",
+                            LoanNumber = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "LoanNumber").Value.IsNullOrWhiteSpace() ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "LoanNumber").Value.TrimIfNotNull(),
+                            RetRcptFName = docType.RetRcptFirstName?.TrimIfNotNull() ?? "",
+
+                            RetRecpAddOptLine1 = docType.RetRcptAddrOptionalLine1BelowStreet?.TrimIfNotNull() ?? "",
+                            RetRecpAddStreet = docType.RetRcptAddressStreet?.TrimIfNotNull() ?? "",
+                            RetRecpAddCity = docType.RetRcptAddressCity?.TrimIfNotNull() ?? "",
+                            RetRecpAddState = docType.RetRcptAddressState?.TrimIfNotNull() ?? "",
+                            RetRecpAddZip = docType.RetRcptAddressZIP?.TrimIfNotNull() ?? "",
+
+                            PropStreetAddress = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyStreetAddress").Value?.TrimIfNotNull(),
+                            PropCity = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyCity")?.Value?.TrimIfNotNull(),
+                            PropState = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyState")?.Value?.TrimIfNotNull(),
+                            PropZip = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "PropertyZip")?.Value?.TrimIfNotNull(),
+                            DocumentDate = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "DocumentDate")?.Value?.TrimIfNotNull(),
+                            NoticeDate = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "NoticeDate")?.Value?.TrimIfNotNull(),
+                            CommunityName = mp.CustomInfo == null ? "" : mp.CustomInfo.SingleOrDefault(m => m.Key == "CommunityName")?.Value?.TrimIfNotNull()
                         };
 
-                        //objFloodRequest.Settings = new
-                        //{
-                        //    MailMergeOptions = "RemoveEmptyParagraphs",
-                        //    ReportEngineOptions = "RemoveEmptyParagraphs",
-                        //    OutputDocType = "pdf",
-                        //    Template = base64Template
-                        //};
 
                         objFloodRequest.Settings = new ExpandoObject();
                         objFloodRequest.Settings.MailMergeOptions = "RemoveEmptyParagraphs";
                         objFloodRequest.Settings.ReportEngineOptions = "RemoveEmptyParagraphs";
                         objFloodRequest.Settings.OutputDocType = "pdf";
                         objFloodRequest.Settings.Template = base64Template;
-
-
                         objFloodRequest.TransformData = null;
 
-                        //TODO: Return File Path from below method
-                        var finalPdfPath = GenerateDoc(objFloodRequest, mp.DocumentOrPackage.Name, mbi).GetAwaiter().GetResult();
+                        // Generate the main PDF
+                        var originalPdfPath = GenerateDoc(objFloodRequest, mp.DocumentOrPackage.Name, mbi).GetAwaiter().GetResult();
 
-                        if (string.IsNullOrWhiteSpace(finalPdfPath))
+                        if (string.IsNullOrWhiteSpace(originalPdfPath))
                         {
-                            log.Error($"Initial document generation failed for MailPiece ID: {mp.Id}");
-                            return;
+                            log.Error($"Initial PDF generation failed for MailPiece ID: {mp.Id}");
+                            continue;
                         }
 
                         var state = mp.RecipientInfo?.Address?.State?.Trim()?.ToUpperInvariant();
-                        log.Debug($"state : {state}");
-                        log.Debug($"finalPDf path {finalPdfPath}");
                         if (state == "MA" || state == "NY")
                         {
-                            var key = $"{docType.Id}_{state}";
-                            var templateName = Config.GetCustomTemplate(key);
-
-                            log.Debug($"key {key}");
-                            log.Debug($"templateName {templateName}");
-                            if (string.IsNullOrWhiteSpace(templateName))
-                            {
-                                log.Warn($"No custom template found for DocType {docType.Id} and state {state}");
-                                return;
-                            }
-
                             try
                             {
-                                var templatePath = Path.Combine(Config.Monitor_CustomTemplateFolder, client.AppCode, templateName);
-                                log.Debug($"temmplatePath {templatePath}");
-                                if (!File.Exists(templatePath))
+                                var key = $"{docType.Id}_{state}";
+                                var stateTemplate = Config.GetCustomTemplate(key);
+
+                                if (string.IsNullOrWhiteSpace(stateTemplate))
                                 {
-                                    log.Error($"Custom template file does not exist at path: {templatePath}");
-                                    return;
+                                    log.Warn($"No custom state template found for DocType {docType.Id} and state {state}");
+                                    continue;
                                 }
 
-                                var base64TemplateVaule = Convert.ToBase64String(File.ReadAllBytes(templatePath));
-                                objFloodRequest.Settings.Template = base64TemplateVaule;
+                                var disclosureTemplatePath = Path.Combine(Config.Monitor_CustomTemplateFolder, client.AppCode, stateTemplate);
 
-                                var fileNameOnly = Path.GetFileName(finalPdfPath); // preserve original name
-                                log.Debug($"filenamonly {fileNameOnly}");
-                                var regeneratedPath = GenerateDoc(objFloodRequest, fileNameOnly, mbi).Result;
+                                if (!File.Exists(disclosureTemplatePath))
+                                {
+                                    log.Error($"Disclosure template not found at path: {disclosureTemplatePath}");
+                                    continue;
+                                }
 
-                                if (!string.IsNullOrWhiteSpace(regeneratedPath))
+                                var base64DisclosureTemplate = Convert.ToBase64String(File.ReadAllBytes(disclosureTemplatePath));
+                                objFloodRequest.Settings.Template = base64DisclosureTemplate;
+
+                                // Generate the disclosure PDF
+                                var disclosureFileName = $"Disclosure_{mp.Id}_{state}.pdf";
+                                var disclosurePdfPath = GenerateDoc(objFloodRequest, disclosureFileName, mbi).Result;
+
+                                if (string.IsNullOrWhiteSpace(disclosurePdfPath))
                                 {
-                                    log.Info("PDF overwritten for state {0} using template {1}".Fill(state, templateName));
-                                    finalPdfPath = regeneratedPath;
+                                    log.Error($"Disclosure PDF generation failed for MailPiece ID: {mp.Id}, state: {state}");
+                                    continue;
                                 }
-                                else
-                                {
-                                    log.Error($"Failed to regenerate PDF for state {state}");
-                                }
+
+                                // Merge disclosure + original into same file name
+                                var tempMergedPath = Path.Combine(mbi.AMRequestPath, Path.GetRandomFileName() + ".pdf");
+                                PdfUtil.MergePDFs(originalPdfPath, disclosurePdfPath, tempMergedPath);
+
+                                File.Delete(originalPdfPath); // Delete original
+                                File.Move(tempMergedPath, originalPdfPath); // Overwrite with merged
+                                File.Delete(disclosurePdfPath); // Delete disclosure PDF)
+
+                                log.Info($"Merged and replaced original PDF at {originalPdfPath} for state {state}");
                             }
                             catch (Exception ex)
                             {
-                                log.Error($"Exception while regenerating PDF for state {state}: {ex.Message}", ex);
+                                log.Error($"Exception during disclosure PDF generation/merge for state {state}: {ex.Message}", ex);
+                                continue;
                             }
                         }
 
+                        // optional: update metadata or log result here
                     }
 
                     commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.Downloaded, Common.Now).Wait();
                 }
                 catch (Exception ex)
                 {
-                    var msg = "Error occured in DownloadBatches Method For Mail Batch Id: {0} with Error : {1}".Fill(mailBatch.Id, ex.Message);
+                    var msg = $"Error occurred in DownloadBatches Method for Mail Batch Id: {mailBatch.Id} - Error: {ex.Message}";
                     log.Error(msg, ex);
                     MailUtility.SendUnexpectedExceptionEmail(msg);
-                    continue;
                 }
             }
 
