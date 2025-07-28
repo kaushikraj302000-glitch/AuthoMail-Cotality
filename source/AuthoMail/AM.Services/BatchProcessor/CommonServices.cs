@@ -57,6 +57,7 @@ namespace AM.Services
         List<PackagesHoldInfo> GetPackagesHoldInfo();
         List<USPSLabelCutOffDetail> GetUSPSLabelCutOffDetails();
         List<USPSCredentialInfo> GetUSPSCredentialDetails();
+        Dictionary<string, string> GetCustomTemplates();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 
     {
@@ -580,5 +581,21 @@ namespace AM.Services
 
             return db.Query<USPSCredentialInfo>(query).ToList();
         }
+
+        public Dictionary<string, string> GetCustomTemplates()
+        {
+            string query = @"
+                    SELECT [DocTypeId], [CustomTemplatePath], [CommunityCode]
+                    FROM [AM].[CustomTemplates]
+                    WHERE [CommunityCode] IN ('MA', 'NY')";
+
+            var result = db.Query<(int DocTypeId, string CustomTemplatePath, string CommunityCode)>(query);
+
+            return result.ToDictionary(
+                x => $"{x.DocTypeId}_{x.CommunityCode}",
+                x => x.CustomTemplatePath
+            );
+        }
+
     }
 }
