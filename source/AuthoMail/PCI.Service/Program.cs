@@ -1,11 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using log4net;
 using Microsoft.Practices.EnterpriseLibrary.Data;
-using log4net;
+using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace PCI.Service
 {
@@ -45,6 +47,30 @@ namespace PCI.Service
             try
             {
                 log.Info($"{string.Join(",", args)} started.");
+                log.Info($"Server IP : {Common.ServerIP}");
+
+                if (Common.ServerIP.IsNullOrWhiteSpace())
+                {
+                    string ipv4Pattern = @"^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+                25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+                25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+                25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$";
+
+                    IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+
+                    foreach (var ip in ipHostInfo.AddressList)
+                    {
+                        var isValid = Regex.IsMatch(ip.ToString(), ipv4Pattern);
+
+                        if (isValid)
+                        {
+                            log.Info($"Server IP AFter Foreach: {ip.ToString()}");
+                            Common.ServerIP = ip.ToString();
+                            break;
+                        }
+                    }
+                }
+
                 Common.PCIRootFolder.IsNullOrEmpty();
                 switch (args[0])
                 {

@@ -64,6 +64,9 @@ namespace PCI.Service
             List<string> availableSFTFiles;
             List<string> availableBatches;
 
+            //log.Debug(Common.ServerIP);
+            log.Info($"Server Ip : {Common.ServerIP}");
+
             var remoteDirPath = Path.Combine(sftChannel.ToADEDir, Common.ServerIP, clientInfo.AppCode);
 
             availableSFTFiles = sftSite.ListDirectory(remoteDirPath);

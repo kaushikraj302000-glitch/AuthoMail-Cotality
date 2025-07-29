@@ -16,7 +16,7 @@ namespace AM.Console
         private static log4net.ILog log;
         static void Main(string[] args)
         {
-            //Code Added to create argument wise log file
+                        //Code Added to create argument wise log file
             var argString = String.Join(",", args);
             log4net.LogicalThreadContext.Properties["args"] = argString;
             log4net.Config.XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo(ConfigurationManager.AppSettings["log4net.Config"]));
