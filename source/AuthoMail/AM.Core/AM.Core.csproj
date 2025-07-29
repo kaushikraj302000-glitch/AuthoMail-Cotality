@@ -102,6 +102,14 @@
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="configs\DEV_Config\Core\AM.Core.exe.config" />
+    <None Include="configs\DEV_Config\Core\log4net.config" />
+    <None Include="configs\DRG_Config\Core\AM.Core.exe.config" />
+    <None Include="configs\DRG_Config\Core\log4net.config" />
+    <None Include="configs\REG_Config\Core\AM.Core.exe.config" />
+    <None Include="configs\REG_Config\Core\log4net.config" />
+    <None Include="configs\UAT_Config\Core\AM.Core.exe.config" />
+    <None Include="configs\UAT_Config\Core\log4net.config" />
     <None Include="CoverTemplates\TDBANK\TDBANK_USPS_10_6X95.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
