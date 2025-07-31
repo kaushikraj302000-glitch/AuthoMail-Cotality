@@ -97,8 +97,9 @@ namespace AM.Reporting
 
                     if (reportType == "Monthly")
                     {
-                        startDate = new DateTime(Common.EstToday.Year, Common.EstToday.AddMonths(-1).Month, 26).ToStartDateTime().EstToUtc();
-                        endDate = new DateTime(Common.EstToday.Year, Common.EstToday.Month, 25).ToEndDateTime().EstToUtc();
+                        var previousMonth = Common.EstToday.AddMonths(-1);
+                        startDate = new DateTime(previousMonth.Year, previousMonth.Month, 1).ToStartDateTime().EstToUtc();
+                        endDate = new DateTime(previousMonth.Year, previousMonth.Month, DateTime.DaysInMonth(previousMonth.Year, previousMonth.Month)).ToEndDateTime().EstToUtc();
                     }
 
                     monthlyReconReportViewModels = reportSvc.GetMonthlyReconReport(clientInfo.Id, startDate, endDate, null);
