@@ -1,17 +1,19 @@
 ﻿using AM.Entities;
+using AM.Lib;
 using AM.Services;
+using AM.USPSLib;
 using PCI.Lib;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AM.Lib;
-using System.Threading;
-using System.Net.Mail;
-using AM.USPSLib;
 using System.IO.Compression;
+using System.Linq;
+using System.Net;
+using System.Net.Mail;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AM.Core
 {
@@ -33,7 +35,27 @@ namespace AM.Core
         #region PrepPnSJob
         internal static bool PrepPnSJobs()
         {
-            log.Debug("PrepPnSJob started");
+            log.Debug($"PrepPnSJob started, Ip Address {Config.Common_ServerIP}");
+
+            if (string.IsNullOrWhiteSpace(Config.Common_ServerIP))
+            {
+                string ipv4Pattern = @"^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+             25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+             25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
+             25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$";
+                IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+
+                foreach (var ip in ipHostInfo.AddressList)
+                {
+                    var isValid = Regex.IsMatch(ip.ToString(), ipv4Pattern);
+
+                    if (isValid)
+                    {
+                        Config.Common_ServerIP = ip.ToString();
+                        break;
+                    }
+                }
+            }
 
             using (IMailBatchService mailBatchService = new MailBatchService())
             {

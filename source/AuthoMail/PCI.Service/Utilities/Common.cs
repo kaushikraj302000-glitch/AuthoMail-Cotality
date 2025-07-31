@@ -13,6 +13,7 @@ using System.Data;
 using log4net;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Runtime.CompilerServices;
 
 namespace PCI.Service
 {
@@ -80,7 +81,7 @@ namespace PCI.Service
         public static string UnexpectedEmail_CcEmail { get; private set; }
         public static string DocGenAPIUrl { get; private set; }
         public static string ManifestTemplatePath { get; private set; }
-        public static string ServerIP { get; private set; }
+        public static string ServerIP { get; set; }
 
         static Common()
         {
@@ -176,7 +177,7 @@ namespace PCI.Service
                 25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
                 25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.(
                 25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)$";
-                 IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+                IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
 
                 foreach (var ip in ipHostInfo.AddressList)
                 {
@@ -188,8 +189,6 @@ namespace PCI.Service
                         break;
                     }
                 }
-
-                
             }
             catch (Exception ex)
             {
