@@ -176,6 +176,11 @@ namespace AM.Console
                     {
                         Purging.PurgeArchiveFiles(args[1]);
                     }
+                    else if (args[0] == "CheckDisk")
+                    {
+                        Purging.CheckDiskSpaceAndAlert(args[1], double.Parse(args[2])); // args[1] = "C", args[2] = "85"
+                    }
+
                     else
                     {
                         using (var channel = ChannelFactory.Create(args))

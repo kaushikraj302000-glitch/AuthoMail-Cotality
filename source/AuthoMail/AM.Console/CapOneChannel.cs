@@ -43,6 +43,8 @@ namespace AM.Console
 
         protected override void EnumerateBatches()
         {
+
+
             //Download File logic and separate according to clientcode in csv
             log.Debug("Enumerate Batches job queue for " + SFTChannel.Code + " is started.");
 
@@ -170,6 +172,7 @@ namespace AM.Console
 
         private bool SeparatePackagesByClient(Dictionary<string, List<FloodData>> floodClientData, string localCsvFilePath, string batchName, string localCsvDirPath, DateTime lastModifiedTime, SFTUtil sftSite)
         {
+
             bool isAllSuccess = false;
             List<MailBatchDTO> mbList = new List<MailBatchDTO>();
             int clientCounter = 0;
@@ -409,6 +412,8 @@ namespace AM.Console
                     var msg = "Error occured while processing batch from Batch '{0}.xml'".Fill(batchName);
                     log.Error(msg, ex);
 
+
+
                     if (Directory.Exists(localCsvDirPath))
                         Directory.Delete(localCsvDirPath, true);
 
@@ -445,9 +450,22 @@ namespace AM.Console
                     }
                     scope.Complete();
                     isAllSuccess = true;
+
                 }
                 catch (Exception ex)
                 {
+                    if (File.Exists(localCsvFilePath))
+                    {
+
+                        string errorFolderPath = Path.Combine(Config.Common_SharedPath, "Client",
+                          SFTChannel.GetChannelCode(), "Inbound", "Error");
+                        log.Debug("error folder path: " + errorFolderPath);
+
+                        string errorFilePath = Path.Combine(errorFolderPath, Path.GetFileName(localCsvFilePath));
+                        File.Move(localCsvFilePath, errorFilePath);
+                        log.Info($"Moved failed file to error folder: {errorFilePath}");
+                    }
+
                     var msg = "Error occured while inserting General Channel batches details for Batch '{0}.xml'".Fill(batchName);
                     log.Error(msg, ex);
                     MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
