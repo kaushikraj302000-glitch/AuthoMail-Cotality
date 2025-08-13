@@ -3,6 +3,7 @@ using AM.Lib;
 using AM.Services;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -204,6 +205,36 @@ namespace AM.Console
                     log.Error(msg, ex);
                     MailUtility.SendUnexpectedExceptionEmail(msg);
                 }
+            }
+        }
+
+        public static void CheckDiskSpaceAndAlert(string driveLetter, double thresholdPercent)
+        {
+            string uncPath = Config.Common_SharedPath;
+            
+            Process.Start("net", $"use {driveLetter}: {uncPath} /persistent:no").WaitForExit();
+            log.Debug("Mapped drive: " + driveLetter + " to UNC path: " + uncPath);
+            driveLetter += ":\\";
+            try
+            {
+                DriveInfo drive = new DriveInfo(driveLetter);
+                log.Debug($"Checking disk space for: {uncPath}");
+                log.Debug($"Total Size: {drive.TotalSize / (1024 * 1024 * 1024)} GB");
+                log.Debug($"Available Space: {drive.AvailableFreeSpace / (1024 * 1024 * 1024)} GB");
+                double usedPercent = ((double)(drive.TotalSize - drive.TotalFreeSpace) / drive.TotalSize) * 100;
+
+                if (usedPercent >= thresholdPercent)
+                {
+                    log.Debug("Send the mail as disk usage is above threshold: " + usedPercent + "%");
+                    string msg = $"Disk usage on {uncPath} (mapped as {driveLetter}) is {usedPercent:F1}%";
+
+                    MailUtility.SendUnexpectedExceptionEmail(msg);
+                }
+            }
+            finally
+            {
+                log.Debug("unmapping the drive letter: " + driveLetter);
+                Process.Start("net", $"use {driveLetter}: /delete").WaitForExit();
             }
         }
 
