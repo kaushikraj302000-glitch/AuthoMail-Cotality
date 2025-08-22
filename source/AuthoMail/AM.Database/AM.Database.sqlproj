@@ -85,6 +85,7 @@
     <None Include="Snapshots\Release_01DEC20.dacpac" />
     <None Include="Snapshots\Release_02JAN21.dacpac" />
     <None Include="Snapshots\Release_10JAN21.dacpac" />
+    <None Include="Scripts\0728_INSERT_FloodNYMACustomTemplates.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Profile\Tables\Info.sql" />
