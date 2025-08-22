@@ -57,6 +57,7 @@ namespace AM.Services
         List<PackagesHoldInfo> GetPackagesHoldInfo();
         List<USPSLabelCutOffDetail> GetUSPSLabelCutOffDetails();
         List<USPSCredentialInfo> GetUSPSCredentialDetails();
+
         Dictionary<string, string> GetCustomTemplates();
     }
     public class CommonService : ServiceBase, ICommonService //It implements Interfaces 

@@ -1,17 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Refit;
-using System.Net.Http;
-using System.Threading;
-using System.Net.Http.Headers;
+﻿using AM.USPSLib;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using AM.USPSLib;
-using System.Net;
-using System.IO;
+using Refit;
+using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace WebApiClient
 {
@@ -83,53 +84,53 @@ namespace WebApiClient
             //string resul = result.AddressResponses[0].HasError ? "Not Verified" : "Verified";
             //Console.WriteLine("Address verify result : " + resul);
 
-            eVSLabelRequest eVSReq = new eVSLabelRequest();
-            //General settings
-            eVSReq.AllowNonCleansedDestAddr = true;
-            eVSReq.AllowNonCleansedOriginAddr = true;
-            eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY;
-            eVSReq.Container = Container.FLAT_RATE_ENVELOPE;
-            eVSReq.ShipDate = null;// DateTime.Today;
-            eVSReq.ReceiptOption = ReceiptOption.SEPARATE_PAGE;
-            eVSReq.WeightInOunces = "48";
-            //eVSReq.SenderName = "USAA";
-            eVSReq.ImageType = ImageType.PDF;
-            eVSReq.LabelParameters = new LabelParameters()
-            {
-                Size = LabelSize.SEPARATECONTINUEPAGE,
-                XCoordinate = 450,
-                YCoordinate = 500,
-                Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }
-            };
-            eVSReq.ReturnCommitments = true;
-            eVSReq.POZipCode = "75099";
+            //eVSLabelRequest eVSReq = new eVSLabelRequest();
+            ////General settings
+            //eVSReq.AllowNonCleansedDestAddr = true;
+            //eVSReq.AllowNonCleansedOriginAddr = true;
+            //eVSReq.ServiceType = AM.USPSLib.ServiceType.PRIORITY;
+            //eVSReq.Container = Container.FLAT_RATE_ENVELOPE;
+            //eVSReq.ShipDate = null;// DateTime.Today;
+            //eVSReq.ReceiptOption = ReceiptOption.SEPARATE_PAGE;
+            //eVSReq.WeightInOunces = "48";
+            ////eVSReq.SenderName = "USAA";
+            //eVSReq.ImageType = ImageType.PDF;
+            //eVSReq.LabelParameters = new LabelParameters()
+            //{
+            //    Size = LabelSize.SEPARATECONTINUEPAGE,
+            //    XCoordinate = 450,
+            //    YCoordinate = 500,
+            //    Sequence = new LabelSequence() { PackageNumber = 1, TotalPackages = 1 }
+            //};
+            //eVSReq.ReturnCommitments = true;
+            //eVSReq.POZipCode = "75099";
 
-            // From Address
-            eVSReq.FromName = "ABC Inc.";
-            eVSReq.FromFirm = "";
-            eVSReq.FromAptOrSuiteorOther = "Ste 113";
-            eVSReq.FromStreetAddress = "3131 Princeton Pike Bldg 4 Ste 113";
-            eVSReq.FromCity = "Lawrenceville";
-            eVSReq.FromState = "NJ";
-            eVSReq.FromZip4 = "";
-            eVSReq.FromZip5 = "08648";
-            eVSReq.FromPhone = "0000000000";// new string('0', 10);
+            //// From Address
+            //eVSReq.FromName = "ABC Inc.";
+            //eVSReq.FromFirm = "";
+            //eVSReq.FromAptOrSuiteorOther = "Ste 113";
+            //eVSReq.FromStreetAddress = "3131 Princeton Pike Bldg 4 Ste 113";
+            //eVSReq.FromCity = "Lawrenceville";
+            //eVSReq.FromState = "NJ";
+            //eVSReq.FromZip4 = "";
+            //eVSReq.FromZip5 = "08648";
+            //eVSReq.FromPhone = "0000000000";// new string('0', 10);
 
-            // To Address
-            eVSReq.ToFirm = "";
-            eVSReq.ToName = "SAMUEL MATEO-SOTO";
-            eVSReq.ToAptOrSuiteorOther = "";
-            eVSReq.ToStreetAddress = "PO BOX 744";
-            eVSReq.ToCity = "DORADO";
-            eVSReq.ToState = "PR";
-            eVSReq.ToZip4 = "";
-            eVSReq.ToZip5 = "00646";
-            eVSReq.ToPhone = new string('0', 10);
-            //eVSReq.Width = 10;
-            //eVSReq.Length = 13m;
-            //eVSReq.Height = 0.5m;
-            eVSReq.eVSCustomsFormsData = new eVSCustomsFormsData() { ShippingContents = new List<ItemDetail>() { new ItemDetail() { HSTariffNumber = "490110", CountryOfOrigin = "United States", Description = "Loan Document", Quantity = 1, NetPounds = 2, NetOunces = 0, Value = 50 } }, CustomsContentType = CustomsContentType.DOCUMENTS };
-            //var eVSReq = D5();
+            //// To Address
+            //eVSReq.ToFirm = "";
+            //eVSReq.ToName = "SAMUEL MATEO-SOTO";
+            //eVSReq.ToAptOrSuiteorOther = "";
+            //eVSReq.ToStreetAddress = "PO BOX 744";
+            //eVSReq.ToCity = "DORADO";
+            //eVSReq.ToState = "PR";
+            //eVSReq.ToZip4 = "";
+            //eVSReq.ToZip5 = "00646";
+            //eVSReq.ToPhone = new string('0', 10);
+            ////eVSReq.Width = 10;
+            ////eVSReq.Length = 13m;
+            ////eVSReq.Height = 0.5m;
+            //eVSReq.eVSCustomsFormsData = new eVSCustomsFormsData() { ShippingContents = new List<ItemDetail>() { new ItemDetail() { HSTariffNumber = "490110", CountryOfOrigin = "United States", Description = "Loan Document", Quantity = 1, NetPounds = 2, NetOunces = 0, Value = 50 } }, CustomsContentType = CustomsContentType.DOCUMENTS };
+            var eVSReq = D5();
             var res = svc.RequesteVSLabelAsync(eVSReq).Result;
             if (!string.IsNullOrWhiteSpace(res.BarcodeNumber))
             {
@@ -266,16 +267,19 @@ namespace WebApiClient
         public static eVSLabelRequest D5()
         {
             eVSLabelRequest eVSReq = GetDefaultValue(false);
-            eVSReq.ServiceType = ServiceType.PRIORITY;
-            eVSReq.ToFirm = "";
-            eVSReq.ToName = "Milan Patel";
-            eVSReq.ToStreetAddress = "3 Akshardham Society Kisan Samosa lane";
-            eVSReq.ToCity = "Nadiad";
-            eVSReq.ToState = "GJ";
-            eVSReq.ToZip5 = "387001";
-            eVSReq.CustomerRefNo = "D5";
-            eVSReq.ToZip4 = "";
-            eVSReq.ToPhone = new string('0', 10);
+            //eVSReq.ServiceType = ServiceType.PRIORITY;
+            //eVSReq.ToFirm = "";
+            //eVSReq.ToName = "Milan Patel";
+            //eVSReq.ToStreetAddress = "3 Akshardham Society Kisan Samosa lane";
+            //eVSReq.ToCity = "Nadiad";
+            //eVSReq.ToState = "GJ";
+            //eVSReq.ToZip5 = "387001";
+            //eVSReq.CustomerRefNo = "D5";
+            //eVSReq.ToZip4 = "";
+            //eVSReq.ToPhone = new string('0', 10);
+            string json = File.ReadAllText("evsRequest.Json").Replace("{{CurrentDate}}", DateTime.Now.ToShortDateString());
+            eVSReq = JsonConvert.DeserializeObject<eVSLabelRequest>(json);
+
             return eVSReq;
         }
         public static eVSLabelRequest D6()

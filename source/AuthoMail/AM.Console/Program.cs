@@ -16,7 +16,7 @@ namespace AM.Console
         private static log4net.ILog log;
         static void Main(string[] args)
         {
-            //Code Added to create argument wise log file
+                        //Code Added to create argument wise log file
             var argString = String.Join(",", args);
             log4net.LogicalThreadContext.Properties["args"] = argString;
             log4net.Config.XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo(ConfigurationManager.AppSettings["log4net.Config"]));
@@ -176,6 +176,11 @@ namespace AM.Console
                     {
                         Purging.PurgeArchiveFiles(args[1]);
                     }
+                    else if (args[0] == "CheckDisk")
+                    {
+                        Purging.CheckDiskSpaceAndAlert(args[1], double.Parse(args[2])); // args[1] = "C", args[2] = "85"
+                    }
+
                     else
                     {
                         using (var channel = ChannelFactory.Create(args))

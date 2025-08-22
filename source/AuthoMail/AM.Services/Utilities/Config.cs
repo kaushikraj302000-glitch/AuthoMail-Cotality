@@ -21,9 +21,11 @@ namespace AM.Services
         private static readonly Dictionary<int, List<Holiday>> groupHolidays;
         private static readonly Dictionary<string, string> customTemplates;
 
+
         #region General
         [Description("To indicate on which environment job is running.")]
         public static string Common_Environment { get; private set; }
+        public static string Common_SharedPath { get; private set; }
         public static string Common_WebUrl { get; private set; }
         public static string Common_EnvironmentInitial { get; private set; }
         public static string Common_AuthoMailRootFolder { get; private set; }
@@ -46,7 +48,7 @@ namespace AM.Services
         public static string Common_AMTrash { get; set; }
         public static string Common_PnSTrash { get; set; }
         public static string Common_BlankPage { get; private set; }
-        public static string Common_ServerIP { get; private set; }
+        public static string Common_ServerIP { get; set; }
         public static int Common_DallasVolumeCap { get; private set; }
         public static string Core_ChecksKey { get; set; }
         public static string Core_NonChecksKey { get; set; }

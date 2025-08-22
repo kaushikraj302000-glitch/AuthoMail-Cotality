@@ -12,6 +12,8 @@ using AM.USPSLib;
 using AM.Services.V3;
 using Newtonsoft.Json;
 using System.Configuration;
+using System.ComponentModel;
+using AM.Services.PB;
 
 namespace AM.Services
 {
@@ -23,7 +25,24 @@ namespace AM.Services
             {
                 if (bool.Parse(ConfigurationManager.AppSettings["UseUSPSV3API"].ToString()))
                 {
-                    return await this.RequesteVSLabelAPIAsync(userId, request, uspsUserInfo);
+                    if (request == null)
+                    {
+                        throw new ArgumentNullException("Given request object is null");
+                    }
+
+                    //return await this.RequesteVSLabelAPIAsync(userId, request, uspsUserInfo);
+                    PierbridgeShipRequest pierbridgeShipRequest = new PierbridgeShipRequest();
+
+                    pierbridgeShipRequest.Carrier = 106;
+                    pierbridgeShipRequest.ServiceType = request?.ServiceType == ServiceType.PRIORITY_EXPRESS ? 982 : 981;//Priority
+                    pierbridgeShipRequest.Receiver = new Receiver { CompanyName = request.ToFirm.IsNullOrWhiteSpace() ? request.ToName : request.ToFirm, Street = request.ToStreetAddress, City = request.ToCity, Region = request.ToState, PostalCode = request.ToZip5, Country = "US" };
+                    pierbridgeShipRequest.Packages = new Packages { PackageList = new List<Package> { new Package { ShipperReference = request?.CustomerRefNo, ReceiverName = request.ToName, ReceiverPhone = request.ToPhone, PackageType = 656, ContentDescription = "Documents", Height = double.Parse(request.Height.HasValue ? request.Height.Value.ToString() : "0.1"), Length = double.Parse(request.Length.HasValue ? request.Length.Value.ToString() : "12.5"), Weight = double.Parse(request.WeightInOunces), Width = double.Parse(request.Width.HasValue ? request.Width.Value.ToString() : "0.1") } } };
+
+                    pierbridgeShipRequest.UserName = Config.Web_API_USPS_UserId;
+
+                    //return await
+
+                    return await RequestPBLabelAsync(userId, pierbridgeShipRequest, uspsUserInfo);
                 }
                 else
                 {
@@ -209,7 +228,7 @@ namespace AM.Services
                     Error = new USPSError()
                     {
                         Source = ResponseSource.CLSVC,
-                        Description = "Unexpected error"
+                        Description = $"Unexpected error : {ex.ToString()}"
                     }
                 };
             }
@@ -357,7 +376,7 @@ namespace AM.Services
 
                         if (isUSPSError)
                         {
-                            Error err = responseV3.Error;
+                            V3.Error err = responseV3.Error;
 
                             eVSresponse = new eVSResponse { Error = new USPSError() { Number = err.code, Description = err.message, Source = JsonConvert.SerializeObject(err.errors) } };
                         }
