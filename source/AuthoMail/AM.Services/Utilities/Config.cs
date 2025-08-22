@@ -19,6 +19,7 @@ namespace AM.Services
     {
         private static readonly Dictionary<int, int> clientGroupMap;
         private static readonly Dictionary<int, List<Holiday>> groupHolidays;
+        private static readonly Dictionary<string, string> customTemplates;
 
         #region General
         [Description("To indicate on which environment job is running.")]
@@ -315,6 +316,17 @@ namespace AM.Services
         #endregion
 
         private static List<string> errors;
+
+        public static string GetCustomTemplate(string key)
+        {
+            if (customTemplates != null && customTemplates.TryGetValue(key, out var template))
+            {
+                return template;
+            }
+
+            return null;
+        }
+
         static Config()
         {
             // Initialize config settings
@@ -328,6 +340,7 @@ namespace AM.Services
                 Monitor_PackagesHoldInfo = commonSvc.GetPackagesHoldInfo();
                 USPSLabelCutOffDetails = commonSvc.GetUSPSLabelCutOffDetails();
                 USPSCredentialDetails = commonSvc.GetUSPSCredentialDetails();
+                customTemplates = commonSvc.GetCustomTemplates();
             }
 
             string docGenServerIP = Environment.GetEnvironmentVariable("SD_IP");
