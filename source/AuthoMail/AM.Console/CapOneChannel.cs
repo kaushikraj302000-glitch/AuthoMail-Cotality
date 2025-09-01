@@ -727,7 +727,7 @@ namespace AM.Console
                             continue;
                         }
 
-                        var state = mp.RecipientInfo?.Address?.State?.Trim()?.ToUpperInvariant();
+                        var state = objFloodRequest?.Data.PropState.Trim()?.ToUpperInvariant();
                         if (state == "MA" || state == "NY")
                         {
                             try
