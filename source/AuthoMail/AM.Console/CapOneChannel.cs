@@ -61,6 +61,8 @@ namespace AM.Console
 
             foreach (string file in filePaths)
             {
+                string localCsvFilePath = null;
+                string localArchivePath = null;
                 try
                 {
                     string filePath = Path.Combine(SFTChannel.ToADEDir, file + ".csv");
@@ -93,13 +95,14 @@ namespace AM.Console
                     #region Download Zip
                     string csvFileName = "{0}.csv".Fill(batchName);
                     string localCsvDirPath = Path.Combine(channelDownloadPath, Path.GetFileNameWithoutExtension(csvFileName));
-                    string localCsvFilePath = Path.Combine(localCsvDirPath, csvFileName);
+                    localCsvFilePath = Path.Combine(localCsvDirPath, csvFileName);
                     string ftpCsvFilePath = Path.Combine(SFTChannel.ToADEDir, csvFileName);
 
                     if (!sftSite.IsFileAvailable(ftpCsvFilePath))
                     {
                         var msg = "'{0}.csv' file is missing on SFT site.".Fill(batchName);
                         ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), localCsvFilePath);
+                        MoveFileToErrorFolder(localCsvFilePath, msg);
                         continue;
                     }
 
@@ -111,15 +114,22 @@ namespace AM.Console
                     }
 
                     DownloadBatchCsvFile(sftSite, ftpCsvFilePath, localCsvFilePath);
-                    string localArchivePath = Path.Combine(Config.Common_AuthoMailRootFolder, "Archive", "{0}.csv".Fill(batchName));
+                    localArchivePath = Path.Combine(Config.Common_AuthoMailRootFolder, "Archive", "{0}.csv".Fill(batchName));
                     //Generate List from CSV 
                     Dictionary<string, List<FloodData>> caponeClientData = new Dictionary<string, List<FloodData>>();
                     var lines = File.ReadAllLines(localCsvFilePath, Encoding.Default).ToList();
                     if (lines.Count <= 1)
                     {
-                        MailUtility.SendUnexpectedExceptionEmail("No records found for received file {0}.csv".Fill(batchName));
+                        var msg = "No records found for received file {0}.csv".Fill(batchName);
+                        MailUtility.SendUnexpectedExceptionEmail(msg);
+
                         if (File.Exists(localCsvFilePath))
                         {
+                            MoveFileToErrorFolder(localCsvFilePath, msg);
+                        }
+                        if (File.Exists(localCsvFilePath))
+                        {
+
                             if (Directory.Exists(Path.Combine(Config.Common_AuthoMailRootFolder, "Archive")))
                             {
 
@@ -162,7 +172,17 @@ namespace AM.Console
                 }
                 catch (Exception ex)
                 {
-                    var msg = "Error occured in EnumerateBatches Method For BatchName: {0} with Error : {1}".Fill(file, ex.Message);
+                    string msg = "Error occured in EnumerateBatches Method For BatchName: {0} with Error : {1}".Fill(file, ex.Message);
+                    log.Error(msg, ex);
+
+                    if (File.Exists(localArchivePath))
+                    {
+                        MoveFileToErrorFolder(localArchivePath, msg);
+                    }
+                    if (File.Exists(localCsvFilePath))
+                    {
+                        MoveFileToErrorFolder(localCsvFilePath, msg);
+                    }
                     log.Error(msg, ex);
                     MailUtility.SendUnexpectedExceptionEmail(msg);
                     continue;
@@ -188,6 +208,7 @@ namespace AM.Console
                     {
                         var msg = "Client code is required in provided csv.".Fill(clientCode);
                         ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), localCsvFilePath);
+                        MoveFileToErrorFolder(localCsvFilePath, msg);
                         continue;
                     }
 
@@ -197,6 +218,7 @@ namespace AM.Console
                     {
                         var msg = "Client code {0} is not valid from provided csv.".Fill(clientCode);
                         ReportInvalidBatch(InsertInvalidBatchInfo(batchName, lastModifiedTime, msg), localCsvFilePath);
+                        MoveFileToErrorFolder(localCsvFilePath, msg);
                         continue;
                     }
 
@@ -412,6 +434,10 @@ namespace AM.Console
                     var msg = "Error occured while processing batch from Batch '{0}.xml'".Fill(batchName);
                     log.Error(msg, ex);
 
+                    if (File.Exists(localCsvFilePath))
+                    {
+                        MoveFileToErrorFolder(localCsvFilePath, msg);
+                    }
 
 
                     if (Directory.Exists(localCsvDirPath))
@@ -454,20 +480,15 @@ namespace AM.Console
                 }
                 catch (Exception ex)
                 {
+                    var msg = "Error occured while inserting General Channel batches details for Batch '{0}.xml'".Fill(batchName);
+
+                    log.Error(msg, ex);
                     if (File.Exists(localCsvFilePath))
                     {
-
-                        string errorFolderPath = Path.Combine(Config.Common_SharedPath, "Client",
-                          SFTChannel.GetChannelCode(), "Inbound", "Error");
-                        log.Debug("error folder path: " + errorFolderPath);
-
-                        string errorFilePath = Path.Combine(errorFolderPath, Path.GetFileName(localCsvFilePath));
-                        File.Move(localCsvFilePath, errorFilePath);
-                        log.Info($"Moved failed file to error folder: {errorFilePath}");
+                        MoveFileToErrorFolder(localCsvFilePath, msg);
                     }
 
-                    var msg = "Error occured while inserting General Channel batches details for Batch '{0}.xml'".Fill(batchName);
-                    log.Error(msg, ex);
+
                     MailUtility.SendUnexpectedExceptionEmail(msg + "<br/> Error Message is {0}".Fill(ex));
 
                     return isAllSuccess;
@@ -515,6 +536,39 @@ namespace AM.Console
                 sftSite.Disconnect();
 
             commonSvc.UpdateBatchPipeLineStatus(mbi.MailBatch.Id, BatchPipelineStatus.ReportedBack, Common.Now).Wait();
+
+            if (!string.IsNullOrEmpty(localCsvFilePath) && File.Exists(localCsvFilePath))
+            {
+                MoveFileToErrorFolder(localCsvFilePath, "Invalid batch processed");
+            }
+        }
+        private void MoveFileToErrorFolder(string filePath, string message)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+                    return;
+
+                string errorFolderPath = Path.Combine(Config.Common_SharedPath, "Client",
+                    SFTChannel.GetChannelCode(), "Inbound", "Error");
+
+                if (!Directory.Exists(errorFolderPath))
+                {
+                    Directory.CreateDirectory(errorFolderPath);
+                }
+
+                string errorFilePath = Path.Combine(errorFolderPath, Path.GetFileName(filePath));
+                if (File.Exists(errorFilePath))
+                    File.Delete(errorFilePath);
+
+                File.Move(filePath, errorFilePath);
+                log.Info($"Moved failed file to error folder: {errorFilePath}");
+                MailUtility.SendUnexpectedExceptionEmail($"{message}. File moved to error folder: {errorFilePath}");
+            }
+            catch (Exception moveEx)
+            {
+                log.Error("Failed to move file to error folder: " + filePath, moveEx);
+            }
         }
 
         private MailBatchDTO InsertInvalidBatchInfo(string batchName, DateTime receivedOn, string errorMessage)
