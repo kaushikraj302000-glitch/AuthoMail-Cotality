@@ -54,23 +54,23 @@ namespace AM.Services
                     isProcessDelay = true;
                 }
             }
-
-            try
-            {
-                lastBatchReceivedOn = db.QuerySingle<BatchInfo>("select top 1 ReceivedOn from AM.MailBatches where IsReceived = 1 order by ReceivedOn desc");
-                if ((Common.Now - lastBatchReceivedOn.ReceivedOn).TotalMinutes > 60)
-                {
-                    var triggerFiles = EnumerateBatches();
-                    if (triggerFiles.Count > 0)
-                    {
-                        isReceivedDelay = true;
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                isReceivedDelay = true;
-            }
+            lastBatchReceivedOn = db.QuerySingle<BatchInfo>("select top 1 ReceivedOn from AM.MailBatches where IsReceived = 1 order by ReceivedOn desc");
+            //try
+            //{
+            //    lastBatchReceivedOn = db.QuerySingle<BatchInfo>("select top 1 ReceivedOn from AM.MailBatches where IsReceived = 1 order by ReceivedOn desc");
+            //    if ((Common.Now - lastBatchReceivedOn.ReceivedOn).TotalMinutes > 60)
+            //    {
+            //        var triggerFiles = EnumerateBatches();
+            //        if (triggerFiles.Count > 0)
+            //        {
+            //            isReceivedDelay = true;
+            //        }
+            //    }
+            //}
+            //catch (Exception)
+            //{
+            //    isReceivedDelay = true;
+            //}
             try
             {
                 var pendingMPsToSubmit = db.Query<PendingMailPieceInfo>(qry, new { cutOffMinutes = cutOffMinutes }).ToList();
