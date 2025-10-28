@@ -239,8 +239,11 @@ namespace AM.Web.Controllers
 
                 sb.Replace("{{AuthoMailURL}}", Config.Common_WebUrl);
                 string emails = supportSvc.GetEmailsFromClientDomain(user.Email);
-                await InternalEmail.SendMail(user.Email, null, emails, status.Equals(AMUserStatus.Approved) ? "AuthoMail registration request approved." : "AuthoMail registration request rejected.", sb.ToString());
-
+                string sub = status.Equals(AMUserStatus.Approved) ? "AuthoMail registration request approved"
+                    : "AuthoMail registration request rejected";
+                await InternalEmail.SendMail(user.Email, null, emails
+                    , Config.Common_Environment == "QA" ? Config.Common_Environment + " : " + sub : sub
+                    , sb.ToString());
                 return Json(JsonResponseFactory.SuccessResponse(model), JsonRequestBehavior.AllowGet);
             }
             catch (Exception e)

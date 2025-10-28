@@ -677,30 +677,31 @@ where cd.Id=@Id";
 
         public string GetEmailsFromClientDomain(string clientEmail)
         {
-            var roles = db.Query<IdentityRole>("SELECT * FROM [Profile].[Roles] WHERE NAME IN @name", new { name = new List<string>() { AMRoles.ClientUserManager, AMRoles.CoreLogicUserManager } });
-            var mailAddress = new MailAddress(clientEmail);
+            //var roles = db.Query<IdentityRole>("SELECT * FROM [Profile].[Roles] WHERE NAME IN @name", new { name = new List<string>() { AMRoles.ClientUserManager, AMRoles.CoreLogicUserManager } });
+            //var mailAddress = new MailAddress(clientEmail);
             var emailList = new List<string>();
 
-            //if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
+            ////if (mailAddress.Host.Equals("corelogic.com", StringComparison.CurrentCultureIgnoreCase))
+            ////{
+            //string query = "SELECT Email FROM [Profile].[Users] u,[Profile].[UserRoles] ur WHERE u.Id=ur.UserId AND ur.RoleId=@roleId";
+            //var emails = db.Query<string>(query, new { roleId = roles.Single(r => r.Name == AMRoles.CoreLogicUserManager).Id }).ToList();
+            //emailList.AddRange(emails);
+            ////}
+            ////else
+            ////{
+            //var clientIds = db.Query<int>("SELECT ClientId FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain", new { domain = mailAddress.Host });
+            //if (clientIds != null && clientIds.Count() > 0)
             //{
-            string query = "SELECT Email FROM [Profile].[Users] u,[Profile].[UserRoles] ur WHERE u.Id=ur.UserId AND ur.RoleId=@roleId";
-            var emails = db.Query<string>(query, new { roleId = roles.Single(r => r.Name == AMRoles.CoreLogicUserManager).Id }).ToList();
-            emailList.AddRange(emails);
+            //    string queryOther = "SELECT Email FROM [Profile].[Users] u,[Profile].[UserRoles] ur WHERE u.Id=ur.UserId AND ur.RoleId=@roleId AND u.ClientId in @clientId";
+            //    var emailsOther = db.Query<string>(queryOther, new { roleId = roles.Single(r => r.Name == AMRoles.ClientUserManager).Id, clientId = clientIds }).ToList();
+            //    emailList.AddRange(emailsOther);
             //}
-            //else
+            ////}
+            //if (emailList == null || emailList.Count() == 0)
             //{
-            var clientIds = db.Query<int>("SELECT ClientId FROM [Common].[ClientDomains] WHERE AllowedDomain=@domain", new { domain = mailAddress.Host });
-            if (clientIds != null && clientIds.Count() > 0)
-            {
-                string queryOther = "SELECT Email FROM [Profile].[Users] u,[Profile].[UserRoles] ur WHERE u.Id=ur.UserId AND ur.RoleId=@roleId AND u.ClientId in @clientId";
-                var emailsOther = db.Query<string>(queryOther, new { roleId = roles.Single(r => r.Name == AMRoles.ClientUserManager).Id, clientId = clientIds }).ToList();
-                emailList.AddRange(emailsOther);
-            }
+            //    return Config.Web_RegistrationDefaultEmails;
             //}
-            if (emailList == null || emailList.Count() == 0)
-            {
-                return Config.Web_RegistrationDefaultEmails;
-            }
+            emailList.Add("printandshipescalation.slx@cotality.com");
             return string.Join(",", emailList.Distinct());
         }
 
