@@ -447,13 +447,19 @@ namespace AM.Web.Controllers
                             sb.Replace("{{email}}", user.Email);
 
                             //Send email to specified admin for new registration request
-                            await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in AuthoMail.", sb.ToString());
+                            await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, 
+                                Config.Common_Environment == "QA" ? Config.Common_Environment + " : Registration in AuthoMail"
+                                : "Registration in AuthoMail", 
+                                sb.ToString());
                             //Send email to client to waiting for approval
                             sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\WaitForApproval.html")));
                             sb.Replace("{{name}}", user.FirstName);
                             sb.Replace("{{email}}", user.Email);
                             sb.Replace("{{defaultemails}}", string.Join(", ", emails.Split(',')));
-                            await InternalEmail.SendMail(user.Email, null, Config.Web_RegistrationBCCEmails, "Welcome to AuthoMail.", sb.ToString());
+                            await InternalEmail.SendMail(user.Email, null, Config.Web_RegistrationBCCEmails, 
+                                Config.Common_Environment == "QA" ? Config.Common_Environment + " : Welcome to AuthoMail" 
+                                : "Welcome to AuthoMail"
+                                , sb.ToString());
                             ViewBag.IsCoreLogic = true;
                             return View("SuccessRegistration");
                         }
@@ -649,13 +655,19 @@ namespace AM.Web.Controllers
             sb.Replace("{{email}}", user.Email);
 
             //Send email to specified client admin for new registration request.
-            await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails, "Registration in AuthoMail.", sb.ToString());
+            await InternalEmail.SendMail(emails, null, Config.Web_RegistrationBCCEmails,
+                 Config.Common_Environment == "QA" ? Config.Common_Environment + " : Registration in AuthoMail"
+                                : "Registration in AuthoMail",
+                sb.ToString());
             //Send email to client for waiting for approval of registration
             sb = new StringBuilder(System.IO.File.ReadAllText(Server.MapPath(@"~\Template\WaitForApproval.html")));
             sb.Replace("{{name}}", user.FirstName);
             sb.Replace("{{email}}", user.Email);
             sb.Replace("{{defaultemails}}", string.Join(", ", emails.Split(',')));
-            await InternalEmail.SendMail(user.Email, null, Config.Web_RegistrationBCCEmails, "Welcome to AuthoMail.", sb.ToString());
+            await InternalEmail.SendMail(user.Email, null, Config.Web_RegistrationBCCEmails,
+                Config.Common_Environment == "QA" ? Config.Common_Environment + " : Welcome to AuthoMail"
+                                : "Welcome to AuthoMail",
+                sb.ToString());
             return "Thank you for confirming your email. Your registration request is now awaiting approval. Please note that you may login only after your account is approved.";
         }
         [AllowAnonymous]
