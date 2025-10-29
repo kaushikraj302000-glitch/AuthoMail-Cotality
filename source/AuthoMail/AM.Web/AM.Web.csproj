@@ -456,7 +456,6 @@
     <Content Include="fonts\USPSIMBSTANDARD.TTF" />
     <Content Include="fonts\VERDANA.TTF" />
     <Content Include="fonts\ZapfDingbats.ttf" />
-    <Content Include="configs\DEV_Config\AuthoMailWeb\Aspose.Words.lic" />
     <Content Include="configs\DEV_Config\AuthoMailWeb\Web.config" />
     <Content Include="configs\DRG_Config\AuthoMailWeb\Web.config" />
     <Content Include="configs\REG_Config\AuthoMailWeb\Web.config" />
