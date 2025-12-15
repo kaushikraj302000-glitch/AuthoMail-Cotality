@@ -204,4 +204,13 @@ CREATE UNIQUE NONCLUSTERED INDEX [IX_MailPieces_UniqueId]
 GO
 CREATE NONCLUSTERED INDEX [IX_MailPieces_PnSConfigDetailId]
     ON [AM].[MailPieces]([PnSConfigDetailId] ASC) WITH (FILLFACTOR = 90);
-
+GO
+CREATE NONCLUSTERED INDEX IX_MailPieces_EffectiveReceivedOnEst_ClientId_FileName
+ON [AM].[MailPieces] (
+    EffectiveReceivedOnEst, ClientId, FileName
+)
+INCLUDE (
+    BusinessFriendlyIdValue, ShippingStatus, RcptFirstName, RcptLastName, RcptAddressStreet,
+    RcptAddressCity, RcptAddressState, RcptAddressZIP, DocumentOrPackageType
+)
+GO

@@ -86,6 +86,7 @@
     <None Include="Snapshots\Release_02JAN21.dacpac" />
     <None Include="Snapshots\Release_10JAN21.dacpac" />
     <None Include="Scripts\0728_INSERT_FloodNYMACustomTemplates.sql" />
+    <None Include="dbo\Stored Procedures\CheckDuplicateMailPiece.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Profile\Tables\Info.sql" />

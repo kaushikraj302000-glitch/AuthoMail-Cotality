@@ -702,8 +702,9 @@ namespace AM.Console
                     }
 
                     mailPieceSvc.UpdateBatchMailPieceDetails(mailPiece);
-
+                    log.Debug($"Checking if MailPiece duplicate");
                     isDuplicate = mailPieceSvc.IsDuplicateRecord(mailPiece);
+                    log.Debug($"Is MailPiece duplicate? - : {isDuplicate}");
 
                     if (isDuplicate)
                     {
