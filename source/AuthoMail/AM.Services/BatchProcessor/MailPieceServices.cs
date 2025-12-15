@@ -440,9 +440,31 @@ namespace AM.Services
 
         public bool IsDuplicateRecord(MailPieceDTO mailPiece)
         {
-            string query = @"SELECT CAST(CASE WHEN (SELECT COUNT(*) FROM [AM].[MailPieces] WHERE ShippingStatus NOT IN ('Error','PulledBack') AND ClientId = @ClientId AND ISNULL(RcptFirstName,'') = ISNULL(@RcptFirstName,'') AND ISNULL(RcptLastName,'') = ISNULL(@RcptLastName,'') AND ISNULL(RcptAddressStreet,'') = ISNULL(@RcptAddressStreet,'') AND ISNULL(RcptAddressCity,'') = ISNULL(@RcptAddressCity,'') AND ISNULL(RcptAddressState,'') = ISNULL(@RcptAddressState,'') AND ISNULL(RcptAddressZIP,'') = ISNULL(@RcptAddressZIP,'') AND BusinessFriendlyIdValue = @BusinessFriendlyIdValue AND [FileName] = @FileName AND DocumentOrPackageType = @DocumentOrPackageType AND CAST(EffectiveReceivedOnEst AS DATE) BETWEEN DATEADD(DAY,-5,CAST(@EffectiveReceivedOnEst AS DATE)) AND CAST(@EffectiveReceivedOnEst AS DATE)) > 1 THEN 1 ELSE 0 END AS BIT)";
+            // Define last 5 days range
+            DateTime? startDate = mailPiece.EffectiveReceivedOnEst?.Date.AddDays(-5);  // 5 days ago 00:00:00
+            DateTime? endDate = mailPiece.EffectiveReceivedOnEst?.Date.AddDays(1);     // tomorrow 00:00:00(exclusive end)
+            string query = @"EXEC dbo.CheckDuplicateMailPiece @StartDate,@EndDate,@ClientId,@FileName,@BusinessFriendlyIdValue,@RcptFirstName,@RcptLastName,@RcptAddressStreet,@RcptAddressCity,@RcptAddressState,@RcptAddressZIP,@DocumentOrPackageType";
 
-            return db.ExecuteScalar<bool>(query, mailPiece);
+            /**
+             * Commented out old query to handle date cast delay
+              string query = @"SELECT CAST(CASE WHEN (SELECT COUNT(*) FROM [AM].[MailPieces] WHERE ShippingStatus NOT IN ('Error','PulledBack') AND ClientId = @ClientId AND ISNULL(RcptFirstName,'') = ISNULL(@RcptFirstName,'') AND ISNULL(RcptLastName,'') = ISNULL(@RcptLastName,'') AND ISNULL(RcptAddressStreet,'') = ISNULL(@RcptAddressStreet,'') AND ISNULL(RcptAddressCity,'') = ISNULL(@RcptAddressCity,'') AND ISNULL(RcptAddressState,'') = ISNULL(@RcptAddressState,'') AND ISNULL(RcptAddressZIP,'') = ISNULL(@RcptAddressZIP,'') AND BusinessFriendlyIdValue = @BusinessFriendlyIdValue AND [FileName] = @FileName AND DocumentOrPackageType = @DocumentOrPackageType AND CAST(EffectiveReceivedOnEst AS DATE) BETWEEN DATEADD(DAY,-5,CAST(@EffectiveReceivedOnEst AS DATE)) AND CAST(@EffectiveReceivedOnEst AS DATE)) > 1 THEN 1 ELSE 0 END AS BIT)";
+              return db.ExecuteScalar<bool>(query, mailPiece);
+             **/
+            return db.ExecuteScalar<bool>(query, new
+            {
+                StartDate = startDate,
+                EndDate = endDate,
+                ClientId = mailPiece.ClientId,
+                FileName = mailPiece.FileName,
+                BusinessFriendlyIdValue = mailPiece.BusinessFriendlyIdValue,
+                RcptFirstName = mailPiece.RcptFirstName,
+                RcptLastName = mailPiece.RcptLastName,
+                RcptAddressStreet = mailPiece.RcptAddressStreet,
+                RcptAddressCity = mailPiece.RcptAddressCity,
+                RcptAddressState = mailPiece.RcptAddressState,
+                RcptAddressZIP = mailPiece.RcptAddressZIP,
+                DocumentOrPackageType = mailPiece.DocumentOrPackageType
+            });
         }
 
         public bool IsDuplicateRecord(MailPiece mailPiece)
