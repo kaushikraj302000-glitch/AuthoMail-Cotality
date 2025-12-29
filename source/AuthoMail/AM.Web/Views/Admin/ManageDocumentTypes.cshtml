@@ -52,6 +52,7 @@
                 <th>Is BRE Applicable</th>
                 <th>BRE Name & Part Number</th>
                 <th>Print Format</th>
+                <th>Paper Type</th>
                 <th>QC Percent</th>
                 <th>Allow Inserts Only</th>
                 <th>IsReturn Info Specified</th>
@@ -91,6 +92,7 @@
                 <td><span>{IsBRE}</span></td>
                 <td><span>{BREEnvelopeName_PartNumber}</span></td>
                 <td><span>{PrintFormat}</span></td>
+                <td><span>{PaperType}</span></td>
                 <td><span>{QCPercent}</span></td>
                 <td><span>{AllowInsertsOnly}</span></td>
                 <td><span>{IsReturnInfoSpecified}</span></td>
@@ -201,7 +203,7 @@
                 return str.length > 31 ? str.substring(0, 31) + '...' : str;
         }
 
-        function DocTypes(Id, DocTypeCode, Description, ClientId, PrintSize, ContentScalePercent, PrintFormat, QCPercent, BizdaySLAType, BizdayCutOff, BizdayTimeSpan, SatSLAType, SatCutOff, SatTimeSpan, SunSLAType, SunCutOff, SunTimeSpan, ShippingCarrier, ShippingServiceType, ShippingAccountCode, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, ClientEmails, ClientContactNo, SupportEmails, SupportContactNo, ShippingSpecialService, IsBRE, EnvelopeId, BREEnvelopeId, NoOfCopies) {
+        function DocTypes(Id, DocTypeCode, Description, ClientId, PrintSize, ContentScalePercent, PrintFormat, PaperType, QCPercent, BizdaySLAType, BizdayCutOff, BizdayTimeSpan, SatSLAType, SatCutOff, SatTimeSpan, SunSLAType, SunCutOff, SunTimeSpan, ShippingCarrier, ShippingServiceType, ShippingAccountCode, IsReturnInfoSpecified, RetRcptPrefix, RetRcptFirstName, RetRcptMiddleName, RetRcptLastName, RetRcptSuffix, RetRcptPhone, RetRcptOrganization, RetRcptAddrOptionalLine1AboveStreet, RetRcptAddrOptionalLine2AboveStreet, RetRcptAddressStreet, RetRcptAddressAptOrSuiteOrOther, RetRcptAddrOptionalLine1BelowStreet, RetRcptAddrOptionalLine2BelowStreet, RetRcptAddressCity, RetRcptAddressState, RetRcptAddressZIP, ClientEmails, ClientContactNo, SupportEmails, SupportContactNo, ShippingSpecialService, IsBRE, EnvelopeId, BREEnvelopeId, NoOfCopies) {
             this.Id = Id;
             this.DocTypeCode = DocTypeCode;
             this.Description = Description;
@@ -209,6 +211,7 @@
             this.PrintSize = PrintSize;
             this.ContentScalePercent = ContentScalePercent;
             this.PrintFormat = PrintFormat;
+            this.PaperType = PaperType;
             this.QCPercent = QCPercent;
             this.BizdaySLAType = BizdaySLAType;
             this.BizdayCutOff = BizdayCutOff;
@@ -300,6 +303,10 @@
                         },
                         PrintFormat: {
                             required: true,
+                            //lettersonly: true,
+                        },
+                        PaperType: {
+                            //required: true,
                             //lettersonly: true,
                         },
                         IsCoverLetter: {
@@ -430,7 +437,7 @@
                 }
                 if ($("#doctypeform").valid()) {
                     var isBRE = $("#IsBRE").is(':checked') ? true : false;
-                    var objDocType = new DocTypes($("#Id").val(), $("#DocTypeCode").val(), $("#Description").val(), parseInt($("#ClientId").val()), $("#PrintSize").val(), $("#ContentScalePercent").val(), $("#PrintFormat").val(), $("#QCPercent").val(), $("#BizdaySLAType").val(), $("#BizdayCutOff").val(), $("#BizdayTimeSpan").val(), $("#SatSLAType").val(), $("#SatCutOff").val(), $("#SatTimeSpan").val(), $("#SunSLAType").val(), $("#SunCutOff").val(), $("#SunTimeSpan").val(), $("#ShippingCarrier").val(), $("#ShippingServiceType").val(), $("#ShippingAccountCode").val(), $("#IsReturnInfoSpecified").val(), $("#RetRcptPrefix").val(), $("#RetRcptFirstName").val(), $("#RetRcptMiddleName").val(), $("#RetRcptLastName").val(), $("#RetRcptSuffix").val(), $("#RetRcptPhone").val(), $("#RetRcptOrganization").val(), $("#RetRcptAddrOptionalLine1AboveStreet").val(), $("#RetRcptAddrOptionalLine2AboveStreet").val(), $("#RetRcptAddressStreet").val(), $("#RetRcptAddressAptOrSuiteOrOther").val(), $("#RetRcptAddrOptionalLine1BelowStreet").val(), $("#RetRcptAddrOptionalLine2BelowStreet").val(), $("#RetRcptAddressCity").val(), $("#RetRcptAddressState").val(), $("#RetRcptAddressZIP").val(), $("#ClientEmails").val(), $("#ClientContactNo").val(), $("#SupportEmails").val(), $("#SupportContactNo").val(), $("#ShippingSpecialService").val(), isBRE, $("#EnvelopeId").val(), $("#BREEnvelopeId").val(), $("#NoOfCopies").val());
+                    var objDocType = new DocTypes($("#Id").val(), $("#DocTypeCode").val(), $("#Description").val(), parseInt($("#ClientId").val()), $("#PrintSize").val(), $("#ContentScalePercent").val(), $("#PrintFormat").val(), $("#PaperType").val(), $("#QCPercent").val(), $("#BizdaySLAType").val(), $("#BizdayCutOff").val(), $("#BizdayTimeSpan").val(), $("#SatSLAType").val(), $("#SatCutOff").val(), $("#SatTimeSpan").val(), $("#SunSLAType").val(), $("#SunCutOff").val(), $("#SunTimeSpan").val(), $("#ShippingCarrier").val(), $("#ShippingServiceType").val(), $("#ShippingAccountCode").val(), $("#IsReturnInfoSpecified").val(), $("#RetRcptPrefix").val(), $("#RetRcptFirstName").val(), $("#RetRcptMiddleName").val(), $("#RetRcptLastName").val(), $("#RetRcptSuffix").val(), $("#RetRcptPhone").val(), $("#RetRcptOrganization").val(), $("#RetRcptAddrOptionalLine1AboveStreet").val(), $("#RetRcptAddrOptionalLine2AboveStreet").val(), $("#RetRcptAddressStreet").val(), $("#RetRcptAddressAptOrSuiteOrOther").val(), $("#RetRcptAddrOptionalLine1BelowStreet").val(), $("#RetRcptAddrOptionalLine2BelowStreet").val(), $("#RetRcptAddressCity").val(), $("#RetRcptAddressState").val(), $("#RetRcptAddressZIP").val(), $("#ClientEmails").val(), $("#ClientContactNo").val(), $("#SupportEmails").val(), $("#SupportContactNo").val(), $("#ShippingSpecialService").val(), isBRE, $("#EnvelopeId").val(), $("#BREEnvelopeId").val(), $("#NoOfCopies").val());
 
                     $("#AddEditModal").modal("hide");
                     var el = $("#myModal").find(".modal-body");

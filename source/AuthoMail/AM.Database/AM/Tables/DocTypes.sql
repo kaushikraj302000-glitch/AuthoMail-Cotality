@@ -41,6 +41,7 @@
     [ReturnShippingServiceType] VARCHAR(255) NULL, 
     [ReturnShippingAccountCode] VARCHAR(255) NULL, 
     [IntlPnSConfigId] INT NULL, 
+    [PaperType] VARCHAR(255) NULL, 
     CONSTRAINT [PK_DocTypes] PRIMARY KEY CLUSTERED ([Id] ASC) WITH (FILLFACTOR = 90),
     CONSTRAINT [FK_CreatedBy_DocTypes_User] FOREIGN KEY ([CreatedBy]) REFERENCES [Profile].[Users] ([Id]),
     CONSTRAINT [FK_DocTypes_Clients] FOREIGN KEY ([ClientId]) REFERENCES [Common].[Clients] ([Id]),

@@ -156,6 +156,7 @@ namespace AM.Entities
         public string ClientContactNo { get; set; }
         public string SupportEmails { get; set; }
         public string SupportContactNo { get; set; }
+        public string PaperType { get; set; }
     }
     public class DocTypeReport
     {
@@ -166,6 +167,7 @@ namespace AM.Entities
         public int MinPage { get; set; }
         public int MaxPage { get; set; }
         public string PrintTrailName { get; set; }
+        public string PaperType { get; set; }
         public string PrintVendor { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
