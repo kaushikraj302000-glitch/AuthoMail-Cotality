@@ -548,6 +548,7 @@ namespace AM.Services
         public DateTime? ExpiryDate { get; set; }
         public DateTime? DueDate { get; set; }
         public string Channel { get; set; }
+        public int TotalPages { get; set; }
         public string ShippingMethod { get; set; }
         public string ShippingCarrier { get; set; }
         public string ErrorCode { get; set; }
@@ -576,6 +577,7 @@ namespace AM.Services
         }
         public bool IsWithinRetentionPeriod { get; set; }
         public string ServerIP { get; set; }
+        public string ImpressionCount { get; set; }
     }
 
 
