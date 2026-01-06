@@ -281,6 +281,7 @@ namespace AM.Web.Controllers
                     m.MailedOn = m.MailedOn.HasValue ? m.MailedOn.Value.AddMinutes(-timezoneOffset) : m.MailedOn;
                     m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
                     m.ReturnDeliveryDate = m.ReturnDeliveryDate.HasValue ? m.ReturnDeliveryDate.Value.AddMinutes(-timezoneOffset) : m.ReturnDeliveryDate;
+                    m.ImpressionCount = m.Channel.ToLower().Contains("credco") ? m.PagesShipped.ToString() : "NA";
                 });
                 var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
 
@@ -415,6 +416,7 @@ namespace AM.Web.Controllers
                 m.SubmittedOn = m.SubmittedOn.HasValue ? m.SubmittedOn.Value.AddMinutes(-timezoneOffset) : m.SubmittedOn;
                 m.PulledBackOn = m.PulledBackOn.HasValue ? m.PulledBackOn.Value.AddMinutes(-timezoneOffset) : m.PulledBackOn;
                 m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
+                m.ImpressionCount = m.Channel.ToLower().Contains("credco") ? m.TotalPages.ToString() : "NA";
             });
             var dataTable = ExcelHelper.ToDataTable<MonthlyReconReportViewModel>(model);
             if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))

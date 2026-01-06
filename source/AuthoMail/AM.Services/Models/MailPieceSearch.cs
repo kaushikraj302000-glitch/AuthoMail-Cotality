@@ -607,6 +607,7 @@ namespace AM.Services
         public int LetterPageCount { get; set; }
         public int LegalPageCount { get; set; }
         public int TotalBlankPages { get; set; }
+        public string ImpressionCount { get; set; }
         public bool IsEDeliveryRequested { get; set; }
         public bool IsESignRequested { get; set; }
         public DateTime? ESignedOn { get { if (this.Status == ShippingStatus.eSigned.ToString() && ShippedOn.HasValue) return ShippedOn; return null; } }
