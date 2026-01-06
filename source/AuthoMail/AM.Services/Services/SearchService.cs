@@ -120,6 +120,10 @@ namespace AM.Services
             {
                 query = string.Format("{0} order by b.ReceivedOn desc", query);
                 var data = db.Query<SearchViewModel>(query.Replace("{{fields}}", fields), parameter).ToList();
+                foreach(var d in data)
+                {
+                    d.ImpressionCount = d.Channel.ToLower().Contains("credco") ? d.TotalPages.ToString() : "NA";
+                }
                 return new KeyValuePair<int, List<SearchViewModel>>(count, data);
             }
             return new KeyValuePair<int, List<SearchViewModel>>(count, null);

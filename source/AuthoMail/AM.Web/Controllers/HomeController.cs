@@ -97,7 +97,7 @@ namespace AM.Web.Controllers
                 var exactEndDate = receivedOnEnd != string.Empty ? DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
                 var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, mailPieceUniqueId, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode, false, batchMailPieceId);
                 //ViewBag.ShippingCarrier = data.Value.
-
+                
 
                 if (data.Key != 0 && data.Value != null)
                 {
