@@ -168,7 +168,7 @@ namespace AM.Web.Controllers
                     m.DueDate = m.DueDate.HasValue ? m.DueDate.Value.AddMinutes(-timezoneOffset) : m.DueDate;
                     m.ShipmentStatusUpdatedOn = m.ShipmentStatusUpdatedOn.HasValue ? m.ShipmentStatusUpdatedOn.Value.AddMinutes(-timezoneOffset) : m.ShipmentStatusUpdatedOn;
                     m.IsESignRequested = m.ExpiryDate.HasValue ? true : false;
-                    m.ImpressionCount = m.Channel.ToLower().Contains("credco") ? m.TotalPages.ToString() : "NA";
+                    m.ImpressionCount = m.Channel.ToLower().Contains("credco") ? (m.TotalSheets * 2).ToString() : "NA";
                 });
                 var dataTable = ExcelHelper.ToDataTable<SearchViewModel>(model.Value);
 

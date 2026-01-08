@@ -42,7 +42,7 @@ namespace AM.Services
 	 m.RcptAddressState as [State],m.RcptAddressCountry AS Country,m.PickedUpOn,m.ShippedOn,m.TrackingNo,m.DueDate,m.ErrorCode,m.ErrorDesc,m.PrintLocation,m.IsEDeliveryRequested, m.IsESignRequested,m.ExpiryDate,m.Inserts,m.ShipmentStatus,m.ShipmentStatusUpdatedOn,
 	 b.ReceivedOn,m.DocTypeId,
 	 d.DocTypeName as DocType,pcd.ShippingServiceType as ShippingMethod,pcd.ShippingCarrier,
-	 ch.Title as Channel, m.TotalPages,m.DeliveryStatus,m.DeliveryDate,m.Inserts,
+	 ch.Title as Channel, m.TotalSheets,m.DeliveryStatus,m.DeliveryDate,m.Inserts,
 	e.EnvelopeName,ptb.PrintBatchName as PrintFileName, req.JobId, req.PDFFileName, c.AppCode, c.Id AS ClientId,C.RetentionPeriod, C.IsEDeliveryEnabled, b.ServerIP";
             DynamicParameters parameter = new DynamicParameters();
             parameter.Add("@clientId", clientId);
@@ -122,7 +122,7 @@ namespace AM.Services
                 var data = db.Query<SearchViewModel>(query.Replace("{{fields}}", fields), parameter).ToList();
                 foreach(var d in data)
                 {
-                    d.ImpressionCount = d.Channel.ToLower().Contains("credco") ? d.TotalPages.ToString() : "NA";
+                    d.ImpressionCount = d.Channel.ToLower().Contains("credco") ? (d.TotalSheets * 2).ToString() : "NA";
                 }
                 return new KeyValuePair<int, List<SearchViewModel>>(count, data);
             }
