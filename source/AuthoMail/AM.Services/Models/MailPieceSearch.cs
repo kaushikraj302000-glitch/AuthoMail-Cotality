@@ -307,6 +307,7 @@ namespace AM.Services
         public string PrintSize { get; set; }
         public decimal ContentScalePercent { get; set; }
         public string PrintFormat { get; set; }
+        public string PaperType { get; set; }
         public decimal QCPercent { get; set; }
         public string ShippingCarrier { get; set; }
         public string ShippingServiceType { get; set; }
