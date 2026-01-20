@@ -202,6 +202,7 @@ namespace AM.Services
         public string PrintLocation { get; set; }
         public int PagesShipped { get; set; }
         public int BlankPages { get; set; }
+        public string ImpressionCount { get; set; }
         public string Status { get; set; }
         public string Inserts { get; set; }
         public string PrintFileName { get; set; }
