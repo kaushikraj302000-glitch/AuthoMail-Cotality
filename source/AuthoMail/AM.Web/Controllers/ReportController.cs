@@ -281,6 +281,10 @@ namespace AM.Web.Controllers
                     m.MailedOn = m.MailedOn.HasValue ? m.MailedOn.Value.AddMinutes(-timezoneOffset) : m.MailedOn;
                     m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
                     m.ReturnDeliveryDate = m.ReturnDeliveryDate.HasValue ? m.ReturnDeliveryDate.Value.AddMinutes(-timezoneOffset) : m.ReturnDeliveryDate;
+                    m.ImpressionCount = m.Channel.ToLower().Contains("credco") && (m.PagesShipped % 2 == 0) 
+                                        ? m.PagesShipped.ToString()
+                                       : m.Channel.ToLower().Contains("credco") ? (m.PagesShipped + 1).ToString() 
+                                       : "NA";
                 });
                 var dataTable = ExcelHelper.ToDataTable<ReportWizard>(result);
 
@@ -404,8 +408,14 @@ namespace AM.Web.Controllers
         [HttpPost]
         public async Task<ActionResult> _DownloadPVReconReport(string printVendorCode, string startDate, string endDate, string fileName, int timezoneOffset, List<int> clientIds, string status, List<string> shippingMethods)
         {
-            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToStartDateTime().EstToUtc();
-            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToEndDateTime().EstToUtc();
+            //Commented this to set start and end date to match NORDIS cutoff.
+            //var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToStartDateTime().EstToUtc();
+            //var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToEndDateTime().EstToUtc();
+
+            //Set start and end date to match NORDIS cutoff.
+            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).AddHours(-7).EstToUtc();
+            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).AddHours(17).EstToUtc();
+            
             var data = repoSvc.GetPVReconReport(printVendorCode, exactStartDate, exactEndDate, clientIds, status, shippingMethods);
             var model = Mapper.Map<List<MonthlyReconReportViewModel>>(data);
             model.ForEach(m =>
@@ -415,6 +425,7 @@ namespace AM.Web.Controllers
                 m.SubmittedOn = m.SubmittedOn.HasValue ? m.SubmittedOn.Value.AddMinutes(-timezoneOffset) : m.SubmittedOn;
                 m.PulledBackOn = m.PulledBackOn.HasValue ? m.PulledBackOn.Value.AddMinutes(-timezoneOffset) : m.PulledBackOn;
                 m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
+                m.ImpressionCount = m.Channel.ToLower().Contains("credco") ? (m.TotalSheets * 2).ToString() : "NA";
             });
             var dataTable = ExcelHelper.ToDataTable<MonthlyReconReportViewModel>(model);
             if (User.IsInRole(AM.Entities.AMRoles.BAOffShore))

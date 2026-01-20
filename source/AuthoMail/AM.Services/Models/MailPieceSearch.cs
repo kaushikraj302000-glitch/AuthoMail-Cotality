@@ -548,6 +548,8 @@ namespace AM.Services
         public DateTime? ExpiryDate { get; set; }
         public DateTime? DueDate { get; set; }
         public string Channel { get; set; }
+        public string ImpressionCount { get; set; }
+        public int TotalSheets { get; set; }
         public string ShippingMethod { get; set; }
         public string ShippingCarrier { get; set; }
         public string ErrorCode { get; set; }
@@ -605,6 +607,7 @@ namespace AM.Services
         public int LetterPageCount { get; set; }
         public int LegalPageCount { get; set; }
         public int TotalBlankPages { get; set; }
+        public string ImpressionCount { get; set; }
         public bool IsEDeliveryRequested { get; set; }
         public bool IsESignRequested { get; set; }
         public DateTime? ESignedOn { get { if (this.Status == ShippingStatus.eSigned.ToString() && ShippedOn.HasValue) return ShippedOn; return null; } }
