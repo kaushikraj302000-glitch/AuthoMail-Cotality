@@ -279,6 +279,7 @@ namespace AM.Web.Controllers
                     m.ReceivedOn = m.ReceivedOn.HasValue ? m.ReceivedOn.Value.AddMinutes(-timezoneOffset) : m.ReceivedOn;
                     m.PrintedOn = m.PrintedOn.HasValue ? m.PrintedOn.Value.AddMinutes(-timezoneOffset) : m.PrintedOn;
                     m.MailedOn = m.MailedOn.HasValue ? m.MailedOn.Value.AddMinutes(-timezoneOffset) : m.MailedOn;
+                    m.DueDate = m.DueDate.HasValue ? m.DueDate.Value.AddMinutes(-timezoneOffset) : m.DueDate;
                     m.DeliveryDate = m.DeliveryDate.HasValue ? m.DeliveryDate.Value.AddMinutes(-timezoneOffset) : m.DeliveryDate;
                     m.ReturnDeliveryDate = m.ReturnDeliveryDate.HasValue ? m.ReturnDeliveryDate.Value.AddMinutes(-timezoneOffset) : m.ReturnDeliveryDate;
                     m.ImpressionCount = m.Channel.ToLower().Contains("credco") && (m.PagesShipped % 2 == 0) 
