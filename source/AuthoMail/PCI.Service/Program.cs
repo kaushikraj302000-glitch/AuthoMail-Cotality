@@ -3,6 +3,7 @@ using Microsoft.Practices.EnterpriseLibrary.Data;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -20,6 +21,7 @@ namespace PCI.Service
         static void Main(string[] args)
         {
             var argString = String.Join(",", args);
+            string requiredRoot = @"\AuthoMail\APPLICATIONS_FILES\PnSRoot\BundlingRoot";
 
             if (args.Length > 0 && args[0] == "PCIJob")
             {
@@ -116,12 +118,35 @@ namespace PCI.Service
                 }
                 log.Info($"{string.Join(",", args)} completed.");
             }
+            catch (DirectoryNotFoundException dex)
+            {
+                string missingPath = ExtractPathFromMessage(dex.Message);
+                var msg = "";
+
+                if (!string.IsNullOrEmpty(missingPath) &&
+                    missingPath.Contains(requiredRoot))
+                {
+                    missingPath.CreateDirectoryIfNotExist();
+                    msg = "Error occured while executing {0} <br/> <b> Created Response folder under BundlingRoot folder.</b> </br> <b> Error Message </b><br/>{1}".Fill(args[0], dex);
+                }
+                else
+                {
+                    msg = "Error occured while executing {0} <br/> <b> Error Message </b><br/>{1}".Fill(args[0], dex);
+                }
+                log.Error(msg);
+                MailUtility.SendUnexpectedNotificationEmail(msg);
+            }
             catch (Exception ex)
             {
                 var msg = "Error occured while executing {0} <br/> <b> Error Message </b><br/>{1}".Fill(args[0], ex);
                 log.Error(msg);
                 MailUtility.SendUnexpectedNotificationEmail(msg);
             }
+        }
+        static string ExtractPathFromMessage(string message)
+        {
+            var match = Regex.Match(message, @"'([^']*)'");
+            return match.Success ? match.Groups[1].Value : null;
         }
     }
 }
