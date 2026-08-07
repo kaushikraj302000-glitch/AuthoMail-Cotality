@@ -588,7 +588,7 @@ namespace AM.Services
             string query = @"
                     SELECT [DocTypeId], [CustomTemplatePath], [CommunityCode]
                     FROM [AM].[CustomTemplates]
-                    WHERE [CommunityCode] IN ('MA', 'NY')";
+                    WHERE [CommunityCode] IN ('MA', 'NY', 'CT')";
 
             var result = db.Query<(int DocTypeId, string CustomTemplatePath, string CommunityCode)>(query);
 
