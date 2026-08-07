@@ -97,7 +97,7 @@ namespace AM.Web.Controllers
                 var exactEndDate = receivedOnEnd != string.Empty ? DateTime.ParseExact(receivedOnEnd, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces) : (DateTime?)null;
                 var data = serSvc.GetMailPieceByParam(User.Identity.GetClientId().Value, BusinessFriendlyIdName, BusinessFriendlyIdValue, mailPieceUniqueId, exactStartDate, exactEndDate, docType, status, channel, clientBatchId, mailBatchId, trackingNumber, errorCode, false, batchMailPieceId);
                 //ViewBag.ShippingCarrier = data.Value.
-
+                
 
                 if (data.Key != 0 && data.Value != null)
                 {
@@ -168,6 +168,7 @@ namespace AM.Web.Controllers
                     m.DueDate = m.DueDate.HasValue ? m.DueDate.Value.AddMinutes(-timezoneOffset) : m.DueDate;
                     m.ShipmentStatusUpdatedOn = m.ShipmentStatusUpdatedOn.HasValue ? m.ShipmentStatusUpdatedOn.Value.AddMinutes(-timezoneOffset) : m.ShipmentStatusUpdatedOn;
                     m.IsESignRequested = m.ExpiryDate.HasValue ? true : false;
+                    m.ImpressionCount = m.Channel.ToLower().Contains("credco") ? (m.TotalSheets * 2).ToString() : "NA";
                 });
                 var dataTable = ExcelHelper.ToDataTable<SearchViewModel>(model.Value);
 

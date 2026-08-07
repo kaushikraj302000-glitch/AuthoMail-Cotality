@@ -782,7 +782,12 @@ namespace AM.Console
                         }
 
                         var state = objFloodRequest?.Data.PropState.Trim()?.ToUpperInvariant();
-                        if (state == "MA" || state == "NY")
+                        if (state == "MA" || state == "NY"
+                           || (
+                               (mailBatch.ClientBatchId.ToLower().Contains("capone_") || (mailBatch.ClientBatchId.ToLower().Contains("ct_clear_"))
+                               && state == "CT")
+                              )
+                           )
                         {
                             try
                             {
@@ -821,7 +826,14 @@ namespace AM.Console
                                 PdfUtil.MergePDFs(originalPdfPath, disclosurePdfPath, tempMergedPath);
 
                                 File.Delete(originalPdfPath); // Delete original
-                                File.Move(tempMergedPath, originalPdfPath); // Overwrite with merged
+                                if (mailBatch.ClientBatchId.ToLower().Contains("ct_clear_") && state == "CT")//Send only disclosure if input file is CT_CLEAR
+                                {
+                                    File.Move(disclosurePdfPath, originalPdfPath); // Overwrite with disclosure
+                                }
+                                else
+                                {
+                                    File.Move(tempMergedPath, originalPdfPath); // Overwrite with merged
+                                }
                                 File.Delete(disclosurePdfPath); // Delete disclosure PDF)
 
                                 log.Info($"Merged and replaced original PDF at {originalPdfPath} for state {state}");
