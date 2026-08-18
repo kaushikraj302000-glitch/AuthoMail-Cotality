@@ -412,11 +412,11 @@ namespace AM.Web.Controllers
             //Commented this to set start and end date to match NORDIS cutoff.
             //var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToStartDateTime().EstToUtc();
             //var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToEndDateTime().EstToUtc();
-
-            //Set start and end date to match NORDIS cutoff.
-            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).AddHours(-7).EstToUtc();
-            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).AddHours(17).EstToUtc();
             
+            //Set start and end date to match NORDIS cutoff.
+            var exactStartDate = DateTime.ParseExact(startDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToStartDateTime().AddHours(-7).EstToUtc();
+            var exactEndDate = DateTime.ParseExact(endDate, "MM/dd/yy", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces).ToEndDateTime().AddHours(17).EstToUtc();
+
             var data = repoSvc.GetPVReconReport(printVendorCode, exactStartDate, exactEndDate, clientIds, status, shippingMethods);
             var model = Mapper.Map<List<MonthlyReconReportViewModel>>(data);
             model.ForEach(m =>
