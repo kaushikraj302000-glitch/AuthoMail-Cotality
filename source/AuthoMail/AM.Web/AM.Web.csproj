@@ -380,6 +380,7 @@
     <Content Include="clui\dist\js\vendor\jsondateextensions.js" />
     <Content Include="clui\dist\js\vendor\moment.js" />
     <Content Include="clui\dist\js\vendor\select2.js" />
+    <Content Include="clui\images\Cotality_Logo1.png" />
     <Content Include="clui\images\sso-image.jpg" />
     <Content Include="clui\images\corelogic.png" />
     <Content Include="clui\images\1sso-image.jpg" />
